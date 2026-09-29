@@ -1,0 +1,30 @@
+name = "berliner-kiez-check"
+main = "worker.js"
+compatibility_date = "2026-09-01"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "berliner-kiez-check"
+database_id = "7afe8c12-e478-4c88-8fd9-029bbd801ef7"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "berliner-kiez-check-photos"
+
+[vars]
+# "1" = von der KI als unbedenklich eingestufte Einträge gehen sofort online
+AUTO_APPROVE = "1"
+# AdSense für die SEO-Seiten (/k/...), leer lassen = keine Werbung
+ADSENSE_CLIENT = ""
+ADSENSE_SLOT = ""
+
+# Secrets (NICHT hier eintragen, sondern per `wrangler secret put NAME`):
+# ADMIN_TOKEN, ANTHROPIC_API_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
+
+# Kiez-Stories: täglich um 3 Uhr (UTC) abgelaufene Stories und ihre Dateien löschen
+[triggers]
+crons = ["0 3 * * *"]
