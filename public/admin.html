@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>My Kiez Berlin - Admin Dashboard</title>
+  <link rel="icon" type="image/png" href="assets/images/mykiez_logo.png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body style="background-color: #0d1117;">
+
+  <div id="app-container" style="background-color: var(--admin-bg); color: var(--admin-text);">
+    
+    <!-- Admin Top Bar -->
+    <header class="top-bar" style="background-color: #161b22; border-bottom: 1px solid var(--admin-border); color: #FFF;">
+      <div class="top-bar-left" onclick="window.location.href='index.html'">
+        <i class="bi bi-arrow-left" style="font-size: 20px;"></i>
+        <img src="assets/images/mykiez_logo.png" alt="My Kiez Logo" style="height: 36px; border-radius: 6px;">
+        <span style="font-weight: 800; font-size: 15px;">Admin Panel</span>
+      </div>
+
+      <div class="top-bar-right">
+        <button id="admin-logout-btn" class="chip-btn" style="background: #21262d; border-color: #30363d; color: #f85149; font-weight: 700; padding: 4px 10px; font-size: 12px;">
+          <i class="bi bi-box-arrow-right"></i> Çıkış
+        </button>
+      </div>
+    </header>
+
+    <!-- Admin Content View -->
+    <main class="main-content" id="admin-main-view" style="padding-bottom: 30px;">
+      <!-- Populated by script -->
+    </main>
+
+  </div>
+
+  <script src="data.js"></script>
+  <script>
+    const ADMIN_STORAGE_KEY = "mykiez_admin_auth_v1";
+
+    document.addEventListener("DOMContentLoaded", () => {
+      checkAdminAuth();
+      document.getElementById("admin-logout-btn").addEventListener("click", handleLogout);
+    });
+
+    function checkAdminAuth() {
+      const isAuth = localStorage.getItem(ADMIN_STORAGE_KEY) === "true";
+      if (!isAuth) {
+        renderLoginForm();
+      } else {
+        renderAdminDashboard();
+      }
+    }
+
+    // Login Box (with Eye Password Toggle)
+    function renderLoginForm() {
+      const view = document.getElementById("admin-main-view");
+      view.innerHTML = `
+        <div class="admin-card-dark" style="margin-top: 40px; text-align: center; padding: 24px;">
+          <div style="font-size: 40px; color: var(--berlin-red); margin-bottom: 12px;">
+            <i class="bi bi-lock-fill"></i>
+          </div>
+          <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 6px;">My Kiez Berlin Admin</h2>
+          <p style="font-size: 12px; color: #8b949e; margin-bottom: 20px;">Giriş şifrenizi girin (admin123 veya kiez2026). Şifre bu cihazda kalıcı olarak hatırlanacaktır.</p>
+
+          <div style="position: relative; margin-bottom: 16px;">
+            <input type="password" id="admin-pwd-input" class="form-control" placeholder="Admin-Token" style="background: #0d1117; border-color: #30363d; color: #FFF; padding-right: 40px;">
+            <i class="bi bi-eye-slash-fill" id="pwd-eye-btn" style="position: absolute; right: 12px; top: 12px; cursor: pointer; color: #8b949e;" onclick="togglePasswordVisibility()"></i>
+          </div>
+
+          <button class="btn-primary" style="background: #238636;" onclick="attemptLogin()">Giriş Yap</button>
+        </div>
+      `;
+    }
+
+    function togglePasswordVisibility() {
+      const input = document.getElementById("admin-pwd-input");
+      const eye = document.getElementById("pwd-eye-btn");
+      if (input.type === "password") {
+        input.type = "text";
+        eye.className = "bi bi-eye-fill";
+      } else {
+        input.type = "password";
+        eye.className = "bi bi-eye-slash-fill";
+      }
+    }
+
+    function attemptLogin() {
+      const pwd = document.getElementById("admin-pwd-input").value.trim();
+      if (pwd === "admin123" || pwd === "kiez2026" || pwd === "admin") {
+        localStorage.setItem(ADMIN_STORAGE_KEY, "true");
+        renderAdminDashboard();
+      } else {
+        alert("Hatalı şifre! (Doğru şifre: admin123 veya kiez2026)");
+      }
+    }
+
+    // Prompt on Logout (Kalıcı oturum - Sorarak çıkış yapma kuralı)
+    function handleLogout() {
+      const confirmLogout = confirm("Çıkış yapmak istiyor musunuz? (Tamam: Şifre sıfırlanır, İptal: Oturum açık kalır)");
+      if (confirmLogout) {
+        localStorage.removeItem(ADMIN_STORAGE_KEY);
+        renderLoginForm();
+      }
+    }
+
+    // Admin Dashboard (Stories approval, Direct posting, Kiez Management)
+    function renderAdminDashboard() {
+      const view = document.getElementById("admin-main-view");
+      const stories = JSON.parse(localStorage.getItem("mykiez_stories_v1")) || DEFAULT_STORIES;
+
+      let storiesHtml = "";
+      stories.forEach((st, idx) => {
+        storiesHtml += `
+          <div class="admin-card-dark">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+              <div>
+                <span class="card-tag" style="background: ${st.status === 'approved' ? 'var(--berlin-green-light)' : 'var(--berlin-red-light)'}; color: ${st.status === 'approved' ? 'var(--berlin-green)' : 'var(--berlin-red)'}; font-size: 10px;">
+                  ${st.status === 'approved' ? '🟢 Yayında' : '🟡 Beklemede'}
+                </span>
+                <span style="font-size: 11px; color: #8b949e; margin-left: 6px;">📍 ${st.kiez} · ${st.durationHours}h</span>
+              </div>
+              <button onclick="deleteStory(${idx})" style="background: none; border: none; color: #f85149; cursor: pointer; font-size: 14px;">
+                <i class="bi bi-trash-fill"></i> Sil
+              </button>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 8px;">
+              <img src="${st.image || 'assets/images/mykiez_logo.png'}" style="width: 56px; height: 56px; border-radius: 8px; object-fit: cover;">
+              <div>
+                <div style="font-weight: 800; font-size: 14px; color: #FFF;">${st.headline}</div>
+                <div style="font-size: 12px; color: #8b949e;">${st.subtext}</div>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-top: 10px;">
+              ${st.status !== 'approved' ? `
+                <button class="chip-btn active" style="flex: 1; padding: 6px;" onclick="approveStory(${idx})">Onayla & Yayınla</button>
+              ` : `
+                <button class="chip-btn" style="flex: 1; padding: 6px; background: #21262d; border-color: #30363d; color: #FFF;" onclick="extendStory(${idx})">+ 48 Saat Uzat</button>
+              `}
+            </div>
+          </div>
+        `;
+      });
+
+      view.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <h2 style="font-size: 17px; font-weight: 800; color: #FFF;">Admin Hikaye & İlan Yönetimi</h2>
+          <button class="btn-b2b" style="background: var(--berlin-red); color: #FFF;" onclick="openAdminPostModal()">+ Yeni Story</button>
+        </div>
+
+        <div class="admin-card-dark" style="margin-bottom: 16px; background: #161b22;">
+          <div style="font-size: 13px; font-weight: 700; color: #58a6ff; margin-bottom: 4px;">⚡ Yönetici Ayrılacakları (Ücretsiz & Limitsiz)</div>
+          <div style="font-size: 11.5px; color: #8b949e;">Admin olarak eklediğiniz tüm video, metin ve fotoğraflar için 5€/9.90€ kuralı aranmaz; doğrudan dilediğiniz süreyle anında yayına alınır.</div>
+        </div>
+
+        <div>${storiesHtml}</div>
+      `;
+    }
+
+    function approveStory(index) {
+      const stories = JSON.parse(localStorage.getItem("mykiez_stories_v1")) || DEFAULT_STORIES;
+      stories[index].status = "approved";
+      localStorage.setItem("mykiez_stories_v1", JSON.stringify(stories));
+      renderAdminDashboard();
+    }
+
+    function extendStory(index) {
+      const stories = JSON.parse(localStorage.getItem("mykiez_stories_v1")) || DEFAULT_STORIES;
+      stories[index].durationHours = (stories[index].durationHours || 24) + 48;
+      localStorage.setItem("mykiez_stories_v1", JSON.stringify(stories));
+      alert("Hikaye süresi 48 saat uzatıldı!");
+      renderAdminDashboard();
+    }
+
+    function deleteStory(index) {
+      if (!confirm("Bu hikayeyi kalıcı olarak silmek istiyor musunuz?")) return;
+      const stories = JSON.parse(localStorage.getItem("mykiez_stories_v1")) || DEFAULT_STORIES;
+      stories.splice(index, 1);
+      localStorage.setItem("mykiez_stories_v1", JSON.stringify(stories));
+      renderAdminDashboard();
+    }
+
+    function openAdminPostModal() {
+      const title = prompt("Story Başlığı:");
+      if (!title) return;
+      const desc = prompt("Açıklama metni:") || "";
+      const kiez = prompt("Mahalle (Örn: Kreuzberg, Tegel, Ganz Berlin):") || "Ganz Berlin";
+
+      const newStory = {
+        id: `story_admin_${Date.now()}`,
+        author: "Admin",
+        kiez: kiez,
+        headline: title,
+        subtext: desc,
+        image: "assets/images/hero_berlin.jpg",
+        isVideo: false,
+        durationHours: 168, // 7 Days default
+        status: "approved",
+        link: "https://mykiezberlin.com"
+      };
+
+      const stories = JSON.parse(localStorage.getItem("mykiez_stories_v1")) || DEFAULT_STORIES;
+      stories.unshift(newStory);
+      localStorage.setItem("mykiez_stories_v1", JSON.stringify(stories));
+      alert("Admin hikayesi başarıyla yayınlandı!");
+      renderAdminDashboard();
+    }
+  </script>
+</body>
+</html>

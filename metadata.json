@@ -1,0 +1,6 @@
+{
+  "name": "My Kiez Berlin",
+  "description": "My Kiez Berlin: Lokale Betriebe, Gutscheine, Kiez-Stories, Jobs, Notruf, Kiez-Reporter & Kiez-Quiz für ganz Berlin auf mykiezberlin.com.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
