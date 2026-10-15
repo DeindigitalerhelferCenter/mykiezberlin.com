@@ -51,10 +51,10 @@ body {
   margin: 0;
 }
 
-/* App Container - Mimics Android Mobile Screen & Responsive on Desktop */
+/* App Container - Responsive on Mobile (Android & iPhone), Tablets, and Desktop (PC & Mac) */
 #app-container {
   width: 100%;
-  max-width: 500px;
+  max-width: 100%;
   min-height: 100vh;
   background-color: var(--bg-color);
   display: flex;
@@ -64,13 +64,25 @@ body {
   overflow-x: hidden;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 640px) {
   #app-container {
-    margin: 20px auto;
-    border-radius: 28px;
-    min-height: calc(100vh - 40px);
+    max-width: 680px;
+    margin: 16px auto;
+    border-radius: 20px;
+    min-height: calc(100vh - 32px);
     border: 1px solid #334155;
-    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  }
+}
+
+@media (min-width: 1024px) {
+  #app-container {
+    max-width: 980px;
+    margin: 24px auto;
+    border-radius: 24px;
+    min-height: calc(100vh - 48px);
+    border: 1px solid #334155;
+    box-shadow: 0 12px 45px rgba(0,0,0,0.5);
   }
 }
 
@@ -90,12 +102,32 @@ body {
 .top-bar-left {
   display: flex;
   align-items: center;
+  gap: 10px;
+}
+
+.brand-link {
+  display: flex;
+  align-items: center;
   gap: 8px;
   cursor: pointer;
+  user-select: none;
+}
+
+.brand-title {
+  font-size: 15.5px;
+  font-weight: 900;
+  color: var(--text-main);
+  letter-spacing: -0.3px;
+}
+
+@media (max-width: 420px) {
+  .brand-title {
+    display: none;
+  }
 }
 
 .app-logo-img {
-  height: 42px;
+  height: 38px;
   width: auto;
   border-radius: var(--radius-sm);
   object-fit: contain;
@@ -105,6 +137,26 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* APK Download Pill Button */
+.btn-apk-download {
+  background: linear-gradient(135deg, #0284C7, #0369A1);
+  color: #FFFFFF !important;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 2px 8px rgba(2,132,199,0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.btn-apk-download:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(2,132,199,0.45);
 }
 
 .btn-b2b {
@@ -133,18 +185,32 @@ body {
   cursor: pointer;
   color: var(--text-main);
   position: relative;
-  font-size: 16px;
+  font-size: 15px;
+  transition: background 0.15s ease;
+}
+.btn-icon-circle:hover {
+  background-color: #E2E8F0;
 }
 
 .badge-dot {
   position: absolute;
   top: 4px;
   right: 4px;
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   background-color: var(--berlin-red);
   border-radius: 50%;
   border: 1.5px solid var(--surface-color);
+}
+
+.badge-dot.pulse {
+  animation: pulseDot 1.5s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(227, 6, 19, 0.7); }
+  70% { transform: scale(1.2); box-shadow: 0 0 0 6px rgba(227, 6, 19, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(227, 6, 19, 0); }
 }
 
 /* Search Box */
@@ -621,3 +687,536 @@ body {
   padding: 16px;
   margin-bottom: 12px;
 }
+
+/* ============================================================
+   REAL-TIME BERLIN ALERT BANNER (S-BAHN, BVG, FEUERWEHR, POLIZEI)
+   ============================================================ */
+.live-alert-banner {
+  background: #FFFFFF;
+  margin: 10px 16px 4px 16px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.07);
+  animation: bannerSlideDown 0.28s ease-out;
+}
+
+@keyframes bannerSlideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.alert-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.alert-badge-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.alert-tag-pill {
+  font-size: 11px;
+  font-weight: 900;
+  padding: 3px 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.live-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  animation: alertPulse 1.2s infinite ease-in-out;
+}
+
+@keyframes alertPulse {
+  0% { transform: scale(0.9); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.6; }
+  100% { transform: scale(0.9); opacity: 1; }
+}
+
+.alert-timestamp {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.alert-dismiss-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.alert-dismiss-btn:hover {
+  background: #F1F5F9;
+  color: var(--text-main);
+}
+
+.alert-title-text {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.alert-body-text {
+  font-size: 12.5px;
+  color: #334155;
+  line-height: 1.45;
+  margin-bottom: 10px;
+}
+
+.alert-actions-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.alert-action-btn {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 11px;
+  border-radius: 6px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s ease;
+}
+
+.alert-action-btn.primary {
+  background: #0F172A;
+  color: #FFFFFF;
+}
+.alert-action-btn.primary:hover {
+  background: #1E293B;
+}
+
+.alert-action-btn.secondary {
+  background: var(--surface-variant);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+}
+.alert-action-btn.secondary:hover {
+  background: #E2E8F0;
+}
+
+.alert-action-btn.share {
+  background: var(--berlin-blue-light);
+  color: var(--berlin-blue);
+  border: 1px solid rgba(2,132,199,0.3);
+}
+.alert-action-btn.share:hover {
+  background: #BAE6FD;
+}
+
+/* ============================================================
+   HAMBURGER HUB MODAL (1:1 with Android HamburgerHubModal)
+   ============================================================ */
+.hub-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(5px);
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 16px;
+  overflow-y: auto;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.hub-modal-card {
+  background: var(--surface-color);
+  width: 100%;
+  max-width: 500px;
+  border-radius: 20px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+  overflow: hidden;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border-color);
+  animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.96) translateY(12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.hub-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border-color);
+  background: #FAFAFA;
+}
+
+.hub-brand-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hub-logo-img {
+  height: 42px;
+  width: auto;
+  border-radius: var(--radius-sm);
+}
+
+.hub-title-text {
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--text-main);
+}
+
+.hub-subtitle-text {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.hub-close-btn {
+  background: var(--surface-variant);
+  border: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-main);
+  transition: background 0.15s;
+}
+.hub-close-btn:hover {
+  background: #E2E8F0;
+}
+
+.hub-body-content {
+  padding: 16px;
+}
+
+/* ARKADAŞIMA PAYLAŞ BUTONU */
+.hub-share-btn-box {
+  background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
+  color: #FFFFFF;
+  border-radius: 12px;
+  padding: 13px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(2,132,199,0.35);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.hub-share-btn-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(2,132,199,0.45);
+}
+
+.hub-share-icon-ring {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.hub-share-text-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.hub-share-title {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.hub-share-subtitle {
+  font-size: 11px;
+  opacity: 0.9;
+}
+
+/* DOĞRUDAN BUTONUN ALTINDA GÖRÜNEN İNDİRME LİNKİ KUTUSU */
+.hub-download-link-box {
+  background: #F8FAFC;
+  border: 1px solid rgba(2,132,199,0.35);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-top: 8px;
+  margin-bottom: 16px;
+}
+
+.download-box-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.download-label-text {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #0284C7;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.download-action-chips {
+  display: flex;
+  gap: 6px;
+}
+
+.copy-pill-btn {
+  background: #E0F2FE;
+  color: #0369A1;
+  border: 1px solid #BAE6FD;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: all 0.15s;
+}
+.copy-pill-btn:hover {
+  background: #0284C7;
+  color: #FFFFFF;
+}
+
+.download-pill-btn {
+  background: #0284C7;
+  color: #FFFFFF !important;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 6px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: opacity 0.15s;
+}
+.download-pill-btn:hover {
+  opacity: 0.9;
+}
+
+.download-url-code {
+  background: #0F172A;
+  color: #38BDF8;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  overflow-x: auto;
+  white-space: nowrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  cursor: pointer;
+}
+
+/* HUB MENU GRID */
+.hub-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.hub-menu-tile {
+  background: var(--surface-variant);
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hub-menu-tile:hover {
+  background: #E2E8F0;
+  transform: translateY(-1px);
+}
+
+.tile-icon-box {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  margin-bottom: 2px;
+}
+
+.tile-icon-box.red { background: var(--berlin-red-light); color: var(--berlin-red); }
+.tile-icon-box.blue { background: var(--berlin-blue-light); color: var(--berlin-blue); }
+.tile-icon-box.yellow { background: var(--berlin-yellow-light); color: #B45309; }
+.tile-icon-box.green { background: var(--berlin-green-light); color: var(--berlin-green); }
+.tile-icon-box.purple { background: #F3E8FF; color: #7C3AED; }
+
+.tile-label {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.tile-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.hub-footer-actions {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid var(--border-color);
+  padding-top: 14px;
+  gap: 10px;
+}
+
+.hub-footer-link {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+}
+.hub-footer-link:hover {
+  color: var(--text-main);
+}
+
+/* ============================================================
+   CANLI TICKER BÜLTENİ TAB STYLES
+   ============================================================ */
+.bulletin-header-box {
+  background: #FFFFFF;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  margin-bottom: 14px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.test-trigger-btn {
+  background: var(--berlin-red-light);
+  color: var(--berlin-red-dark);
+  border: 1px solid rgba(227,6,19,0.25);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.test-trigger-btn:hover {
+  background: var(--berlin-red);
+  color: #FFF;
+}
+
+.bulletin-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bulletin-card {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* ============================================================
+   KIEZ TOAST NOTIFICATION
+   ============================================================ */
+.kiez-toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #0F172A;
+  color: #FFFFFF;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: var(--radius-full);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s, transform 0.25s;
+}
+
+.kiez-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ============================================================
+   RESPONSIVE GRID LAYOUTS FOR TABLET, PC, AND LAPTOP
+   ============================================================ */
+@media (min-width: 768px) {
+  .main-content {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    align-content: start;
+  }
+
+  .main-content > h2,
+  .main-content > div[style*="background: var(--berlin-red-light)"],
+  .category-chips-scroll,
+  .bulletin-header-box,
+  .search-wrapper,
+  .stories-section {
+    grid-column: 1 / -1;
+  }
+
+  .bulletin-cards-list {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  .hub-menu-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .main-content {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .bulletin-cards-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+

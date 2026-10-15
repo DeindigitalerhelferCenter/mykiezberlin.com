@@ -338,7 +338,8 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     onSelectFolder = { viewModel.selectBulletinFolder(it) },
                     onSearchChange = { viewModel.setBulletinSearchQuery(it) },
                     onRefresh = { viewModel.refreshLiveBulletins() },
-                    onBack = { viewModel.navigateTo(AppScreen.HOME) }
+                    onBack = { viewModel.navigateTo(AppScreen.HOME) },
+                    onTriggerAlert = { viewModel.triggerTestNotification() }
                 )
 
                 AppScreen.BERLIN_TIPS -> BerlinTipsScreen(

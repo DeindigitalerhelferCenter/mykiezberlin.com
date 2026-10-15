@@ -28,6 +28,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.R
 import com.example.data.model.AppLanguage
+import com.example.ui.theme.BerlinBlue
+import com.example.ui.theme.BerlinGreen
 import com.example.ui.theme.BerlinRed
 import com.example.ui.theme.BerlinRedLight
 import com.example.ui.viewmodel.AppScreen

@@ -21,25 +21,45 @@
   <!-- Main Responsive Mobile Container -->
   <div id="app-container">
     
-    <!-- Top Bar (Header with Pure Vector Logo, Language Toggle & Sponsoring) -->
+    <!-- Top Bar (Header with Pure Vector Logo, Hamburger Hub, APK Download & Live Alerts) -->
     <header class="top-bar">
-      <div class="top-bar-left" onclick="switchTab('home')">
-        <img src="assets/images/mykiez_logo.png" alt="My Kiez Berlin Logo" class="app-logo-img">
+      <div class="top-bar-left">
+        <button id="hamburger-btn" class="btn-icon-circle" title="Menü / Kiez Hub">
+          <i class="bi bi-list" style="font-size: 22px;"></i>
+        </button>
+        <div class="brand-link" onclick="switchTab('home')">
+          <img src="assets/images/mykiez_logo.png" alt="My Kiez Berlin Logo" class="app-logo-img">
+          <span class="brand-title">My Kiez Berlin</span>
+        </div>
       </div>
 
       <div class="top-bar-right">
-        <a href="admin.html" class="btn-b2b" style="text-decoration: none;">
-          <i class="bi bi-shield-lock-fill"></i> Admin
+        <!-- Direct APK Download Button -->
+        <a href="https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin.com.apk" download class="btn-apk-download" title="Offizielle Android App herunterladen">
+          <i class="bi bi-android2"></i>
+          <span class="apk-btn-text">APK İndir</span>
         </a>
-        <button id="lang-toggle-btn" class="btn-icon-circle" title="Sprache wechseln / Dil">
+
+        <!-- Live Alerts Bell Toggle -->
+        <button id="bell-toggle-btn" class="btn-icon-circle" title="Berlin Canlı Hatırlatma & Bildirimler">
+          <i class="bi bi-bell-fill"></i>
+          <span class="badge-dot pulse"></span>
+        </button>
+
+        <!-- Language Switcher -->
+        <button id="lang-toggle-btn" class="btn-icon-circle" title="Sprache wechseln / Dil Değiştir">
           TR
         </button>
-        <button class="btn-icon-circle" onclick="alert('My Kiez Berlin Bildirimleri: Güncel etkinlikler ve kiez indirimleri aktif!')">
-          <i class="bi bi-bell-fill"></i>
-          <span class="badge-dot"></span>
-        </button>
+
+        <!-- Admin -->
+        <a href="admin.html" class="btn-b2b" style="text-decoration: none;" title="Yönetici Paneli">
+          <i class="bi bi-shield-lock-fill"></i> <span class="admin-btn-text">Admin</span>
+        </a>
       </div>
     </header>
+
+    <!-- Real-Time Berlin Alert Ticker (S-Bahn, BVG, Feuerwehr, Polizei) -->
+    <div id="live-alert-ticker-container"></div>
 
     <!-- Search Box -->
     <div class="search-wrapper">
@@ -60,7 +80,7 @@
       </div>
     </section>
 
-    <!-- Dynamic Content Area (Home, Kieze, Events, Jobs, Notruf, Quiz) -->
+    <!-- Dynamic Content Area (Home, Kieze, Bulletin, Events, Jobs, Emergency, Quiz) -->
     <main class="main-content" id="main-tab-content">
       <!-- Injected by app.js -->
     </main>
@@ -75,6 +95,10 @@
         <i class="bi bi-compass-fill"></i>
         <span>Kiezler</span>
       </button>
+      <button class="nav-item" data-tab="bulletin">
+        <i class="bi bi-broadcast-pin"></i>
+        <span>Canlı Ticker</span>
+      </button>
       <button class="nav-item" data-tab="events">
         <i class="bi bi-calendar-event-fill"></i>
         <span>Etkinlik</span>
@@ -83,13 +107,13 @@
         <i class="bi bi-briefcase-fill"></i>
         <span>İşler</span>
       </button>
-      <button class="nav-item" data-tab="quiz">
-        <i class="bi bi-trophy-fill"></i>
-        <span>Yarışma</span>
-      </button>
       <button class="nav-item" data-tab="emergency">
         <i class="bi bi-telephone-fill"></i>
         <span>Acil</span>
+      </button>
+      <button class="nav-item" data-tab="quiz">
+        <i class="bi bi-trophy-fill"></i>
+        <span>Yarışma</span>
       </button>
     </nav>
 

@@ -10,12 +10,18 @@ const STORAGE_CUSTOM_KIEZE_KEY = "mykiez_custom_kieze_v1";
 
 // State
 let currentTab = "home";
-let currentLanguage = "tr"; // "tr" | "de" | "en"
+let currentLanguage = "tr"; // "tr" | "de"
 let activeCategory = "all";
+let activeBulletinFilter = "all";
 let activeStoryIndex = 0;
 let storyTimer = null;
 let storyProgress = 0;
 let isStoryPaused = false;
+
+// Alert Ticker State (1:1 with BerlinNotificationManager)
+let currentAlertIndex = 0;
+let alertDismissed = false;
+let alertAutoCycleTimer = null;
 
 // Quiz State
 let quizIndex = 0;
@@ -39,7 +45,7 @@ function saveStories(storiesList) {
   localStorage.setItem(STORAGE_STORIES_KEY, JSON.stringify(storiesList));
 }
 
-// Translations Dictionary
+// Translations Dictionary (Matching Android Strings & Localization)
 const I18N = {
   tr: {
     appTitle: "My Kiez Berlin",
@@ -47,6 +53,7 @@ const I18N = {
     yourStory: "Paylaş",
     navHome: "Ana Sayfa",
     navKieze: "Kiezler",
+    navBulletin: "Canlı Ticker",
     navEvents: "Etkinlikler",
     navJobs: "İşler",
     navEmergency: "Acil",
@@ -58,7 +65,23 @@ const I18N = {
     nextQuestion: "Sonraki Soru",
     seeResults: "Sonuçları Gör",
     adminTitle: "Yönetici Paneli",
-    logoutConfirm: "Çıkış yapmak istiyor musunuz?"
+    logoutConfirm: "Çıkış yapmak istiyor musunuz?",
+    shareFriend: "Arkadaşıma Paylaş",
+    shareFriendSub: "My Kiez Berlin uygulamasını tavsiye et",
+    apkDownloadBtn: "APK İndir",
+    apkDownloadTitle: "İndirme Linki (APK):",
+    copyBtn: "Kopyala",
+    downloadBtn: "İndir",
+    copiedToast: "APK indirme linki kopyalandı!",
+    officialSource: "Resmi Kaynak",
+    liveTickerBadge: "CANLI BİLDİRİM & TİCKER",
+    shareAlertBtn: "Paylaş (APK)",
+    dismissBtn: "Kapat",
+    bulletinTitle: "🚨 Berlin Canlı Hatırlatma & Ticker Bülteni",
+    bulletinSubtitle: "S-Bahn Berlin, BVG, İtfaiye (Feuerwehr), Polis ve resmi kurumlardan anlık teyitli olaylar.",
+    triggerTestAlert: "🔔 Yeni Canlı Bildirim Gönder (Test)",
+    lastUpdate: "Canlı Güncellendi",
+    shareMessage: "Berlin'in canlı bülteni, mahalle rehberi ve etkinlikleri için My Kiez Berlin uygulamasını hemen indir:\nhttps://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin.com.apk"
   },
   de: {
     appTitle: "My Kiez Berlin",
@@ -66,6 +89,7 @@ const I18N = {
     yourStory: "Deine Story",
     navHome: "Startseite",
     navKieze: "Kieze",
+    navBulletin: "Live-Ticker",
     navEvents: "Events",
     navJobs: "Jobs",
     navEmergency: "Notruf",
@@ -77,34 +101,33 @@ const I18N = {
     nextQuestion: "Nächste Frage",
     seeResults: "Ergebnis ansehen",
     adminTitle: "Admin-Bereich",
-    logoutConfirm: "Möchten Sie sich wirklich abmelden?"
-  },
-  en: {
-    appTitle: "My Kiez Berlin",
-    shareStory: "+ Share Story",
-    yourStory: "Your Story",
-    navHome: "Home",
-    navKieze: "Kieze",
-    navEvents: "Events",
-    navJobs: "Jobs",
-    navEmergency: "Emergency",
-    navQuiz: "Quiz",
-    searchPlaceholder: "Search kiez, shop, event or street...",
-    all: "All",
-    congrats: "Congratulations! 🎉",
-    restart: "Play Again",
-    nextQuestion: "Next Question",
-    seeResults: "See Results",
-    adminTitle: "Admin Panel",
-    logoutConfirm: "Do you want to sign out?"
+    logoutConfirm: "Möchten Sie sich wirklich abmelden?",
+    shareFriend: "App mit Freunden teilen",
+    shareFriendSub: "Direkter APK-Download-Link zum Weiterleiten",
+    apkDownloadBtn: "APK herunterladen",
+    apkDownloadTitle: "Download-Link (APK):",
+    copyBtn: "Kopieren",
+    downloadBtn: "Download",
+    copiedToast: "APK-Download-Link in Zwischenablage kopiert!",
+    officialSource: "Offizielle Quelle",
+    liveTickerBadge: "LIVE-TICKER & MELDUNG",
+    shareAlertBtn: "Teilen (APK)",
+    dismissBtn: "Schließen",
+    bulletinTitle: "🚨 Berlin Live-Ticker & Ticker-Bulletin",
+    bulletinSubtitle: "Echtzeit-Meldungen von S-Bahn Berlin, BVG, Feuerwehr, Polizei und Senatsstellen.",
+    triggerTestAlert: "🔔 Live-Meldung auslösen (Test)",
+    lastUpdate: "Live aktualisiert",
+    shareMessage: "Lade jetzt die My Kiez Berlin App für Live-Ticker, Nachbarschafts-Guide und Events herunter:\nhttps://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin.com.apk"
   }
 };
 
-// Render Functions
+// Render Functions & Lifecycle
 document.addEventListener("DOMContentLoaded", () => {
   renderStoriesBar();
+  renderAlertTicker();
   renderTabContent();
   setupEventListeners();
+  startAlertAutoCycle();
 });
 
 function setupEventListeners() {
@@ -117,18 +140,69 @@ function setupEventListeners() {
     });
   });
 
+  // Hamburger Menu Hub Button
+  const hamburgerBtn = document.getElementById("hamburger-btn");
+  if (hamburgerBtn) {
+    hamburgerBtn.addEventListener("click", () => {
+      openHamburgerHubModal();
+    });
+  }
+
+  // Bell icon button (triggers next alert or toggles ticker)
+  const bellBtn = document.getElementById("bell-toggle-btn");
+  if (bellBtn) {
+    bellBtn.addEventListener("click", () => {
+      cycleNextAlert(true);
+      showToast(currentLanguage === "tr" ? "Yeni Berlin bildirimi gösteriliyor!" : "Neue Berlin-Meldung wird angezeigt!");
+    });
+  }
+
   // Language selector
   const langBtn = document.getElementById("lang-toggle-btn");
   if (langBtn) {
     langBtn.addEventListener("click", () => {
-      if (currentLanguage === "tr") currentLanguage = "de";
-      else if (currentLanguage === "de") currentLanguage = "en";
-      else currentLanguage = "tr";
+      currentLanguage = (currentLanguage === "tr") ? "de" : "tr";
       langBtn.innerText = currentLanguage.toUpperCase();
       renderStoriesBar();
+      renderAlertTicker();
       renderTabContent();
+      updateStaticLabels();
     });
   }
+
+  // Global search input
+  const searchInput = document.getElementById("global-search-input");
+  if (searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      handleGlobalSearch(e.target.value.toLowerCase().trim());
+    });
+  }
+}
+
+function updateStaticLabels() {
+  const t = I18N[currentLanguage];
+  const searchInput = document.getElementById("global-search-input");
+  if (searchInput) searchInput.placeholder = t.searchPlaceholder;
+  const apkText = document.querySelector(".apk-btn-text");
+  if (apkText) apkText.innerText = currentLanguage === "tr" ? "APK İndir" : "APK Download";
+
+  // Update nav labels
+  const navMap = {
+    home: t.navHome,
+    kieze: t.navKieze,
+    bulletin: t.navBulletin,
+    events: t.navEvents,
+    jobs: t.navJobs,
+    emergency: t.navEmergency,
+    quiz: t.navQuiz
+  };
+  document.querySelectorAll(".nav-item").forEach(item => {
+    const tab = item.getAttribute("data-tab");
+    const span = item.querySelector("span");
+    if (span && navMap[tab]) {
+      span.innerText = navMap[tab];
+    }
+  });
 }
 
 function switchTab(tab) {
@@ -141,6 +215,281 @@ function switchTab(tab) {
     }
   });
   renderTabContent();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// Toast Notification Helper
+function showToast(message) {
+  let toast = document.getElementById("kiez-toast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "kiez-toast";
+    toast.className = "kiez-toast";
+    document.body.appendChild(toast);
+  }
+  toast.innerText = message;
+  toast.classList.add("show");
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 3200);
+}
+
+// Real-Time Alert Ticker (S-Bahn, BVG, Feuerwehr, Polizei)
+function renderAlertTicker() {
+  const container = document.getElementById("live-alert-ticker-container");
+  if (!container) return;
+
+  if (alertDismissed) {
+    container.innerHTML = "";
+    return;
+  }
+
+  const alertItem = BERLIN_LIVE_ALERTS[currentAlertIndex % BERLIN_LIVE_ALERTS.length];
+  const t = I18N[currentLanguage];
+  const title = currentLanguage === "tr" ? alertItem.titleTr : alertItem.titleDe;
+  const body = currentLanguage === "tr" ? alertItem.bodyTr : alertItem.bodyDe;
+
+  container.innerHTML = `
+    <div class="live-alert-banner" style="border-left: 5px solid ${alertItem.color};">
+      <div class="alert-top-row">
+        <div class="alert-badge-group">
+          <span class="alert-tag-pill" style="background-color: ${alertItem.bgLight}; color: ${alertItem.color};">
+            <span class="live-pulse-dot" style="background-color: ${alertItem.color};"></span>
+            ${alertItem.tag}
+          </span>
+          <span class="alert-timestamp">⏰ ${alertItem.timestamp}</span>
+        </div>
+        <button class="alert-dismiss-btn" onclick="dismissAlertBanner()" title="${t.dismissBtn}">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <div class="alert-title-text">${title}</div>
+      <div class="alert-body-text">${body}</div>
+
+      <div class="alert-actions-row">
+        <a href="${alertItem.officialUrl}" target="_blank" class="alert-action-btn primary" title="Offizielle Seite aufrufen">
+          <i class="bi bi-box-arrow-up-right"></i> ${t.officialSource}
+        </a>
+        <button class="alert-action-btn secondary" onclick="switchTab('bulletin')">
+          <i class="bi bi-broadcast"></i> ${t.navBulletin}
+        </button>
+        <button class="alert-action-btn share" onclick="shareAlert(${alertItem.id})">
+          <i class="bi bi-share-fill"></i> ${t.shareAlertBtn}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function dismissAlertBanner() {
+  alertDismissed = true;
+  const container = document.getElementById("live-alert-ticker-container");
+  if (container) container.innerHTML = "";
+}
+
+function cycleNextAlert(forceOpen = false) {
+  currentAlertIndex = (currentAlertIndex + 1) % BERLIN_LIVE_ALERTS.length;
+  if (forceOpen) alertDismissed = false;
+  renderAlertTicker();
+}
+
+function startAlertAutoCycle() {
+  clearInterval(alertAutoCycleTimer);
+  alertAutoCycleTimer = setInterval(() => {
+    if (!alertDismissed) {
+      currentAlertIndex = (currentAlertIndex + 1) % BERLIN_LIVE_ALERTS.length;
+      renderAlertTicker();
+    }
+  }, 14000);
+}
+
+// Share APK and Share Alert Functions
+function shareApkLink() {
+  const t = I18N[currentLanguage];
+  const shareText = t.shareMessage;
+
+  if (navigator.share) {
+    navigator.share({
+      title: "My Kiez Berlin App",
+      text: shareText,
+      url: APK_DOWNLOAD_URL
+    }).catch(() => {});
+  } else {
+    copyToClipboard(APK_DOWNLOAD_URL);
+    showToast(t.copiedToast);
+  }
+}
+
+function copyApkLink() {
+  const t = I18N[currentLanguage];
+  copyToClipboard(APK_DOWNLOAD_URL);
+  showToast(t.copiedToast);
+}
+
+function copyToClipboard(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text);
+  } else {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-999999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      document.execCommand('copy');
+    } catch (err) {}
+    textArea.remove();
+  }
+}
+
+function shareAlert(alertId) {
+  const alertItem = BERLIN_LIVE_ALERTS.find(a => a.id === alertId) || BERLIN_LIVE_ALERTS[0];
+  const title = currentLanguage === "tr" ? alertItem.titleTr : alertItem.titleDe;
+  const body = currentLanguage === "tr" ? alertItem.bodyTr : alertItem.bodyDe;
+  const text = `🚨 [${alertItem.tag}] ${title}\n${body}\n\nResmi Kaynak: ${alertItem.officialUrl}\n\nMy Kiez Berlin uygulamasını indir:\n${APK_DOWNLOAD_URL}`;
+
+  if (navigator.share) {
+    navigator.share({
+      title: title,
+      text: text,
+      url: APK_DOWNLOAD_URL
+    }).catch(() => {});
+  } else {
+    copyToClipboard(text);
+    showToast(currentLanguage === "tr" ? "Bildirim & APK indirme linki kopyalandı!" : "Meldung & Download-Link kopiert!");
+  }
+}
+
+// Hamburger Hub Modal (1:1 with Android HamburgerHubModal)
+function openHamburgerHubModal() {
+  let modal = document.getElementById("hamburger-hub-modal-overlay");
+  if (modal) modal.remove();
+
+  const t = I18N[currentLanguage];
+
+  modal = document.createElement("div");
+  modal.id = "hamburger-hub-modal-overlay";
+  modal.className = "hub-modal-overlay";
+
+  modal.innerHTML = `
+    <div class="hub-modal-card">
+      <div class="hub-modal-header">
+        <div class="hub-brand-group">
+          <img src="assets/images/mykiez_logo.png" alt="My Kiez Berlin Logo" class="hub-logo-img">
+          <div>
+            <div class="hub-title-text">My Kiez Berlin</div>
+            <div class="hub-subtitle-text">${currentLanguage === "tr" ? "Mahalle Rehberi & Canlı Ticker" : "Dein digitaler Kiez-Guide"}</div>
+          </div>
+        </div>
+        <button class="hub-close-btn" onclick="closeHamburgerHubModal()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <div class="hub-body-content">
+        <!-- 1. ARKADAŞIMA PAYLAŞ BUTONU (APK İndirme Linki) -->
+        <div class="hub-share-btn-box" onclick="shareApkLink()">
+          <div class="hub-share-icon-ring">
+            <i class="bi bi-share-fill"></i>
+          </div>
+          <div class="hub-share-text-group">
+            <div class="hub-share-title">${t.shareFriend}</div>
+            <div class="hub-share-subtitle">${t.shareFriendSub}</div>
+          </div>
+        </div>
+
+        <!-- 2. DOĞRUDAN BUTONUN ALTINDA GÖRÜNEN İNDİRME LİNKİ KUTUSU -->
+        <div class="hub-download-link-box">
+          <div class="download-box-header">
+            <span class="download-label-text">
+              <i class="bi bi-download"></i> ${t.apkDownloadTitle}
+            </span>
+            <div class="download-action-chips">
+              <button class="copy-pill-btn" onclick="copyApkLink()">
+                <i class="bi bi-clipboard-check"></i> ${t.copyBtn}
+              </button>
+              <a href="${APK_DOWNLOAD_URL}" download class="download-pill-btn">
+                <i class="bi bi-arrow-down-circle-fill"></i> ${t.downloadBtn}
+              </a>
+            </div>
+          </div>
+          <div class="download-url-code" onclick="copyApkLink()" title="${t.copyBtn}">
+            <code>${APK_DOWNLOAD_URL}</code>
+          </div>
+        </div>
+
+        <!-- 3. HUB MENU GRID (Navigasyon & Modüller) -->
+        <div class="hub-menu-grid">
+          <div class="hub-menu-tile" onclick="switchTab('bulletin'); closeHamburgerHubModal();">
+            <div class="tile-icon-box red"><i class="bi bi-broadcast-pin"></i></div>
+            <div class="tile-label">Canlı Ticker</div>
+            <div class="tile-desc">S-Bahn, BVG, Notruf</div>
+          </div>
+
+          <div class="hub-menu-tile" onclick="switchTab('kieze'); closeHamburgerHubModal();">
+            <div class="tile-icon-box blue"><i class="bi bi-compass-fill"></i></div>
+            <div class="tile-label">24+ Kiezler</div>
+            <div class="tile-desc">Mitte, Kreuzberg & mehr</div>
+          </div>
+
+          <div class="hub-menu-tile" onclick="switchTab('events'); closeHamburgerHubModal();">
+            <div class="tile-icon-box yellow"><i class="bi bi-calendar-event-fill"></i></div>
+            <div class="tile-label">Etkinlikler</div>
+            <div class="tile-desc">Festival & Flohmärkte</div>
+          </div>
+
+          <div class="hub-menu-tile" onclick="switchTab('jobs'); closeHamburgerHubModal();">
+            <div class="tile-icon-box green"><i class="bi bi-briefcase-fill"></i></div>
+            <div class="tile-label">Kiez Jobs</div>
+            <div class="tile-desc">Gastro & Lokale Jobs</div>
+          </div>
+
+          <div class="hub-menu-tile" onclick="switchTab('emergency'); closeHamburgerHubModal();">
+            <div class="tile-icon-box red"><i class="bi bi-telephone-fill"></i></div>
+            <div class="tile-label">Notruf & Acil</div>
+            <div class="tile-desc">110, 112, 116117</div>
+          </div>
+
+          <div class="hub-menu-tile" onclick="switchTab('quiz'); closeHamburgerHubModal();">
+            <div class="tile-icon-box purple"><i class="bi bi-trophy-fill"></i></div>
+            <div class="tile-label">Berlin Quiz</div>
+            <div class="tile-desc">1-5 Smiley & Confetti</div>
+          </div>
+        </div>
+
+        <!-- 4. Alt Ayarlar ve Admin Linki -->
+        <div class="hub-footer-actions">
+          <a href="admin.html" class="hub-footer-link">
+            <i class="bi bi-shield-lock-fill"></i> Yönetici Girişi (Admin)
+          </a>
+          <button class="hub-footer-link" onclick="toggleLanguageFromHub()">
+            <i class="bi bi-translate"></i> Dil Değiştir: <strong>${currentLanguage.toUpperCase()}</strong>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+}
+
+function closeHamburgerHubModal() {
+  const modal = document.getElementById("hamburger-hub-modal-overlay");
+  if (modal) modal.remove();
+}
+
+function toggleLanguageFromHub() {
+  currentLanguage = (currentLanguage === "tr") ? "de" : "tr";
+  const langBtn = document.getElementById("lang-toggle-btn");
+  if (langBtn) langBtn.innerText = currentLanguage.toUpperCase();
+  renderStoriesBar();
+  renderAlertTicker();
+  renderTabContent();
+  updateStaticLabels();
+  openHamburgerHubModal(); // Refresh modal content
 }
 
 // Render Stories Bar
@@ -185,6 +534,8 @@ function renderTabContent() {
     renderHomeTab(content);
   } else if (currentTab === "kieze") {
     renderKiezeTab(content);
+  } else if (currentTab === "bulletin") {
+    renderBulletinTab(content);
   } else if (currentTab === "events") {
     renderEventsTab(content);
   } else if (currentTab === "emergency") {
@@ -194,6 +545,136 @@ function renderTabContent() {
   } else if (currentTab === "jobs") {
     renderJobsTab(content);
   }
+}
+
+// Bulletin Tab (1:1 with BerlinLiveBulletinScreen.kt)
+function renderBulletinTab(container) {
+  const t = I18N[currentLanguage];
+  const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  let filterAlerts = BERLIN_LIVE_ALERTS;
+  if (activeBulletinFilter !== "all") {
+    filterAlerts = BERLIN_LIVE_ALERTS.filter(a => a.tag.toLowerCase().includes(activeBulletinFilter.toLowerCase()));
+  }
+
+  let html = `
+    <div class="bulletin-header-box">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <h2 style="font-size: 19px; font-weight: 900; color: var(--berlin-red); margin-bottom: 4px;">
+            ${t.bulletinTitle}
+          </h2>
+          <p style="font-size: 12px; color: var(--text-muted); margin: 0;">${t.bulletinSubtitle}</p>
+        </div>
+        <button class="chip-btn active" onclick="cycleNextAlert(true); renderBulletinTab(document.getElementById('main-tab-content'));" title="Yenile">
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 11px; color: var(--text-muted);">
+        <span><span class="live-pulse-dot" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #16A34A; margin-right: 4px;"></span>${t.lastUpdate}: <strong>${nowTime}</strong></span>
+        <button class="test-trigger-btn" onclick="cycleNextAlert(true); showToast(currentLanguage === 'tr' ? 'Canlı test uyarısı tetiklendi!' : 'Live-Test-Meldung ausgelöst!');">
+          ${t.triggerTestAlert}
+        </button>
+      </div>
+    </div>
+
+    <!-- Filter chips -->
+    <div class="category-chips-scroll" style="margin: 0 -16px 14px -16px;">
+      <button class="chip-btn ${activeBulletinFilter === 'all' ? 'active' : ''}" onclick="setBulletinFilter('all')">${t.all}</button>
+      <button class="chip-btn ${activeBulletinFilter === 's-bahn' ? 'active' : ''}" onclick="setBulletinFilter('s-bahn')">S-Bahn</button>
+      <button class="chip-btn ${activeBulletinFilter === 'bvg' ? 'active' : ''}" onclick="setBulletinFilter('bvg')">BVG</button>
+      <button class="chip-btn ${activeBulletinFilter === 'feuerwehr' ? 'active' : ''}" onclick="setBulletinFilter('feuerwehr')">Feuerwehr</button>
+      <button class="chip-btn ${activeBulletinFilter === 'polizei' ? 'active' : ''}" onclick="setBulletinFilter('polizei')">Polizei</button>
+      <button class="chip-btn ${activeBulletinFilter === 'bürgeramt' ? 'active' : ''}" onclick="setBulletinFilter('bürgeramt')">Bürgeramt</button>
+    </div>
+
+    <div class="bulletin-cards-list">
+  `;
+
+  filterAlerts.forEach(item => {
+    const title = currentLanguage === "tr" ? item.titleTr : item.titleDe;
+    const body = currentLanguage === "tr" ? item.bodyTr : item.bodyDe;
+
+    html += `
+      <div class="card-item bulletin-card" style="border-left: 5px solid ${item.color};">
+        <div class="card-body">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span class="alert-tag-pill" style="background-color: ${item.bgLight}; color: ${item.color};">
+              <span class="live-pulse-dot" style="background-color: ${item.color};"></span>
+              ${item.tag}
+            </span>
+            <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">⏰ ${item.timestamp}</span>
+          </div>
+
+          <div class="card-title" style="font-size: 16px; margin-bottom: 6px;">${title}</div>
+          <div class="card-desc" style="font-size: 13px; line-height: 1.45; color: var(--text-main); margin-bottom: 14px;">${body}</div>
+
+          <div class="card-footer" style="padding-top: 10px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <a href="${item.officialUrl}" target="_blank" class="chip-btn active" style="text-decoration: none; font-size: 11.5px;">
+              <i class="bi bi-box-arrow-up-right"></i> ${t.officialSource}
+            </a>
+            <button class="chip-btn" onclick="shareAlert(${item.id})" style="font-size: 11.5px; color: var(--berlin-blue); font-weight: 700;">
+              <i class="bi bi-share-fill"></i> ${t.shareAlertBtn}
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+function setBulletinFilter(filter) {
+  activeBulletinFilter = filter;
+  renderBulletinTab(document.getElementById("main-tab-content"));
+}
+
+function handleGlobalSearch(term) {
+  if (!term) {
+    renderTabContent();
+    return;
+  }
+  const content = document.getElementById("main-tab-content");
+  if (!content) return;
+
+  const matchedKieze = BERLIN_KIEZE.filter(k => k.name.toLowerCase().includes(term) || k.subtitle.toLowerCase().includes(term));
+  const matchedEvents = BERLIN_EVENTS.filter(e => e.title.toLowerCase().includes(term) || e.kiezName.toLowerCase().includes(term) || e.description.toLowerCase().includes(term));
+  const matchedAlerts = BERLIN_LIVE_ALERTS.filter(a => a.tag.toLowerCase().includes(term) || a.titleDe.toLowerCase().includes(term) || a.titleTr.toLowerCase().includes(term) || a.bodyDe.toLowerCase().includes(term) || a.bodyTr.toLowerCase().includes(term));
+
+  let html = `<h2 style="font-size: 17px; font-weight: 800; margin-bottom: 12px;">Arama Sonuçları: "${term}"</h2>`;
+
+  if (!matchedKieze.length && !matchedEvents.length && !matchedAlerts.length) {
+    html += `<div class="card-item" style="padding: 24px; text-align: center; color: var(--text-muted);">Sonuç bulunamadı. Lütfen başka bir kelime deneyin.</div>`;
+  } else {
+    if (matchedAlerts.length) {
+      html += `<h3 style="font-size: 14px; color: var(--berlin-red); font-weight: 800; margin: 12px 0 6px;">Canlı Bildirimler (${matchedAlerts.length})</h3>`;
+      matchedAlerts.forEach(a => {
+        html += `
+          <div class="card-item" style="padding: 12px; margin-bottom: 8px;">
+            <div style="font-weight: 800;">${a.tag}: ${currentLanguage === "tr" ? a.titleTr : a.titleDe}</div>
+            <div style="font-size: 12px; color: var(--text-muted);">${currentLanguage === "tr" ? a.bodyTr : a.bodyDe}</div>
+          </div>
+        `;
+      });
+    }
+
+    if (matchedKieze.length) {
+      html += `<h3 style="font-size: 14px; color: var(--berlin-blue); font-weight: 800; margin: 12px 0 6px;">Kiezler (${matchedKieze.length})</h3>`;
+      matchedKieze.forEach(k => {
+        html += `
+          <div class="card-item" style="padding: 12px; margin-bottom: 8px;">
+            <div style="font-weight: 800;">${k.name}</div>
+            <div style="font-size: 12px; color: var(--text-muted);">${k.subtitle}</div>
+          </div>
+        `;
+      });
+    }
+  }
+
+  content.innerHTML = html;
 }
 
 // Home Tab

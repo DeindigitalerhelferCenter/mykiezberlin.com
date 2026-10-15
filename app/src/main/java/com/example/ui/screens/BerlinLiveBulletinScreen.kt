@@ -48,7 +48,8 @@ fun BerlinLiveBulletinScreen(
     onSelectFolder: (BulletinFolder) -> Unit,
     onSearchChange: (String) -> Unit,
     onRefresh: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onTriggerAlert: () -> Unit = {}
 ) {
     val context = LocalContext.current
     BackHandler { onBack() }
@@ -218,6 +219,211 @@ fun BerlinLiveBulletinScreen(
                             lineHeight = 16.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                    }
+                }
+            }
+
+            // S-BAHN, BVG, POLIZEI, FEUERWEHR CANLI HATIRLATMA VE BİLDİRİM KARTI
+            item {
+                val apkUrl = "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin.com.apk"
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    border = BorderStroke(1.dp, Color(0xFF008754).copy(alpha = 0.35f)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp)
+                ) {
+                    Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = Color(0xFF008754)
+                                ) {
+                                    Text(
+                                        text = "S-BAHN · BVG · POLIZEI",
+                                        color = Color.White,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
+                                Text(
+                                    text = if (language == AppLanguage.TURKISH) "Resmi Hatırlatmalar" else "Offizielle Benachrichtigungen",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.5.sp
+                                )
+                            }
+                        }
+
+                        Text(
+                            text = if (language == AppLanguage.TURKISH)
+                                "S-Bahn Berlin (S41/S42 Ringbahn, S8), BVG (U2, U8), Berliner Feuerwehr ve Polizei Berlin anlık olayları ve hatırlatmaları bildirim olarak gönderilir."
+                            else
+                                "Echtzeit-Erinnerungen und Störungsmeldungen von S-Bahn Berlin, BVG, Feuerwehr und Polizei Berlin werden regelmäßig als Push-Benachrichtigung gesendet.",
+                            fontSize = 11.5.sp,
+                            lineHeight = 16.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        // Canlı Hatırlatma Gönder (Test Butonu)
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFF008754),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onTriggerAlert() }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(vertical = 10.dp, horizontal = 14.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(imageVector = Icons.Default.NotificationsActive, contentDescription = null, tint = Color.White, modifier = Modifier.size(17.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = if (language == AppLanguage.TURKISH) "🔔 Canlı Hatırlatma Gönder (S-Bahn / BVG / Polis Test)" else "🔔 Live-Erinnerung senden (S-Bahn / BVG Test)",
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.5.sp
+                                )
+                            }
+                        }
+
+                        // Resmi Portallar Linkleri (S-Bahn, BVG, Feuerwehr, Polizei)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            SuggestionChip(
+                                onClick = {
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://sbahn.berlin/fahren/s-bahn-betriebslaenderungen/"))
+                                    context.startActivity(intent)
+                                },
+                                label = { Text("🚆 S-Bahn Berlin", fontSize = 11.sp, fontWeight = FontWeight.Bold) }
+                            )
+                            SuggestionChip(
+                                onClick = {
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.bvg.de/de/verbindungen/stoerungsmeldungen"))
+                                    context.startActivity(intent)
+                                },
+                                label = { Text("🟡 BVG Live", fontSize = 11.sp, fontWeight = FontWeight.Bold) }
+                            )
+                            SuggestionChip(
+                                onClick = {
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.berliner-feuerwehr.de/einsaetze/"))
+                                    context.startActivity(intent)
+                                },
+                                label = { Text("🚒 Feuerwehr", fontSize = 11.sp, fontWeight = FontWeight.Bold) }
+                            )
+                            SuggestionChip(
+                                onClick = {
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.berlin.de/polizei/polizeimeldungen/"))
+                                    context.startActivity(intent)
+                                },
+                                label = { Text("🚔 Polizei", fontSize = 11.sp, fontWeight = FontWeight.Bold) }
+                            )
+                        }
+
+                        // Arkadaşıma Paylaş Butonu ve Altında Görünür APK Linki
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFF0284C7),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                        type = "text/plain"
+                                        val text = if (language == AppLanguage.TURKISH) {
+                                            "Berlin canlı bülteni, S-Bahn/BVG hat durumları ve etkinlikler için My Kiez Berlin uygulamasını indir:\n$apkUrl"
+                                        } else {
+                                            "Lade jetzt die My Kiez Berlin App für Live-Ticker, S-Bahn/BVG-Status und Events herunter:\n$apkUrl"
+                                        }
+                                        putExtra(Intent.EXTRA_TEXT, text)
+                                    }
+                                    context.startActivity(Intent.createChooser(shareIntent, "My Kiez Berlin teilen"))
+                                }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(imageVector = Icons.Default.Share, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                                Text(
+                                    text = if (language == AppLanguage.TURKISH) "Arkadaşıma Paylaş (APK İndirme Linki)" else "App mit Freunden teilen (APK)",
+                                    fontSize = 12.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            }
+                        }
+
+                        // APK İndirme Linki Doğrudan Butonun Altında
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                            border = BorderStroke(1.dp, Color(0xFF0284C7).copy(alpha = 0.35f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(8.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = if (language == AppLanguage.TURKISH) "İndirme Linki (APK):" else "Download-Link (APK):",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = BerlinBlue
+                                    )
+                                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        Text(
+                                            text = if (language == AppLanguage.TURKISH) "Kopyala" else "Kopieren",
+                                            fontSize = 10.5.sp,
+                                            color = Color(0xFF0284C7),
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier
+                                                .clickable {
+                                                    val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText("My Kiez Berlin APK", apkUrl))
+                                                    android.widget.Toast.makeText(context, if (language == AppLanguage.TURKISH) "İndirme linki kopyalandı!" else "Link kopiert!", android.widget.Toast.LENGTH_SHORT).show()
+                                                }
+                                                .padding(2.dp)
+                                        )
+                                        Text(text = "•", fontSize = 10.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text(
+                                            text = if (language == AppLanguage.TURKISH) "İndir" else "Download",
+                                            fontSize = 10.5.sp,
+                                            color = BerlinGreen,
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier
+                                                .clickable {
+                                                    val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(apkUrl))
+                                                    context.startActivity(browserIntent)
+                                                }
+                                                .padding(2.dp)
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = apkUrl,
+                                    fontSize = 10.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 2,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                )
+                            }
+                        }
                     }
                 }
             }

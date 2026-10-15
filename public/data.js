@@ -3,6 +3,109 @@
  * Exact replica of Android SampleData, ViewModel & Features
  */
 
+// Official APK Download Link
+const APK_DOWNLOAD_URL = "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin.com.apk";
+
+// Authentic Berlin Live Ticker & Alerts (1:1 with Android BerlinNotificationManager)
+const BERLIN_LIVE_ALERTS = [
+  {
+    id: 201,
+    tag: "S-BAHN BERLIN",
+    color: "#008754",
+    bgLight: "#E6F4EA",
+    titleDe: "S-Bahn Berlin",
+    titleTr: "S-Bahn Berlin",
+    bodyDe: "Bauinfo #S41, #S42 Ringbahn & #S8: Heute ab 22:00 Uhr Schienenersatzverkehr (SEV) zwischen Treptower Park und Neukölln.",
+    bodyTr: "Bauinfo #S41, #S42 Ringbahn & #S8: Bu akşam 22:00'den itibaren Treptower Park ve Neukölln arasında ray çalışması nedeniyle otobüs aktarması (SEV) uygulanacaktır.",
+    officialUrl: "https://sbahn.berlin/fahren/s-bahn-betriebslaenderungen/",
+    timestamp: "Gerade eben"
+  },
+  {
+    id: 202,
+    tag: "BVG",
+    color: "#F01414",
+    bgLight: "#FEE2E2",
+    titleDe: "BVG - Berliner Verkehrsbetriebe",
+    titleTr: "BVG - Berliner Verkehrsbetriebe",
+    bodyDe: "Störungsmeldung U2 & U8: Weichenüberprüfung am Alexanderplatz beendet, Züge verkehren wieder planmäßig im 4-Minuten-Takt.",
+    bodyTr: "U2 & U8 Hattı: Alexanderplatz makas bakımı tamamlandı. Seferler 4 dakika aralıklarla normal akışına döndü.",
+    officialUrl: "https://www.bvg.de/de/verbindungen/stoerungsmeldungen",
+    timestamp: "Vor 12 Min."
+  },
+  {
+    id: 203,
+    tag: "FEUERWEHR",
+    color: "#D32F2F",
+    bgLight: "#FEE2E2",
+    titleDe: "Berliner Feuerwehr 🚒",
+    titleTr: "Berliner Feuerwehr 🚒",
+    bodyDe: "Technischer Hilfeleistungseinsatz in Charlottenburg erfolgreich beendet. Sperrung Bismarckstraße aufgehoben.",
+    bodyTr: "İtfaiye Canlı Rapor: Charlottenburg'daki teknik kurtarma operasyonu başarıyla tamamlandı. Bismarckstraße trafiğe yeniden açıldı.",
+    officialUrl: "https://www.berliner-feuerwehr.de/einsaetze/",
+    timestamp: "Vor 25 Min."
+  },
+  {
+    id: 204,
+    tag: "POLIZEI",
+    color: "#003399",
+    bgLight: "#E0F2FE",
+    titleDe: "Polizei Berlin 🚔",
+    titleTr: "Polizei Berlin 🚔",
+    bodyDe: "Verkehrssicherheitsaktion: Schwerpunktkontrollen auf der B96 & Tempelhofer Damm. Bitte vorsichtig fahren.",
+    bodyTr: "Trafik Güvenliği Uyarısı: B96 ve Tempelhofer Damm güzergahında hız ve güvenlik kontrolleri yapılmaktadır. Lütfen dikkatli sürün.",
+    officialUrl: "https://www.berlin.de/polizei/polizeimeldungen/",
+    timestamp: "Vor 40 Min."
+  },
+  {
+    id: 205,
+    tag: "BÜRGERAMT",
+    color: "#0284C7",
+    bgLight: "#E0F2FE",
+    titleDe: "Bürgeramt Berlin 🏛️",
+    titleTr: "Bürgeramt Berlin 🏛️",
+    bodyDe: "Terminkontingente: Neue Termine für Anmeldung und Personalausweis in Mitte und Kreuzberg freigeschaltet.",
+    bodyTr: "Randevu Hatırlatması: İkametgâh (Anmeldung) ve kimlik/pasaport randevuları için Bürgeramt'larda yeni kontenjanlar açıldı.",
+    officialUrl: "https://service.berlin.de/standorte/buergeramter/",
+    timestamp: "Heute"
+  },
+  {
+    id: 206,
+    tag: "BUSINESS BERLIN",
+    color: "#E11D48",
+    bgLight: "#FFE4E6",
+    titleDe: "Möchten Sie, dass Ihr Unternehmen in ganz Berlin sichtbar ist? 🚀",
+    titleTr: "İşletmeniz tüm Berlin'de görünür olsun mu? 🚀",
+    bodyDe: "Tragen Sie Ihr Geschäft jetzt im Berliner Kiez-Guide ein & erreichen Sie tausende neue Kunden in Ihrer Nachbarschaft!",
+    bodyTr: "Kiez Rehberinde yerinizi hemen ayırtın! Mahallenizde ve tüm Berlin'de müşterilerinize tek tıkla ulaşın.",
+    officialUrl: "https://mykiezberlin.com",
+    timestamp: "Tipp"
+  },
+  {
+    id: 207,
+    tag: "SENAT BERLIN",
+    color: "#475569",
+    bgLight: "#F1F5F9",
+    titleDe: "Senatskanzlei Berlin 🏛️",
+    titleTr: "Berlin Senatosu 🏛️",
+    bodyDe: "29-Euro-Ticket & Infrastruktur: Senat beschließt weitere Investitionen in den Ausbau der Berliner Kieze.",
+    bodyTr: "29 Euro bilet ve mahalle yatırımları için Berlin Senatosu yeni altyapı paketini onayladı.",
+    officialUrl: "https://www.berlin.de/senat/",
+    timestamp: "Aktuell"
+  },
+  {
+    id: 208,
+    tag: "KULTUR BERLIN",
+    color: "#7C3AED",
+    bgLight: "#F3E8FF",
+    titleDe: "Kultur & Events Berlin 🎭",
+    titleTr: "Berlin Festivaller & Kültür 🎭",
+    bodyDe: "Wochenend-Highlights: Open-Air-Konzerte, Museumssonntag und Kiez-Feste auf Berlin.de entdecken.",
+    bodyTr: "Berlin Kültür Takvimi: Hafta sonu açık hava konserleri ve mahalle festivalleri yayında.",
+    officialUrl: "https://www.berlin.de/kultur-und-tickets/",
+    timestamp: "Wochenende"
+  }
+];
+
 // Berlin Kieze Database (24+ Bezirke & All Districts)
 const BERLIN_KIEZE = [
   { id: "mitte", name: "Mitte", subtitle: "Regierung, Kunst & Alexanderplatz", population: "ca. 385.000", image: "assets/images/kiez_mitte.jpg", vibe: "Urban & Lebendig" },
