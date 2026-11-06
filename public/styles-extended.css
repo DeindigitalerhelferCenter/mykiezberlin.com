@@ -90,3 +90,13 @@ html.ext-dark {
 html.ext-dark body, html.ext-dark .card-item, html.ext-dark .modal-card, html.ext-dark .form-control, html.ext-dark .top-bar, html.ext-dark .chip-btn { background-color: var(--surface-color); color: var(--text-main); }
 html.ext-dark body { background-color: var(--bg-color); }
 html.ext-dark .chip-btn.active { background-color: var(--berlin-red); color: #fff; }
+
+.ext-weather-week { overflow-x: auto; gap: 12px; }
+.ext-weather-week > div { flex: 0 0 52px; }
+.ext-up { color: var(--berlin-green); }
+.ext-down { color: var(--berlin-red); }
+.ext-table { width: 100%; border-collapse: collapse; font-size: 13px; color: var(--text-main); }
+.ext-table th, .ext-table td { padding: 6px 4px; border-bottom: 1px solid var(--border-color); text-align: right; }
+.ext-table th:nth-child(2), .ext-table td:nth-child(2) { text-align: left; }
+.ext-table tr.ext-berlin { background: var(--berlin-red-light); font-weight: 800; }
+html.ext-dark .ext-table tr.ext-berlin { color: #111; }

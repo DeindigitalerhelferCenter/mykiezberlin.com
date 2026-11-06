@@ -535,9 +535,11 @@ function renderDealsTab(container) {
     ...DEALS.map((d) => ({ id: d.id, title: d.title, business: d.businessName, badge: d.discountBadge, code: d.code, valid: d.validUntil, image: d.imageUrl })),
     ...COUPONS.map((c) => ({ id: c.id, title: c.title, business: c.businessName, badge: c.discount, code: c.code, valid: c.validUntil, image: "" })),
   ];
+  const active = items.filter((d) => !isExpired(d.valid));
   container.innerHTML = `
     <h2 class="ext-heading">${esc(tr("Gutscheine", "Kuponlar"))}</h2>
-    ${items.map((d) => `
+    ${active.length ? "" : `<div class="card-item" style="padding: 20px; text-align: center; color: var(--text-muted);">${esc(tr("Aktuell gibt es keine gültigen Gutscheine.", "Şu anda geçerli kupon yok."))}</div>`}
+    ${active.map((d) => `
       <div class="card-item">
         ${d.image ? `<img src="${safeUrl(d.image)}" class="card-cover" alt="${esc(d.title)}" loading="lazy">` : ""}
         <div class="card-body">

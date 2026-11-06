@@ -40,7 +40,7 @@ const EN_TEXT = {
   "Kommentar schreiben": "Write a comment", "Story-Art": "Story type", "Laufzeit": "Duration", "Anderer Kiez": "Other neighbourhood",
   "Speichern": "Save", "Offizielle Netzpläne": "Official network maps", "Im Ticker suchen": "Search the ticker",
   "Kiez-Quiz starten": "Start Kiez quiz", "Welcher Kiez passt zu dir?": "Which neighbourhood suits you?", "Berliner Vereine": "Berlin clubs",
-  "Ansicht": "View", "Kacheln": "Cards", "Liste": "List", "Alle": "All", "Deine Story veröffentlichen": "Publish your story",
+  "Ansicht": "View", "Wetter": "Weather", "Gefühlt": "Feels like", "Punkte": "points", "Letztes Spiel": "Last match", "Nächstes Spiel": "Next match", "Spieltag": "Matchday", "Sportnachrichten": "Sports news", "Aktuell gibt es keine gültigen Gutscheine.": "No valid coupons right now.", "Kacheln": "Cards", "Liste": "List", "Alle": "All", "Deine Story veröffentlichen": "Publish your story",
 };
 
 I18N.en = {
@@ -517,13 +517,87 @@ const SPORT_CLUBS = [
   ["Eisbären Berlin", "https://www.eisbaeren.de/"], ["Füchse Berlin", "https://www.fuechse.berlin/"], ["BR Volleys", "https://www.br-volleys.de/"],
 ];
 
-const baseSportTab = EXTRA_TABS.sport;
+let sportData = null;
+let sportFailed = false;
+let activeLeague = "bl1";
+
+async function loadSport() {
+  try {
+    const res = await fetch("/api/sport");
+    if (!res.ok) throw new Error(String(res.status));
+    sportData = await res.json();
+    sportFailed = false;
+  } catch (e) {
+    sportFailed = true;
+  }
+  if (currentTab === "sport") refreshViewIfIdle();
+}
+
+function setLeague(league) {
+  activeLeague = league;
+  renderTabContent();
+}
+
+function formatDateTime(ms) {
+  return ms ? new Date(ms).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "–";
+}
+
+function quoteHtml(q) {
+  const number = new Intl.NumberFormat("de-DE", { maximumFractionDigits: q.value < 10 ? 4 : 2 });
+  const change = q.changePercent === null || q.changePercent === undefined ? "" : `<small class="${q.changePercent < 0 ? "ext-down" : "ext-up"}">${q.changePercent > 0 ? "+" : ""}${esc(q.changePercent.toFixed(2))} %</small>`;
+  return `<div class="ext-quote"><span>${esc(q.name)}<br><small>${esc(q.source || "")} · ${esc(formatDateTime(q.updatedAt))}</small></span><strong>${esc(number.format(q.value))} ${esc(q.currency || "")}<br>${change}</strong></div>`;
+}
+
+function weatherHtml(w) {
+  const day = (d) => `<div><span>${esc(new Date(d.date).toLocaleDateString("de-DE", { weekday: "short" }))}</span>${weatherIcon(d.code)}<small>${esc(Math.round(d.max))}° / ${esc(Math.round(d.min))}°</small><small>💧 ${esc(d.rainChance ?? "–")} %</small></div>`;
+  return `
+    <div class="card-item" style="padding: 16px;">
+      <div class="card-title">${weatherIcon(w.code)} Berlin ${esc(Math.round(w.temperature))} °C</div>
+      <div class="card-subtitle">${esc(tr("Gefühlt", "Hissedilen"))} ${esc(Math.round(w.feelsLike))} °C · 💨 ${esc(Math.round(w.wind))} km/h · 💧 ${esc(w.humidity)} %</div>
+      <div class="ext-weather ext-weather-week">${w.days.map(day).join("")}</div>
+      <p class="ext-note">Open-Meteo · ${esc(String(w.observedAt || "").replace("T", " "))}</p>
+    </div>`;
+}
+
+function sportHtml() {
+  if (!sportData) return `<div class="card-item" style="padding: 16px; color: var(--text-muted);">${esc(sportFailed ? tr("Live-Daten sind gerade nicht erreichbar.", "Canlı veriler şu an alınamıyor.") : tr("Wird geladen…", "Yükleniyor…"))}</div>`;
+  const league = sportData.leagues.find((l) => l.id === activeLeague) || sportData.leagues[0];
+  const berlin = (sportData.berlin || []).map((c) => `
+    <div class="card-item" style="padding: 12px;">
+      <div class="ext-row"><div class="card-title" style="font-size: 15px;">${esc(c.team)}</div><span class="card-tag">${esc(c.position)}. · ${esc(c.points)} ${esc(tr("Punkte", "Puan"))}</span></div>
+      <div class="card-subtitle">${esc(c.league)}</div>
+      ${c.lastMatch ? `<div class="card-subtitle">${esc(tr("Letztes Spiel", "Son maç"))}: ${esc(c.lastMatch)}</div>` : ""}
+      ${c.nextMatch ? `<div class="card-subtitle">${esc(tr("Nächstes Spiel", "Sıradaki maç"))}: ${esc(c.nextMatch)}</div>` : ""}
+    </div>`).join("");
+  const rows = (league?.table || []).map((t) => `<tr class="${t.berlin ? "ext-berlin" : ""}"><td>${esc(t.position)}</td><td>${esc(t.short || t.team)}</td><td>${esc(t.played)}</td><td>${esc(t.goalDiff)}</td><td><strong>${esc(t.points)}</strong></td></tr>`).join("");
+  const matches = (league?.matches || []).map((m) => `<div class="ext-quote"><span>${esc(m.home)} – ${esc(m.away)}<br><small>${esc(formatDateTime(m.kickoff))}</small></span><strong>${m.finished ? `${esc(m.homeGoals)}:${esc(m.awayGoals)}` : "–"}</strong></div>`).join("");
+  return `
+    ${berlin}
+    ${chips(sportData.leagues.map((l) => [l.id, l.name]), activeLeague, "setLeague")}
+    <div class="card-item" style="padding: 8px;"><table class="ext-table"><thead><tr><th>#</th><th>Team</th><th>Sp</th><th>+/-</th><th>Pkt</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <h3 class="ext-subheading">${esc(tr("Spieltag", "Maç günü"))}</h3>
+    <div class="card-item" style="padding: 8px 16px;">${matches}</div>
+    <p class="ext-note">OpenLigaDB · ${esc(formatDateTime(sportData.updatedAt))}</p>`;
+}
+
 EXTRA_TABS.sport = function (container) {
-  baseSportTab(container);
+  if (!sportData && !sportFailed) loadSport();
+  const data = liveData;
+  const unavailable = `<div class="card-item" style="padding: 16px; color: var(--text-muted);">${esc(tr("Live-Daten sind gerade nicht erreichbar.", "Canlı veriler şu an alınamıyor."))}</div>`;
   const clock = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
-  container.insertAdjacentHTML("afterbegin", `<div class="ext-row" style="margin-bottom: 8px;"><span class="card-tag">🕒 ${esc(clock)} Berlin</span><button class="chip-btn" onclick="refreshLive(true)"><i class="bi bi-arrow-clockwise"></i></button></div>`);
-  container.insertAdjacentHTML("beforeend", `<h3 class="ext-subheading">${esc(tr("Berliner Vereine", "Berlin Kulüpleri"))}</h3>
-    <div class="ext-clubs">${SPORT_CLUBS.map(([name, url]) => `<a href="${safeUrl(url)}" target="_blank" rel="noopener">${esc(name)} ↗</a>`).join("")}</div>`);
+  container.innerHTML = `
+    <div class="ext-row" style="margin-bottom: 8px;"><h2 class="ext-heading" style="margin: 0;">${esc(tr("Sport, Wetter & Kurse", "Spor, Hava & Kurlar"))}</h2><button class="chip-btn" onclick="refreshLive(true); loadSport();"><i class="bi bi-arrow-clockwise"></i></button></div>
+    <span class="card-tag">🕒 ${esc(clock)} Berlin</span>
+    <h3 class="ext-subheading">${esc(tr("Wetter", "Hava"))}</h3>
+    ${data?.weather ? weatherHtml(data.weather) : unavailable}
+    <h3 class="ext-subheading">${esc(tr("Kurse", "Kurlar"))}</h3>
+    ${data?.quotes?.length ? `<div class="card-item" style="padding: 8px 16px;">${data.quotes.map(quoteHtml).join("")}</div>` : unavailable}
+    <h3 class="ext-subheading">Sport</h3>
+    ${sportHtml()}
+    ${data?.sport?.length ? `<h3 class="ext-subheading">${esc(tr("Sportnachrichten", "Spor Haberleri"))}</h3>${data.sport.map(renderNewsItem).join("")}` : ""}
+    ${data?.news?.length ? `<h3 class="ext-subheading">${esc(tr("Aktuelle Schlagzeilen", "Güncel Manşetler"))}</h3>${data.news.slice(0, 10).map(renderNewsItem).join("")}` : ""}
+    <h3 class="ext-subheading">${esc(tr("Berliner Vereine", "Berlin Kulüpleri"))}</h3>
+    <div class="ext-clubs">${SPORT_CLUBS.map(([name, url]) => `<a href="${safeUrl(url)}" target="_blank" rel="noopener">${esc(name)} ↗</a>`).join("")}</div>`;
 };
 
 /* ---------- Reporter comments ---------- */
