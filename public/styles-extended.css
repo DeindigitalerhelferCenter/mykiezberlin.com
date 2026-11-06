@@ -1,0 +1,38 @@
+/* Screens added for parity with the Android app. */
+.ext-heading { font-size: 18px; font-weight: 900; margin-bottom: 12px; }
+.ext-subheading { font-size: 14px; font-weight: 800; margin: 16px 0 8px; color: var(--text-main); }
+.ext-note { font-size: 11px; color: var(--text-muted); margin-top: 10px; }
+.ext-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.ext-link { color: var(--berlin-red); font-weight: 700; text-decoration: none; cursor: pointer; }
+
+.ext-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.ext-tile { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px 6px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: #fff; color: var(--text-main); font-size: 12px; font-weight: 700; cursor: pointer; }
+.ext-tile i { font-size: 22px; color: var(--berlin-red); }
+
+.ext-news { display: block; padding: 10px 12px; margin-bottom: 8px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: #fff; color: var(--text-main); text-decoration: none; }
+.ext-news-source { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; }
+.ext-news-title { font-size: 14px; font-weight: 700; line-height: 1.3; }
+
+.ext-sponsor { position: relative; display: block; color: inherit; text-decoration: none; }
+.ext-sponsor-img { display: block; width: 100%; max-height: 190px; object-fit: contain; background: #fff; }
+.ext-ad-label { position: absolute; top: 8px; right: 8px; padding: 2px 8px; border-radius: 6px; background: #F59E0B; color: #111; font-size: 11px; font-weight: 800; }
+
+.ext-heart { border: 0; background: none; color: #CBD5E1; font-size: 18px; cursor: pointer; }
+.ext-heart.on { color: var(--berlin-red); }
+
+.ext-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.ext-actions .chip-btn { text-decoration: none; }
+.ext-detail { position: relative; max-height: 88vh; overflow-y: auto; }
+.ext-close { position: absolute; top: 10px; right: 10px; z-index: 2; background: rgba(255, 255, 255, 0.9); }
+.ext-gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 10px; }
+.ext-gallery img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; }
+.ext-coupon { margin-top: 10px; padding: 10px; border-radius: 8px; background: var(--berlin-yellow-light); font-size: 13px; font-weight: 700; }
+
+.ext-call-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px; }
+.ext-call-row .chip-btn { flex-shrink: 0; text-decoration: none; }
+.ext-weather { display: flex; justify-content: space-between; margin-top: 10px; text-align: center; font-size: 18px; }
+.ext-weather span, .ext-weather small { display: block; font-size: 11px; color: var(--text-muted); }
+.ext-quote { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border-color); color: var(--text-main); font-size: 14px; text-decoration: none; }
+.ext-quote:last-child { border-bottom: 0; }
+.ext-list { margin: 8px 0 0; padding-left: 18px; font-size: 13px; }
+.ext-cta { display: block; margin-top: 12px; text-align: center; text-decoration: none; }

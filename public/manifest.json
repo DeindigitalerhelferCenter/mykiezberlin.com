@@ -1,0 +1,12 @@
+{
+  "name": "My Kiez Berlin",
+  "short_name": "My Kiez",
+  "description": "Dein digitaler Begleiter für Berliner Kieze, Betriebe, Live-Ticker, Jobs und Notrufe.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#E30613",
+  "lang": "de",
+  "icons": [{ "src": "assets/images/mykiez_logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }]
+}

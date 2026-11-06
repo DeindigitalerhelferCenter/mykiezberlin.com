@@ -1,0 +1,13 @@
+// Serves story images from R2.
+export async function onRequestGet({ params, env }) {
+  if (!env.BUCKET) return new Response("Not found", { status: 404 });
+  const key = (params.path || []).join("/");
+  if (!key.startsWith("stories/")) return new Response("Not found", { status: 404 });
+  const object = await env.BUCKET.get(key);
+  if (!object) return new Response("Not found", { status: 404 });
+  const headers = new Headers();
+  object.writeHttpMetadata(headers);
+  headers.set("cache-control", "public, max-age=86400");
+  headers.set("x-content-type-options", "nosniff");
+  return new Response(object.body, { headers });
+}
