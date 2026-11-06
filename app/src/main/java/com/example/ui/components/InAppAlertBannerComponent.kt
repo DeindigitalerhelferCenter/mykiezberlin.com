@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,40 +24,86 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.AppLanguage
+import com.example.data.repository.LiveAlert
+import com.example.data.repository.LiveAlertsRepository
 import com.example.ui.theme.BerlinGreen
 import com.example.ui.theme.BerlinRed
 import com.example.ui.viewmodel.AppScreen
-import com.example.util.BerlinNotificationItem
-import com.example.util.BerlinNotificationManager
 
 @Composable
 fun InAppAlertBannerComponent(
-    alert: BerlinNotificationItem?,
+    alert: LiveAlert?,
+    isLiveAvailable: Boolean,
     language: AppLanguage,
     onNavigate: (AppScreen) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
+
     AnimatedVisibility(
-        visible = alert != null,
+        visible = alert != null || !isLiveAvailable,
         enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
         exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
     ) {
+        if (!isLiveAvailable && alert == null) {
+            // Live data unavailable fallback banner - NEVER displays sample warnings
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                    .shadow(4.dp, RoundedCornerShape(12.dp)),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CloudOff,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Text(
+                            text = if (language == AppLanguage.TURKISH) "Canlı verilere ulaşılamıyor" else "Live-Daten nicht erreichbar",
+                            fontSize = 12.5.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    IconButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Schließen",
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+            return@AnimatedVisibility
+        }
+
         if (alert == null) return@AnimatedVisibility
 
-        val context = LocalContext.current
-        val brandColor = Color(alert.institutionColor)
-
-        // Pulsing animation for live status beacon
-        val infiniteTransition = rememberInfiniteTransition(label = "alert_pulse")
-        val alphaPulse by infiniteTransition.animateFloat(
-            initialValue = 0.4f,
-            targetValue = 1f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(700, easing = LinearEasing),
-                repeatMode = RepeatMode.Reverse
-            ),
-            label = "alert_alpha"
-        )
+        val brandColor = Color(alert.colorLong())
+        val calculatedTimeAgo = remember(alert.publishedAt, language) {
+            alert.formatTimeAgo(System.currentTimeMillis(), language)
+        }
 
         Surface(
             modifier = Modifier
@@ -70,7 +115,7 @@ fun InAppAlertBannerComponent(
             border = BorderStroke(1.5.dp, brandColor.copy(alpha = 0.7f))
         ) {
             Column(modifier = Modifier.padding(14.dp)) {
-                // Header row: Tag badge, Pulsing dot, Timestamp, and Close button
+                // Header row: Tag badge, dynamically calculated time, and Close button
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -85,7 +130,7 @@ fun InAppAlertBannerComponent(
                             color = brandColor
                         ) {
                             Text(
-                                text = alert.institutionTag,
+                                text = alert.tag,
                                 color = Color.White,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.ExtraBold,
@@ -93,22 +138,12 @@ fun InAppAlertBannerComponent(
                             )
                         }
 
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(7.dp)
-                                    .background(BerlinRed.copy(alpha = alphaPulse), CircleShape)
-                            )
-                            Text(
-                                text = if (language == AppLanguage.TURKISH) "CANLI HATIRLATMA" else "LIVE-MELDUNG",
-                                fontSize = 10.5.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = BerlinRed
-                            )
-                        }
+                        Text(
+                            text = "· $calculatedTimeAgo",
+                            fontSize = 11.5.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
 
                     IconButton(
@@ -126,22 +161,25 @@ fun InAppAlertBannerComponent(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Title and Body
-                Text(
-                    text = alert.localizedTitle(language),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.5.sp,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                // Alert title and dynamic body
+                Column {
+                    Text(
+                        text = alert.title,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.5.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
 
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = alert.localizedBody(language),
-                    fontSize = 12.5.sp,
-                    lineHeight = 17.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                    if (alert.body.isNotBlank() && alert.body != alert.title) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = alert.body,
+                            fontSize = 12.5.sp,
+                            lineHeight = 17.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
@@ -151,10 +189,11 @@ fun InAppAlertBannerComponent(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // 1. Official Link Button
+                    // 1. Official Link Button (direct browser intent)
                     OutlinedButton(
                         onClick = {
-                            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(alert.officialUrl)).apply {
+                            val targetUrl = alert.url.ifBlank { "https://www.berlin.de/polizei/polizeimeldungen/" }
+                            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(targetUrl)).apply {
                                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
                             }
                             context.startActivity(browserIntent)
@@ -162,7 +201,7 @@ fun InAppAlertBannerComponent(
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(10.dp),
                         contentPadding = PaddingValues(horizontal = 6.dp, vertical = 6.dp),
-                        border = BorderStroke(1.dp, brandColor.copy(alpha = 0.5f))
+                        border = BorderStroke(1.dp, brandColor.copy(alpha = 0.6f))
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.OpenInNew,
@@ -172,7 +211,7 @@ fun InAppAlertBannerComponent(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = if (language == AppLanguage.TURKISH) "Resmi Link" else "Webseite",
+                            text = if (language == AppLanguage.TURKISH) "Resmi Link" else "Offizielle Seite",
                             fontSize = 11.5.sp,
                             fontWeight = FontWeight.Bold,
                             color = brandColor,
@@ -183,14 +222,10 @@ fun InAppAlertBannerComponent(
                     // 2. Open Bulletin in App Button
                     Button(
                         onClick = {
-                            when (alert.targetScreen) {
-                                "BUSINESS_PORTAL" -> onNavigate(AppScreen.BUSINESS_PORTAL)
-                                "NOTRUF" -> onNavigate(AppScreen.NOTRUF)
-                                else -> onNavigate(AppScreen.LIVE_BULLETIN)
-                            }
+                            onNavigate(AppScreen.LIVE_BULLETIN)
                             onDismiss()
                         },
-                        modifier = Modifier.weight(1.1f),
+                        modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = brandColor),
                         contentPadding = PaddingValues(horizontal = 6.dp, vertical = 6.dp)
@@ -203,7 +238,7 @@ fun InAppAlertBannerComponent(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = if (language == AppLanguage.TURKISH) "Bülteni Aç" else "Öffnen",
+                            text = if (language == AppLanguage.TURKISH) "Bülteni Aç" else "Live-Ticker",
                             fontSize = 11.5.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
@@ -216,7 +251,7 @@ fun InAppAlertBannerComponent(
                         onClick = {
                             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                                 type = "text/plain"
-                                val shareText = "${alert.localizedTitle(language)}\n${alert.localizedBody(language)}\n🔗 Resmi Kaynak: ${alert.officialUrl}\n\n📲 My Kiez Berlin uygulamasını indir:\n${BerlinNotificationManager.APK_DOWNLOAD_URL}"
+                                val shareText = "🚨 [${alert.tag}] ${alert.title}\n${alert.body}\n🔗 Quelle: ${alert.url}\n\n📲 My Kiez Berlin App:\n${LiveAlertsRepository.APK_DOWNLOAD_URL}"
                                 putExtra(Intent.EXTRA_TEXT, shareText)
                             }
                             context.startActivity(Intent.createChooser(shareIntent, "Alarm teilen"))

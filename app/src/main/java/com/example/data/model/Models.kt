@@ -408,4 +408,23 @@ data class BerlinTip(
     }
 }
 
+data class MansetSlide(
+    val id: String,
+    val publisher: String,
+    val badge: String,
+    val colorHex: Long,
+    val headlineDe: String,
+    val headlineTr: String,
+    val teaserDe: String,
+    val teaserTr: String,
+    val author: String,
+    val imageResId: Int? = null,
+    val imageUrl: String? = null,
+    val originalUrl: String
+) {
+    fun localizedHeadline(lang: AppLanguage): String = if (lang == AppLanguage.TURKISH) headlineTr else headlineDe
+    fun localizedTeaser(lang: AppLanguage): String = if (lang == AppLanguage.TURKISH) teaserTr else teaserDe
+}
+
+
 

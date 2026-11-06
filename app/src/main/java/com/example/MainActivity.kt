@@ -76,7 +76,7 @@ class MainActivity : ComponentActivity() {
 
             // Handle incoming notification navigation clicks
             LaunchedEffect(intent) {
-                intent?.getStringExtra(com.example.util.BerlinNotificationManager.EXTRA_TARGET_SCREEN)?.let { target ->
+                intent?.getStringExtra("extra_target_screen")?.let { target ->
                     when (target) {
                         "BUSINESS_PORTAL" -> viewModel.navigateTo(AppScreen.BUSINESS_PORTAL)
                         "LIVE_BULLETIN" -> viewModel.navigateTo(AppScreen.LIVE_BULLETIN)
@@ -144,6 +144,7 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
             // Real-time In-App Live Alert Heads-up Banner (S-Bahn, BVG, Feuerwehr, Polizei)
             InAppAlertBannerComponent(
                 alert = uiState.activeAlertBanner,
+                isLiveAvailable = uiState.isLiveAlertsAvailable,
                 language = uiState.language,
                 onNavigate = { viewModel.navigateTo(it) },
                 onDismiss = { viewModel.dismissAlertBanner() }
@@ -181,7 +182,8 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     onResetFilters = { viewModel.resetFilters() },
                     showAddBusinessDialog = uiState.showAddBusinessDialog,
                     onOpenAddBusiness = { viewModel.openAddBusinessDialog() },
-                    onCloseAddBusiness = { viewModel.closeAddBusinessDialog() }
+                    onCloseAddBusiness = { viewModel.closeAddBusinessDialog() },
+                    onNavigateToScreen = { viewModel.navigateTo(it) }
                 )
 
                 AppScreen.JOBS -> JobsScreen(
@@ -343,6 +345,11 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                 )
 
                 AppScreen.BERLIN_TIPS -> BerlinTipsScreen(
+                    language = uiState.language,
+                    onBack = { viewModel.navigateTo(AppScreen.HOME) }
+                )
+
+                AppScreen.SPORTS_AND_MARKETS -> SportsAndMarketsScreen(
                     language = uiState.language,
                     onBack = { viewModel.navigateTo(AppScreen.HOME) }
                 )

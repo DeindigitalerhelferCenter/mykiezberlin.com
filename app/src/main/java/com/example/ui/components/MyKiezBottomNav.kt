@@ -50,7 +50,67 @@ fun MyKiezBottomNav(
             )
         )
 
-        // 2. Gutscheine (Deals & Coupons)
+        // 2. Canlı Ticker (Live Bulletin - S-Bahn, BVG, Polis)
+        val isBulletinActive = currentScreen == AppScreen.LIVE_BULLETIN
+        NavigationBarItem(
+            selected = isBulletinActive,
+            onClick = { onNavigate(AppScreen.LIVE_BULLETIN) },
+            icon = {
+                BadgedBox(
+                    badge = {
+                        Badge(containerColor = BerlinRed) {
+                            Text("LIVE", fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Sensors,
+                        contentDescription = "Live Ticker",
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+            },
+            label = {
+                Text(
+                    text = if (currentLanguage == AppLanguage.TURKISH) "Canlı Ticker" else "Live-Ticker",
+                    fontSize = 10.sp,
+                    fontWeight = if (isBulletinActive) FontWeight.Bold else FontWeight.Normal
+                )
+            },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = BerlinRed,
+                selectedTextColor = BerlinRed,
+                indicatorColor = MaterialTheme.colorScheme.primaryContainer
+            )
+        )
+
+        // 3. Spor & Piyasa (Live Clock, Weather, Rates & Sports)
+        val isSportsActive = currentScreen == AppScreen.SPORTS_AND_MARKETS
+        NavigationBarItem(
+            selected = isSportsActive,
+            onClick = { onNavigate(AppScreen.SPORTS_AND_MARKETS) },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.TrendingUp,
+                    contentDescription = "Spor & Piyasa",
+                    modifier = Modifier.size(22.dp)
+                )
+            },
+            label = {
+                Text(
+                    text = if (currentLanguage == AppLanguage.TURKISH) "Spor & Piyasa" else "Sport & Kurse",
+                    fontSize = 10.sp,
+                    fontWeight = if (isSportsActive) FontWeight.Bold else FontWeight.Normal
+                )
+            },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = BerlinRed,
+                selectedTextColor = BerlinRed,
+                indicatorColor = MaterialTheme.colorScheme.primaryContainer
+            )
+        )
+
+        // 4. Gutscheine (Deals & Coupons)
         val isDealsActive = currentScreen == AppScreen.DEALS
         NavigationBarItem(
             selected = isDealsActive,
@@ -65,60 +125,8 @@ fun MyKiezBottomNav(
             label = {
                 Text(
                     text = if (currentLanguage == AppLanguage.TURKISH) "Kuponlar" else "Gutscheine",
-                    fontSize = 10.5.sp,
+                    fontSize = 10.sp,
                     fontWeight = if (isDealsActive) FontWeight.Bold else FontWeight.Normal
-                )
-            },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = BerlinRed,
-                selectedTextColor = BerlinRed,
-                indicatorColor = MaterialTheme.colorScheme.primaryContainer
-            )
-        )
-
-        // 3. Jobs (Kiez Jobs)
-        val isJobsActive = currentScreen == AppScreen.JOBS
-        NavigationBarItem(
-            selected = isJobsActive,
-            onClick = { onNavigate(AppScreen.JOBS) },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Work,
-                    contentDescription = "Jobs",
-                    modifier = Modifier.size(22.dp)
-                )
-            },
-            label = {
-                Text(
-                    text = "Jobs",
-                    fontSize = 10.5.sp,
-                    fontWeight = if (isJobsActive) FontWeight.Bold else FontWeight.Normal
-                )
-            },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = BerlinRed,
-                selectedTextColor = BerlinRed,
-                indicatorColor = MaterialTheme.colorScheme.primaryContainer
-            )
-        )
-
-        // 4. Quiz (Kiez Quiz)
-        val isQuizActive = currentScreen == AppScreen.QUIZ
-        NavigationBarItem(
-            selected = isQuizActive,
-            onClick = { onNavigate(AppScreen.QUIZ) },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.EmojiEvents,
-                    contentDescription = "Quiz",
-                    modifier = Modifier.size(22.dp)
-                )
-            },
-            label = {
-                Text(
-                    text = "Quiz",
-                    fontSize = 10.5.sp,
-                    fontWeight = if (isQuizActive) FontWeight.Bold else FontWeight.Normal
                 )
             },
             colors = NavigationBarItemDefaults.colors(

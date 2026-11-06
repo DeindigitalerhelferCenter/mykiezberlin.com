@@ -89,7 +89,7 @@ fun BerlinTransitMapComponent(
                 subtitleDe = "Interaktive Netzpläne, Tram, Bus und Fähren",
                 subtitleTr = "Resmî BVG metro, tramvay, otobüs ve vapur hatları",
                 badge = "BVG.DE",
-                url = "https://www.bvg.de/de/verbindungen/liniennetz",
+                url = "https://www.bvg.de/de/verbindungen/fahrplanauskunft",
                 iconColor = Color(0xFFF3C400)
             ),
             OfficialTransitMapCard(
@@ -109,7 +109,7 @@ fun BerlinTransitMapComponent(
                 subtitleDe = "Regionalbahn- und Gesamtraum-Netzpläne",
                 subtitleTr = "Bölgesel trenler (RE/RB) ve banliyö ağ haritası",
                 badge = "VBB.DE",
-                url = "https://www.vbb.de/fahrinfo/liniennetze/",
+                url = "https://www.vbb.de/fahrinfo/",
                 iconColor = Color(0xFF1A73E8)
             )
         )

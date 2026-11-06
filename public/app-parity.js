@@ -187,7 +187,7 @@ function quickButtons() {
 function kiezScroller() {
   return `
     <h3 class="ext-subheading">${esc(tr("Kieze", "Kiezler"))}</h3>
-    <div class="ext-kiez-scroll">${KIEZE_FULL.slice(0, 12).map((k) => `
+    <div class="ext-kiez-scroll">${KIEZE_FULL.map((k) => `
       <button onclick="openKiezDetail(${jsArg(k.id)})"><img src="${safeUrl(k.imageUrl)}" alt="" loading="lazy"><span>${esc(k.name)}</span></button>`).join("")}
     </div>`;
 }
@@ -422,9 +422,28 @@ function setFavoritesFilter(value) {
   setFilter("favorites", value);
 }
 
+function kiezSourcesHtml(k) {
+  const photos = (k.impressionImages || []).map((url) => `<img src="${safeUrl(url)}" alt="" loading="lazy">`).join("");
+  const credits = (k.photoCredits || []).map((c) => `<a href="${safeUrl(c.page)}" target="_blank" rel="noopener">${esc(c.artist || c.title)}</a> (${esc(c.license)})`).join(" · ");
+  const links = [];
+  if (k.sources?.population) links.push(`<a href="${safeUrl(k.sources.population)}" target="_blank" rel="noopener">${esc(tr("Einwohner", "Nüfus"))}: Amt für Statistik, ${esc(k.populationDate)}</a>`);
+  if (k.sources?.buergeramt) links.push(`<a href="${safeUrl(k.sources.buergeramt)}" target="_blank" rel="noopener">service.berlin.de</a>`);
+  if (k.sources?.polizei) links.push(`<a href="${safeUrl(k.sources.polizei)}" target="_blank" rel="noopener">Polizei Berlin</a>`);
+  return `
+    ${photos ? `<div class="ext-gallery">${photos}</div>` : ""}
+    ${credits ? `<p class="ext-note">📷 ${credits} · Wikimedia Commons</p>` : ""}
+    ${links.length ? `<p class="ext-note">${tr("Quellen", "Kaynaklar")}: ${links.join(" · ")}</p>` : ""}`;
+}
+
 const baseOpenKiezDetail = openKiezDetail;
 openKiezDetail = function (id) {
   baseOpenKiezDetail(id);
+  const kiez = KIEZE_FULL.find((k) => k.id === id);
+  if (kiez) {
+    const phone = kiez.policePhone ? `<a class="chip-btn" href="tel:${esc(String(kiez.policePhone).replace(/\s+/g, ""))}"><i class="bi bi-telephone-fill"></i> ${esc(tr("Polizei", "Polis"))}</a>` : "";
+    document.querySelector("#ext-detail-modal .ext-actions")?.insertAdjacentHTML("beforeend", phone);
+    document.querySelector("#ext-detail-modal .ext-actions")?.insertAdjacentHTML("afterend", kiezSourcesHtml(kiez));
+  }
   document.querySelector("#ext-detail-modal .ext-actions")?.insertAdjacentHTML("beforeend", `<button class="ext-heart ${isFavorite(id) ? "on" : ""}" onclick="toggleFavorite(${jsArg(id)}); openKiezDetail(${jsArg(id)});"><i class="bi bi-heart-fill"></i></button>`);
 };
 

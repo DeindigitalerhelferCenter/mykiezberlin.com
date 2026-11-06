@@ -188,66 +188,89 @@ fun StoryAvatarItem(
         }
     }
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
+    Box(
         modifier = Modifier.clickable { onClick() }
     ) {
-        Box(
-            modifier = Modifier
-                .size(62.dp)
-                .clip(CircleShape)
-                .border(2.5.dp, borderColor, CircleShape)
-                .padding(3.dp)
-                .clip(CircleShape)
-                .background(if (brand != null) brand.bgColor else MaterialTheme.colorScheme.surfaceVariant),
-            contentAlignment = Alignment.Center
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            if (brand != null) {
-                Text(
-                    text = brand.shortName,
-                    color = brand.textColor,
-                    fontSize = if (brand.shortName.length > 5) 10.sp else 12.sp,
-                    fontWeight = FontWeight.Black,
-                    textAlign = TextAlign.Center
-                )
-            } else if (story.mediaUri != null) {
-                AsyncImage(
-                    model = story.mediaUri,
-                    contentDescription = story.headline,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            } else if (story.mediaResId != null) {
-                Image(
-                    painter = painterResource(id = story.mediaResId),
-                    contentDescription = story.headline,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
+            Box(
+                modifier = Modifier
+                    .size(62.dp)
+                    .clip(CircleShape)
+                    .border(2.5.dp, borderColor, CircleShape)
+                    .padding(3.dp)
+                    .clip(CircleShape)
+                    .background(if (brand != null) brand.bgColor else MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                if (brand != null) {
+                    Text(
+                        text = brand.shortName,
+                        color = brand.textColor,
+                        fontSize = if (brand.shortName.length > 5) 10.sp else 12.sp,
+                        fontWeight = FontWeight.Black,
+                        textAlign = TextAlign.Center
+                    )
+                } else if (story.mediaUri != null) {
+                    AsyncImage(
+                        model = story.mediaUri,
+                        contentDescription = story.headline,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else if (story.mediaResId != null) {
+                    Image(
+                        painter = painterResource(id = story.mediaResId),
+                        contentDescription = story.headline,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    // Real landmark photo for the Kiez
+                    val fallbackRes = KiezPhotoHelper.getKiezDrawable(story.kiez)
+                    Image(
+                        painter = painterResource(id = fallbackRes),
+                        contentDescription = story.headline,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+            }
+            val avatarLabel = if (brand != null) {
+                brand.shortName
             } else {
-                // Real landmark photo for the Kiez
-                val fallbackRes = KiezPhotoHelper.getKiezDrawable(story.kiez)
-                Image(
-                    painter = painterResource(id = fallbackRes),
-                    contentDescription = story.headline,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
+                story.kiez
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = avatarLabel,
+                fontSize = 10.5.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1
+            )
+        }
+
+        if (isInstitution) {
+            Surface(
+                shape = CircleShape,
+                color = BerlinRed,
+                border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.surface),
+                modifier = Modifier
+                    .size(19.dp)
+                    .align(Alignment.TopEnd)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = "10",
+                        color = Color.White,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                }
             }
         }
-        val avatarLabel = if (brand != null) {
-            brand.shortName
-        } else {
-            story.kiez
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = avatarLabel,
-            fontSize = 10.5.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 1
-        )
     }
 }
 

@@ -743,7 +743,7 @@
             <span id="txt-app-title" class="brand-app-name">Berliner Kiez</span>
             <span class="quiz-badge-yellow">-Quiz</span>
           </div>
-          <p id="txt-app-tagline">12 Kieze · 10 Fragen · Dein Match</p>
+          <p id="txt-app-tagline">23 Kieze · 10 Fragen · Dein Match</p>
         </div>
       </div>
 
@@ -1010,7 +1010,7 @@
         <!-- RE-TAKE & EXPLORE BUTTONS -->
         <div style="display:flex; gap:10px; margin-top:8px;">
           <button class="btn btn-outline" style="flex:1;" onclick="retakeQuiz()">🔄 Wiederholen</button>
-          <button class="btn btn-yellow" style="flex:1;" onclick="switchTab('kieze')">📍 Alle 12 Kieze</button>
+          <button class="btn btn-yellow" style="flex:1;" onclick="switchTab('kieze')">📍 Alle 23 Kieze</button>
         </div>
       </section>
 
@@ -1036,7 +1036,7 @@
       <!-- 4. ALL KIEZE EXPLORER VIEW -->
       <section id="view-kieze" class="hide">
         <div class="card">
-          <h2 style="font-size:16px; font-weight:900;">📍 Entdecke alle 12 Berliner Kieze</h2>
+          <h2 style="font-size:16px; font-weight:900;">📍 Entdecke alle 23 Berliner Kieze</h2>
           <p style="font-size:12px; color:var(--text-muted); margin-top:2px;">Klicke auf einen Bezirk, um Mieten, Vibe, Radar-Werte und Geheimtipps zu sehen.</p>
         </div>
         <div id="kieze-list-container" style="display:flex; flex-direction:column; gap:12px; margin-top:8px;">
@@ -1111,7 +1111,7 @@
       </button>
       <button class="nav-item" onclick="switchTab('kieze')" id="tab-kieze">
         <span class="nav-icon">📍</span>
-        <span id="txt-tab-kieze">12 Kieze</span>
+        <span id="txt-tab-kieze">23 Kieze</span>
       </button>
       <button class="nav-item" onclick="switchTab('services')" id="tab-services">
         <span class="nav-icon">⚡</span>
@@ -1139,7 +1139,7 @@
           </p>
           <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
             <button class="btn btn-red" onclick="closeModal('modal-welcome'); switchTab('quiz');">🎯 Kiez-Quiz starten (10 Fragen)</button>
-            <button class="btn btn-yellow" onclick="closeModal('modal-welcome'); switchTab('kieze');">📍 12 Kieze erkunden</button>
+            <button class="btn btn-yellow" onclick="closeModal('modal-welcome'); switchTab('kieze');">📍 23 Kieze erkunden</button>
             <button class="btn btn-outline" onclick="closeModal('modal-welcome');">Später / Schließen</button>
           </div>
         </div>
@@ -1842,13 +1842,13 @@
     const I18N = {
       DE: {
         appTitle: "Berliner Kiez",
-        appTagline: "12 Kieze · 10 Fragen · Dein Match",
+        appTagline: "23 Kieze · 10 Fragen · Dein Match",
         newsBtn: "News",
         newsWidgetHeader: "Berlin Aktuell · Kiez News",
         newsMoreBtn: "Alle News ↗",
         quizTab: "Quiz",
         triviaTab: "Trivia",
-        kiezeTab: "12 Kieze",
+        kiezeTab: "23 Kieze",
         servicesTab: "Services",
         weatherLoc: "Berlin, Deutschland",
         quizHeroTitle: "Welcher Berliner Kiez passt 2026 zu dir?",
@@ -1862,13 +1862,13 @@
       },
       EN: {
         appTitle: "Berliner Kiez",
-        appTagline: "12 Districts · 10 Questions · Your Match",
+        appTagline: "23 Districts · 10 Questions · Your Match",
         newsBtn: "News",
         newsWidgetHeader: "Berlin Live · Kiez News",
         newsMoreBtn: "All News ↗",
         quizTab: "Quiz",
         triviaTab: "Trivia",
-        kiezeTab: "12 Districts",
+        kiezeTab: "23 Districts",
         servicesTab: "Services",
         weatherLoc: "Berlin, Germany",
         quizHeroTitle: "Which Berlin neighborhood fits you in 2026?",
@@ -1882,13 +1882,13 @@
       },
       TR: {
         appTitle: "Berliner Kiez",
-        appTagline: "12 Semt · 10 Soru · Senin Mahallen",
+        appTagline: "23 Semt · 10 Soru · Senin Mahallen",
         newsBtn: "Haberler",
         newsWidgetHeader: "Berlin Güncel · Mahalle Haberleri",
         newsMoreBtn: "Tüm Haberler ↗",
         quizTab: "Quiz",
         triviaTab: "Bilgi Yarışı",
-        kiezeTab: "12 Semt",
+        kiezeTab: "23 Semt",
         servicesTab: "Hizmetler",
         weatherLoc: "Berlin, Almanya",
         quizHeroTitle: "2026'da hangi Berlin semti sana uygun?",
@@ -2631,5 +2631,6 @@
   }
 })();
 </script>
+  <script src="/quiz/kieze-extra.js"></script>
 </body>
 </html>

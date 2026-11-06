@@ -1,6 +1,7 @@
 package com.example.ui.components
 
 import android.content.Intent
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -418,6 +419,64 @@ fun HamburgerHubModal(
                         ) {
                             onNavigateToScreen(AppScreen.LIVE_BULLETIN)
                             onDismiss()
+                        }
+                    }
+
+                    // Berlin Spor, Canlı Saat & Para Piyasaları
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = BerlinGreen.copy(alpha = 0.10f),
+                        border = BorderStroke(1.dp, BerlinGreen.copy(alpha = 0.35f)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                onNavigateToScreen(AppScreen.SPORTS_AND_MARKETS)
+                                onDismiss()
+                            }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Surface(
+                                    shape = CircleShape,
+                                    color = BerlinGreen,
+                                    modifier = Modifier.size(36.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            imageVector = Icons.Default.TrendingUp,
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                }
+                                Column {
+                                    Text(
+                                        text = if (language == AppLanguage.TURKISH) "🏆 Canlı Spor & Piyasa Merkezi" else "🏆 Live-Sport & Finanz-Zentrum",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 13.sp,
+                                        color = BerlinGreen
+                                    )
+                                    Text(
+                                        text = if (language == AppLanguage.TURKISH) "Saat, Hava Durumu, Borsa, Altın & Gazeteler" else "Uhrzeit, Wetter, Börse, Gold & Presse",
+                                        fontSize = 11.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                            Icon(
+                                imageVector = Icons.Default.ChevronRight,
+                                contentDescription = null,
+                                tint = BerlinGreen,
+                                modifier = Modifier.size(20.dp)
+                            )
                         }
                     }
 

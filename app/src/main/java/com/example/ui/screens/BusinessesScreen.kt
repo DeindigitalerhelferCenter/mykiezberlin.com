@@ -27,12 +27,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.foundation.BorderStroke
 import com.example.data.model.AppLanguage
 import com.example.data.model.KiezStory
 import com.example.data.model.LocalBusiness
 import com.example.data.repository.SampleData
 import com.example.ui.components.*
 import com.example.ui.theme.*
+import com.example.ui.viewmodel.AppScreen
 
 @Composable
 fun BusinessesScreen(
@@ -57,7 +59,8 @@ fun BusinessesScreen(
     onResetFilters: () -> Unit = {},
     showAddBusinessDialog: Boolean = false,
     onOpenAddBusiness: () -> Unit = {},
-    onCloseAddBusiness: () -> Unit = {}
+    onCloseAddBusiness: () -> Unit = {},
+    onNavigateToScreen: (AppScreen) -> Unit = {}
 ) {
     val context = LocalContext.current
     var localAddBusinessModal by remember { mutableStateOf(false) }
@@ -168,6 +171,18 @@ fun BusinessesScreen(
                                 modifier = Modifier.padding(vertical = 2.dp)
                             )
                         }
+                        item(key = "live_quick_hub") {
+                            BerlinLiveQuickAccessBanner(
+                                language = language,
+                                onNavigateToScreen = onNavigateToScreen
+                            )
+                        }
+                        item(key = "manset_slider") {
+                            MansetSliderComponent(language = language)
+                        }
+                        item(key = "bigpara_strip") {
+                            BigparaMarketStrip(language = language)
+                        }
                         item(key = "control_bar") {
                             BusinessesControlBar(
                                 businessCount = allBusinesses.size,
@@ -230,6 +245,18 @@ fun BusinessesScreen(
                                 language = language,
                                 modifier = Modifier.padding(vertical = 2.dp)
                             )
+                        }
+                        item(key = "live_quick_hub") {
+                            BerlinLiveQuickAccessBanner(
+                                language = language,
+                                onNavigateToScreen = onNavigateToScreen
+                            )
+                        }
+                        item(key = "manset_slider") {
+                            MansetSliderComponent(language = language)
+                        }
+                        item(key = "bigpara_strip") {
+                            BigparaMarketStrip(language = language)
                         }
                         item(key = "control_bar") {
                             BusinessesControlBar(
@@ -1045,3 +1072,169 @@ fun BusinessesControlBar(
         }
     }
 }
+
+@Composable
+fun BerlinLiveQuickAccessBanner(
+    language: AppLanguage,
+    onNavigateToScreen: (AppScreen) -> Unit
+) {
+    val context = LocalContext.current
+    val apkUrl = "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin.com.apk"
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 14.dp, vertical = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        // Row 1: Canlı Ticker & Canlı Spor/Piyasa (Two prominent hero buttons)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // 🔴 Canlı Ticker (Polis, BVG, S-Bahn, İtfaiye)
+            Surface(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { onNavigateToScreen(AppScreen.LIVE_BULLETIN) }
+                    .testTag("home_quick_live_ticker"),
+                shape = RoundedCornerShape(12.dp),
+                color = BerlinRed.copy(alpha = 0.12f),
+                border = BorderStroke(1.2.dp, BerlinRed.copy(alpha = 0.5f))
+            ) {
+                Row(
+                    modifier = Modifier.padding(10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = BerlinRed,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(imageVector = Icons.Default.Sensors, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                        }
+                    }
+                    Column {
+                        Text(
+                            text = if (language == AppLanguage.TURKISH) "🔴 Canlı Ticker" else "🔴 Live-Ticker",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Black,
+                            color = BerlinRed
+                        )
+                        Text(
+                            text = if (language == AppLanguage.TURKISH) "Polis / BVG / S-Bahn" else "Polizei / BVG / Bahn",
+                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            // 🏆 Canlı Spor, Saat, Hava & Piyasa
+            Surface(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { onNavigateToScreen(AppScreen.SPORTS_AND_MARKETS) }
+                    .testTag("home_quick_sports_markets"),
+                shape = RoundedCornerShape(12.dp),
+                color = BerlinGreen.copy(alpha = 0.12f),
+                border = BorderStroke(1.2.dp, BerlinGreen.copy(alpha = 0.5f))
+            ) {
+                Row(
+                    modifier = Modifier.padding(10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = BerlinGreen,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(imageVector = Icons.Default.TrendingUp, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                        }
+                    }
+                    Column {
+                        Text(
+                            text = if (language == AppLanguage.TURKISH) "🏆 Spor & Piyasa" else "🏆 Sport & Kurse",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Black,
+                            color = BerlinGreen
+                        )
+                        Text(
+                            text = if (language == AppLanguage.TURKISH) "Saat / Hava / Altın" else "Uhr / Wetter / DAX",
+                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+
+        // Row 2: Gazeteler (Presse) & Arkadaşıma Paylaş (APK)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // 📰 Berlin Gazeteleri (B.Z., Kurier, Tagesspiegel)
+            Surface(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { onNavigateToScreen(AppScreen.LIVE_BULLETIN) },
+                shape = RoundedCornerShape(10.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant
+            ) {
+                Row(
+                    modifier = Modifier.padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(imageVector = Icons.Default.Newspaper, contentDescription = null, tint = BerlinBlue, modifier = Modifier.size(16.dp))
+                    Text(
+                        text = if (language == AppLanguage.TURKISH) "📰 Berlin Basını (B.Z.)" else "📰 Berliner Presse",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = BerlinBlue
+                    )
+                }
+            }
+
+            // 📲 Arkadaşıma Paylaş (APK İndir)
+            Surface(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable {
+                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            val text = if (language == AppLanguage.TURKISH) {
+                                "Berlin'in canlı bülteni, mahalle rehberi ve etkinlikleri için My Kiez Berlin uygulamasını hemen indir:\n$apkUrl"
+                            } else {
+                                "Lade jetzt die My Kiez Berlin App für Live-Ticker, Nachbarschafts-Guide und Events herunter:\n$apkUrl"
+                            }
+                            putExtra(Intent.EXTRA_TEXT, text)
+                        }
+                        context.startActivity(Intent.createChooser(shareIntent, "My Kiez Berlin"))
+                    },
+                shape = RoundedCornerShape(10.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant
+            ) {
+                Row(
+                    modifier = Modifier.padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(imageVector = Icons.Default.Share, contentDescription = null, tint = Color(0xFF0284C7), modifier = Modifier.size(16.dp))
+                    Text(
+                        text = if (language == AppLanguage.TURKISH) "📲 APK Paylaş / İndir" else "📲 App weiterleiten",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF0284C7)
+                    )
+                }
+            }
+        }
+    }
+}
+

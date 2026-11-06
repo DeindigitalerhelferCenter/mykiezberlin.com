@@ -429,6 +429,7 @@ function openKiezDetail(id) {
     ${row("ÖPNV", k.transitLines)}
     ${row(tr("Parks", "Parklar"), (k.parks || []).join(", "))}
     ${row(tr("Beliebte Orte", "Popüler Yerler"), (k.popularSpots || k.highlights || []).join(", "))}
+    ${row(tr("Sehenswert", "Görülecek Yerler"), (k.highlights || []).join(", "))}
     ${row("Bürgeramt", [k.buergeramtName, k.buergeramtAddress].filter(Boolean).join(", "))}
     ${row(tr("Polizei", "Polis"), [k.policeStation, k.policeAddress].filter(Boolean).join(", "))}
     <div class="ext-actions"><a class="chip-btn active" href="${safeUrl(map)}" target="_blank" rel="noopener"><i class="bi bi-map-fill"></i> ${esc(tr("Karte", "Harita"))}</a></div>`);

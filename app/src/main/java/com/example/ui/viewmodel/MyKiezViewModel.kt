@@ -4,11 +4,10 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.model.*
-import com.example.data.repository.BerlinBulletinRepository
 import com.example.data.repository.KiezStorageManager
+import com.example.data.repository.LiveAlert
+import com.example.data.repository.LiveAlertsRepository
 import com.example.data.repository.SampleData
-import com.example.util.BerlinNotificationItem
-import com.example.util.BerlinNotificationManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,7 +34,8 @@ enum class AppScreen {
     REPORTER,
     ADMIN,
     LIVE_BULLETIN,
-    BERLIN_TIPS
+    BERLIN_TIPS,
+    SPORTS_AND_MARKETS
 }
 
 data class UiState(
@@ -97,7 +97,8 @@ data class UiState(
     val bulletinSearchQuery: String = "",
     val lastBulletinUpdateMillis: Long = System.currentTimeMillis(),
     val isNotificationsEnabled: Boolean = true,
-    val activeAlertBanner: BerlinNotificationItem? = null
+    val isLiveAlertsAvailable: Boolean = false,
+    val activeAlertBanner: LiveAlert? = null
 )
 
 class MyKiezViewModel(application: Application) : AndroidViewModel(application) {
@@ -107,11 +108,12 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
 
     init {
         val initialLang = KiezStorageManager.loadLanguage(application)
-        val initialBulletins = BerlinBulletinRepository.loadBulletins(application)
         val userStories = KiezStorageManager.loadStories(application)
-        val instStories = BerlinBulletinRepository.generateInstitutionStories(initialBulletins, initialLang)
+        val initialAlerts = LiveAlertsRepository.liveAlerts.value
+        val instStories = LiveAlertsRepository.generateInstitutionStories(initialAlerts, initialLang)
         val mergedStories = instStories + userStories.filter { u -> instStories.none { it.id == u.id } }
         val savedReports = KiezStorageManager.loadCustomReports(application)
+        val initialBulletins = LiveAlertsRepository.toBulletins(initialAlerts)
 
         _uiState = MutableStateFlow(
             UiState(
@@ -120,64 +122,58 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                 allStories = mergedStories,
                 isAdminAuthenticated = KiezStorageManager.isAdminAuthenticated(application),
                 liveBulletins = initialBulletins,
-                customReports = savedReports
+                customReports = savedReports,
+                isLiveAlertsAvailable = LiveAlertsRepository.isLiveAvailable.value,
+                activeAlertBanner = LiveAlertsRepository.activeAlertBanner.value
             )
         )
+
+        // Real-time OkHttp live alerts collection from https://mykiezberlin.com/api/live
+        viewModelScope.launch {
+            LiveAlertsRepository.liveAlerts.collect { alerts ->
+                val lang = _uiState.value.language
+                val uStories = KiezStorageManager.loadStories(app)
+                val iStories = LiveAlertsRepository.generateInstitutionStories(alerts, lang)
+                val mStories = iStories + uStories.filter { u -> iStories.none { it.id == u.id } }
+                val bulletins = LiveAlertsRepository.toBulletins(alerts)
+                _uiState.update {
+                    it.copy(
+                        liveBulletins = bulletins,
+                        allStories = mStories,
+                        isLiveAlertsAvailable = LiveAlertsRepository.isLiveAvailable.value,
+                        activeAlertBanner = LiveAlertsRepository.activeAlertBanner.value,
+                        lastBulletinUpdateMillis = System.currentTimeMillis()
+                    )
+                }
+            }
+        }
+
+        // Fetch stories and reporter posts from https://mykiezberlin.com/api/stories & /api/reporter
+        viewModelScope.launch {
+            try {
+                val remoteStories = LiveAlertsRepository.fetchRemoteStories()
+                if (remoteStories.isNotEmpty()) {
+                    val current = _uiState.value.allStories
+                    val combined = (remoteStories + current).distinctBy { it.id }
+                    _uiState.update { it.copy(allStories = combined) }
+                }
+                val remoteReports = LiveAlertsRepository.fetchRemoteReporterPosts()
+                if (remoteReports.isNotEmpty()) {
+                    val currentRep = _uiState.value.customReports
+                    val combinedRep = (remoteReports + currentRep).distinctBy { it.id }
+                    _uiState.update { it.copy(customReports = combinedRep) }
+                }
+            } catch (e: Exception) {
+                // Graceful fallback to local
+            }
+        }
     }
 
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
-    init {
-        // Create notification channel
-        BerlinNotificationManager.createNotificationChannel(application)
-
-        // Hourly maintenance coroutine: Prunes bulletins older than 24h
-        viewModelScope.launch {
-            while (true) {
-                delay(60_000L) // Check every 60 seconds
-                val current = _uiState.value.liveBulletins
-                val pruned = BerlinBulletinRepository.pruneExpiredBulletins(current)
-                if (pruned.size != current.size) {
-                    BerlinBulletinRepository.saveBulletins(app, pruned)
-                    val lang = _uiState.value.language
-                    val uStories = KiezStorageManager.loadStories(app)
-                    val iStories = BerlinBulletinRepository.generateInstitutionStories(pruned, lang)
-                    val mStories = iStories + uStories.filter { u -> iStories.none { it.id == u.id } }
-                    _uiState.update { it.copy(liveBulletins = pruned, allStories = mStories) }
-                }
-            }
-        }
-
-        // Automatic Notifications Scheduler (Initial reminder after 1.5s, then periodic)
-        viewModelScope.launch {
-            delay(1500L) // Initial live reminder 1.5 seconds after startup to prove it works immediately!
-            if (KiezStorageManager.isNotificationsEnabled(app)) {
-                val item = BerlinNotificationManager.triggerNextNotification(app, _uiState.value.language)
-                _uiState.update { it.copy(activeAlertBanner = item) }
-            }
-            while (true) {
-                delay(2 * 3600 * 1000L) // Every 2 hours
-                if (KiezStorageManager.isNotificationsEnabled(app)) {
-                    val item = BerlinNotificationManager.triggerNextNotification(app, _uiState.value.language)
-                    _uiState.update { it.copy(activeAlertBanner = item) }
-                }
-            }
-        }
-    }
-
     fun refreshLiveBulletins() {
-        val updated = BerlinBulletinRepository.generateHourlyRefresh(_uiState.value.liveBulletins)
-        BerlinBulletinRepository.saveBulletins(app, updated)
-        val currentLang = _uiState.value.language
-        val uStories = KiezStorageManager.loadStories(app)
-        val iStories = BerlinBulletinRepository.generateInstitutionStories(updated, currentLang)
-        val mStories = iStories + uStories.filter { u -> iStories.none { it.id == u.id } }
-        _uiState.update {
-            it.copy(
-                liveBulletins = updated,
-                allStories = mStories,
-                lastBulletinUpdateMillis = System.currentTimeMillis()
-            )
+        viewModelScope.launch {
+            LiveAlertsRepository.fetchLiveAlerts()
         }
     }
 
@@ -195,9 +191,9 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
 
     fun setLanguage(language: AppLanguage) {
         KiezStorageManager.saveLanguage(app, language)
-        val currentBulletins = _uiState.value.liveBulletins
+        val currentAlerts = LiveAlertsRepository.liveAlerts.value
         val uStories = KiezStorageManager.loadStories(app)
-        val iStories = BerlinBulletinRepository.generateInstitutionStories(currentBulletins, language)
+        val iStories = LiveAlertsRepository.generateInstitutionStories(currentAlerts, language)
         val mStories = iStories + uStories.filter { u -> iStories.none { it.id == u.id } }
         _uiState.update { it.copy(language = language, allStories = mStories) }
     }
@@ -208,11 +204,17 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun triggerTestNotification() {
-        val item = BerlinNotificationManager.triggerNextNotification(app, _uiState.value.language)
-        _uiState.update { it.copy(activeAlertBanner = item) }
+        LiveAlertsRepository.cycleNextAlert()
+        _uiState.update {
+            it.copy(
+                activeAlertBanner = LiveAlertsRepository.activeAlertBanner.value,
+                isLiveAlertsAvailable = LiveAlertsRepository.isLiveAvailable.value
+            )
+        }
     }
 
     fun dismissAlertBanner() {
+        LiveAlertsRepository.dismissBanner()
         _uiState.update { it.copy(activeAlertBanner = null) }
     }
 
@@ -375,6 +377,28 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
 
     // Stories
     fun openStory(story: KiezStory, list: List<KiezStory> = emptyList(), index: Int = 0) {
+        // If it's an institution story (BVG, S-Bahn, Feuerwehr, Polizei, Bürgeramt, Senat, Kultur),
+        // load all 10 authentic reports for this specific institution so user can browse all official incident reports
+        if (story.id.startsWith("inst_story_")) {
+            val matchingFolder = BulletinFolder.values().firstOrNull { folder ->
+                story.id.contains(folder.key, ignoreCase = true) || story.author.contains(folder.key, ignoreCase = true)
+            }
+            if (matchingFolder != null) {
+                val folderStories = LiveAlertsRepository.getFolderStories(matchingFolder, LiveAlertsRepository.liveAlerts.value, _uiState.value.language)
+                if (folderStories.isNotEmpty()) {
+                    val validIdx = folderStories.indexOfFirst { it.headline == story.headline }.takeIf { it >= 0 } ?: 0
+                    _uiState.update {
+                        it.copy(
+                            activeStory = folderStories[validIdx],
+                            activeStoriesList = folderStories,
+                            activeStoryIndex = validIdx
+                        )
+                    }
+                    return
+                }
+            }
+        }
+
         val fullList = if (list.isNotEmpty()) list else listOf(story)
         val validIndex = if (index in fullList.indices) index else fullList.indexOf(story).coerceAtLeast(0)
         _uiState.update {
@@ -496,6 +520,9 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                 showAddStoryDialog = false,
                 storySubmissionFeedback = "APPROVED"
             )
+        }
+        viewModelScope.launch {
+            LiveAlertsRepository.postRemoteStory(newStory)
         }
     }
 
@@ -630,6 +657,9 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                 customStories = listOf(adminStory) + it.customStories
             )
         }
+        viewModelScope.launch {
+            LiveAlertsRepository.postRemoteStory(adminStory)
+        }
     }
 
     // Jobs
@@ -682,6 +712,9 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
             it.copy(customReports = updated)
         }
         KiezStorageManager.saveCustomReports(app, updated)
+        viewModelScope.launch {
+            LiveAlertsRepository.postRemoteReporterPost(post)
+        }
     }
 
     fun addReporterComment(postId: String, author: String, text: String) {

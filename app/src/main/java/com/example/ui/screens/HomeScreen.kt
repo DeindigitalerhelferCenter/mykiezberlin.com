@@ -32,7 +32,9 @@ import com.example.R
 import com.example.data.model.AppLanguage
 import com.example.data.model.Kiez
 import com.example.data.repository.SampleData
+import com.example.ui.components.BigparaMarketStrip
 import com.example.ui.components.KiezPhotoHelper
+import com.example.ui.components.MansetSliderComponent
 import com.example.ui.components.RealKiezImage
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.AppScreen
@@ -314,6 +316,16 @@ fun HomeScreen(
                     )
                 }
             }
+        }
+
+        // 📰 Berlin Günlük Gazete Manşetleri Slaytı (B.Z., Tagesspiegel, rbb24)
+        item {
+            MansetSliderComponent(language = language)
+        }
+
+        // 📈 Canlı Piyasa & Borsa Bandı (Bigpara BIST 100, Dolar, Euro, Altın)
+        item {
+            BigparaMarketStrip(language = language)
         }
 
         // 🗺️ Berlin'de Ne Yapılır? (33 Klasik Gezi & Cazibe Noktası)

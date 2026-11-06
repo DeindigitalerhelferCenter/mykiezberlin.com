@@ -431,7 +431,7 @@ function openHamburgerHubModal() {
 
           <div class="hub-menu-tile" onclick="switchTab('kieze'); closeHamburgerHubModal();">
             <div class="tile-icon-box blue"><i class="bi bi-compass-fill"></i></div>
-            <div class="tile-label">24+ Kiezler</div>
+            <div class="tile-label">${KIEZE_FULL.length - 1} Kieze</div>
             <div class="tile-desc">Mitte, Kreuzberg & mehr</div>
           </div>
 

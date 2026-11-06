@@ -385,39 +385,49 @@ fun EmergencyScreen(
             // Tab 2: Resmî Berlin Kamu ve Ulaşım Portalları (Telif / Güvenlik Riski Olmayan Resmi Linkler)
             val officialPortals = listOf(
                 OfficialPortalInfo(
-                    title = "Berlin.de Resmî Etkinlikler & Festivaller",
-                    url = "https://www.berlin.de/events/volksfeste/",
-                    desc = "Volksfeste, Ekim festivalleri, kültür, tiyatro ve müzik etkinlikleri resmi rehberi."
-                ),
-                OfficialPortalInfo(
-                    title = "Berlin.de Eyalet Resmî Ana Portalı",
-                    url = "https://www.berlin.de/",
-                    desc = "Berlin Eyaleti resmi hükümet, kamu ve şehir rehberi ana sayfası."
-                ),
-                OfficialPortalInfo(
-                    title = "Polizei Berlin (Resmî Güvenlik)",
-                    url = "https://www.berlin.de/polizei/",
-                    desc = "Berlin Emniyet Müdürlüğü resmi duyuruları, basın bültenleri ve karakol rehberi."
-                ),
-                OfficialPortalInfo(
                     title = "Polizei Berlin Internetwache (Online İhbar)",
                     url = "https://www.internetwache-polizei-berlin.de/",
-                    desc = "Online suç duyurusu, ihbar bildirme ve resmi emniyet servisleri."
+                    desc = "Online suç duyurusu, ihbar bildirme ve 7/24 resmi dijital karakol servisi."
+                ),
+                OfficialPortalInfo(
+                    title = "Polizei Berlin Polizeimeldungen",
+                    url = "https://www.berlin.de/polizei/polizeimeldungen/",
+                    desc = "Berlin Emniyet Müdürlüğü resmi bülteni, güncel olay ve asayiş raporları."
+                ),
+                OfficialPortalInfo(
+                    title = "Polizei: Auto wiederfinden (Çekilen Araç)",
+                    url = "https://www.berlin.de/polizei/service/auto-fahrrad-bus/auto-wiederfinden/",
+                    desc = "Çekilen veya yeri değiştirilen araçların bulunduğu otoparkı online sorgulama."
+                ),
+                OfficialPortalInfo(
+                    title = "Polizei: Wem gehören diese Gegenstände?",
+                    url = "https://www.berlin.de/polizei/service/wem-gehoeren-diese-gegenstaende/",
+                    desc = "Polisin ele geçirdiği çalıntı ziynet, bisiklet ve eşyaların fotoğraf arşivi."
+                ),
+                OfficialPortalInfo(
+                    title = "Versammlungsbehörde (Miting & Yürüyüşler)",
+                    url = "https://www.berlin.de/polizei/service/versammlungsbehoerde/versammlungen-aufzuege/",
+                    desc = "Berlin'de izinli resmi miting, eylem ve yürüyüşlerin günlük takvimi."
+                ),
+                OfficialPortalInfo(
+                    title = "Berliner Feuerwehr: Aktuelle Einsätze",
+                    url = "https://www.berliner-feuerwehr.de/aktuelles/einsaetze/",
+                    desc = "Berlin İtfaiyesi canlı operasyon dökümü, yangın ve teknik kurtarma raporları."
+                ),
+                OfficialPortalInfo(
+                    title = "S-Bahn Berlin: Was hast du vor?",
+                    url = "https://sbahn.berlin/was-hast-du-vor/",
+                    desc = "S-Bahn gezi turları, 22 göl ve yüzme noktası, cüzdan dostu kış ve kültür rotaları."
+                ),
+                OfficialPortalInfo(
+                    title = "Berlin.de Resmî Etkinlikler & Festivaller",
+                    url = "https://www.berlin.de/events/volksfeste/",
+                    desc = "Volksfeste, kültür, tiyatro ve müzik etkinlikleri resmi rehberi."
                 ),
                 OfficialPortalInfo(
                     title = "BVG (Berliner Verkehrsbetriebe)",
                     url = "https://www.bvg.de/de/verbindungen/stoerungsmeldungen",
                     desc = "U-Bahn, Tram ve Otobüs canlı sefer durumları, arıza ve gecikme bildirimleri."
-                ),
-                OfficialPortalInfo(
-                    title = "S-Bahn Berlin (Deutsche Bahn)",
-                    url = "https://sbahn.berlin/fahren/bauen-stoerung/",
-                    desc = "Berlin banliyö trenleri, hat inşaatları ve güncel sefer kesinti tablosu."
-                ),
-                OfficialPortalInfo(
-                    title = "Berliner Feuerwehr (İtfaiye & Kurtarma)",
-                    url = "https://www.berliner-feuerwehr.de/",
-                    desc = "Resmi yangın, ilkyardım ve acil kurtarma bilgilendirme servisi."
                 ),
                 OfficialPortalInfo(
                     title = "Bürgeramt Berlin (Service-Portal)",
