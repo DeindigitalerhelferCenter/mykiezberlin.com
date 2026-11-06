@@ -55,10 +55,14 @@ export async function fetchJson(url, ms = 7000) {
 }
 
 const SCHEMA = [
-  `CREATE TABLE IF NOT EXISTS stories (id TEXT PRIMARY KEY, headline TEXT NOT NULL, subtext TEXT DEFAULT '', kiez TEXT NOT NULL, author TEXT DEFAULT 'Kiez Community', media_key TEXT DEFAULT '', status TEXT DEFAULT 'pending', duration_hours INTEGER DEFAULT 24, ip TEXT DEFAULT '', created_at INTEGER, approved_at INTEGER DEFAULT 0)`,
+  `CREATE TABLE IF NOT EXISTS stories (id TEXT PRIMARY KEY, headline TEXT NOT NULL, subtext TEXT DEFAULT '', kiez TEXT NOT NULL, author TEXT DEFAULT 'Kiez Community', media_key TEXT DEFAULT '', media_type TEXT DEFAULT '', kind TEXT DEFAULT 'news', status TEXT DEFAULT 'pending', duration_hours INTEGER DEFAULT 24, ip TEXT DEFAULT '', created_at INTEGER, approved_at INTEGER DEFAULT 0)`,
   `CREATE INDEX IF NOT EXISTS idx_stories_status ON stories(status, created_at)`,
   `CREATE TABLE IF NOT EXISTS reporter_posts (id TEXT PRIMARY KEY, title TEXT NOT NULL, description TEXT NOT NULL, kiez TEXT NOT NULL, category TEXT DEFAULT 'Kultur', author TEXT DEFAULT 'Kiez Community', upvotes INTEGER DEFAULT 1, status TEXT DEFAULT 'pending', ip TEXT DEFAULT '', created_at INTEGER)`,
   `CREATE INDEX IF NOT EXISTS idx_reporter_status ON reporter_posts(status, created_at)`,
+  `CREATE TABLE IF NOT EXISTS reporter_comments (id TEXT PRIMARY KEY, post_id TEXT NOT NULL, author TEXT DEFAULT 'Kiez Community', text TEXT NOT NULL, status TEXT DEFAULT 'pending', ip TEXT DEFAULT '', created_at INTEGER)`,
+  `CREATE INDEX IF NOT EXISTS idx_comments_post ON reporter_comments(post_id, status)`,
+  `CREATE TABLE IF NOT EXISTS submissions (id TEXT PRIMARY KEY, type TEXT NOT NULL, payload TEXT NOT NULL, status TEXT DEFAULT 'pending', ip TEXT DEFAULT '', created_at INTEGER)`,
+  `CREATE INDEX IF NOT EXISTS idx_submissions_status ON submissions(type, status)`,
 ];
 
 let schemaReady = false;

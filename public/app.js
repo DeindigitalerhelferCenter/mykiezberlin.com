@@ -161,7 +161,7 @@ function setupEventListeners() {
   const langBtn = document.getElementById("lang-toggle-btn");
   if (langBtn) {
     langBtn.addEventListener("click", () => {
-      currentLanguage = (currentLanguage === "tr") ? "de" : "tr";
+      currentLanguage = nextLanguage(currentLanguage);
       langBtn.innerText = currentLanguage.toUpperCase();
       renderStoriesBar();
       renderAlertTicker();
@@ -482,7 +482,7 @@ function closeHamburgerHubModal() {
 }
 
 function toggleLanguageFromHub() {
-  currentLanguage = (currentLanguage === "tr") ? "de" : "tr";
+  currentLanguage = nextLanguage(currentLanguage);
   const langBtn = document.getElementById("lang-toggle-btn");
   if (langBtn) langBtn.innerText = currentLanguage.toUpperCase();
   renderStoriesBar();

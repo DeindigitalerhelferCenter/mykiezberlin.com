@@ -40,3 +40,53 @@
 /* Keeps the app navigation on screen, like the Android bottom bar. */
 .bottom-nav { position: fixed; left: 50%; right: auto; bottom: 0; width: 100%; max-width: 680px; transform: translateX(-50%); padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
 .main-content { padding-bottom: 88px; }
+
+/* Remaining APK screens. */
+.ext-chips { margin: 8px -16px; }
+.ext-manset { position: relative; display: block; margin-bottom: 12px; height: 190px; border-radius: var(--radius-md); overflow: hidden; color: #fff; text-decoration: none; }
+.ext-manset img { width: 100%; height: 100%; object-fit: cover; }
+.ext-manset div { position: absolute; inset: auto 0 0 0; padding: 12px; background: linear-gradient(transparent, rgba(0, 0, 0, 0.82)); }
+.ext-manset span { display: block; font-size: 11px; opacity: 0.85; }
+.ext-manset strong { font-size: 15px; line-height: 1.25; }
+.ext-quick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
+.ext-quick button { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--surface-color); color: var(--text-main); font-size: 11.5px; font-weight: 700; cursor: pointer; }
+.ext-quick i { font-size: 19px; color: var(--berlin-red); }
+.ext-kiez-scroll { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
+.ext-kiez-scroll button { flex: 0 0 110px; border: 0; padding: 0; background: none; color: var(--text-main); font-size: 12px; font-weight: 700; cursor: pointer; }
+.ext-kiez-scroll img { display: block; width: 110px; height: 76px; object-fit: cover; border-radius: 10px; margin-bottom: 4px; }
+.ext-views { display: flex; gap: 6px; margin: 10px 0; }
+.ext-views button { flex: 1; padding: 8px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--surface-color); color: var(--text-main); font-size: 12px; font-weight: 700; cursor: pointer; }
+.ext-views button.on { background: var(--berlin-red); border-color: var(--berlin-red); color: #fff; }
+.ext-map { height: 380px; margin-bottom: 12px; border-radius: var(--radius-md); overflow: hidden; z-index: 1; }
+.ext-code { margin: 12px 0; padding: 14px; border: 2px dashed var(--berlin-red); border-radius: 10px; text-align: center; font-size: 22px; font-weight: 900; letter-spacing: 1px; color: var(--text-main); }
+.ext-clubs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.ext-clubs a { padding: 12px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--surface-color); color: var(--text-main); font-size: 13px; font-weight: 700; text-decoration: none; }
+.ext-comments { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color); }
+.ext-comment { margin-bottom: 6px; font-size: 13px; color: var(--text-main); }
+.ext-switch { position: relative; width: 46px; height: 26px; border: 0; border-radius: 13px; background: var(--border-color); cursor: pointer; }
+.ext-switch span { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: left 0.15s; }
+.ext-switch.on { background: var(--berlin-red); }
+.ext-switch.on span { left: 23px; }
+.ext-live-pill { background: var(--berlin-red) !important; color: #fff !important; border: 0; cursor: pointer; }
+.ext-b2b-pill { cursor: pointer; }
+.ext-tile, .ext-news { background: var(--surface-color); }
+
+@media (max-width: 480px) {
+  .top-bar-right { gap: 4px; }
+  .apk-btn-text, .admin-btn-text, .ext-b2b-pill span { display: none; }
+  .brand-title { display: none; }
+  .ext-live-pill { padding: 6px 8px; font-size: 11px; }
+}
+
+html.ext-dark {
+  --bg-color: #0F172A;
+  --surface-color: #1E293B;
+  --surface-variant: #273449;
+  --border-color: #334155;
+  --text-main: #F1F5F9;
+  --text-muted: #94A3B8;
+  --text-light: #64748B;
+}
+html.ext-dark body, html.ext-dark .card-item, html.ext-dark .modal-card, html.ext-dark .form-control, html.ext-dark .top-bar, html.ext-dark .chip-btn { background-color: var(--surface-color); color: var(--text-main); }
+html.ext-dark body { background-color: var(--bg-color); }
+html.ext-dark .chip-btn.active { background-color: var(--berlin-red); color: #fff; }

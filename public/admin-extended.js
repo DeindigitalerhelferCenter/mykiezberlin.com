@@ -4,6 +4,7 @@
  */
 
 const ADMIN_TOKEN_KEY = "mykiez_admin_token_v1";
+let moderationTab = "pending";
 
 function adminEsc(value) {
   return String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -31,8 +32,9 @@ async function adminRequest(method, body) {
 }
 
 function moderationCard(type, item) {
-  const title = type === "story" ? item.headline : item.title;
-  const text = type === "story" ? item.subtext : item.description;
+  const payload = item.payload || {};
+  const title = item.headline || item.title || payload.name || payload.title || payload.packageName || item.text;
+  const text = item.subtext || item.description || payload.description || payload.email || "";
   const image = item.media_key ? `<img src="/media/${adminEsc(item.media_key)}" alt="" style="width: 56px; height: 56px; object-fit: cover; border-radius: 8px;">` : "";
   const id = adminEsc(item.id);
   return `
@@ -42,12 +44,13 @@ function moderationCard(type, item) {
         <div>
           <div style="font-weight: 800;">${adminEsc(title)}</div>
           <div style="font-size: 12px; color: #8b949e;">${adminEsc(text)}</div>
-          <div style="font-size: 11px; color: #8b949e; margin-top: 4px;">📍 ${adminEsc(item.kiez)} · ${adminEsc(item.status)}</div>
+          <div style="font-size: 11px; color: #8b949e; margin-top: 4px;">${adminEsc(item.type || type)} · ${adminEsc(item.kiez || payload.kiezName || payload.kiez || "")} · ${adminEsc(item.status)}</div>
         </div>
       </div>
       <div style="display: flex; gap: 8px; margin-top: 10px;">
         ${item.status !== "approved" ? `<button class="chip-btn active" onclick="moderate('${type}', '${id}', 'approve')">Onayla</button>` : ""}
         ${item.status === "pending" ? `<button class="chip-btn" onclick="moderate('${type}', '${id}', 'reject')">Reddet</button>` : ""}
+        ${type === "story" ? `<button class="chip-btn" onclick="moderate('story', '${id}', 'extend')">+48 Saat</button><button class="chip-btn" onclick="editStory('${id}')">Düzenle</button>` : ""}
         <button class="chip-btn" onclick="moderate('${type}', '${id}', 'delete')">Sil</button>
       </div>
     </div>`;
@@ -72,12 +75,22 @@ async function loadModerationQueue() {
       return;
     }
     if (!res.ok) throw new Error(String(res.status));
-    const { stories, posts } = await res.json();
+    const { stories, posts, comments, submissions } = await res.json();
+    const all = [
+      ...stories.map((i) => ["story", i]), ...posts.map((i) => ["post", i]),
+      ...comments.map((i) => ["comment", i]), ...submissions.map((i) => ["submission", i]),
+    ];
+    const tabs = ["pending", "approved", "rejected"];
+    const labels = { pending: "Bekleyen", approved: "Yayında", rejected: "Reddedilen" };
+    const shown = all.filter(([, i]) => i.status === moderationTab);
     box.innerHTML = `
       <h2 style="font-size: 17px; font-weight: 800; color: #fff; margin-bottom: 12px;">Kullanıcı Gönderileri (Sunucu)</h2>
-      ${stories.map((s) => moderationCard("story", s)).join("")}
-      ${posts.map((p) => moderationCard("post", p)).join("")}
-      ${stories.length || posts.length ? "" : `<p style="font-size: 12px; color: #8b949e;">Bekleyen gönderi yok.</p>`}`;
+      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+        ${tabs.map((t) => `<button class="chip-btn ${t === moderationTab ? "active" : ""}" onclick="setModerationTab('${t}')">${labels[t]} (${all.filter(([, i]) => i.status === t).length})</button>`).join("")}
+        <button class="chip-btn" onclick="createServerStory()">+ Admin Story</button>
+      </div>
+      ${shown.map(([type, item]) => moderationCard(type, item)).join("")}
+      ${shown.length ? "" : `<p style="font-size: 12px; color: #8b949e;">Burada gönderi yok.</p>`}`;
   } catch (e) {
     box.innerHTML = `<p style="font-size: 12px; color: #8b949e;">Sunucu moderasyonuna ulaşılamıyor.</p>`;
   }
@@ -85,5 +98,28 @@ async function loadModerationQueue() {
 
 async function moderate(type, id, action) {
   await adminRequest("POST", { type, id, action });
+  loadModerationQueue();
+}
+
+function setModerationTab(tab) {
+  moderationTab = tab;
+  loadModerationQueue();
+}
+
+async function editStory(id) {
+  const headline = prompt("Yeni başlık:");
+  if (!headline) return;
+  const subtext = prompt("Yeni açıklama:") || "";
+  await adminRequest("POST", { type: "story", id, action: "edit", headline, subtext });
+  loadModerationQueue();
+}
+
+async function createServerStory() {
+  const headline = prompt("Story başlığı:");
+  if (!headline) return;
+  const subtext = prompt("Açıklama:") || "";
+  const kiez = prompt("Kiez:") || "Ganz Berlin";
+  const durationHours = Number(prompt("Süre (saat):", "48")) || 48;
+  await adminRequest("POST", { action: "createStory", headline, subtext, kiez, durationHours });
   loadModerationQueue();
 }

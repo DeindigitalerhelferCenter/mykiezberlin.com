@@ -1,6 +1,6 @@
 // Network first, so content stays current; the cache only serves offline visits.
-const CACHE = "mykiez-v1";
-const SHELL = ["/", "/styles.css", "/styles-extended.css", "/data.js", "/data-extended.js", "/app.js", "/app-extended.js", "/assets/images/mykiez_logo.png"];
+const CACHE = "mykiez-v2";
+const SHELL = ["/", "/styles.css", "/styles-extended.css", "/data.js", "/data-extended.js", "/app.js", "/app-extended.js", "/app-parity.js", "/assets/images/mykiez_logo.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)));

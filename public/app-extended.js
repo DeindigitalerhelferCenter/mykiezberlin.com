@@ -17,7 +17,10 @@ let reporterAvailable = false;
 let activeBusinessCategory = "all";
 let sponsorIndex = 0;
 
-const tr = (de, turkish) => (currentLanguage === "tr" ? turkish : de);
+function tr(de, turkish) {
+  if (currentLanguage === "tr") return turkish;
+  return currentLanguage === "en" ? EN_TEXT[de] || de : de;
+}
 
 function esc(value) {
   return String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -154,8 +157,9 @@ async function loadServerStories() {
       kiez: s.kiez,
       headline: s.headline,
       subtext: s.subtext,
-      image: s.media_key ? `/media/${s.media_key}` : "assets/images/hero_berlin.jpg",
-      isVideo: false,
+      image: s.media_key && s.media_type !== "video" ? `/media/${s.media_key}` : "assets/images/hero_berlin.jpg",
+      isVideo: s.media_type === "video",
+      videoUri: s.media_type === "video" ? `/media/${s.media_key}` : "",
       durationHours: s.duration_hours,
       status: "approved",
       link: "https://mykiezberlin.com",
@@ -168,7 +172,7 @@ async function submitUserStory() {
   const headline = document.getElementById("new-story-headline").value.trim();
   const subtext = document.getElementById("new-story-subtext").value.trim();
   const kiez = document.getElementById("new-story-kiez").value;
-  const file = document.getElementById("new-story-file").files[0];
+  const file = await prepareStoryFile(document.getElementById("new-story-file").files[0], headline, subtext);
   if (!headline) {
     showToast(tr("Bitte gib einen Titel ein.", "Lütfen bir başlık girin."));
     return;
@@ -178,6 +182,8 @@ async function submitUserStory() {
   form.append("headline", headline);
   form.append("subtext", subtext);
   form.append("kiez", kiez);
+  form.append("kind", document.getElementById("new-story-kind")?.value || "news");
+  form.append("durationHours", document.getElementById("new-story-duration")?.value || "24");
   if (file) form.append("file", file);
 
   try {
@@ -188,7 +194,7 @@ async function submitUserStory() {
       showToast(tr("Zu viele Beiträge. Bitte versuche es später.", "Çok fazla gönderi. Lütfen sonra deneyin."));
       return;
     } else if (res.status === 413 || res.status === 415) {
-      showToast(tr("Bitte ein JPG, PNG oder WebP bis 5 MB wählen.", "Lütfen 5 MB'a kadar JPG, PNG veya WebP seçin."));
+      showToast(tr("Bitte ein Bild bis 5 MB oder ein Video bis 50 MB wählen.", "Lütfen 5 MB'a kadar görsel veya 50 MB'a kadar video seçin."));
       return;
     } else {
       showToast(tr("Veröffentlichen ist gerade nicht möglich.", "Şu anda yayınlanamıyor."));
