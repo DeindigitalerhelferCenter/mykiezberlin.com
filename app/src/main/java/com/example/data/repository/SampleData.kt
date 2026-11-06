@@ -584,6 +584,31 @@ object SampleData {
             policeStation = "Polizeiabschnitt 55",
             policeAddress = "Rollbergstraße 70, 12053 Berlin",
             policePhone = "+49 30 4664 555700"
+        ),
+        Kiez(
+            id = "umgebung",
+            name = "Berlin & Umgebung",
+            subtitle = "Ausflüge, Havelseen, Spreewald & Umland",
+            postalCodes = "14467, 14469, 14482, 15370",
+            population = "ca. 185.000",
+            populationDate = "30.06.2026",
+            specialty = "Schloss Sanssouci, Wannsee, Spreewald, Havelseen",
+            description = "Das Berliner Umland verbindet königliche Geschichte mit idyllischer Natur: Von Potsdam mit seinen UNESCO-Schlössern über die Havelseen bis zum UNESCO-Biosphärenreservat Spreewald.",
+            tags = listOf("Potsdam", "Sanssouci", "Havelseen", "Spreewald", "Natur"),
+            lat = 52.5200,
+            lng = 13.4050,
+            highlights = listOf("Schloss Sanssouci Potsdam", "Wannsee & Pfaueninsel", "Spreewald Fließgewässer", "Werder Havel"),
+            imageUrl = "https://images.unsplash.com/photo-1560969184-10fe8719e047?w=800&auto=format&fit=crop&q=80",
+            rentIndex = "",
+            vibe = "Natur & Ausflug",
+            transitLines = "S-Bahn S7 (Potsdam Hbf), Regionalbahn RE1, RE7, FEX (VBB-Tarif ABC)",
+            parks = listOf("Schlosspark Sanssouci", "Volkspark Potsdam", "Naturpark Barnim"),
+            popularSpots = listOf("Holländisches Viertel Café", "Historische Mühle Sanssouci", "Brauhaus Meierei im Neuen Garten"),
+            buergeramtName = "Bürgerservice Potsdam",
+            buergeramtAddress = "Friedrich-Ebert-Straße 79/81, 14469 Potsdam",
+            policeStation = "Polizeiinspektion Potsdam",
+            policeAddress = "Henning-von-Tresckow-Straße 9-13, 14467 Potsdam",
+            policePhone = "+49 331 55080"
         )
     )
 
@@ -1576,45 +1601,45 @@ object SampleData {
     // Kiez-Stories (Echte Berliner Tages-Events & Offizielle Quellen mit Direktlinks)
     val stories = listOf(
         KiezStory(
-            id = "story_1",
-            headline = "Polizei Berlin: Aktueller Einsatzbericht & Zeugenaufruf",
-            subtext = "Offizielle Meldung der Direktion zu den Sicherheitsmaßnahmen am Alexanderplatz mit Aktenzeichen.",
-            kind = "warn",
+            id = "story_museumsinsel",
+            headline = "Museumsinsel Berlin: UNESCO-Welterbe & Neue Ausstellungen",
+            subtext = "Pergamonmuseum, Neues Museum und Alte Nationalgalerie laden zu aktuellen Sonderausstellungen im Herzen Berlins ein.",
+            kind = "info",
             headlineColor = "blau",
             kiez = "Mitte",
-            author = "Polizei Berlin Einsatz (@PolizeiBerlin_E)",
-            timeAgo = "vor 45 Min.",
-            mediaResId = R.drawable.kiez_mitte,
-            source = "Polizei Berlin",
-            link = "https://www.berlin.de/polizei/polizeimeldungen/",
-            whatsapp = "+4915126509586"
-        ),
-        KiezStory(
-            id = "story_2",
-            headline = "S-Bahn Berlin: Bauinfo Ringbahn #S41 #S42 & #S8",
-            subtext = "SEV-Fahrpläne und Weichenarbeiten zwischen Treptower Park und Neukölln online einsehbar.",
-            kind = "traffic",
-            headlineColor = "gelb",
-            kiez = "Neukölln",
-            author = "S-Bahn Berlin (@SBahnBerlin)",
-            timeAgo = "vor 1 Std.",
-            mediaResId = R.drawable.kiez_neukoelln,
-            source = "S-Bahn Berlin GmbH",
-            link = "https://sbahn.berlin/fahren/s-bahn-betriebslaenderungen/",
-            whatsapp = "+4915126509586"
-        ),
-        KiezStory(
-            id = "story_3",
-            headline = "BVG: U2 & U8 Betriebslage Alexanderplatz normalisiert",
-            subtext = "Züge verkehren planmäßig im 4-Minuten-Takt. Anschlüsse am Knotenpunkt gesichert.",
-            kind = "traffic",
-            headlineColor = "gelb",
-            kiez = "Mitte",
-            author = "BVG Störungsmelder (@BVG_Ubahn)",
+            author = "Staatliche Museen zu Berlin",
             timeAgo = "vor 2 Std.",
+            mediaResId = R.drawable.kiez_mitte,
+            source = "Stiftung Preußischer Kulturbesitz",
+            link = "https://www.smb.museum/",
+            whatsapp = "+4915126509586"
+        ),
+        KiezStory(
+            id = "story_mauerpark",
+            headline = "Mauerpark Community: Kultur, Flohmarkt & Open-Air",
+            subtext = "Beliebter Treffpunkt für Nachbarn und Besucher im Prenzlauer Berg mit Kunsthandwerk und Kiez-Atmosphäre.",
+            kind = "event",
+            headlineColor = "gelb",
+            kiez = "Prenzlauer Berg",
+            author = "Kiez Community Berlin",
+            timeAgo = "vor 3 Std.",
             mediaResId = R.drawable.event_mauerpark,
-            source = "Berliner Verkehrsbetriebe (BVG)",
-            link = "https://www.bvg.de/de/verbindungen/stoerungsmeldungen",
+            source = "Freunde des Mauerparks e.V.",
+            link = "https://www.mauerpark.info/",
+            whatsapp = "+4915126509586"
+        ),
+        KiezStory(
+            id = "story_tempelhof",
+            headline = "Tempelhofer Feld: Das grüne Weite der Hauptstadt",
+            subtext = "Über 300 Hektar Freiraum für Sport, Gemeinschaftsgärten und Erholung auf dem historischen Flughafengelände.",
+            kind = "info",
+            headlineColor = "blau",
+            kiez = "Tempelhof / Neukölln",
+            author = "Grün Berlin GmbH",
+            timeAgo = "vor 4 Std.",
+            mediaResId = R.drawable.kiez_neukoelln,
+            source = "Grün Berlin",
+            link = "https://gruen-berlin.de/tempelhofer-feld",
             whatsapp = "+4915126509586"
         ),
         KiezStory(
@@ -2492,7 +2517,7 @@ object SampleData {
             teaserTr = "Konutların kamulaştırılması yönündeki senato tartışmalarının ardından büyük gayrimenkul yatırımcısı Berlin projelerini askıya aldı.",
             author = "BILD Berlin",
             imageResId = R.drawable.hero_berlin,
-            originalUrl = "https://www.bild.de/regional/berlin/berlin-regional/home-15823246.bild.html"
+            originalUrl = "https://www.bild.de/regional/berlin"
         ),
         MansetSlide(
             id = "slide_bild_02",
@@ -2505,7 +2530,7 @@ object SampleData {
             teaserTr = "Berlin Eyalet Mahkemesi'nde görülen davada karar açıklanırken, güvenlik birimleri başkentteki denetimlerin artırılmasını istedi.",
             author = "BILD Gerichts-Reporter",
             imageResId = R.drawable.kiez_mitte,
-            originalUrl = "https://www.bild.de/regional/berlin/berlin-regional/home-15823246.bild.html"
+            originalUrl = "https://www.bild.de/regional/berlin"
         ),
         MansetSlide(
             id = "slide_bild_03",
@@ -2518,7 +2543,7 @@ object SampleData {
             teaserTr = "Köpenick temsilcisi Union Berlin Bundesliga'da formunu yükseltirken, An der Alten Försterei stadyumunda yeni ikili büyük alkış alıyor.",
             author = "BILD Sport",
             imageResId = R.drawable.kiez_friedrichshain,
-            originalUrl = "https://m.bild.de/regional/berlin/berlin-regional/home-15823246.bildMobile.html"
+            originalUrl = "https://www.bild.de/regional/berlin"
         ),
         MansetSlide(
             id = "slide_bild_04",
@@ -2531,7 +2556,7 @@ object SampleData {
             teaserTr = "Neukölln'de gece saatlerinde gerçekleşen saldırının ardından polis olay yeri inceleme ekipleri ve cinayet masası soruşturmayı sürdürüyor.",
             author = "BILD Blaulicht",
             imageResId = R.drawable.kiez_neukoelln,
-            originalUrl = "https://www.bild.de/regional/berlin/berlin-regional/home-15823246.bild.html"
+            originalUrl = "https://www.bild.de/regional/berlin"
         ),
         MansetSlide(
             id = "slide_bild_05",
@@ -2544,7 +2569,7 @@ object SampleData {
             teaserTr = "Berlin spor camiası yasta: ALBA Berlin kulübü, sarı-lacivertli formayla şampiyonluklar yaşayan eski kaptanını saygıyla anıyor.",
             author = "BILD Sport",
             imageResId = R.drawable.kiez_charlottenburg,
-            originalUrl = "https://m.bild.de/news/startseite/news/news-16804530.bildMobile.html"
+            originalUrl = "https://www.bild.de/regional/berlin"
         ),
         MansetSlide(
             id = "slide_bild_06",
@@ -2557,7 +2582,7 @@ object SampleData {
             teaserTr = "Berlin ilçelerindeki yerel siyaset ve belediye yönetimi üzerine açılan dava karara bağlandı; mahkeme gerekçeli kararını açıkladı.",
             author = "BILD Berlin",
             imageResId = R.drawable.kiez_kreuzberg,
-            originalUrl = "https://www.bild.de/regional/berlin/berlin-regional/home-15823246.bild.html"
+            originalUrl = "https://www.bild.de/regional/berlin"
         ),
         MansetSlide(
             id = "slide_bild_07",
@@ -2570,7 +2595,7 @@ object SampleData {
             teaserTr = "12 Berlin ilçesinden 24 saat kesintisiz son dakika gelişmeleri, polis haberleri, trafik durumu ve özel röportajlar.",
             author = "BILD Redaktion",
             imageResId = R.drawable.news_bz_ryanair,
-            originalUrl = "https://www.bild.de/regional/berlin/berlin-regional/home-15823246.bild.html"
+            originalUrl = "https://www.bild.de/regional/berlin"
         ),
         MansetSlide(
             id = "slide_bild_08",
@@ -2583,7 +2608,7 @@ object SampleData {
             teaserTr = "Köpenick ekibi Union Berlin hakkında maç özetleri, antrenman notları ve transfer gelişmeleri tek sayfada.",
             author = "BILD Union-Reporter",
             imageResId = R.drawable.kiez_friedrichshain,
-            originalUrl = "https://m.bild.de/regional/berlin/berlin-regional/home-15823246.bildMobile.html"
+            originalUrl = "https://www.bild.de/regional/berlin"
         ),
         MansetSlide(
             id = "slide_bild_09",
@@ -2596,7 +2621,7 @@ object SampleData {
             teaserTr = "Potsdam, Schönefeld ve Berlin banliyö hattındaki ulaşım projeleri, belediye haberleri ve çevre gelişmeleri.",
             author = "BILD Brandenburg",
             imageResId = R.drawable.kiez_charlottenburg,
-            originalUrl = "https://www.bild.de/regional/berlin/berlin-regional/home-15823246.bild.html"
+            originalUrl = "https://www.bild.de/regional/berlin"
         ),
         MansetSlide(
             id = "slide_bild_10",
@@ -2609,7 +2634,7 @@ object SampleData {
             teaserTr = "Almanya genelindeki en son siyasi kararlar, sosyal reformlar ve günün en çok konuşulan manşetleri.",
             author = "BILD News",
             imageResId = R.drawable.news_rbb_spion,
-            originalUrl = "https://m.bild.de/news/startseite/news/news-16804530.bildMobile.html"
+            originalUrl = "https://www.bild.de/news/"
         ),
 
         // ==================== 2. Tagesspiegel (5 Authentic Berlin Slides) ====================

@@ -206,7 +206,8 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
 
                 AppScreen.KIEZE -> KiezListScreen(
                     language = uiState.language,
-                    onKiezClick = { viewModel.openKiezDetail(it) }
+                    onKiezClick = { viewModel.openKiezDetail(it) },
+                    kiezeList = uiState.kieze
                 )
 
                 AppScreen.KIEZ_DETAIL -> KiezDetailScreen(
@@ -216,12 +217,14 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     onStartQuiz = { viewModel.navigateTo(AppScreen.QUIZ) },
                     onNavigate = { viewModel.navigateTo(it) },
                     isFavorite = uiState.favoriteIds.contains(uiState.selectedKiezId),
-                    onToggleFavorite = { viewModel.toggleFavorite(uiState.selectedKiezId) }
+                    onToggleFavorite = { viewModel.toggleFavorite(uiState.selectedKiezId) },
+                    allKieze = uiState.kieze
                 )
 
                 AppScreen.KIEZ_MAP -> KiezListScreen(
                     language = uiState.language,
-                    onKiezClick = { viewModel.openKiezDetail(it) }
+                    onKiezClick = { viewModel.openKiezDetail(it) },
+                    kiezeList = uiState.kieze
                 )
 
                 AppScreen.QUIZ -> KiezQuizScreen(

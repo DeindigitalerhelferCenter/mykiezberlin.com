@@ -403,13 +403,27 @@ fun ProfileScreen(
                     Divider(color = MaterialTheme.colorScheme.surfaceVariant)
                     ProfileMenuItem(Icons.Default.AdminPanelSettings, if (language == AppLanguage.TURKISH) "Yönetici Paneli (Admin)" else "Admin-Bereich (Moderation & Prüfung)") { onNavigate(AppScreen.ADMIN) }
                     Divider(color = MaterialTheme.colorScheme.surfaceVariant)
-                    ProfileMenuItem(Icons.Default.Gavel, "Impressum (Rechtliche Angaben gemäß § 5 DDG)") { activeLegalDialog = "Impressum" }
+                    ProfileMenuItem(Icons.Default.Gavel, "Impressum (mykiezberlin.com/impressum)") {
+                        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://mykiezberlin.com/impressum"))
+                        context.startActivity(browserIntent)
+                    }
                     Divider(color = MaterialTheme.colorScheme.surfaceVariant)
-                    ProfileMenuItem(Icons.Default.Security, "Datenschutzerklärung (DSGVO Konform)") { activeLegalDialog = "Datenschutz" }
+                    ProfileMenuItem(Icons.Default.Security, "Datenschutzerklärung (mykiezberlin.com/datenschutz)") {
+                        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://mykiezberlin.com/datenschutz"))
+                        context.startActivity(browserIntent)
+                    }
                     Divider(color = MaterialTheme.colorScheme.surfaceVariant)
-                    ProfileMenuItem(Icons.Default.Description, "Allgemeine Geschäftsbedingungen (AGB)") { activeLegalDialog = "AGB" }
+                    ProfileMenuItem(Icons.Default.Description, "Allgemeine Geschäftsbedingungen (mykiezberlin.com/agb)") {
+                        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://mykiezberlin.com/agb"))
+                        context.startActivity(browserIntent)
+                    }
                     Divider(color = MaterialTheme.colorScheme.surfaceVariant)
-                    ProfileMenuItem(Icons.Default.Language, "Webseite: https://mykiezberlin.com") {
+                    ProfileMenuItem(Icons.Default.Rule, "Story-Regeln (mykiezberlin.com/story-regeln)") {
+                        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://mykiezberlin.com/story-regeln"))
+                        context.startActivity(browserIntent)
+                    }
+                    Divider(color = MaterialTheme.colorScheme.surfaceVariant)
+                    ProfileMenuItem(Icons.Default.Language, "Offizielle Webseite: https://mykiezberlin.com") {
                         val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://mykiezberlin.com"))
                         context.startActivity(browserIntent)
                     }

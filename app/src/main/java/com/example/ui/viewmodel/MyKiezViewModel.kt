@@ -98,7 +98,8 @@ data class UiState(
     val lastBulletinUpdateMillis: Long = System.currentTimeMillis(),
     val isNotificationsEnabled: Boolean = true,
     val isLiveAlertsAvailable: Boolean = false,
-    val activeAlertBanner: LiveAlert? = null
+    val activeAlertBanner: LiveAlert? = null,
+    val kieze: List<Kiez> = SampleData.kieze
 )
 
 class MyKiezViewModel(application: Application) : AndroidViewModel(application) {
@@ -165,6 +166,93 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                 }
             } catch (e: Exception) {
                 // Graceful fallback to local
+            }
+        }
+
+        // Fetch live 24 kieze from https://mykiezberlin.com/api/kieze
+        viewModelScope.launch {
+            try {
+                val remoteKieze = LiveAlertsRepository.fetchKieze()
+                if (remoteKieze.isNotEmpty()) {
+                    _uiState.update { it.copy(kieze = remoteKieze) }
+                }
+            } catch (e: Exception) {
+                // Keep SampleData.kieze fallback
+            }
+        }
+
+        // Fetch approved submissions from https://mykiezberlin.com/api/submissions
+        viewModelScope.launch {
+            try {
+                val approvedItems = LiveAlertsRepository.fetchSubmissions()
+                if (approvedItems.isNotEmpty()) {
+                    val newBiz = mutableListOf<LocalBusiness>()
+                    val newEvents = mutableListOf<KiezEvent>()
+                    val newJobs = mutableListOf<KiezJob>()
+                    for (item in approvedItems) {
+                        when (item.optString("type")) {
+                            "business" -> {
+                                newBiz.add(
+                                    LocalBusiness(
+                                        id = item.optString("id", "biz_${System.currentTimeMillis()}"),
+                                        name = item.optString("name", "Neues Unternehmen"),
+                                        category = item.optString("category", "Handel"),
+                                        rating = 5.0,
+                                        reviewsCount = 1,
+                                        kiezName = item.optString("kiez", "Berlin"),
+                                        distance = "0.5 km",
+                                        address = item.optString("address", "Berlin"),
+                                        imageUrl = item.optString("imageUrl", "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600"),
+                                        phone = item.optString("contact", "+49 30 123456"),
+                                        whatsapp = item.optString("whatsapp", "+4915126509586"),
+                                        website = item.optString("website", "https://mykiezberlin.com"),
+                                        description = item.optString("description", "")
+                                    )
+                                )
+                            }
+                            "event" -> {
+                                newEvents.add(
+                                    KiezEvent(
+                                        id = item.optString("id", "event_${System.currentTimeMillis()}"),
+                                        title = item.optString("title", "Kiez Event"),
+                                        dayLabel = "HEUTE",
+                                        dateNum = "28",
+                                        monthLabel = "OKT",
+                                        time = item.optString("date", "19:00"),
+                                        kiezName = item.optString("kiez", "Berlin"),
+                                        price = item.optString("price", "Kostenlos"),
+                                        isFree = item.optString("price", "").contains("frei", ignoreCase = true) || item.optString("price", "").contains("kostenlos", ignoreCase = true),
+                                        category = item.optString("category", "Kultur"),
+                                        description = item.optString("description", "")
+                                    )
+                                )
+                            }
+                            "job" -> {
+                                newJobs.add(
+                                    KiezJob(
+                                        id = item.optString("id", "job_${System.currentTimeMillis()}"),
+                                        title = item.optString("title", "Kiez Job"),
+                                        company = item.optString("company", "Unternehmen"),
+                                        kiez = item.optString("kiez", "Berlin"),
+                                        jobType = item.optString("jobType", "Vollzeit"),
+                                        salary = item.optString("salary", "Nach Vereinbarung"),
+                                        description = item.optString("description", ""),
+                                        contactWa = item.optString("contact", "+4915126509586")
+                                    )
+                                )
+                            }
+                        }
+                    }
+                    _uiState.update {
+                        it.copy(
+                            customBusinesses = (newBiz + it.customBusinesses).distinctBy { b -> b.id },
+                            customEvents = (newEvents + it.customEvents).distinctBy { ev -> ev.id },
+                            customJobs = (newJobs + it.customJobs).distinctBy { j -> j.id }
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                // Graceful
             }
         }
     }
@@ -304,10 +392,23 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun submitBooking(companyName: String, email: String, kiez: String) {
+        val selectedPkg = _uiState.value.selectedPricingPackage?.name ?: "B2B Paket"
         _uiState.update {
             it.copy(
-                bookingSuccessMessage = "Vielen Dank! Die Anfrage für $companyName ($kiez) wurde übermittelt. Wir senden das Angebot an $email."
+                bookingSuccessMessage = "Wird vor der Veröffentlichung geprüft"
             )
+        }
+        viewModelScope.launch {
+            val json = org.json.JSONObject().apply {
+                put("company", companyName)
+                put("email", email)
+                put("phone", "+4915126509586")
+                put("packageName", selectedPkg)
+                put("kiez", kiez)
+                put("notes", "B2B Buchung aus App")
+                put("name", companyName)
+            }
+            LiveAlertsRepository.postSubmission("booking", json)
         }
     }
 
@@ -322,6 +423,19 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
 
     fun addCustomBusiness(business: LocalBusiness) {
         _uiState.update { it.copy(customBusinesses = listOf(business) + it.customBusinesses, showAddBusinessDialog = false) }
+        viewModelScope.launch {
+            val json = org.json.JSONObject().apply {
+                put("name", business.name)
+                put("kiez", business.kiezName)
+                put("category", business.category)
+                put("contact", business.phone.ifBlank { business.whatsapp })
+                put("description", business.description)
+                put("address", business.address)
+                put("website", business.website)
+            }
+            LiveAlertsRepository.postSubmission("business", json)
+        }
+        android.widget.Toast.makeText(app, "Wird vor der Veröffentlichung geprüft", android.widget.Toast.LENGTH_LONG).show()
     }
 
     fun openAddBusinessDialog() {
@@ -370,8 +484,19 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
             it.copy(
                 customEvents = listOf(newEvent) + it.customEvents,
                 showEventSubmitDialog = false,
-                eventSubmitSuccessMessage = "Veranstaltung '$title' erfolgreich eingereicht und live!"
+                eventSubmitSuccessMessage = "Wird vor der Veröffentlichung geprüft"
             )
+        }
+        viewModelScope.launch {
+            val json = org.json.JSONObject().apply {
+                put("title", title)
+                put("kiez", kiezName)
+                put("date", "$dayLabel $time")
+                put("category", category)
+                put("description", desc)
+                put("price", price)
+            }
+            LiveAlertsRepository.postSubmission("event", json)
         }
     }
 
@@ -686,6 +811,19 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
         _uiState.update {
             it.copy(customJobs = listOf(newJob) + it.customJobs)
         }
+        viewModelScope.launch {
+            val json = org.json.JSONObject().apply {
+                put("title", title)
+                put("company", company)
+                put("kiez", kiez)
+                put("contact", contactWa.ifBlank { "+4915126509586" })
+                put("description", desc)
+                put("salary", salary)
+                put("jobType", type)
+            }
+            LiveAlertsRepository.postSubmission("job", json)
+        }
+        android.widget.Toast.makeText(app, "Wird vor der Veröffentlichung geprüft", android.widget.Toast.LENGTH_LONG).show()
     }
 
     // Reporter
@@ -737,6 +875,9 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
             it.copy(customReports = updatedCustom)
         }
         KiezStorageManager.saveCustomReports(app, updatedCustom)
+        viewModelScope.launch {
+            LiveAlertsRepository.postReporterComment(postId, text.trim(), author.ifBlank { "Berliner Nachbar" })
+        }
     }
 
     // Quiz Functions

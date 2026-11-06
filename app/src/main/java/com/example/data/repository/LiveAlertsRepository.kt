@@ -62,6 +62,8 @@ object LiveAlertsRepository {
 
     private const val TAG = "LiveAlertsRepo"
     const val API_LIVE_URL = "https://mykiezberlin.com/api/live"
+    const val API_KIEZE_URL = "https://mykiezberlin.com/api/kieze"
+    const val API_SUBMISSIONS_URL = "https://mykiezberlin.com/api/submissions"
     const val API_STORIES_URL = "https://mykiezberlin.com/api/stories"
     const val API_REPORTER_URL = "https://mykiezberlin.com/api/reporter"
     const val APK_DOWNLOAD_URL = "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin.com.apk"
@@ -307,6 +309,198 @@ object LiveAlertsRepository {
             resp.isSuccessful
         } catch (e: Exception) {
             Log.d(TAG, "postRemoteReporterPost notice: ${e.message}")
+            false
+        }
+    }
+
+    // ==========================================
+    // Remote Kieze API (https://mykiezberlin.com/api/kieze)
+    // ==========================================
+    suspend fun fetchKieze(): List<Kiez> = withContext(Dispatchers.IO) {
+        try {
+            val req = Request.Builder()
+                .url(API_KIEZE_URL)
+                .header("User-Agent", "Mozilla/5.0 (Linux; Android 14) MyKiezBerlin/2.0")
+                .header("Accept", "application/json")
+                .build()
+            val resp = httpClient.newCall(req).execute()
+            if (resp.isSuccessful) {
+                val jsonStr = resp.body?.string() ?: ""
+                val root = JSONObject(jsonStr)
+                val kiezeArray = root.optJSONArray("kieze")
+                if (kiezeArray != null && kiezeArray.length() > 0) {
+                    val result = mutableListOf<Kiez>()
+                    for (i in 0 until kiezeArray.length()) {
+                        val obj = kiezeArray.getJSONObject(i)
+
+                        val tagsList = mutableListOf<String>()
+                        val tagsArr = obj.optJSONArray("tags")
+                        if (tagsArr != null) {
+                            for (t in 0 until tagsArr.length()) {
+                                tagsList.add(tagsArr.getString(t))
+                            }
+                        }
+
+                        val highlightsList = mutableListOf<String>()
+                        val hlArr = obj.optJSONArray("highlights")
+                        if (hlArr != null) {
+                            for (h in 0 until hlArr.length()) {
+                                highlightsList.add(hlArr.getString(h))
+                            }
+                        }
+
+                        val impressionList = mutableListOf<String>()
+                        val impArr = obj.optJSONArray("impressionImages")
+                        if (impArr != null) {
+                            for (im in 0 until impArr.length()) {
+                                impressionList.add(impArr.getString(im))
+                            }
+                        }
+
+                        val parksList = mutableListOf<String>()
+                        val parksArr = obj.optJSONArray("parks")
+                        if (parksArr != null) {
+                            for (p in 0 until parksArr.length()) {
+                                parksList.add(parksArr.getString(p))
+                            }
+                        }
+
+                        val spotsList = mutableListOf<String>()
+                        val spotsArr = obj.optJSONArray("popularSpots")
+                        if (spotsArr != null) {
+                            for (s in 0 until spotsArr.length()) {
+                                spotsList.add(spotsArr.getString(s))
+                            }
+                        }
+
+                        val creditsList = mutableListOf<PhotoCredit>()
+                        val creditsArr = obj.optJSONArray("photoCredits")
+                        if (creditsArr != null) {
+                            for (c in 0 until creditsArr.length()) {
+                                val cObj = creditsArr.getJSONObject(c)
+                                creditsList.add(
+                                    PhotoCredit(
+                                        url = cObj.optString("url", ""),
+                                        page = cObj.optString("page", ""),
+                                        license = cObj.optString("license", ""),
+                                        artist = cObj.optString("artist", ""),
+                                        title = cObj.optString("title", "")
+                                    )
+                                )
+                            }
+                        }
+
+                        result.add(
+                            Kiez(
+                                id = obj.optString("id", ""),
+                                name = obj.optString("name", ""),
+                                subtitle = obj.optString("subtitle", ""),
+                                postalCodes = obj.optString("postalCodes", ""),
+                                population = obj.optString("population", ""),
+                                populationDate = obj.optString("populationDate", ""),
+                                specialty = obj.optString("specialty", ""),
+                                description = obj.optString("description", ""),
+                                tags = tagsList,
+                                lat = obj.optDouble("lat", 52.52),
+                                lng = obj.optDouble("lng", 13.405),
+                                highlights = highlightsList,
+                                imageUrl = obj.optString("imageUrl", ""),
+                                impressionImages = impressionList,
+                                rentIndex = obj.optString("rentIndex", ""),
+                                vibe = obj.optString("vibe", "Urban & Lebendig"),
+                                transitLines = obj.optString("transitLines", ""),
+                                parks = parksList,
+                                popularSpots = spotsList,
+                                buergeramtName = obj.optString("buergeramtName", ""),
+                                buergeramtAddress = obj.optString("buergeramtAddress", ""),
+                                policeStation = obj.optString("policeStation", ""),
+                                policeAddress = obj.optString("policeAddress", ""),
+                                policePhone = obj.optString("policePhone", "+49 30 4664 4664"),
+                                photoCredits = creditsList
+                            )
+                        )
+                    }
+                    if (result.isNotEmpty()) {
+                        return@withContext result
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "fetchKieze error: ${e.message}")
+        }
+        SampleData.kieze
+    }
+
+    // ==========================================
+    // Submissions API (https://mykiezberlin.com/api/submissions)
+    // ==========================================
+    suspend fun postSubmission(type: String, data: JSONObject): Boolean = withContext(Dispatchers.IO) {
+        try {
+            data.put("type", type)
+            val body = data.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
+            val req = Request.Builder()
+                .url(API_SUBMISSIONS_URL)
+                .header("User-Agent", "Mozilla/5.0 (Linux; Android 14) MyKiezBerlin/2.0")
+                .header("Content-Type", "application/json")
+                .post(body)
+                .build()
+            val resp = httpClient.newCall(req).execute()
+            resp.isSuccessful
+        } catch (e: Exception) {
+            Log.w(TAG, "postSubmission notice: ${e.message}")
+            false
+        }
+    }
+
+    suspend fun fetchSubmissions(): List<JSONObject> = withContext(Dispatchers.IO) {
+        try {
+            val req = Request.Builder()
+                .url(API_SUBMISSIONS_URL)
+                .header("User-Agent", "Mozilla/5.0 (Linux; Android 14) MyKiezBerlin/2.0")
+                .build()
+            val resp = httpClient.newCall(req).execute()
+            if (resp.isSuccessful) {
+                val jsonStr = resp.body?.string() ?: ""
+                val root = JSONObject(jsonStr)
+                val itemsArr = root.optJSONArray("items")
+                if (itemsArr != null) {
+                    val list = mutableListOf<JSONObject>()
+                    for (i in 0 until itemsArr.length()) {
+                        list.add(itemsArr.getJSONObject(i))
+                    }
+                    return@withContext list
+                }
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, "fetchSubmissions notice: ${e.message}")
+        }
+        emptyList()
+    }
+
+    // ==========================================
+    // Reporter Comments API (https://mykiezberlin.com/api/reporter)
+    // ==========================================
+    suspend fun postReporterComment(postId: String, text: String, author: String = "Berliner Nachbar"): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val commentObj = JSONObject().apply {
+                put("postId", postId)
+                put("text", text)
+                put("author", author)
+            }
+            val root = JSONObject().apply {
+                put("comment", commentObj)
+            }
+            val body = root.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
+            val req = Request.Builder()
+                .url(API_REPORTER_URL)
+                .header("User-Agent", "Mozilla/5.0 (Linux; Android 14) MyKiezBerlin/2.0")
+                .header("Content-Type", "application/json")
+                .post(body)
+                .build()
+            val resp = httpClient.newCall(req).execute()
+            resp.isSuccessful
+        } catch (e: Exception) {
+            Log.w(TAG, "postReporterComment notice: ${e.message}")
             false
         }
     }

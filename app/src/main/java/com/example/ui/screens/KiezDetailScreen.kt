@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,7 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.data.model.AppLanguage
+import com.example.data.model.*
 import com.example.data.repository.SampleData
 import com.example.ui.components.BerlinTransitMapComponent
 import com.example.ui.components.KiezPhotoHelper
@@ -44,11 +45,14 @@ fun KiezDetailScreen(
     onStartQuiz: () -> Unit,
     onNavigate: (AppScreen) -> Unit,
     isFavorite: Boolean,
-    onToggleFavorite: () -> Unit
+    onToggleFavorite: () -> Unit,
+    allKieze: List<Kiez> = SampleData.kieze
 ) {
     val context = LocalContext.current
-    val kiez = remember(kiezId) {
-        SampleData.kieze.find { it.id == kiezId || it.id.replace("-", "") == kiezId.replace("-", "") }
+    val kiez = remember(kiezId, allKieze) {
+        allKieze.find { it.id == kiezId || it.id.replace("-", "") == kiezId.replace("-", "") }
+            ?: SampleData.kieze.find { it.id == kiezId || it.id.replace("-", "") == kiezId.replace("-", "") }
+            ?: allKieze.firstOrNull()
             ?: SampleData.kieze.first()
     }
 
@@ -262,22 +266,31 @@ fun KiezDetailScreen(
                                     fontWeight = FontWeight.Bold
                                 )
                                 Text(kiez.population, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                                if (kiez.populationDate.isNotBlank()) {
+                                    Text(
+                                        text = "(Stand: ${kiez.populationDate})",
+                                        fontSize = 9.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                             }
                         }
 
-                        Card(
-                            modifier = Modifier.weight(1.15f),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                        ) {
-                            Column(modifier = Modifier.padding(10.dp)) {
-                                Text(
-                                    text = if (language == AppLanguage.TURKISH) "Ekim 2026 Kira" else "Miete Okt 2026",
-                                    fontSize = 10.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(kiez.rentIndex, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = BerlinRed)
+                        if (kiez.rentIndex.isNotBlank()) {
+                            Card(
+                                modifier = Modifier.weight(1.15f),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                            ) {
+                                Column(modifier = Modifier.padding(10.dp)) {
+                                    Text(
+                                        text = if (language == AppLanguage.TURKISH) "Kira Endeksi" else "Mietspiegel",
+                                        fontSize = 10.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(kiez.rentIndex, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = BerlinRed)
+                                }
                             }
                         }
                     }
@@ -524,7 +537,7 @@ fun KiezDetailScreen(
                     }
                 }
 
-                // Impressionen Photo Gallery
+                // Impressionen Photo Gallery & Attributions
                 item {
                     Spacer(modifier = Modifier.height(14.dp))
                     Column(modifier = Modifier.fillMaxWidth()) {
@@ -535,36 +548,77 @@ fun KiezDetailScreen(
                             modifier = Modifier.padding(horizontal = 16.dp)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
+
+                        val galleryImages = if (kiez.impressionImages.isNotEmpty()) kiez.impressionImages else listOf(kiez.imageUrl)
                         LazyRow(
                             contentPadding = PaddingValues(horizontal = 16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            items(kiez.highlights) { spotName ->
+                            itemsIndexed(galleryImages) { index, imgUrl ->
+                                val credit = kiez.photoCredits.getOrNull(index)
+                                    ?: kiez.photoCredits.firstOrNull { it.url == imgUrl }
+                                    ?: kiez.photoCredits.firstOrNull()
+
                                 Card(
-                                    modifier = Modifier.width(150.dp),
+                                    modifier = Modifier
+                                        .width(220.dp)
+                                        .clickable {
+                                            if (credit != null && credit.page.isNotBlank()) {
+                                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(credit.page))
+                                                context.startActivity(intent)
+                                            }
+                                        },
                                     shape = RoundedCornerShape(12.dp),
-                                    elevation = CardDefaults.cardElevation(2.dp)
+                                    elevation = CardDefaults.cardElevation(2.dp),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                                 ) {
                                     Column {
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .height(95.dp)
+                                                .height(130.dp)
                                         ) {
-                                            RealKiezImage(
-                                                drawableId = KiezPhotoHelper.getKiezDrawable(kiez.id),
-                                                imageUrl = kiez.imageUrl,
-                                                contentDescription = spotName,
+                                            coil.compose.AsyncImage(
+                                                model = imgUrl,
+                                                contentDescription = credit?.title ?: kiez.name,
+                                                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                                                 modifier = Modifier.fillMaxSize()
                                             )
                                         }
-                                        Text(
-                                            text = spotName,
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.SemiBold,
-                                            maxLines = 1,
-                                            modifier = Modifier.padding(8.dp)
-                                        )
+                                        Column(modifier = Modifier.padding(10.dp)) {
+                                            if (credit != null && credit.artist.isNotBlank()) {
+                                                Text(
+                                                    text = credit.title.ifBlank { kiez.highlights.getOrNull(index) ?: kiez.name },
+                                                    fontSize = 12.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    maxLines = 1,
+                                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                                )
+                                                Spacer(modifier = Modifier.height(2.dp))
+                                                Text(
+                                                    text = "Foto: ${credit.artist}",
+                                                    fontSize = 10.5.sp,
+                                                    fontWeight = FontWeight.Medium,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    maxLines = 1,
+                                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                                )
+                                                Text(
+                                                    text = "Lizenz: ${credit.license.ifBlank { "CC BY-SA" }}",
+                                                    fontSize = 9.5.sp,
+                                                    color = MaterialTheme.colorScheme.outline,
+                                                    maxLines = 1
+                                                )
+                                            } else {
+                                                val spotName = kiez.highlights.getOrNull(index) ?: kiez.name
+                                                Text(
+                                                    text = spotName,
+                                                    fontSize = 12.sp,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    maxLines = 1
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }

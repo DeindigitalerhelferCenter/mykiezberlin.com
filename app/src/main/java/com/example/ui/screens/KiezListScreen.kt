@@ -31,7 +31,8 @@ import com.example.ui.theme.BerlinRedLight
 @Composable
 fun KiezListScreen(
     language: AppLanguage,
-    onKiezClick: (String) -> Unit
+    onKiezClick: (String) -> Unit,
+    kiezeList: List<Kiez> = SampleData.kieze
 ) {
     var selectedTab by remember { mutableIntStateOf(0) } // 0: Liste, 1: Karte
 
@@ -99,7 +100,7 @@ fun KiezListScreen(
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 80.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(SampleData.kieze) { kiez ->
+                items(kiezeList) { kiez ->
                     KiezListItem(
                         kiez = kiez,
                         onClick = { onKiezClick(kiez.id) }

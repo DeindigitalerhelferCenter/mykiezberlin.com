@@ -6,12 +6,21 @@ enum class AppLanguage(val code: String, val label: String, val flag: String) {
     ENGLISH("en", "English", "🇬🇧")
 }
 
+data class PhotoCredit(
+    val url: String = "",
+    val page: String = "",
+    val license: String = "",
+    val artist: String = "",
+    val title: String = ""
+)
+
 data class Kiez(
     val id: String,
     val name: String,
     val subtitle: String,
     val postalCodes: String,
     val population: String,
+    val populationDate: String = "",
     val specialty: String,
     val description: String,
     val tags: List<String>,
@@ -20,7 +29,7 @@ data class Kiez(
     val highlights: List<String>,
     val imageUrl: String,
     val impressionImages: List<String> = emptyList(),
-    val rentIndex: String = "15,50 €/m²",
+    val rentIndex: String = "",
     val vibe: String = "Urban & Lebendig",
     val transitLines: String = "",
     val parks: List<String> = emptyList(),
@@ -29,7 +38,8 @@ data class Kiez(
     val buergeramtAddress: String = "",
     val policeStation: String = "",
     val policeAddress: String = "",
-    val policePhone: String = "+49 30 4664 4664"
+    val policePhone: String = "+49 30 4664 4664",
+    val photoCredits: List<PhotoCredit> = emptyList()
 )
 
 data class KiezDistrict(
