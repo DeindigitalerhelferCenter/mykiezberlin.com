@@ -15,5 +15,7 @@
 .cxx
 local.properties
 .env
+*.jks
+*.keystore
 debug.keystore
 .wrangler

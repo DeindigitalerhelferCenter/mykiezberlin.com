@@ -9,12 +9,14 @@ export async function onRequestGet({ request, env }) {
   if (!database) return noDb();
   const read = (sql) => database.prepare(sql).all().then((r) => r.results);
   const [stories, posts, comments, submissions] = await Promise.all([
-    read(`SELECT id, headline, subtext, kiez, kind, media_key, media_type, duration_hours, status, created_at FROM stories ORDER BY created_at DESC LIMIT 100`),
+    read(`SELECT id, headline, subtext, kiez, kind, media_key, media_type, duration_hours, status, created_at, approved_at FROM stories ORDER BY created_at DESC LIMIT 100`),
     read(`SELECT id, title, description, kiez, category, status, created_at FROM reporter_posts ORDER BY created_at DESC LIMIT 100`),
     read(`SELECT id, post_id, author, text, status, created_at FROM reporter_comments ORDER BY created_at DESC LIMIT 100`),
     read(`SELECT id, type, payload, status, created_at FROM submissions ORDER BY created_at DESC LIMIT 100`),
   ]);
-  return json({ stories, posts, comments, submissions: submissions.map((s) => ({ ...s, payload: JSON.parse(s.payload) })) });
+  const now = Date.now();
+  const marked = stories.map((s) => (s.status === "approved" && s.approved_at + s.duration_hours * 3600000 < now ? { ...s, status: "expired" } : s));
+  return json({ stories: marked, posts, comments, submissions: submissions.map((s) => ({ ...s, payload: JSON.parse(s.payload) })) });
 }
 
 async function createStory(database, body) {

@@ -8,6 +8,7 @@ const STORAGE_DARK_KEY = "mykiez_dark_v1";
 const STORAGE_NOTIFY_KEY = "mykiez_notifications_v1";
 const STORAGE_LOCATION_KEY = "mykiez_location_v1";
 const LANGUAGES = ["de", "tr", "en"];
+const SHARED_REFRESH_MS = 60000;
 const LANGUAGE_FLAGS = { de: "🇩🇪", tr: "🇹🇷", en: "🇬🇧" };
 const LEAFLET_BASE = "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/";
 const BERLIN_CENTER = [52.52, 13.405];
@@ -77,6 +78,7 @@ const filters = { kiez: "all", cuisine: "all", event: "all", knowledge: "all", t
 let businessViewMode = "card";
 let billingYearly = false;
 let userLocation = null;
+let lastSubmissions = "";
 
 function setFilter(name, value) {
   filters[name] = value;
@@ -89,8 +91,17 @@ async function loadSubmissions() {
   try {
     const res = await fetch("/api/submissions");
     if (!res.ok) return;
-    const { items } = await res.json();
-    items.forEach((i) => {
+    const text = await res.text();
+    if (text === lastSubmissions) return;
+    lastSubmissions = text;
+    const { items } = JSON.parse(text);
+    [BUSINESSES, EVENTS_FULL, JOBS].forEach((list) => {
+      const kept = list.filter((entry) => !entry.fromServer);
+      list.length = 0;
+      list.push(...kept);
+    });
+    items.forEach((raw) => {
+      const i = { ...raw, fromServer: true };
       if (i.type === "business") {
         BUSINESSES.push({ ...i, imageUrl: "assets/images/hero_berlin.jpg", rating: 0, reviewsCount: 0, distance: "" });
       } else if (i.type === "event") {
@@ -99,8 +110,20 @@ async function loadSubmissions() {
         JOBS.push(i);
       }
     });
-    renderTabContent();
+    refreshViewIfIdle();
   } catch (e) {}
+}
+
+// Never redraw while someone is typing or reading a detail window.
+function refreshViewIfIdle() {
+  const typing = ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName);
+  const modalOpen = document.getElementById("ext-detail-modal") || document.getElementById("create-story-modal");
+  if (!typing && !modalOpen) renderTabContent();
+}
+
+async function refreshSharedContent() {
+  if (document.hidden) return;
+  await Promise.all([loadServerStories(), loadSubmissions(), currentTab === "reporter" ? loadReporter() : null]);
 }
 
 async function sendSubmission(type, data) {
@@ -785,6 +808,7 @@ applyDarkMode();
 document.addEventListener("DOMContentLoaded", () => {
   updateStaticLabels();
   loadSubmissions();
+  setInterval(refreshSharedContent, SHARED_REFRESH_MS);
   if (setting(STORAGE_LOCATION_KEY)) {
     navigator.geolocation?.getCurrentPosition((pos) => {
       userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };

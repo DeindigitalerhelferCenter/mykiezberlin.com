@@ -1,5 +1,5 @@
 // Shared Kiez stories: public list and moderated submissions.
-import { cleanText, db, ipHash, json, noDb, rateLimited } from "../_lib/util.js";
+import { cleanText, cleanupExpiredStories, db, ipHash, json, noDb, rateLimited } from "../_lib/util.js";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
@@ -7,9 +7,10 @@ const MEDIA_TYPES = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "we
 const KINDS = ["news", "traffic", "event", "warn", "info", "politics"];
 const USER_DURATIONS = [24, 48];
 
-export async function onRequestGet({ env }) {
+export async function onRequestGet({ env, waitUntil }) {
   const database = await db(env);
   if (!database) return noDb();
+  waitUntil(cleanupExpiredStories(env));
   const now = Date.now();
   const { results } = await database
     .prepare(`SELECT id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, approved_at FROM stories WHERE status = 'approved' AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT 60`)

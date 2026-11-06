@@ -1,0 +1,11 @@
+{
+  "versionCode": 1,
+  "versionName": "1.0",
+  "apkUrl": "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin.com.apk",
+  "mandatory": false,
+  "notes": {
+    "de": "Neue Funktionen und Verbesserungen.",
+    "tr": "Yeni özellikler ve iyileştirmeler.",
+    "en": "New features and improvements."
+  }
+}

@@ -80,12 +80,12 @@ async function loadModerationQueue() {
       ...stories.map((i) => ["story", i]), ...posts.map((i) => ["post", i]),
       ...comments.map((i) => ["comment", i]), ...submissions.map((i) => ["submission", i]),
     ];
-    const tabs = ["pending", "approved", "rejected"];
-    const labels = { pending: "Bekleyen", approved: "Yayında", rejected: "Reddedilen" };
+    const tabs = ["pending", "approved", "expired", "rejected"];
+    const labels = { pending: "Bekleyen", approved: "Yayında", expired: "Süresi doldu", rejected: "Reddedilen" };
     const shown = all.filter(([, i]) => i.status === moderationTab);
     box.innerHTML = `
       <h2 style="font-size: 17px; font-weight: 800; color: #fff; margin-bottom: 12px;">Kullanıcı Gönderileri (Sunucu)</h2>
-      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
         ${tabs.map((t) => `<button class="chip-btn ${t === moderationTab ? "active" : ""}" onclick="setModerationTab('${t}')">${labels[t]} (${all.filter(([, i]) => i.status === t).length})</button>`).join("")}
         <button class="chip-btn" onclick="createServerStory()">+ Admin Story</button>
       </div>

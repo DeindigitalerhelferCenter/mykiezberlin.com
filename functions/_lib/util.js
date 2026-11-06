@@ -76,6 +76,23 @@ export async function db(env) {
   return env.DB;
 }
 
+const HOUR_MS = 3600000;
+const ADMIN_GRACE_MS = 24 * HOUR_MS;
+
+// Expired stories stay visible to the admin for 24 hours, then disappear with their media.
+export async function cleanupExpiredStories(env) {
+  const database = await db(env);
+  if (!database) return;
+  const { results } = await database
+    .prepare(`SELECT id, media_key FROM stories WHERE status = 'approved' AND approved_at + duration_hours * ${HOUR_MS} + ${ADMIN_GRACE_MS} < ? LIMIT 20`)
+    .bind(Date.now())
+    .all();
+  for (const row of results) {
+    if (row.media_key && env.BUCKET) await env.BUCKET.delete(row.media_key);
+    await database.prepare(`DELETE FROM stories WHERE id = ?`).bind(row.id).run();
+  }
+}
+
 export const noDb = () => json({ error: "db_unbound" }, 503);
 
 // Plain text only: user content is stored without markup.
