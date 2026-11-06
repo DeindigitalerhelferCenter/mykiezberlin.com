@@ -36,3 +36,7 @@
 .ext-quote:last-child { border-bottom: 0; }
 .ext-list { margin: 8px 0 0; padding-left: 18px; font-size: 13px; }
 .ext-cta { display: block; margin-top: 12px; text-align: center; text-decoration: none; }
+
+/* Keeps the app navigation on screen, like the Android bottom bar. */
+.bottom-nav { position: fixed; left: 50%; right: auto; bottom: 0; width: 100%; max-width: 680px; transform: translateX(-50%); padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
+.main-content { padding-bottom: 88px; }
