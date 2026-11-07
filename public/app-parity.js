@@ -905,7 +905,8 @@ EXTRA_TABS.more = function (container) {
   container.querySelector(".ext-grid").insertAdjacentHTML("beforeend", `
     <button class="ext-tile" onclick="switchTab('directory')"><i class="bi bi-shop-window"></i><span>${esc(tr("Alle Betriebe", "Tüm İşletmeler"))}</span></button>
     <button class="ext-tile" onclick="switchTab('map')"><i class="bi bi-map-fill"></i><span>${esc(tr("Karte", "Harita"))}</span></button>
-    <a class="ext-tile" href="/quiz/" style="text-decoration: none;"><i class="bi bi-bullseye"></i><span>${esc(tr("Kiez-Quiz starten", "Kiez testi"))}</span></a>`);
+    <a class="ext-tile" href="/quiz/" style="text-decoration: none;"><i class="bi bi-bullseye"></i><span>${esc(tr("Kiez-Quiz starten", "Kiez testi"))}</span></a>
+    <a class="ext-tile" href="/community/?lang=${currentLanguage === "tr" ? "tr" : "de"}" style="text-decoration: none;"><i class="bi bi-people-fill"></i><span>${esc(tr("Community & Kleinanzeigen", "Topluluk & İlanlar"))}</span></a>`);
 };
 
 const baseLabels = updateStaticLabels;

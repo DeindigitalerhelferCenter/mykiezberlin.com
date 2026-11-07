@@ -38,7 +38,8 @@ enum class AppScreen {
     LIVE_BULLETIN,
     BERLIN_TIPS,
     SPORTS_AND_MARKETS,
-    KIEZ_MATCH
+    KIEZ_MATCH,
+    COMMUNITY
 }
 
 data class UiState(

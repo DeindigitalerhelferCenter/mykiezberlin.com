@@ -63,6 +63,21 @@ const SCHEMA = [
   `CREATE INDEX IF NOT EXISTS idx_comments_post ON reporter_comments(post_id, status)`,
   `CREATE TABLE IF NOT EXISTS submissions (id TEXT PRIMARY KEY, type TEXT NOT NULL, payload TEXT NOT NULL, status TEXT DEFAULT 'pending', ip TEXT DEFAULT '', created_at INTEGER)`,
   `CREATE INDEX IF NOT EXISTS idx_submissions_status ON submissions(type, status)`,
+  `CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, email TEXT NOT NULL UNIQUE, display_name TEXT NOT NULL, password_hash TEXT NOT NULL, salt TEXT NOT NULL, trusted INTEGER DEFAULT 0, ip TEXT DEFAULT '', created_at INTEGER)`,
+  `CREATE TABLE IF NOT EXISTS sessions (token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL, expires_at INTEGER)`,
+  `CREATE TABLE IF NOT EXISTS login_attempts (ip TEXT, created_at INTEGER)`,
+  `CREATE TABLE IF NOT EXISTS likes (target TEXT NOT NULL, target_id TEXT NOT NULL, voter TEXT NOT NULL, created_at INTEGER, PRIMARY KEY (target, target_id, voter))`,
+];
+
+// Columns added after launch. SQLite has no ADD COLUMN IF NOT EXISTS, so a repeat simply fails.
+const MIGRATIONS = [
+  `ALTER TABLE reporter_comments ADD COLUMN target TEXT DEFAULT 'post'`,
+  `ALTER TABLE reporter_comments ADD COLUMN parent_id TEXT DEFAULT ''`,
+  `ALTER TABLE reporter_comments ADD COLUMN user_id TEXT DEFAULT ''`,
+  `ALTER TABLE reporter_comments ADD COLUMN kind TEXT DEFAULT 'user'`,
+  `ALTER TABLE reporter_posts ADD COLUMN media_key TEXT DEFAULT ''`,
+  `ALTER TABLE reporter_posts ADD COLUMN media_type TEXT DEFAULT ''`,
+  `ALTER TABLE reporter_posts ADD COLUMN user_id TEXT DEFAULT ''`,
 ];
 
 let schemaReady = false;
@@ -71,6 +86,7 @@ export async function db(env) {
   if (!env.DB) return null;
   if (!schemaReady) {
     await env.DB.batch(SCHEMA.map((sql) => env.DB.prepare(sql)));
+    for (const sql of MIGRATIONS) await env.DB.prepare(sql).run().catch(() => {});
     schemaReady = true;
   }
   return env.DB;

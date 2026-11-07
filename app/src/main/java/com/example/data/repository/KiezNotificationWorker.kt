@@ -1,0 +1,145 @@
+package com.example.data.repository
+
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.os.Build
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
+import androidx.work.Constraints
+import androidx.work.CoroutineWorker
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.WorkerParameters
+import com.example.BuildConfig
+import com.example.MainActivity
+import com.example.R
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONObject
+import java.io.IOException
+import java.time.LocalDate
+import java.util.concurrent.TimeUnit
+
+/** Polls the server for urgent events and shows them with the app logo. */
+class KiezNotificationWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
+
+    private data class Item(val id: String, val kind: String, val title: String, val body: String, val screen: String)
+
+    private val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+
+    override suspend fun doWork(): Result {
+        if (!KiezStorageManager.isNotificationsEnabled(applicationContext)) return Result.success()
+        val items = try {
+            fetchItems()
+        } catch (e: IOException) {
+            return Result.retry()
+        }
+        val seen = prefs.getStringSet(KEY_SEEN, emptySet()).orEmpty().toMutableSet()
+        val fresh = items.filter { it.id !in seen }.sortedBy { if (it.kind == "critical") 0 else 1 }
+        var shownThisRun = 0
+        for (item in fresh) {
+            seen.add(item.id)
+            if (shownThisRun < MAX_PER_RUN && mayShow(item)) {
+                show(item)
+                shownThisRun += 1
+            }
+        }
+        prefs.edit().putStringSet(KEY_SEEN, seen.toList().takeLast(MAX_SEEN_IDS).toSet()).apply()
+        return Result.success()
+    }
+
+    private fun fetchItems(): List<Item> {
+        val demo = if (BuildConfig.GOAL_DEMO) listOf(Item("demo-${System.currentTimeMillis()}", "alert", "My Kiez Berlin", "Test-Benachrichtigung", "LIVE_BULLETIN")) else emptyList()
+        val request = Request.Builder().url(NOTIFY_URL).build()
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
+            val list = JSONObject(response.body?.string().orEmpty()).optJSONArray("items")
+            return demo + (0 until (list?.length() ?: 0)).map { i ->
+                val o = list!!.getJSONObject(i)
+                Item(o.optString("id"), o.optString("kind"), o.optString("title"), o.optString("body"), o.optString("screen"))
+            }
+        }
+    }
+
+    // Critical warnings always get through; everything else shares a small daily budget.
+    private fun mayShow(item: Item): Boolean {
+        if (item.kind == "critical") return true
+        val today = LocalDate.now().toString()
+        val used = if (prefs.getString(KEY_DAY, "") == today) prefs.getInt(KEY_COUNT, 0) else 0
+        if (used >= DAILY_LIMIT) return false
+        prefs.edit().putString(KEY_DAY, today).putInt(KEY_COUNT, used + 1).apply()
+        return true
+    }
+
+    private fun show(item: Item) {
+        val manager = NotificationManagerCompat.from(applicationContext)
+        if (!manager.areNotificationsEnabled()) return
+        createChannel()
+        val intent = Intent(applicationContext, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("extra_target_screen", item.screen)
+        }
+        val pending = PendingIntent.getActivity(
+            applicationContext, item.id.hashCode(), intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val logo = ContextCompat.getDrawable(applicationContext, R.mipmap.ic_launcher)?.toBitmap(LOGO_SIZE, LOGO_SIZE)
+        val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setLargeIcon(logo)
+            .setContentTitle(item.title)
+            .setContentText(item.body)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(item.body))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .setContentIntent(pending)
+            .build()
+        try {
+            manager.notify(item.id.hashCode(), notification)
+        } catch (e: SecurityException) {
+            // The user withdrew the notification permission in the meantime.
+        }
+    }
+
+    private fun createChannel() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        val channel = NotificationChannel(CHANNEL_ID, "Berlin-Meldungen", NotificationManager.IMPORTANCE_HIGH)
+        applicationContext.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+    }
+
+    companion object {
+        private const val NOTIFY_URL = "https://mykiezberlin.com/api/notify"
+        private const val WORK_NAME = "kiez_notifications"
+        private const val CHANNEL_ID = "kiez_alerts"
+        private const val PREFS = "kiez_notifications"
+        private const val KEY_SEEN = "seen"
+        private const val KEY_DAY = "day"
+        private const val KEY_COUNT = "count"
+        private const val DAILY_LIMIT = 4
+        private const val MAX_PER_RUN = 2
+        private const val MAX_SEEN_IDS = 200
+        private const val LOGO_SIZE = 128
+        // Android does not run periodic work more often than every 15 minutes.
+        private const val INTERVAL_MINUTES = 15L
+
+        private val client = OkHttpClient()
+
+        fun schedule(context: Context) {
+            val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+            val request = PeriodicWorkRequestBuilder<KiezNotificationWorker>(INTERVAL_MINUTES, TimeUnit.MINUTES)
+                .setConstraints(constraints)
+                .build()
+            val workManager = WorkManager.getInstance(context)
+            workManager.enqueueUniquePeriodicWork(WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, request)
+            if (BuildConfig.GOAL_DEMO) workManager.enqueue(OneTimeWorkRequestBuilder<KiezNotificationWorker>().build())
+        }
+    }
+}

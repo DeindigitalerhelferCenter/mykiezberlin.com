@@ -51,6 +51,8 @@ function moderationCard(type, item) {
         ${item.status !== "approved" ? `<button class="chip-btn active" onclick="moderate('${type}', '${id}', 'approve')">Onayla</button>` : ""}
         ${item.status === "pending" ? `<button class="chip-btn" onclick="moderate('${type}', '${id}', 'reject')">Reddet</button>` : ""}
         ${type === "story" ? `<button class="chip-btn" onclick="moderate('story', '${id}', 'extend')">+48 Saat</button><button class="chip-btn" onclick="editStory('${id}')">Düzenle</button>` : ""}
+        ${type === "story" || type === "post" ? `<button class="chip-btn" onclick="editorialComment('${type}', '${id}')">Redaktion yorumu</button>` : ""}
+        ${item.user_id ? `<button class="chip-btn" onclick="trustUser('${adminEsc(item.user_id)}', true)">Güvenilir yap</button>` : ""}
         <button class="chip-btn" onclick="moderate('${type}', '${id}', 'delete')">Sil</button>
       </div>
     </div>`;
@@ -75,7 +77,7 @@ async function loadModerationQueue() {
       return;
     }
     if (!res.ok) throw new Error(String(res.status));
-    const { stories, posts, comments, submissions } = await res.json();
+    const { stories, posts, comments, submissions, users = [] } = await res.json();
     const all = [
       ...stories.map((i) => ["story", i]), ...posts.map((i) => ["post", i]),
       ...comments.map((i) => ["comment", i]), ...submissions.map((i) => ["submission", i]),
@@ -90,7 +92,9 @@ async function loadModerationQueue() {
         <button class="chip-btn" onclick="createServerStory()">+ Admin Story</button>
       </div>
       ${shown.map(([type, item]) => moderationCard(type, item)).join("")}
-      ${shown.length ? "" : `<p style="font-size: 12px; color: #8b949e;">Burada gönderi yok.</p>`}`;
+      ${shown.length ? "" : `<p style="font-size: 12px; color: #8b949e;">Burada gönderi yok.</p>`}
+      <h2 style="font-size: 17px; font-weight: 800; color: #fff; margin: 18px 0 12px;">Üyeler (${users.length})</h2>
+      ${users.map((u) => `<div style="display: flex; justify-content: space-between; gap: 8px; padding: 8px 0; color: #fff; font-size: 12px;"><span>${adminEsc(u.display_name)} · ${adminEsc(u.email)}${u.trusted ? " · güvenilir" : ""}</span><button class="chip-btn" onclick="trustUser('${adminEsc(u.id)}', ${u.trusted ? "false" : "true"})">${u.trusted ? "Güveni kaldır" : "Güvenilir yap"}</button></div>`).join("")}`;
   } catch (e) {
     box.innerHTML = `<p style="font-size: 12px; color: #8b949e;">Sunucu moderasyonuna ulaşılamıyor.</p>`;
   }
@@ -98,6 +102,18 @@ async function loadModerationQueue() {
 
 async function moderate(type, id, action) {
   await adminRequest("POST", { type, id, action });
+  loadModerationQueue();
+}
+
+async function editorialComment(target, targetId) {
+  const text = prompt('"Kiez-Redaktion" etiketiyle yayınlanacak yorum:');
+  if (!text) return;
+  await adminRequest("POST", { action: "editorialComment", target, targetId, text });
+  loadModerationQueue();
+}
+
+async function trustUser(userId, trusted) {
+  await adminRequest("POST", { action: "trustUser", userId, trusted });
   loadModerationQueue();
 }
 

@@ -29,6 +29,9 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.data.model.AppLanguage
+import com.example.data.repository.KiezNotificationWorker
+import com.example.ui.components.ClassifiedPromoDialog
+import com.example.ui.components.GoalCelebrationHost
 import com.example.ui.components.HamburgerHubModal
 import com.example.ui.components.InAppAlertBannerComponent
 import com.example.ui.components.KiezStoriesBar
@@ -45,9 +48,14 @@ import com.example.ui.viewmodel.AppScreen
 import com.example.ui.viewmodel.MyKiezViewModel
 
 class MainActivity : ComponentActivity() {
+    // Compose state, so a notification tap also navigates while the app is already open.
+    private var launchTarget by mutableStateOf<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        launchTarget = intent?.getStringExtra("extra_target_screen")
+        KiezNotificationWorker.schedule(applicationContext)
         setContent {
             val viewModel: MyKiezViewModel = viewModel()
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -75,12 +83,13 @@ class MainActivity : ComponentActivity() {
             }
 
             // Handle incoming notification navigation clicks
-            LaunchedEffect(intent) {
-                intent?.getStringExtra("extra_target_screen")?.let { target ->
+            LaunchedEffect(launchTarget) {
+                launchTarget?.let { target ->
                     when (target) {
                         "BUSINESS_PORTAL" -> viewModel.navigateTo(AppScreen.BUSINESS_PORTAL)
                         "LIVE_BULLETIN" -> viewModel.navigateTo(AppScreen.LIVE_BULLETIN)
                         "NOTRUF" -> viewModel.navigateTo(AppScreen.NOTRUF)
+                        "SPORTS_AND_MARKETS" -> viewModel.navigateTo(AppScreen.SPORTS_AND_MARKETS)
                     }
                 }
             }
@@ -94,6 +103,7 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: android.content.Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        launchTarget = intent.getStringExtra("extra_target_screen")
     }
 }
 
@@ -103,6 +113,12 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showMoreBottomSheet by remember { mutableStateOf(false) }
     var showHamburgerMenu by remember { mutableStateOf(false) }
+
+    GoalCelebrationHost()
+    ClassifiedPromoDialog(
+        language = uiState.language,
+        onOpen = { viewModel.navigateTo(AppScreen.COMMUNITY) }
+    )
 
     Scaffold(
         modifier = Modifier
@@ -142,13 +158,16 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                 .padding(innerPadding)
         ) {
             // Real-time In-App Live Alert Heads-up Banner (S-Bahn, BVG, Feuerwehr, Polizei)
-            InAppAlertBannerComponent(
-                alert = uiState.activeAlertBanner,
-                isLiveAvailable = uiState.isLiveAlertsAvailable,
-                language = uiState.language,
-                onNavigate = { viewModel.navigateTo(it) },
-                onDismiss = { viewModel.dismissAlertBanner() }
-            )
+            // Full-page web screens need the room; the ticker stays one tap away.
+            if (uiState.currentScreen != AppScreen.KIEZ_MATCH && uiState.currentScreen != AppScreen.COMMUNITY) {
+                InAppAlertBannerComponent(
+                    alert = uiState.activeAlertBanner,
+                    isLiveAvailable = uiState.isLiveAlertsAvailable,
+                    language = uiState.language,
+                    onNavigate = { viewModel.navigateTo(it) },
+                    onDismiss = { viewModel.dismissAlertBanner() }
+                )
+            }
 
             Box(
                 modifier = Modifier
@@ -228,6 +247,11 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                 )
 
                 AppScreen.KIEZ_MATCH -> com.example.ui.screens.KiezMatchQuizScreen(
+                    onBack = { viewModel.navigateTo(AppScreen.HOME) }
+                )
+
+                AppScreen.COMMUNITY -> com.example.ui.screens.KiezWebScreen(
+                    url = "https://mykiezberlin.com/community/?lang=" + if (uiState.language == AppLanguage.TURKISH) "tr" else "de",
                     onBack = { viewModel.navigateTo(AppScreen.HOME) }
                 )
 
@@ -578,6 +602,17 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     viewModel.navigateTo(AppScreen.KIEZ_MATCH)
+                    showMoreBottomSheet = false
+                }
+
+                // Community and free classifieds
+                SheetGridItem(
+                    icon = Icons.Default.Person,
+                    label = if (uiState.language == AppLanguage.TURKISH) "Topluluk & Ücretsiz İlanlar" else "Community & Kleinanzeigen",
+                    color = BerlinBlue,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    viewModel.navigateTo(AppScreen.COMMUNITY)
                     showMoreBottomSheet = false
                 }
 
