@@ -1,11 +1,11 @@
 {
-  "versionCode": 3,
-  "versionName": "1.2",
+  "versionCode": 4,
+  "versionName": "1.3",
   "apkUrl": "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin.com.apk",
   "mandatory": false,
   "notes": {
-    "de": "Echte Live-Daten für Wetter, Kurse, Sport und Nachrichten. Stories und Beiträge werden für alle aktualisiert.",
-    "tr": "Hava, kurlar, spor ve haberlerde gerçek canlı veri. Hikâyeler ve gönderiler herkes için güncellenir.",
-    "en": "Real live data for weather, rates, sport and news. Stories and posts now update for everyone."
+    "de": "Eigener Kiez-Quiz-Bereich, mehr Sport und Wirtschaft, Betriebe im Kiez und zuverlässige Live-Warnungen.",
+    "tr": "Ayrı Kiez Quiz bölümü, daha fazla spor ve ekonomi, semt işletmeleri ve güvenilir canlı uyarılar.",
+    "en": "Dedicated Kiez quiz, more sport and business news, local businesses and reliable live alerts."
   }
 }
