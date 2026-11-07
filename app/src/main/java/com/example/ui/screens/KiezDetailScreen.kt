@@ -69,17 +69,14 @@ fun KiezDetailScreen(
 
     val kiezFoodSpots = remember(kiez.name) {
         SampleData.foodSpots.filter { it.kiezName.contains(kiez.name, ignoreCase = true) || kiez.name.contains(it.kiezName, ignoreCase = true) }
-            .ifEmpty { SampleData.foodSpots.take(3) }
     }
 
     val kiezBusinesses = remember(kiez.name) {
         SampleData.businesses.filter { it.kiezName.contains(kiez.name, ignoreCase = true) || kiez.name.contains(it.kiezName, ignoreCase = true) }
-            .ifEmpty { SampleData.businesses.take(3) }
     }
 
     val kiezEvents = remember(kiez.name) {
         SampleData.events.filter { it.kiezName.contains(kiez.name, ignoreCase = true) || kiez.name.contains(it.kiezName, ignoreCase = true) }
-            .ifEmpty { SampleData.events.take(2) }
     }
 
     LazyColumn(

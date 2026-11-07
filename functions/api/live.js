@@ -12,12 +12,12 @@ const STYLE = {
 };
 
 const PRESS = [
-  ["rbb24", "https://www.rbb24.de/aktuell/index.xml/feed=rss.xml"],
   ["Tagesspiegel", "https://www.tagesspiegel.de/contentexport/feed/berlin"],
   ["Berliner Kurier", "https://www.berliner-kurier.de/feed.xml"],
 ];
 
-const SPORT_FEED = "https://www.rbb24.de/sport/index.xml/feed=rss.xml";
+const SPORT_FEED = "https://www.tagesspiegel.de/contentexport/feed/sport";
+const BUSINESS_FEED = "https://www.tagesspiegel.de/contentexport/feed/wirtschaft";
 
 // S-Bahn has no public feed; these hubs expose its live HAFAS remarks.
 const SBAHN_HUBS = ["900100003", "900120003", "900023201", "900058101"];
@@ -82,15 +82,24 @@ async function sbahnAlerts() {
   return [...seen.values()].slice(0, 8);
 }
 
+// Press items keep only the headline and a link to the publisher: no photo, no teaser.
+function headline(item, source) {
+  return { title: item.title, link: item.link, publishedAt: item.publishedAt, summary: "", image: "", source };
+}
+
 async function press() {
-  const lists = await Promise.allSettled(PRESS.map(async ([name, url]) => parseRss(await fetchText(url), 8).map((i) => ({ ...i, source: name }))));
+  const lists = await Promise.allSettled(PRESS.map(async ([name, url]) => parseRss(await fetchText(url), 10).map((i) => headline(i, name))));
   const items = lists.flatMap((l) => (l.status === "fulfilled" ? l.value : []));
   if (!items.length) throw new Error("press unavailable");
   return items.sort((a, b) => (b.publishedAt || 0) - (a.publishedAt || 0)).slice(0, 18);
 }
 
 async function sport() {
-  return parseRss(await fetchText(SPORT_FEED), 8).map((i) => ({ ...i, source: "rbb24 Sport" }));
+  return parseRss(await fetchText(SPORT_FEED), 8).map((i) => headline(i, "Tagesspiegel Sport"));
+}
+
+async function business() {
+  return parseRss(await fetchText(BUSINESS_FEED), 8).map((i) => headline(i, "Tagesspiegel Wirtschaft"));
 }
 
 async function weather() {
@@ -182,6 +191,7 @@ async function build() {
     sbahn: sbahnAlerts(),
     news: press(),
     sport: sport(),
+    business: business(),
     weather: weather(),
     quotes: quotes(),
   };
@@ -195,7 +205,7 @@ async function build() {
   });
   const alerts = ["polizei", "feuerwehr", "bvg", "sbahn"].flatMap((k) => value[k] || []);
   alerts.sort((a, b) => (b.publishedAt || 0) - (a.publishedAt || 0));
-  return { updatedAt: Date.now(), alerts, news: value.news || [], sport: value.sport || [], weather: value.weather, quotes: value.quotes || [], sources };
+  return { updatedAt: Date.now(), alerts, news: value.news || [], sport: value.sport || [], business: value.business || [], weather: value.weather, quotes: value.quotes || [], sources };
 }
 
 async function refresh(cache, key) {

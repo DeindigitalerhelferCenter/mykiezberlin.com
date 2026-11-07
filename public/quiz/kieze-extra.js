@@ -695,6 +695,7 @@ const KIEZE_EXTRA = [
  }
 ];
 const KIEZE_EXTRA_ANSWERS = {"wilmersdorf": "2233123013", "gesundbrunnen": "0101210031", "zehlendorf": "3331333322", "spandau": "1332233212", "reinickendorf": "1332333322", "pankow": "2311131022", "lichtenberg": "0301213213", "treptow": "1112211113", "koepenick": "1332233323", "marzahn": "0331233222", "britz": "1331133322"};
+const KIEZE_DETAIL_ANSWERS = {"wilmersdorf": "2202111203", "gesundbrunnen": "1102221002", "zehlendorf": "0032101303", "spandau": "1020321202", "reinickendorf": "1030321232", "pankow": "2200122211", "lichtenberg": "1323221132", "treptow": "2223103111", "koepenick": "1020202202", "marzahn": "1020301232", "britz": "1000322202"};
 
 KIEZE.push(...KIEZE_EXTRA);
 KIEZE.forEach((k) => {
@@ -705,3 +706,32 @@ Object.entries(KIEZE_EXTRA_ANSWERS).forEach(([id, answers]) => {
     QUIZ_QUESTIONS[question].options[Number(option)].scores[id] = 3;
   });
 });
+Object.entries(KIEZE_DETAIL_ANSWERS).forEach(([id, answers]) => {
+  [...answers].forEach((option, question) => {
+    DEEP_DIVE_QUESTIONS[question].options[Number(option)].scores[id] = 3;
+  });
+});
+
+// The detail questions now count: both quiz parts decide the final Kiez.
+function combinedWinner() {
+  const totals = {};
+  const add = (questions, answers) => Object.entries(answers).forEach(([q, a]) => {
+    Object.entries(questions[q].options[a].scores).forEach(([id, points]) => { totals[id] = (totals[id] || 0) + points; });
+  });
+  add(QUIZ_QUESTIONS, selectedQuizAnswers);
+  add(DEEP_DIVE_QUESTIONS, selectedDdAnswers);
+  const best = Object.entries(totals).sort((a, b) => b[1] - a[1])[0];
+  return best ? KIEZE.find((k) => k.id === best[0]) : null;
+}
+
+const baseNextDeepDive = nextDeepDive;
+nextDeepDive = function () {
+  if (currentDdIdx === DEEP_DIVE_QUESTIONS.length - 1) {
+    const finalKiez = combinedWinner();
+    if (finalKiez && finalKiez.id !== winnerKiez?.id) {
+      winnerKiez = finalKiez;
+      displayResult(finalKiez);
+    }
+  }
+  baseNextDeepDive();
+};

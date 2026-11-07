@@ -100,3 +100,5 @@ html.ext-dark .chip-btn.active { background-color: var(--berlin-red); color: #ff
 .ext-table th:nth-child(2), .ext-table td:nth-child(2) { text-align: left; }
 .ext-table tr.ext-berlin { background: var(--berlin-red-light); font-weight: 800; }
 html.ext-dark .ext-table tr.ext-berlin { color: #111; }
+.ext-place { display: block; width: 100%; padding: 8px 10px; margin-bottom: 6px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--surface-color); color: var(--text-main); text-align: left; cursor: pointer; }
+.ext-place span { display: block; font-size: 11px; color: var(--text-muted); }

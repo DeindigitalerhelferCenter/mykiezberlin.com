@@ -3,8 +3,8 @@ import { fetchJson, json } from "../_lib/util.js";
 
 const TTL_SECONDS = 900;
 const API = "https://api.openligadb.de";
-const LEAGUES = [["bl1", "1. Bundesliga"], ["bl2", "2. Bundesliga"]];
-const BERLIN_TEAMS = /(Union Berlin|Hertha)/i;
+const LEAGUES = [["bl1", "1. Bundesliga"], ["bl2", "2. Bundesliga"], ["del", "DEL Eishockey"]];
+const BERLIN_TEAMS = /(Union Berlin|Hertha|Eisbären)/i;
 
 // The German football season starts in summer and is named after its first year.
 function currentSeason() {

@@ -5,7 +5,7 @@ export async function onRequestGet() {
   const data = await fetchJson("https://www.tagesschau.de/api2u/news/?regions=3");
   const news = (data.news || []).filter((n) => n.title && n.shareURL).slice(0, 12).map((n) => ({
     title: n.title,
-    firstSentence: n.firstSentence || "",
+    firstSentence: "",
     topline: n.topline || "Berlin",
     date: n.date,
     shareURL: n.shareURL,

@@ -227,6 +227,10 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     kiezeList = uiState.kieze
                 )
 
+                AppScreen.KIEZ_MATCH -> com.example.ui.screens.KiezMatchQuizScreen(
+                    onBack = { viewModel.navigateTo(AppScreen.HOME) }
+                )
+
                 AppScreen.QUIZ -> KiezQuizScreen(
                     currentIndex = uiState.quizCurrentIndex,
                     selectedOption = uiState.quizSelectedOption,
@@ -564,6 +568,17 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                         viewModel.navigateTo(AppScreen.REPORTER)
                         showMoreBottomSheet = false
                     }
+                }
+
+                // Kiez match quiz
+                SheetGridItem(
+                    icon = Icons.Default.Star,
+                    label = if (uiState.language == AppLanguage.TURKISH) "Sana Hangi Kiez Uyuyor? (Quiz)" else "Welcher Kiez passt zu dir? (Quiz)",
+                    color = Color(0xFFE30613),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    viewModel.navigateTo(AppScreen.KIEZ_MATCH)
+                    showMoreBottomSheet = false
                 }
 
                 // Row 2: 23 Kieze & Gastronomie

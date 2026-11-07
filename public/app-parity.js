@@ -40,7 +40,7 @@ const EN_TEXT = {
   "Kommentar schreiben": "Write a comment", "Story-Art": "Story type", "Laufzeit": "Duration", "Anderer Kiez": "Other neighbourhood",
   "Speichern": "Save", "Offizielle Netzpläne": "Official network maps", "Im Ticker suchen": "Search the ticker",
   "Kiez-Quiz starten": "Start Kiez quiz", "Welcher Kiez passt zu dir?": "Which neighbourhood suits you?", "Berliner Vereine": "Berlin clubs",
-  "Ansicht": "View", "Wetter": "Weather", "Gefühlt": "Feels like", "Punkte": "points", "Letztes Spiel": "Last match", "Nächstes Spiel": "Next match", "Spieltag": "Matchday", "Sportnachrichten": "Sports news", "Aktuell gibt es keine gültigen Gutscheine.": "No valid coupons right now.", "Kacheln": "Cards", "Liste": "List", "Alle": "All", "Deine Story veröffentlichen": "Publish your story",
+  "Ansicht": "View", "Frühstück & Café": "Breakfast & Café", "Essen": "Food", "Hier ist noch kein Betrieb eingetragen.": "No business listed here yet.", "Betrieb kostenlos eintragen": "List your business for free", "Betriebe in Berlin": "Businesses in Berlin", "Alle Betriebe": "All businesses", "Werbung für deinen Betrieb": "Advertise your business", "Wirtschaft & Börse": "Business & markets", "Wetter": "Weather", "Gefühlt": "Feels like", "Punkte": "points", "Letztes Spiel": "Last match", "Nächstes Spiel": "Next match", "Spieltag": "Matchday", "Sportnachrichten": "Sports news", "Aktuell gibt es keine gültigen Gutscheine.": "No valid coupons right now.", "Kacheln": "Cards", "Liste": "List", "Alle": "All", "Deine Story veröffentlichen": "Publish your story",
 };
 
 I18N.en = {
@@ -445,6 +445,27 @@ function setFavoritesFilter(value) {
   setFilter("favorites", value);
 }
 
+function placeRow(place) {
+  return `<button class="ext-place" onclick="openPlaceDetail(${jsArg(place.id)})"><strong>${esc(place.name)}</strong><span>${esc(place.category || place.cuisine || "")}</span></button>`;
+}
+
+function kiezPlacesHtml(kiez) {
+  const businesses = BUSINESSES.filter((b) => b.kiezName === kiez.name);
+  const food = FOOD_SPOTS.filter((f) => f.kiezName === kiez.name);
+  const breakfast = [...food, ...businesses].filter((p) => /früh|brunch|café|cafe|bäckerei|kaffee/i.test(`${p.cuisine || ""} ${p.category || ""} ${p.name}`));
+  const eating = food.filter((f) => !breakfast.includes(f));
+  const others = businesses.filter((b) => !breakfast.includes(b));
+  const section = (title, list) => (list.length ? `<h4 class="ext-subheading">${esc(title)}</h4>${list.map(placeRow).join("")}` : "");
+  const empty = !businesses.length && !food.length;
+  return `
+    ${section(tr("Frühstück & Café", "Kahvaltı & Kafe"), breakfast)}
+    ${section(tr("Essen", "Yemek"), eating)}
+    ${section(tr("Betriebe", "İşletmeler"), others)}
+    ${empty ? `<p class="ext-note">${esc(tr("Hier ist noch kein Betrieb eingetragen.", "Burada henüz işletme yok."))}</p>` : ""}
+    <button class="chip-btn active" style="margin-top: 10px;" onclick="openBusinessForm()"><i class="bi bi-plus-lg"></i> ${esc(tr("Betrieb kostenlos eintragen", "İşletmeni ücretsiz ekle"))}</button>
+    <div style="margin-top: 12px;">${renderSponsorCard()}</div>`;
+}
+
 function kiezSourcesHtml(k) {
   const photos = (k.impressionImages || []).map((url) => `<img src="${safeUrl(url)}" alt="" loading="lazy">`).join("");
   const credits = (k.photoCredits || []).map((c) => `<a href="${safeUrl(c.page)}" target="_blank" rel="noopener">${esc(c.artist || c.title)}</a> (${esc(c.license)})`).join(" · ");
@@ -465,7 +486,7 @@ openKiezDetail = function (id) {
   if (kiez) {
     const phone = kiez.policePhone ? `<a class="chip-btn" href="tel:${esc(String(kiez.policePhone).replace(/\s+/g, ""))}"><i class="bi bi-telephone-fill"></i> ${esc(tr("Polizei", "Polis"))}</a>` : "";
     document.querySelector("#ext-detail-modal .ext-actions")?.insertAdjacentHTML("beforeend", phone);
-    document.querySelector("#ext-detail-modal .ext-actions")?.insertAdjacentHTML("afterend", kiezSourcesHtml(kiez));
+    document.querySelector("#ext-detail-modal .ext-actions")?.insertAdjacentHTML("afterend", kiezPlacesHtml(kiez) + kiezSourcesHtml(kiez));
   }
   document.querySelector("#ext-detail-modal .ext-actions")?.insertAdjacentHTML("beforeend", `<button class="ext-heart ${isFavorite(id) ? "on" : ""}" onclick="toggleFavorite(${jsArg(id)}); openKiezDetail(${jsArg(id)});"><i class="bi bi-heart-fill"></i></button>`);
 };
@@ -595,6 +616,7 @@ EXTRA_TABS.sport = function (container) {
     <h3 class="ext-subheading">Sport</h3>
     ${sportHtml()}
     ${data?.sport?.length ? `<h3 class="ext-subheading">${esc(tr("Sportnachrichten", "Spor Haberleri"))}</h3>${data.sport.map(renderNewsItem).join("")}` : ""}
+    ${data?.business?.length ? `<h3 class="ext-subheading">${esc(tr("Wirtschaft & Börse", "Ekonomi & Borsa"))}</h3>${data.business.map(renderNewsItem).join("")}` : ""}
     ${data?.news?.length ? `<h3 class="ext-subheading">${esc(tr("Aktuelle Schlagzeilen", "Güncel Manşetler"))}</h3>${data.news.slice(0, 10).map(renderNewsItem).join("")}` : ""}
     <h3 class="ext-subheading">${esc(tr("Berliner Vereine", "Berlin Kulüpleri"))}</h3>
     <div class="ext-clubs">${SPORT_CLUBS.map(([name, url]) => `<a href="${safeUrl(url)}" target="_blank" rel="noopener">${esc(name)} ↗</a>`).join("")}</div>`;
@@ -862,10 +884,26 @@ renderQuizTab = function (container) {
 
 EXTRA_TABS.map = renderMapTab;
 
+EXTRA_TABS.directory = function (container) {
+  const groups = [...new Set(BUSINESSES.map(businessCategory))];
+  container.innerHTML = `
+    <h2 class="ext-heading">${esc(tr("Betriebe in Berlin", "Berlin İşletmeleri"))}</h2>
+    <button class="chip-btn active" style="margin-bottom: 10px;" onclick="openBusinessForm()"><i class="bi bi-plus-lg"></i> ${esc(tr("Betrieb kostenlos eintragen", "İşletmeni ücretsiz ekle"))}</button>
+    ${groups.map((group, index) => {
+      sponsorIndex += index ? 1 : 0;
+      return `
+      <h3 class="ext-subheading">${esc(group)}</h3>
+      ${BUSINESSES.filter((b) => businessCategory(b) === group).map(renderCompactBusiness).join("")}
+      ${index % 2 === 0 ? renderSponsorCard() : ""}`;
+    }).join("")}
+    <a class="btn-primary ext-cta" onclick="switchTab('portal')">${esc(tr("Werbung für deinen Betrieb", "İşletmen için reklam"))}</a>`;
+};
+
 const baseMoreTab = EXTRA_TABS.more;
 EXTRA_TABS.more = function (container) {
   baseMoreTab(container);
   container.querySelector(".ext-grid").insertAdjacentHTML("beforeend", `
+    <button class="ext-tile" onclick="switchTab('directory')"><i class="bi bi-shop-window"></i><span>${esc(tr("Alle Betriebe", "Tüm İşletmeler"))}</span></button>
     <button class="ext-tile" onclick="switchTab('map')"><i class="bi bi-map-fill"></i><span>${esc(tr("Karte", "Harita"))}</span></button>
     <a class="ext-tile" href="/quiz/" style="text-decoration: none;"><i class="bi bi-bullseye"></i><span>${esc(tr("Kiez-Quiz starten", "Kiez testi"))}</span></a>`);
 };

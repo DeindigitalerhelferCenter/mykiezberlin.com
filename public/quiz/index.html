@@ -1174,7 +1174,7 @@
         <div class="modal-header">
           <div style="display:flex; align-items:center; gap:8px;">
             <span style="font-size:20px;">📰</span>
-            <div class="modal-title" id="txt-modal-news-title">Berlin Aktuell · Kiez News (Tagesschau & rbb24)</div>
+            <div class="modal-title" id="txt-modal-news-title">Berlin Aktuell · Kiez News (Tagesschau)</div>
           </div>
           <button class="modal-close" onclick="closeModal('modal-news')">✕</button>
         </div>
@@ -1902,51 +1902,7 @@
       }
     };
 
-    // 100% REAL BERLIN NEWS (VERIFIED SOURCES: rbb24 & Berlin.de)
-    const BERLIN_FALLBACK_NEWS = [
-      {
-        title: "BVG erweitert 24-Stunden-U-Bahn und Taktung auf U1, U7 & U8",
-        firstSentence: "Mehr Züge und dichtere Takte für Kreuzberg, Friedrichshain und Neukölln an Wochenenden beschlossen.",
-        topline: "BVG Berlin · Mobilität",
-        date: new Date().toISOString(),
-        shareURL: "https://www.rbb24.de/panorama/thema/mobilitaet/index.html"
-      },
-      {
-        title: "Berliner Senat stärkt Milieuschutz & Kiez-Mieterrechte für alle 12 Bezirke",
-        firstSentence: "Neue Schutzverordnungen gegen Luxussanierungen und zur Sicherung bezahlbaren Wohnraums in Kraft.",
-        topline: "Berlin.de · Wohnungsmarkt",
-        date: new Date().toISOString(),
-        shareURL: "https://www.berlin.de/aktuelles/"
-      },
-      {
-        title: "Kultur-Sommer Berlin: Kostenlose Open-Air-Konzerte im Mauerpark & Tempelhofer Feld",
-        firstSentence: "Über 150 bezirksübergreifende Gratis-Veranstaltungen für Nachbarschaft und Musikliebhaber angekündigt.",
-        topline: "Kiez-Kultur · Live 2026",
-        date: new Date().toISOString(),
-        shareURL: "https://www.rbb24.de/kultur/"
-      },
-      {
-        title: "Bürgeramt Berlin: Digitale Ummeldung nach Kiez-Umzug in unter 5 Minuten",
-        firstSentence: "Die neue BundID-Integration erleichtert die amtliche Wohnsitz-Ummeldung ohne monatelanges Warten auf Termine.",
-        topline: "Bürgeramt · Service Berlin",
-        date: new Date().toISOString(),
-        shareURL: "https://service.berlin.de/terminvereinbarung/"
-      },
-      {
-        title: "Berliner Wasserbetriebe nehmen 30 neue Trinkwasserbrunnen in Betrieb",
-        firstSentence: "Kostenloses frisches Berliner Trinkwasser an beliebten Plätzen in Mitte, Schöneberg und Charlottenburg.",
-        topline: "BWB Berlin · Infrastruktur",
-        date: new Date().toISOString(),
-        shareURL: "https://www.bwb.de/de/trinkwasserbrunnen.php"
-      },
-      {
-        title: "Neue Kiezblocks und grüne Fahrradstraßen für Schöneberg, Mitte und Moabit",
-        firstSentence: "Verkehrsberuhigung sorgt für mehr Sicherheit auf Schulwegen und neue Sitzgelegenheiten im Kiez.",
-        topline: "Kiezblock · Urbanes Leben",
-        date: new Date().toISOString(),
-        shareURL: "https://www.berlin.de/aktuelles/"
-      }
-    ];
+        const BERLIN_FALLBACK_NEWS = [];
 
     let cachedBerlinNews = [...BERLIN_FALLBACK_NEWS];
 
@@ -2631,6 +2587,6 @@
   }
 })();
 </script>
-  <script src="/quiz/kieze-extra.js"></script>
+  <script src="/quiz/kieze-extra.js?v=2"></script>
 </body>
 </html>
