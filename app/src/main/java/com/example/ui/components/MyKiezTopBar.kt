@@ -319,7 +319,8 @@ fun MyKiezTopBar(
                                 }
 
                                 // Test Notification Trigger Button
-                                OutlinedButton(
+                                if (com.example.BuildConfig.DEBUG) {
+OutlinedButton(
                                     onClick = {
                                         onTriggerTestNotification()
                                     },
@@ -339,6 +340,7 @@ fun MyKiezTopBar(
                                         fontWeight = FontWeight.SemiBold
                                     )
                                 }
+}
                             }
                         },
                         confirmButton = {

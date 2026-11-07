@@ -109,6 +109,17 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
     private val app = application
 
     private val _uiState: MutableStateFlow<UiState>
+    private var remoteStoriesCache: List<KiezStory> = emptyList()
+
+    // Replaces the previous server stories so removed ones disappear too.
+    private fun applyRemoteStories(remote: List<KiezStory>) {
+        val previous = remoteStoriesCache
+        remoteStoriesCache = remote
+        _uiState.update { state ->
+            val kept = state.allStories.filter { story -> previous.none { it.id == story.id } }
+            state.copy(allStories = (remote + kept).distinctBy { it.id })
+        }
+    }
 
     init {
         val initialLang = KiezStorageManager.loadLanguage(application)
@@ -138,7 +149,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                 val lang = _uiState.value.language
                 val uStories = KiezStorageManager.loadStories(app)
                 val iStories = LiveAlertsRepository.generateInstitutionStories(alerts, lang)
-                val mStories = iStories + uStories.filter { u -> iStories.none { it.id == u.id } }
+                val mStories = (remoteStoriesCache + iStories + uStories).distinctBy { it.id }
                 val bulletins = LiveAlertsRepository.toBulletins(alerts)
                 _uiState.update {
                     it.copy(
@@ -156,11 +167,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             try {
                 val remoteStories = LiveAlertsRepository.fetchRemoteStories()
-                if (remoteStories.isNotEmpty()) {
-                    val current = _uiState.value.allStories
-                    val combined = (remoteStories + current).distinctBy { it.id }
-                    _uiState.update { it.copy(allStories = combined) }
-                }
+                if (remoteStories.isNotEmpty()) applyRemoteStories(remoteStories)
                 val remoteReports = LiveAlertsRepository.fetchRemoteReporterPosts()
                 if (remoteReports.isNotEmpty()) {
                     val currentRep = _uiState.value.customReports
@@ -200,13 +207,13 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                                         id = item.optString("id", "biz_${System.currentTimeMillis()}"),
                                         name = item.optString("name", "Neues Unternehmen"),
                                         category = item.optString("category", "Handel"),
-                                        rating = 5.0,
-                                        reviewsCount = 1,
-                                        kiezName = item.optString("kiez", "Berlin"),
+                                        rating = 0.0,
+                                        reviewsCount = 0,
+                                        kiezName = item.optString("kiezName", item.optString("kiez", "Berlin")),
                                         distance = "0.5 km",
                                         address = item.optString("address", "Berlin"),
                                         imageUrl = item.optString("imageUrl", "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600"),
-                                        phone = item.optString("contact", "+49 30 123456"),
+                                        phone = item.optString("phone", item.optString("contact", "")),
                                         whatsapp = item.optString("whatsapp", "+4915126509586"),
                                         website = item.optString("website", "https://mykiezberlin.com"),
                                         description = item.optString("description", "")
@@ -218,11 +225,11 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                                     KiezEvent(
                                         id = item.optString("id", "event_${System.currentTimeMillis()}"),
                                         title = item.optString("title", "Kiez Event"),
-                                        dayLabel = "HEUTE",
-                                        dateNum = "28",
-                                        monthLabel = "OKT",
-                                        time = item.optString("date", "19:00"),
-                                        kiezName = item.optString("kiez", "Berlin"),
+                                        dayLabel = item.optString("dateText", item.optString("date", "")),
+                                        dateNum = "",
+                                        monthLabel = "",
+                                        time = item.optString("time", ""),
+                                        kiezName = item.optString("kiezName", item.optString("kiez", "Berlin")),
                                         price = item.optString("price", "Kostenlos"),
                                         isFree = item.optString("price", "").contains("frei", ignoreCase = true) || item.optString("price", "").contains("kostenlos", ignoreCase = true),
                                         category = item.optString("category", "Kultur"),
@@ -240,7 +247,9 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                                         jobType = item.optString("jobType", "Vollzeit"),
                                         salary = item.optString("salary", "Nach Vereinbarung"),
                                         description = item.optString("description", ""),
-                                        contactWa = item.optString("contact", "+4915126509586")
+                                        contactWa = item.optString("contact", ""),
+                                        contactPhone = item.optString("contactPhone", ""),
+                                        contactEmail = item.optString("contactEmail", "")
                                     )
                                 )
                             }
@@ -278,11 +287,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                     LiveBerlinFeedRepository.fetchLiveApi()
 
                     val remoteStories = LiveAlertsRepository.fetchRemoteStories()
-                    if (remoteStories.isNotEmpty()) {
-                        val current = _uiState.value.allStories
-                        val combined = (remoteStories + current).distinctBy { it.id }
-                        _uiState.update { it.copy(allStories = combined) }
-                    }
+                    if (remoteStories.isNotEmpty()) applyRemoteStories(remoteStories)
 
                     val remoteReports = LiveAlertsRepository.fetchRemoteReporterPosts()
                     if (remoteReports.isNotEmpty()) {
@@ -303,13 +308,13 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                                         id = item.optString("id", "biz_${System.currentTimeMillis()}"),
                                         name = item.optString("name", "Unternehmen"),
                                         category = item.optString("category", "Handel"),
-                                        rating = 5.0,
-                                        reviewsCount = 1,
-                                        kiezName = item.optString("kiez", "Berlin"),
+                                        rating = 0.0,
+                                        reviewsCount = 0,
+                                        kiezName = item.optString("kiezName", item.optString("kiez", "Berlin")),
                                         distance = "0.5 km",
                                         address = item.optString("address", "Berlin"),
                                         imageUrl = item.optString("imageUrl", "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600"),
-                                        phone = item.optString("contact", "+49 30 123456"),
+                                        phone = item.optString("phone", item.optString("contact", "")),
                                         whatsapp = item.optString("whatsapp", "+4915126509586"),
                                         website = item.optString("website", "https://mykiezberlin.com"),
                                         description = item.optString("description", "")
@@ -319,11 +324,11 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                                     KiezEvent(
                                         id = item.optString("id", "event_${System.currentTimeMillis()}"),
                                         title = item.optString("title", "Kiez Event"),
-                                        dayLabel = "HEUTE",
-                                        dateNum = "28",
-                                        monthLabel = "OKT",
-                                        time = item.optString("date", "19:00"),
-                                        kiezName = item.optString("kiez", "Berlin"),
+                                        dayLabel = item.optString("dateText", item.optString("date", "")),
+                                        dateNum = "",
+                                        monthLabel = "",
+                                        time = item.optString("time", ""),
+                                        kiezName = item.optString("kiezName", item.optString("kiez", "Berlin")),
                                         price = item.optString("price", "Kostenlos"),
                                         isFree = true,
                                         category = item.optString("category", "Kultur"),
@@ -339,7 +344,9 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                                         jobType = item.optString("jobType", "Vollzeit"),
                                         salary = item.optString("salary", "Nach Vereinbarung"),
                                         description = item.optString("description", ""),
-                                        contactWa = item.optString("contact", "+4915126509586")
+                                        contactWa = item.optString("contact", ""),
+                                        contactPhone = item.optString("contactPhone", ""),
+                                        contactEmail = item.optString("contactEmail", "")
                                     )
                                 )
                             }
@@ -392,7 +399,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
         val currentAlerts = LiveAlertsRepository.liveAlerts.value
         val uStories = KiezStorageManager.loadStories(app)
         val iStories = LiveAlertsRepository.generateInstitutionStories(currentAlerts, language)
-        val mStories = iStories + uStories.filter { u -> iStories.none { it.id == u.id } }
+        val mStories = (remoteStoriesCache + iStories + uStories).distinctBy { it.id }
         _uiState.update { it.copy(language = language, allStories = mStories) }
     }
 

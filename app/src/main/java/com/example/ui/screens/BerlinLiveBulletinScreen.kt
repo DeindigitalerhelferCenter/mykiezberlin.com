@@ -272,7 +272,8 @@ fun BerlinLiveBulletinScreen(
                         )
 
                         // Canlı Hatırlatma Gönder (Test Butonu)
-                        Surface(
+                        if (com.example.BuildConfig.DEBUG) {
+Surface(
                             shape = RoundedCornerShape(10.dp),
                             color = Color(0xFF008754),
                             modifier = Modifier
@@ -294,6 +295,7 @@ fun BerlinLiveBulletinScreen(
                                 )
                             }
                         }
+}
 
                         // Resmi Portallar Linkleri (S-Bahn, BVG, Feuerwehr, Polizei)
                         Row(

@@ -101,7 +101,14 @@ fun InAppAlertBannerComponent(
         if (alert == null) return@AnimatedVisibility
 
         val brandColor = Color(alert.colorLong())
-        val calculatedTimeAgo = remember(alert.publishedAt, language) {
+        var ageTick by remember { mutableStateOf(0) }
+        LaunchedEffect(alert.publishedAt) {
+            while (true) {
+                kotlinx.coroutines.delay(60_000L)
+                ageTick += 1
+            }
+        }
+        val calculatedTimeAgo = remember(alert.publishedAt, language, ageTick) {
             alert.formatTimeAgo(System.currentTimeMillis(), language)
         }
 

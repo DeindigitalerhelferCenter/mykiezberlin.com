@@ -250,7 +250,8 @@ fun ProfileScreen(
                     // Canlı Hatırlatma Gönder (S-Bahn / BVG / İtfaiye / Polis Test Butonu)
                     if (notificationsEnabled) {
                         Divider(color = MaterialTheme.colorScheme.surfaceVariant)
-                        Surface(
+                        if (com.example.BuildConfig.DEBUG) {
+Surface(
                             shape = RoundedCornerShape(10.dp),
                             color = Color(0xFF008754),
                             modifier = Modifier
@@ -272,6 +273,7 @@ fun ProfileScreen(
                                 )
                             }
                         }
+}
                     }
                 }
             }

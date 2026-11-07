@@ -615,14 +615,14 @@ fun SportsAndMarketsScreen(
                                                 if (bTeam.lastMatch.isNotBlank()) {
                                                     Spacer(modifier = Modifier.height(4.dp))
                                                     Text(
-                                                        text = "Son Maç: ${bTeam.lastMatch}",
+                                                        text = (if (language == AppLanguage.TURKISH) "Son Maç: " else "Letztes Spiel: ") + bTeam.lastMatch,
                                                         fontSize = 11.sp,
                                                         color = MaterialTheme.colorScheme.onSurface
                                                     )
                                                 }
                                                 if (bTeam.nextMatch.isNotBlank()) {
                                                     Text(
-                                                        text = "Gelecek Maç: ${bTeam.nextMatch}",
+                                                        text = (if (language == AppLanguage.TURKISH) "Gelecek Maç: " else "Nächstes Spiel: ") + bTeam.nextMatch,
                                                         fontSize = 11.sp,
                                                         fontWeight = FontWeight.SemiBold,
                                                         color = teamColor
@@ -666,7 +666,7 @@ fun SportsAndMarketsScreen(
                             if (activeLeague != null) {
                                 Spacer(modifier = Modifier.height(10.dp))
                                 Text(
-                                    text = "${activeLeague.name} — Puan Durumu",
+                                    text = activeLeague.name + (if (language == AppLanguage.TURKISH) " — Puan Durumu" else " — Tabelle"),
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 13.sp
                                 )
@@ -681,10 +681,10 @@ fun SportsAndMarketsScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text("#", fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.width(22.dp))
-                                    Text("Takım", fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                                    Text("OM", fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.width(28.dp))
-                                    Text("Av", fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.width(28.dp))
-                                    Text("Puan", fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.width(36.dp))
+                                    Text(if (language == AppLanguage.TURKISH) "Takım" else "Team", fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                                    Text(if (language == AppLanguage.TURKISH) "OM" else "Sp", fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.width(28.dp))
+                                    Text(if (language == AppLanguage.TURKISH) "Av" else "+/-", fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.width(28.dp))
+                                    Text(if (language == AppLanguage.TURKISH) "Puan" else "Pkt", fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.width(36.dp))
                                 }
 
                                 // Table Rows (Berlin clubs highlighted)
@@ -749,7 +749,7 @@ fun SportsAndMarketsScreen(
                                 if (activeLeague.matches.isNotEmpty()) {
                                     Spacer(modifier = Modifier.height(10.dp))
                                     Text(
-                                        text = "${activeLeague.name} — Maç Fikstürü",
+                                        text = activeLeague.name + (if (language == AppLanguage.TURKISH) " — Maç Fikstürü" else " — Spieltag"),
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 12.5.sp
                                     )
@@ -948,7 +948,7 @@ fun SportsAndMarketsScreen(
                                                             modifier = Modifier.size(24.dp)
                                                         )
                                                         Text(
-                                                            text = "${article.source} · Haberin devamını okumak için tıklayın ›",
+                                                            text = article.source + (if (language == AppLanguage.TURKISH) " · Haberin devamını okumak için tıklayın ›" else " · Zum Artikel ›"),
                                                             fontSize = 11.sp,
                                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                                         )

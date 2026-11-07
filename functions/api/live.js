@@ -2,6 +2,7 @@
 import { fetchJson, fetchText, json, parseRss, stripTags } from "../_lib/util.js";
 
 const TTL_SECONDS = 180;
+const STALE_SECONDS = 3600;
 
 const STYLE = {
   polizei: { tag: "POLIZEI BERLIN", color: "#003399", bgLight: "#E8EEFB" },
@@ -197,13 +198,20 @@ async function build() {
   return { updatedAt: Date.now(), alerts, news: value.news || [], sport: value.sport || [], weather: value.weather, quotes: value.quotes || [], sources };
 }
 
+async function refresh(cache, key) {
+  const body = await build();
+  if (Object.values(body.sources).some(Boolean)) {
+    await cache.put(key, json(body, 200, { "cache-control": `public, max-age=${STALE_SECONDS}`, "x-built-at": String(Date.now()) }));
+  }
+  return body;
+}
+
 export async function onRequestGet(context) {
   const cache = caches.default;
   const key = new Request(new URL("/api/live", context.request.url).toString());
   const hit = await cache.match(key);
-  if (hit) return hit;
-  const body = await build();
-  const response = json(body, 200, { "cache-control": `public, max-age=${TTL_SECONDS}` });
-  if (Object.values(body.sources).some(Boolean)) context.waitUntil(cache.put(key, response.clone()));
-  return response;
+  if (!hit) return json(await refresh(cache, key));
+  const age = Date.now() - Number(hit.headers.get("x-built-at") || 0);
+  if (age > TTL_SECONDS * 1000) context.waitUntil(refresh(cache, key));
+  return json(await hit.json());
 }

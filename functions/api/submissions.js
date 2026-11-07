@@ -29,8 +29,13 @@ export async function onRequestPost({ request, env }) {
   const fields = FIELDS[body.type];
   if (!fields) return json({ error: "bad_type" }, 400);
 
+  const source = { ...body };
+  const aliases = { kiezName: "kiez", phone: "contact", dateText: "date", contactPhone: "contact", companyName: "company" };
+  for (const [field, alias] of Object.entries(aliases)) {
+    if (field in fields && !source[field]) source[field] = source[alias];
+  }
   const payload = {};
-  for (const [key, max] of Object.entries(fields)) payload[key] = cleanText(body[key], max);
+  for (const [key, max] of Object.entries(fields)) payload[key] = cleanText(source[key], max);
   if (!payload[REQUIRED[body.type]]) return json({ error: "missing_fields" }, 400);
 
   const ip = await ipHash(request, env);

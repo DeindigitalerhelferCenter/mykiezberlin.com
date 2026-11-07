@@ -187,6 +187,16 @@ object LiveAlertsRepository {
     // ==========================================
     // Remote Stories API (https://mykiezberlin.com/api/stories)
     // ==========================================
+    private fun ageText(millis: Long): String {
+        val minutes = ((System.currentTimeMillis() - millis) / 60000L).coerceAtLeast(0L)
+        return when {
+            minutes < 1 -> "gerade eben"
+            minutes < 60 -> "vor $minutes Min."
+            minutes < 1440 -> "vor ${minutes / 60} Std."
+            else -> "vor ${minutes / 1440} T."
+        }
+    }
+
     suspend fun fetchRemoteStories(): List<KiezStory> = withContext(Dispatchers.IO) {
         try {
             val req = Request.Builder()
@@ -195,31 +205,33 @@ object LiveAlertsRepository {
                 .build()
             val resp = httpClient.newCall(req).execute()
             if (resp.isSuccessful) {
-                val jsonStr = resp.body?.string() ?: ""
-                if (jsonStr.startsWith("[")) {
-                    val arr = JSONArray(jsonStr)
-                    val result = mutableListOf<KiezStory>()
-                    for (i in 0 until arr.length()) {
-                        val o = arr.getJSONObject(i)
-                        result.add(
-                            KiezStory(
-                                id = o.optString("id", "remote_story_$i"),
-                                headline = o.optString("headline", ""),
-                                subtext = o.optString("subtext", ""),
-                                kind = o.optString("kind", "news"),
-                                headlineColor = o.optString("headlineColor", "rot"),
-                                kiez = o.optString("kiez", "Berlin"),
-                                author = o.optString("author", "Kiez-Reporter"),
-                                timeAgo = o.optString("timeAgo", "gerade eben"),
-                                source = o.optString("source", "My Kiez"),
-                                link = o.optString("link", "https://mykiezberlin.com"),
-                                durationHours = o.optInt("durationHours", 24),
-                                status = o.optString("status", "approved")
-                            )
+                val arr = JSONObject(resp.body?.string() ?: "{}").optJSONArray("stories") ?: return@withContext emptyList()
+                val result = mutableListOf<KiezStory>()
+                for (i in 0 until arr.length()) {
+                    val o = arr.getJSONObject(i)
+                    val mediaKey = o.optString("media_key", "")
+                    val approvedAt = o.optLong("approved_at", System.currentTimeMillis())
+                    result.add(
+                        KiezStory(
+                            id = o.optString("id", "remote_story_$i"),
+                            headline = o.optString("headline", ""),
+                            subtext = o.optString("subtext", ""),
+                            kind = o.optString("kind", "news"),
+                            headlineColor = "rot",
+                            kiez = o.optString("kiez", "Berlin"),
+                            author = o.optString("author", "Kiez Community"),
+                            timeAgo = ageText(approvedAt),
+                            source = "My Kiez",
+                            link = "https://mykiezberlin.com",
+                            mediaUri = if (mediaKey.isNotBlank()) "https://mykiezberlin.com/media/$mediaKey" else null,
+                            isVideo = o.optString("media_type", "") == "video",
+                            durationHours = o.optInt("duration_hours", 24),
+                            status = "approved",
+                            createdAtMillis = approvedAt
                         )
-                    }
-                    return@withContext result
+                    )
                 }
+                return@withContext result
             }
         } catch (e: Exception) {
             Log.d(TAG, "Remote stories notice: ${e.message}")
@@ -331,28 +343,40 @@ object LiveAlertsRepository {
                 .build()
             val resp = httpClient.newCall(req).execute()
             if (resp.isSuccessful) {
-                val jsonStr = resp.body?.string() ?: ""
-                if (jsonStr.startsWith("[")) {
-                    val arr = JSONArray(jsonStr)
-                    val result = mutableListOf<KiezReporterPost>()
-                    for (i in 0 until arr.length()) {
-                        val o = arr.getJSONObject(i)
-                        result.add(
-                            KiezReporterPost(
-                                id = o.optString("id", "remote_rep_$i"),
-                                title = o.optString("title", ""),
-                                description = o.optString("description", ""),
-                                kiez = o.optString("kiez", "Mitte"),
-                                category = o.optString("category", "Kiez"),
-                                author = o.optString("author", "Kiez-Reporter"),
-                                timeAgo = o.optString("timeAgo", "vor 10 Min."),
-                                upvotes = o.optInt("upvotes", 15),
-                                comments = emptyList()
+                val arr = JSONObject(resp.body?.string() ?: "{}").optJSONArray("posts") ?: return@withContext emptyList()
+                val result = mutableListOf<KiezReporterPost>()
+                for (i in 0 until arr.length()) {
+                    val o = arr.getJSONObject(i)
+                    val comments = mutableListOf<KiezReporterComment>()
+                    val commentArr = o.optJSONArray("comments")
+                    if (commentArr != null) {
+                        for (c in 0 until commentArr.length()) {
+                            val co = commentArr.getJSONObject(c)
+                            comments.add(
+                                KiezReporterComment(
+                                    id = co.optString("id", "comment_$c"),
+                                    author = co.optString("author", "Kiez Community"),
+                                    text = co.optString("text", ""),
+                                    timestampMillis = co.optLong("created_at", System.currentTimeMillis())
+                                )
                             )
-                        )
+                        }
                     }
-                    return@withContext result
+                    result.add(
+                        KiezReporterPost(
+                            id = o.optString("id", "remote_rep_$i"),
+                            title = o.optString("title", ""),
+                            description = o.optString("description", ""),
+                            kiez = o.optString("kiez", "Mitte"),
+                            category = o.optString("category", "Kiez"),
+                            author = o.optString("author", "Kiez Community"),
+                            timeAgo = ageText(o.optLong("created_at", System.currentTimeMillis())),
+                            upvotes = o.optInt("upvotes", 1),
+                            comments = comments
+                        )
+                    )
                 }
+                return@withContext result
             }
         } catch (e: Exception) {
             Log.d(TAG, "Remote reporter notice: ${e.message}")

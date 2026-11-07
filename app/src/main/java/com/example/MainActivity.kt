@@ -566,11 +566,11 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     }
                 }
 
-                // Row 2: 22 Kieze & Gastronomie
+                // Row 2: 23 Kieze & Gastronomie
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     SheetGridItem(
                         icon = Icons.Default.LocationOn,
-                        label = if (uiState.language == AppLanguage.TURKISH) "22 Kiez Rehberi" else "Die 22 Kieze",
+                        label = if (uiState.language == AppLanguage.TURKISH) "23 Kiez Rehberi" else "Die 23 Kieze",
                         color = BerlinRed,
                         modifier = Modifier.weight(1f)
                     ) {
@@ -778,7 +778,8 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                 }
 
                 // Canlı Hatırlatma Gönder (S-Bahn / BVG / İtfaiye / Polis Test Butonu)
-                Surface(
+                if (com.example.BuildConfig.DEBUG) {
+Surface(
                     shape = RoundedCornerShape(10.dp),
                     color = Color(0xFF008754),
                     modifier = Modifier
@@ -803,6 +804,7 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                         )
                     }
                 }
+}
             }
         }
     }
