@@ -92,6 +92,12 @@
     @media (max-width:600px) {
       #app-container { max-width: 100%; }
     }
+    /* The header must wrap on phones: a wider page also widens every fixed dialog. */
+    @media (max-width:520px) {
+      header { flex-wrap: wrap; gap: 8px; }
+      .brand-box, .header-actions { min-width: 0; max-width: 100%; }
+      .header-actions { flex-wrap: wrap; }
+    }
 
     /* HEADER */
     header {
