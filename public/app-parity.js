@@ -598,7 +598,7 @@ function sportHtml() {
     <div class="card-item" style="padding: 8px;"><table class="ext-table"><thead><tr><th>#</th><th>Team</th><th>Sp</th><th>+/-</th><th>Pkt</th></tr></thead><tbody>${rows}</tbody></table></div>
     <h3 class="ext-subheading">${esc(tr("Spieltag", "Maç günü"))}</h3>
     <div class="card-item" style="padding: 8px 16px;">${matches}</div>
-    <p class="ext-note">OpenLigaDB · ${esc(formatDateTime(sportData.updatedAt))}</p>`;
+    <p class="ext-note">${esc(league?.source || "OpenLigaDB")} · ${esc(formatDateTime(sportData.updatedAt))}</p>`;
 }
 
 EXTRA_TABS.sport = function (container) {

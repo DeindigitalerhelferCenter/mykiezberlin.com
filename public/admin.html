@@ -61,7 +61,7 @@
             <i class="bi bi-lock-fill"></i>
           </div>
           <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 6px;">My Kiez Berlin Admin</h2>
-          <p style="font-size: 12px; color: #8b949e; margin-bottom: 20px;">Giriş şifrenizi girin (admin123 veya kiez2026). Şifre bu cihazda kalıcı olarak hatırlanacaktır.</p>
+          <p style="font-size: 12px; color: #8b949e; margin-bottom: 20px;">Admin şifrenizi girin. Şifre sunucuda kontrol edilir.</p>
 
           <div style="position: relative; margin-bottom: 16px;">
             <input type="password" id="admin-pwd-input" class="form-control" placeholder="Admin-Token" style="background: #0d1117; border-color: #30363d; color: #FFF; padding-right: 40px;">
@@ -85,13 +85,15 @@
       }
     }
 
-    function attemptLogin() {
+    // The server decides, so a new ADMIN_TOKEN works without changing this page.
+    async function attemptLogin() {
       const pwd = document.getElementById("admin-pwd-input").value.trim();
-      if (pwd === "admin123" || pwd === "kiez2026" || pwd === "admin") {
+      const res = await fetch("/api/admin", { headers: { "x-admin-token": pwd } }).catch(() => null);
+      if (res && res.ok) {
         localStorage.setItem(ADMIN_STORAGE_KEY, "true");
         renderAdminDashboard();
       } else {
-        alert("Hatalı şifre! (Doğru şifre: admin123 veya kiez2026)");
+        alert("Hatalı şifre!");
       }
     }
 

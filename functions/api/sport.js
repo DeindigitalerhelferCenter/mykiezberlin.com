@@ -1,10 +1,17 @@
-// Real Bundesliga tables and matches from OpenLigaDB.
-import { fetchJson, json } from "../_lib/util.js";
+// Real league tables: Germany from OpenLigaDB, Süper Lig computed from football-data.co.uk results.
+import { fetchJson, fetchText, json } from "../_lib/util.js";
 
 const TTL_SECONDS = 900;
 const API = "https://api.openligadb.de";
 const LEAGUES = [["bl1", "1. Bundesliga"], ["bl2", "2. Bundesliga"], ["del", "DEL Eishockey"]];
 const BERLIN_TEAMS = /(Union Berlin|Hertha|Eisbären)/i;
+const SUPER_LIG_SOURCE = "football-data.co.uk";
+const SUPER_LIG_RECENT_MATCHES = 9;
+const TURKISH_BIG_CLUBS = /^(Galatasaray|Fenerbahçe|Beşiktaş|Trabzonspor)$/;
+const TURKISH_NAMES = {
+  Fenerbahce: "Fenerbahçe", Besiktas: "Beşiktaş", Kasimpasa: "Kasımpaşa", Corum: "Çorum FK", Goztep: "Göztepe",
+  Buyuksehyr: "Başakşehir", Erzurumspor: "Erzurumspor", Rizespor: "Çaykur Rizespor", Genclerbirligi: "Gençlerbirliği", Eyupspor: "Eyüpspor",
+};
 
 // The German football season starts in summer and is named after its first year.
 function currentSeason() {
@@ -63,6 +70,58 @@ async function loadLeague([id, name], season) {
   };
 }
 
+function parseCsv(text) {
+  const [header, ...lines] = text.replace(/^\uFEFF/, "").trim().split(/\r?\n/);
+  const columns = header.split(",");
+  return lines.map((line) => {
+    const cells = line.split(",");
+    return Object.fromEntries(columns.map((name, i) => [name, cells[i]]));
+  });
+}
+
+function superLigKickoff(date, time) {
+  const [day, month, year] = date.split("/").map(Number);
+  const [hour, minute] = (time || "0:0").split(":").map(Number);
+  return Date.UTC(year, month - 1, day, hour, minute);
+}
+
+// The source lists results only, so the table is added up here: 3 points per win, then goal difference.
+async function loadSuperLig(season) {
+  const code = `${String(season).slice(2)}${String(season + 1).slice(2)}`;
+  const results = parseCsv(await fetchText(`https://www.football-data.co.uk/mmz4281/${code}/T1.csv`))
+    .filter((r) => r.HomeTeam && r.FTHG !== "" && r.FTHG !== undefined)
+    .map((r) => ({
+      kickoff: superLigKickoff(r.Date, r.Time),
+      home: TURKISH_NAMES[r.HomeTeam] || r.HomeTeam,
+      away: TURKISH_NAMES[r.AwayTeam] || r.AwayTeam,
+      homeGoals: Number(r.FTHG),
+      awayGoals: Number(r.FTAG),
+      finished: true,
+    }));
+  if (!results.length) throw new Error("no results");
+
+  const teams = new Map();
+  const add = (team, scored, conceded) => {
+    const row = teams.get(team) || { team, short: team, played: 0, won: 0, draw: 0, lost: 0, goals: 0, opponentGoals: 0 };
+    row.played += 1;
+    row.goals += scored;
+    row.opponentGoals += conceded;
+    if (scored > conceded) row.won += 1;
+    else if (scored === conceded) row.draw += 1;
+    else row.lost += 1;
+    teams.set(team, row);
+  };
+  for (const m of results) {
+    add(m.home, m.homeGoals, m.awayGoals);
+    add(m.away, m.awayGoals, m.homeGoals);
+  }
+  const table = [...teams.values()]
+    .map((t) => ({ ...t, points: t.won * 3 + t.draw, goalDiff: t.goals - t.opponentGoals, berlin: TURKISH_BIG_CLUBS.test(t.team) }))
+    .sort((a, b) => b.points - a.points || b.goalDiff - a.goalDiff || b.goals - a.goals)
+    .map((t, i) => ({ ...t, position: i + 1 }));
+  return { id: "tsl", name: "Süper Lig", source: SUPER_LIG_SOURCE, table, matches: results.slice(-SUPER_LIG_RECENT_MATCHES).reverse() };
+}
+
 async function berlinClub(team, league) {
   const [last, next] = await Promise.allSettled([
     fetchJson(`${API}/getlastmatchbyleagueteam/${league.leagueId}/${team.teamId}`),
@@ -82,7 +141,9 @@ async function build() {
   const season = currentSeason();
   const leagues = await Promise.all(LEAGUES.map((l) => loadLeague(l, season)));
   const berlin = await Promise.all(leagues.flatMap((l) => l.table.filter((t) => t.berlin).map((t) => berlinClub(t, l))));
-  return { updatedAt: Date.now(), season, leagues, berlin };
+  // A problem with this extra source must never take the German tables down.
+  const superLig = await loadSuperLig(season).catch(() => null);
+  return { updatedAt: Date.now(), season, leagues: superLig ? [...leagues, superLig] : leagues, berlin };
 }
 
 export async function onRequestGet(context) {

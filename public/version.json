@@ -1,11 +1,11 @@
 {
-  "versionCode": 4,
-  "versionName": "1.3",
+  "versionCode": 5,
+  "versionName": "1.4",
   "apkUrl": "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin.com.apk",
   "mandatory": false,
   "notes": {
-    "de": "Eigener Kiez-Quiz-Bereich, mehr Sport und Wirtschaft, Betriebe im Kiez und zuverlässige Live-Warnungen.",
-    "tr": "Ayrı Kiez Quiz bölümü, daha fazla spor ve ekonomi, semt işletmeleri ve güvenilir canlı uyarılar.",
-    "en": "Dedicated Kiez quiz, more sport and business news, local businesses and reliable live alerts."
+    "de": "Neu: Community mit Antworten, kostenlose Kleinanzeigen, Benachrichtigungen und Tor-Jubel für Hertha.",
+    "tr": "Yeni: Cevaplı topluluk, ücretsiz ilanlar, bildirimler ve Hertha gol kutlaması.",
+    "en": "New: community replies, free classifieds, notifications and a Hertha goal celebration."
   }
 }
