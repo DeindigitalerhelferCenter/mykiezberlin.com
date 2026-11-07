@@ -1982,18 +1982,46 @@ const KIEZE_FULL = [
  {
   "id": "umgebung",
   "name": "Berlin & Umgebung",
-  "subtitle": "Ausflüge rund um Berlin",
-  "description": "Das Umland ist von Berlin aus schnell erreichbar: Potsdam mit Schloss Sanssouci, der Spreewald und die Seen in Brandenburg.",
+  "subtitle": "Ausflüge, Havelseen, Spreewald & Umland",
+  "postalCodes": "14467, 14469, 14482, 15370",
+  "population": "ca. 185.000",
+  "populationDate": "30.06.2026",
+  "specialty": "Schloss Sanssouci, Wannsee, Spreewald, Havelseen",
+  "description": "Das Berliner Umland verbindet königliche Geschichte mit idyllischer Natur: Von Potsdam mit seinen UNESCO-Schlössern über die Havelseen bis zum UNESCO-Biosphärenreservat Spreewald.",
+  "tags": [
+   "Potsdam",
+   "Sanssouci",
+   "Havelseen",
+   "Spreewald",
+   "Natur"
+  ],
   "lat": 52.52,
   "lng": 13.405,
-  "imageUrl": "assets/images/hero_berlin.jpg",
-  "vibe": "Natur & Ausflug",
   "highlights": [
-   "Potsdam",
-   "Spreewald",
-   "Werder (Havel)"
+   "Schloss Sanssouci Potsdam",
+   "Wannsee & Pfaueninsel",
+   "Spreewald Fließgewässer",
+   "Werder Havel"
   ],
-  "transitLines": "S-Bahn, Regionalbahn (VBB-Tarif ABC)"
+  "imageUrl": "https://images.unsplash.com/photo-1560969184-10fe8719e047?w=800&auto=format&fit=crop&q=80",
+  "rentIndex": "",
+  "vibe": "Natur & Ausflug",
+  "transitLines": "S-Bahn S7 (Potsdam Hbf), Regionalbahn RE1, RE7, FEX (VBB-Tarif ABC)",
+  "parks": [
+   "Schlosspark Sanssouci",
+   "Volkspark Potsdam",
+   "Naturpark Barnim"
+  ],
+  "popularSpots": [
+   "Holländisches Viertel Café",
+   "Historische Mühle Sanssouci",
+   "Brauhaus Meierei im Neuen Garten"
+  ],
+  "buergeramtName": "Bürgerservice Potsdam",
+  "buergeramtAddress": "Friedrich-Ebert-Straße 79/81, 14469 Potsdam",
+  "policeStation": "Polizeiinspektion Potsdam",
+  "policeAddress": "Henning-von-Tresckow-Straße 9-13, 14467 Potsdam",
+  "policePhone": "+49 331 55080"
  }
 ];
 const FOOD_SPOTS = [
@@ -2616,36 +2644,6 @@ const BUSINESSES = [
 ];
 const DEALS = [
  {
-  "id": "deal_anna_blume",
-  "businessName": "Café Anna Blume",
-  "discountBadge": "20 %",
-  "title": "20 % auf alle Frühstückssets",
-  "validUntil": "Gültig bis 30.09.2026",
-  "category": "Essen & Trinken",
-  "code": "KIEZ20BLUME",
-  "imageUrl": "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=600&auto=format&fit=crop&q=80"
- },
- {
-  "id": "deal_la_piazza",
-  "businessName": "La Piazza",
-  "discountBadge": "2 für 1",
-  "title": "2 für 1 Steinofenpizza nach Wahl",
-  "validUntil": "Gültig bis 15.10.2026",
-  "category": "Essen & Trinken",
-  "code": "PIAZZA2FOR1",
-  "imageUrl": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop&q=80"
- },
- {
-  "id": "deal_kiez_friseur",
-  "businessName": "Kiez Friseur",
-  "discountBadge": "15 %",
-  "title": "15 % auf alle Haarschnitte",
-  "validUntil": "Gültig bis 31.10.2026",
-  "category": "Dienstleistungen",
-  "code": "KIEZSTYLE15",
-  "imageUrl": "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&auto=format&fit=crop&q=80"
- },
- {
   "id": "deal_kiez_fitness",
   "businessName": "Kiez Fitness",
   "discountBadge": "10 %",
@@ -2654,6 +2652,16 @@ const DEALS = [
   "category": "Freizeit & Fitness",
   "code": "FITKIEZ10",
   "imageUrl": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&auto=format&fit=crop&q=80"
+ },
+ {
+  "id": "deal_kiez_friseur_active",
+  "businessName": "Kiez Friseur Studio",
+  "discountBadge": "15 %",
+  "title": "15 % Neukundenrabatt auf Styling",
+  "validUntil": "Gültig bis 31.12.2026",
+  "category": "Dienstleistungen",
+  "code": "KIEZSTYLE15",
+  "imageUrl": "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&auto=format&fit=crop&q=80"
  }
 ];
 const QUIZ_FULL = [

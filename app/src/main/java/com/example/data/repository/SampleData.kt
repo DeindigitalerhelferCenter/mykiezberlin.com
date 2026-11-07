@@ -1213,37 +1213,21 @@ object SampleData {
     )
 
     // Deals with real photos matching Screen 9
-    val deals = listOf(
-        Deal(
-            id = "deal_anna_blume",
-            businessName = "Café Anna Blume",
-            discountBadge = "20 %",
-            title = "20 % auf alle Frühstückssets",
-            validUntil = "Gültig bis 30.09.2026",
-            category = "Essen & Trinken",
-            code = "KIEZ20BLUME",
-            imageUrl = "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=600&auto=format&fit=crop&q=80"
-        ),
-        Deal(
-            id = "deal_la_piazza",
-            businessName = "La Piazza",
-            discountBadge = "2 für 1",
-            title = "2 für 1 Steinofenpizza nach Wahl",
-            validUntil = "Gültig bis 15.10.2026",
-            category = "Essen & Trinken",
-            code = "PIAZZA2FOR1",
-            imageUrl = "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop&q=80"
-        ),
-        Deal(
-            id = "deal_kiez_friseur",
-            businessName = "Kiez Friseur",
-            discountBadge = "15 %",
-            title = "15 % auf alle Haarschnitte",
-            validUntil = "Gültig bis 31.10.2026",
-            category = "Dienstleistungen",
-            code = "KIEZSTYLE15",
-            imageUrl = "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&auto=format&fit=crop&q=80"
-        ),
+    fun isDealActive(deal: Deal): Boolean {
+        return try {
+            val dateRegex = Regex("""(\d{1,2})\.(\d{1,2})\.(\d{4})""")
+            val match = dateRegex.find(deal.validUntil) ?: return true
+            val (day, month, year) = match.destructured
+            val cal = java.util.Calendar.getInstance()
+            cal.set(year.toInt(), month.toInt() - 1, day.toInt(), 23, 59, 59)
+            cal.timeInMillis >= System.currentTimeMillis()
+        } catch (_: Exception) {
+            true
+        }
+    }
+
+    // Active deals with real photos (expired deals filtered out automatically)
+    private val rawDeals = listOf(
         Deal(
             id = "deal_kiez_fitness",
             businessName = "Kiez Fitness",
@@ -1253,8 +1237,21 @@ object SampleData {
             category = "Freizeit & Fitness",
             code = "FITKIEZ10",
             imageUrl = "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&auto=format&fit=crop&q=80"
+        ),
+        Deal(
+            id = "deal_kiez_friseur_active",
+            businessName = "Kiez Friseur Studio",
+            discountBadge = "15 %",
+            title = "15 % Neukundenrabatt auf Styling",
+            validUntil = "Gültig bis 31.12.2026",
+            category = "Dienstleistungen",
+            code = "KIEZSTYLE15",
+            imageUrl = "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&auto=format&fit=crop&q=80"
         )
     )
+
+    val deals: List<Deal>
+        get() = rawDeals.filter { isDealActive(it) }
 
     // Quiz Questions with real photos matching Screen 5
     val quizQuestions = listOf(
@@ -1597,93 +1594,8 @@ object SampleData {
         )
     )
 
-    // Kiez-Stories (Instagram/WhatsApp style 24h stories)
-    // Kiez-Stories (Echte Berliner Tages-Events & Offizielle Quellen mit Direktlinks)
-    val stories = listOf(
-        KiezStory(
-            id = "story_museumsinsel",
-            headline = "Museumsinsel Berlin: UNESCO-Welterbe & Neue Ausstellungen",
-            subtext = "Pergamonmuseum, Neues Museum und Alte Nationalgalerie laden zu aktuellen Sonderausstellungen im Herzen Berlins ein.",
-            kind = "info",
-            headlineColor = "blau",
-            kiez = "Mitte",
-            author = "Staatliche Museen zu Berlin",
-            timeAgo = "vor 2 Std.",
-            mediaResId = R.drawable.kiez_mitte,
-            source = "Stiftung Preußischer Kulturbesitz",
-            link = "https://www.smb.museum/",
-            whatsapp = "+4915126509586"
-        ),
-        KiezStory(
-            id = "story_mauerpark",
-            headline = "Mauerpark Community: Kultur, Flohmarkt & Open-Air",
-            subtext = "Beliebter Treffpunkt für Nachbarn und Besucher im Prenzlauer Berg mit Kunsthandwerk und Kiez-Atmosphäre.",
-            kind = "event",
-            headlineColor = "gelb",
-            kiez = "Prenzlauer Berg",
-            author = "Kiez Community Berlin",
-            timeAgo = "vor 3 Std.",
-            mediaResId = R.drawable.event_mauerpark,
-            source = "Freunde des Mauerparks e.V.",
-            link = "https://www.mauerpark.info/",
-            whatsapp = "+4915126509586"
-        ),
-        KiezStory(
-            id = "story_tempelhof",
-            headline = "Tempelhofer Feld: Das grüne Weite der Hauptstadt",
-            subtext = "Über 300 Hektar Freiraum für Sport, Gemeinschaftsgärten und Erholung auf dem historischen Flughafengelände.",
-            kind = "info",
-            headlineColor = "blau",
-            kiez = "Tempelhof / Neukölln",
-            author = "Grün Berlin GmbH",
-            timeAgo = "vor 4 Std.",
-            mediaResId = R.drawable.kiez_neukoelln,
-            source = "Grün Berlin",
-            link = "https://gruen-berlin.de/tempelhofer-feld",
-            whatsapp = "+4915126509586"
-        ),
-        KiezStory(
-            id = "story_4",
-            headline = "Berliner Philharmoniker: Heutiges Programm & Live-Streams",
-            subtext = "Klassik-Konzerte im Großen Saal der Philharmonie. Restkarten & Digital Concert Hall auf der offiziellen Seite.",
-            kind = "event",
-            headlineColor = "rot",
-            kiez = "Mitte / Tiergarten",
-            author = "Berliner Philharmoniker",
-            timeAgo = "vor 3 Std.",
-            mediaResId = R.drawable.quiz_brandenburg,
-            source = "Berliner Philharmonie",
-            link = "https://www.berliner-philharmoniker.de/konzerte/"
-        ),
-        KiezStory(
-            id = "story_5",
-            headline = "Olympiastadion Berlin: Spieltag-Infos & Stadionführungen",
-            subtext = "Offizielle Besucherinformationen für Hertha BSC Heimspiele und Besichtigungen des historischen Olympiaparks.",
-            kind = "info",
-            headlineColor = "weiss",
-            kiez = "Charlottenburg",
-            author = "Olympiastadion Berlin",
-            timeAgo = "vor 4 Std.",
-            mediaResId = R.drawable.kiez_charlottenburg,
-            source = "Olympiastadion Berlin GmbH",
-            link = "https://olympiastadion.berlin/de/termine/",
-            whatsapp = "+4915126509586"
-        ),
-        KiezStory(
-            id = "story_6",
-            headline = "VisitBerlin: Offizielle Wochen-Highlights der Hauptstadt",
-            subtext = "Kultur, Ausstellungen und Kiez-Tipps direkt vom offiziellen Berlin-Tourismusportal.",
-            kind = "event",
-            headlineColor = "blau",
-            kiez = "Kreuzberg",
-            author = "VisitBerlin Portal",
-            timeAgo = "vor 5 Std.",
-            mediaResId = R.drawable.kiez_kreuzberg,
-            source = "Berlin Tourismus & Kongress GmbH",
-            link = "https://www.visitberlin.de/de/veranstaltungen-berlin",
-            whatsapp = "+4915126509586"
-        )
-    )
+    // Kiez-Stories (Exclusively server-driven from https://mykiezberlin.com/api/stories & live alerts)
+    val stories: List<KiezStory> = emptyList()
 
     // Real Kiez Jobs
     val jobs = listOf(
@@ -2502,384 +2414,6 @@ object SampleData {
     val reporterPosts: List<KiezReporterPost>
         get() = getDailyReporterPosts(AppLanguage.GERMAN)
 
-    // Berlin Manşet Slaytları (1:1 mit den echten Zeitungsausgaben aus B.Z., Tagesspiegel, rbb24 & Güneş)
-    // Berlin Manşet Slaytları (At least 20+ real, verified illustrated news slides from BILD.de, Tagesspiegel, B.Z. Berlin, rbb24, Berliner Kurier & Weltpresse)
-    val mansetSlides: List<MansetSlide> = listOf(
-        // ==================== 1. BILD.de (10 Unique, Verified Berlin & German News Slides) ====================
-        MansetSlide(
-            id = "slide_bild_01",
-            publisher = "BILD Berlin",
-            badge = "Berlin Politik",
-            colorHex = 0xFFE2001A,
-            headlineDe = "Streit um Enteignungen in Berlin: Immobilienriese stoppt Investitionen",
-            headlineTr = "Berlin'de Kamulaştırma Tartışması: Dev Gayrimenkul Şirketi Yatırımlarını Durdurdu",
-            teaserDe = "Nach dem Beschluss zur Vergesellschaftung von Wohnungsbeständen zieht der erste Großinvestor Konsequenzen für den Berliner Markt.",
-            teaserTr = "Konutların kamulaştırılması yönündeki senato tartışmalarının ardından büyük gayrimenkul yatırımcısı Berlin projelerini askıya aldı.",
-            author = "BILD Berlin",
-            imageResId = R.drawable.hero_berlin,
-            originalUrl = "https://www.bild.de/regional/berlin"
-        ),
-        MansetSlide(
-            id = "slide_bild_02",
-            publisher = "BILD Berlin",
-            badge = "Landgericht Berlin",
-            colorHex = 0xFFE2001A,
-            headlineDe = "Landgericht Berlin: Urteil im Prozess um sexuellen Übergriff",
-            headlineTr = "Berlin Eyalet Mahkemesi: Şehirdeki Ağır Ceza Davasında Karar Açıklandı",
-            teaserDe = "Das Berliner Landgericht verkündet Urteil nach aufsehenerregendem Prozess – Sicherheitsbehörden fordern strengere Maßnahmen.",
-            teaserTr = "Berlin Eyalet Mahkemesi'nde görülen davada karar açıklanırken, güvenlik birimleri başkentteki denetimlerin artırılmasını istedi.",
-            author = "BILD Gerichts-Reporter",
-            imageResId = R.drawable.kiez_mitte,
-            originalUrl = "https://www.bild.de/regional/berlin"
-        ),
-        MansetSlide(
-            id = "slide_bild_03",
-            publisher = "BILD Sport Berlin",
-            badge = "1. FC Union Berlin",
-            colorHex = 0xFFE2001A,
-            headlineDe = "1. FC Union Berlin: Sie ergänzen sich perfekt – Unions neues Traum-Duo",
-            headlineTr = "1. FC Union Berlin: Birbirini Mükemmel Tamamlayan Yeni Hücum İkilisi",
-            teaserDe = "Die Eisernen aus Köpenick überzeugen in der Bundesliga: Trainer und Fans schwärmen vom erfolgreichen neuen Sturmduo.",
-            teaserTr = "Köpenick temsilcisi Union Berlin Bundesliga'da formunu yükseltirken, An der Alten Försterei stadyumunda yeni ikili büyük alkış alıyor.",
-            author = "BILD Sport",
-            imageResId = R.drawable.kiez_friedrichshain,
-            originalUrl = "https://www.bild.de/regional/berlin"
-        ),
-        MansetSlide(
-            id = "slide_bild_04",
-            publisher = "BILD Berlin",
-            badge = "Polizeieinsatz Neukölln",
-            colorHex = 0xFFE2001A,
-            headlineDe = "Berlin-Neukölln: Polizei ermittelt nach nächtlichem Messerangriff",
-            headlineTr = "Berlin-Neukölln: Gece Saatlerinde Yaşanan Bıçaklı Olay Sonrası Polis İncelemesi",
-            teaserDe = "Mordkommission und Kriminalpolizei sichern Spuren vor Ort in Neukölln – Zeugenhinweise werden ausgewertet.",
-            teaserTr = "Neukölln'de gece saatlerinde gerçekleşen saldırının ardından polis olay yeri inceleme ekipleri ve cinayet masası soruşturmayı sürdürüyor.",
-            author = "BILD Blaulicht",
-            imageResId = R.drawable.kiez_neukoelln,
-            originalUrl = "https://www.bild.de/regional/berlin"
-        ),
-        MansetSlide(
-            id = "slide_bild_05",
-            publisher = "BILD Sport Berlin",
-            badge = "ALBA Berlin Basketball",
-            colorHex = 0xFFE2001A,
-            headlineDe = "ALBA Berlin trauert: Früherer Kapitän und Basketball-Legende verstorben",
-            headlineTr = "ALBA Berlin Yasta: Eski Kaptan ve Efsanevi Basketbolcu Hayatını Kaybetti",
-            teaserDe = "Große Anteilnahme in der Berliner Sportwelt: Die Basketballer von ALBA Berlin gedenken ihres langjährigen Kapitäns.",
-            teaserTr = "Berlin spor camiası yasta: ALBA Berlin kulübü, sarı-lacivertli formayla şampiyonluklar yaşayan eski kaptanını saygıyla anıyor.",
-            author = "BILD Sport",
-            imageResId = R.drawable.kiez_charlottenburg,
-            originalUrl = "https://www.bild.de/regional/berlin"
-        ),
-        MansetSlide(
-            id = "slide_bild_06",
-            publisher = "BILD Berlin",
-            badge = "Kiezpolitik Urteil",
-            colorHex = 0xFFE2001A,
-            headlineDe = "Gerichtsurteil zu Berliner Kommunalpolitik: Meinungsfreiheit im Kiezstreit",
-            headlineTr = "Berlin Yerel Siyasetinde Mahkeme Kararı: İlçe Yönetimi ve Hukuki Süreç",
-            teaserDe = "Streit um politische Äußerungen in Berliner Bezirken entschieden – Gericht weist Klage nach hitziger Debatte ab.",
-            teaserTr = "Berlin ilçelerindeki yerel siyaset ve belediye yönetimi üzerine açılan dava karara bağlandı; mahkeme gerekçeli kararını açıkladı.",
-            author = "BILD Berlin",
-            imageResId = R.drawable.kiez_kreuzberg,
-            originalUrl = "https://www.bild.de/regional/berlin"
-        ),
-        MansetSlide(
-            id = "slide_bild_07",
-            publisher = "BILD Berlin",
-            badge = "Hauptstadt Regional",
-            colorHex = 0xFFE2001A,
-            headlineDe = "BILD Berlin Aktuell: Das Hauptstadt-Portal mit allen Eilmeldungen",
-            headlineTr = "BILD Berlin Güncel: Başkentin Tüm Son Dakika Haberleri ve Olayları",
-            teaserDe = "Brandaktuelle Berichte, Polizei-Ticker, Verkehrslage und exklusive Storys rund um die Uhr aus allen Berliner Bezirken.",
-            teaserTr = "12 Berlin ilçesinden 24 saat kesintisiz son dakika gelişmeleri, polis haberleri, trafik durumu ve özel röportajlar.",
-            author = "BILD Redaktion",
-            imageResId = R.drawable.news_bz_ryanair,
-            originalUrl = "https://www.bild.de/regional/berlin"
-        ),
-        MansetSlide(
-            id = "slide_bild_08",
-            publisher = "BILD Sport Berlin",
-            badge = "1. FC Union Ticker",
-            colorHex = 0xFFE2001A,
-            headlineDe = "Eisern Union Berlin Ticker: Bundesliga, Spieltage und Kader-News",
-            headlineTr = "Eisern Union Berlin Bülteni: Bundesliga Maçları, Puan Durumu ve Kadro",
-            teaserDe = "Alle Hintergründe, Trainingsberichte und Stimmen zum Kultklub aus Köpenick in der höchsten deutschen Spielklasse.",
-            teaserTr = "Köpenick ekibi Union Berlin hakkında maç özetleri, antrenman notları ve transfer gelişmeleri tek sayfada.",
-            author = "BILD Union-Reporter",
-            imageResId = R.drawable.kiez_friedrichshain,
-            originalUrl = "https://www.bild.de/regional/berlin"
-        ),
-        MansetSlide(
-            id = "slide_bild_09",
-            publisher = "BILD Brandenburg",
-            badge = "Metropolregion Berlin",
-            colorHex = 0xFFE2001A,
-            headlineDe = "Berlin & Brandenburg Ticker: Aktuelle Meldungen aus der Metropolregion",
-            headlineTr = "Berlin & Brandenburg Ticker: Başkent ve Çevre İllerden Güncel Gelişmeler",
-            teaserDe = "Pendlernachrichten, Infrastrukturprojekte und Ereignisse aus Potsdam, Schönefeld und dem Berliner Umland.",
-            teaserTr = "Potsdam, Schönefeld ve Berlin banliyö hattındaki ulaşım projeleri, belediye haberleri ve çevre gelişmeleri.",
-            author = "BILD Brandenburg",
-            imageResId = R.drawable.kiez_charlottenburg,
-            originalUrl = "https://www.bild.de/regional/berlin"
-        ),
-        MansetSlide(
-            id = "slide_bild_10",
-            publisher = "BILD Deutschland",
-            badge = "BILD Schlagzeilen",
-            colorHex = 0xFFE2001A,
-            headlineDe = "BILD News Deutschland: Schlagzeilen, Politik und Gesellschaft",
-            headlineTr = "BILD Almanya Haber Merkezi: Manşetler, Politika ve Toplum",
-            teaserDe = "Wichtige Ereignisse, bundesweite Entscheidungen und Analysen der Redaktion im kompakten Überblick.",
-            teaserTr = "Almanya genelindeki en son siyasi kararlar, sosyal reformlar ve günün en çok konuşulan manşetleri.",
-            author = "BILD News",
-            imageResId = R.drawable.news_rbb_spion,
-            originalUrl = "https://www.bild.de/news/"
-        ),
-
-        // ==================== 2. Tagesspiegel (5 Authentic Berlin Slides) ====================
-        MansetSlide(
-            id = "slide_tagesspiegel_01",
-            publisher = "Tagesspiegel",
-            badge = "Berlin Politik & Kiez",
-            colorHex = 0xFF003087,
-            headlineDe = "Streit um Enteignungen in Berlin: Kritik an Anti-Vergesellschaftungsplan",
-            headlineTr = "Berlin'de Kamulaştırma Yasası Tartışması: Siyasi Partilerden Karşılıklı Tepkiler",
-            teaserDe = "Linke, Grüne und SPD kritisieren die Pläne scharf – Debatte um bezahlbaren Wohnraum in der Hauptstadt erreicht neue Schärfe.",
-            teaserTr = "Sol Parti, Yeşiller ve SPD tasarıyı eleştirirken, Berlin'deki uygun fiyatlı kiralık konut tartışması mecliste yeniden alevlendi.",
-            author = "Tagesspiegel Politik",
-            imageResId = R.drawable.news_tagesspiegel,
-            originalUrl = "https://www.tagesspiegel.de/berlin/"
-        ),
-        MansetSlide(
-            id = "slide_tagesspiegel_02",
-            publisher = "Tagesspiegel",
-            badge = "Bahnverkehr Berlin",
-            colorHex = 0xFF003087,
-            headlineDe = "Bahnverkehr Berlin-Brandenburg: Einjährige Streckensperrung und Ersatzverkehr",
-            headlineTr = "Berlin-Brandenburg Tren Ulaşımı: Bir Yıllık Hat Yenilemesi ve Otobüs Seferleri",
-            teaserDe = "Umfassende Modernisierung der Trasse Cottbus–Lübbenau – Verkehrsverbund VBB richtet dichten Schienenersatzverkehr ein.",
-            teaserTr = "Cottbus-Lübbenau hattında kapsamlı ray yenilemesi başlarken VBB Berlin yolcuları için yoğun yedek otobüs ağı kurdu.",
-            author = "Tagesspiegel Mobilität",
-            imageResId = R.drawable.kiez_mitte,
-            originalUrl = "https://www.tagesspiegel.de/berlin/"
-        ),
-        MansetSlide(
-            id = "slide_tagesspiegel_03",
-            publisher = "Tagesspiegel",
-            badge = "Traditionsmarke Berlin",
-            colorHex = 0xFF003087,
-            headlineDe = "Berliner Traditionsmarke: Feinkostgeschäft Lindner heißt wieder 'Butter Lindner'",
-            headlineTr = "Berlin'in Tarihi Markası: Gurme Şarküteri Lindner Tarihi Adı 'Butter Lindner'a Döndü",
-            teaserDe = "Alter Name und neues Logo: Das traditionsreiche Berliner Feinkostunternehmen besinnt sich auf seine Wurzeln in den Kiezen.",
-            teaserTr = "Berlin'in yarım asırlık ünlü gurme ve şarküteri markası Lindner, sembolik logosu ve tarihi 'Butter Lindner' adıyla yenilendi.",
-            author = "Tagesspiegel Kiez",
-            imageResId = R.drawable.kiez_wilmersdorf,
-            originalUrl = "https://www.tagesspiegel.de/berlin/"
-        ),
-        MansetSlide(
-            id = "slide_tagesspiegel_04",
-            publisher = "Tagesspiegel",
-            badge = "U-Bahn Neukölln/Kreuzberg",
-            colorHex = 0xFF003087,
-            headlineDe = "U-Bahnlinie U7: Geldautomat auf Bahnsteig Gneisenaustraße gesprengt",
-            headlineTr = "U7 Metrosu Gneisenaustraße İstasyonu: Perondaki ATM Patlatıldı, Seferler Normale Döndü",
-            teaserDe = "Kriminalpolizei ermittelt nach nächtlicher Detonation in Kreuzberg – U-Bahnverkehr nach Sperrung wieder freigegeben.",
-            teaserTr = "Kreuzberg Gneisenaustraße istasyonundaki peronda gece saatlerinde yaşanan patlama sonrası polis soruşturma başlattı.",
-            author = "Tagesspiegel Blaulicht",
-            imageResId = R.drawable.kiez_kreuzberg,
-            originalUrl = "https://www.tagesspiegel.de/berlin/"
-        ),
-        MansetSlide(
-            id = "slide_tagesspiegel_05",
-            publisher = "Tagesspiegel",
-            badge = "Senatspolitik Berlin",
-            colorHex = 0xFF003087,
-            headlineDe = "Berliner Senatspolitik: SPD plant Mitgliederbefragung zu Koalitionsoptionen",
-            headlineTr = "Berlin Senatosu Siyaseti: SPD Koalisyon Seçenekleri İçin Tabanına Danışıyor",
-            teaserDe = "Mögliche künftige Bündnisse in der Hauptstadt: Die Berliner SPD diskutiert den weiteren Kurs im Roten Rathaus.",
-            teaserTr = "Başkentteki siyasi dengeler ve olası ittifak senaryoları üzerine Berlin SPD teşkilatı üyelerinin görüşünü alacak.",
-            author = "Tagesspiegel Landespolitik",
-            imageResId = R.drawable.kiez_moabit,
-            originalUrl = "https://www.tagesspiegel.de/berlin/"
-        ),
-
-        // ==================== 3. B.Z. Berlin (5 Authentic Berlin Slides) ====================
-        MansetSlide(
-            id = "slide_bz_ryanair",
-            publisher = "B.Z. Berlin",
-            badge = "Schließung der BER-Basis",
-            colorHex = 0xFFE50000,
-            headlineDe = "Diese Ryanair-Flüge gibt es nicht mehr vom BER",
-            headlineTr = "Ryanair BER Uçuşlarını Kısıtlıyor: Bu Rotalar Artık Uçmayacak",
-            teaserDe = "Ryanair streicht wegen hoher Standortkosten zahlreiche Flugverbindungen ab Hauptstadtflughafen Berlin Brandenburg.",
-            teaserTr = "Yüksek havalimanı ve vergi maliyetleri nedeniyle Ryanair, Berlin BER çıkışlı birçok popüler uçuşunu iptal etti.",
-            author = "B.Z. Redaktion",
-            imageResId = R.drawable.news_bz_ryanair,
-            originalUrl = "https://www.bz-berlin.de/berlin/ryanair-streicht-fluege-ber"
-        ),
-        MansetSlide(
-            id = "slide_bz_kudamm",
-            publisher = "B.Z. Berlin",
-            badge = "City West Ticker",
-            colorHex = 0xFFE50000,
-            headlineDe = "Kurfürstendamm erstrahlt: Neuer Glanz für die City West zur Winterzeit",
-            headlineTr = "Kurfürstendamm Işıl Işıl: Batı Berlin'in Kalbinde Kış Işıklandırması Başladı",
-            teaserDe = "Geschäftsleute und Sponsoren finanzieren die traditionelle Lichterpracht auf 4,5 Kilometern Boulevard.",
-            teaserTr = "Ku'damm üzerinde 4,5 kilometrelik güzergahta geleneksel ışıklandırma faaliyete geçerek caddeleri aydınlattı.",
-            author = "B.Z. City West",
-            imageResId = R.drawable.kiez_charlottenburg,
-            originalUrl = "https://www.bz-berlin.de/berlin/charlottenburg-wilmersdorf/kurfuerstendamm-beleuchtung-winterzeit"
-        ),
-        MansetSlide(
-            id = "slide_bz_zoo",
-            publisher = "B.Z. Berlin",
-            badge = "Zoo Berlin Panorama",
-            colorHex = 0xFFE50000,
-            headlineDe = "Zoo Berlin: Pandazwillinge begeistern Zehntausende Besucher im Außengehege",
-            headlineTr = "Berlin Hayvanat Bahçesi: Panda İkizleri Dış Bahçede Ziyaretçilerin İlgi Odağı",
-            teaserDe = "Die beiden Jungtiere erkunden erstmals die Kletterfelsen – der Tiergarten verzeichnet Rekord-Ticketverkäufe.",
-            teaserTr = "Berlin Hayvanat Bahçesi'nde doğan panda ikizleri dış bahçeye çıkarak başkentlilerin ve turistlerin sevgilisi oldu.",
-            author = "B.Z. Tierwelt",
-            imageResId = R.drawable.kiez_tiergarten,
-            originalUrl = "https://www.bz-berlin.de/berlin/mitte/panda-zwillinge-zoo-berlin-aussengehege"
-        ),
-        MansetSlide(
-            id = "slide_bz_u7",
-            publisher = "B.Z. Berlin",
-            badge = "U-Bahn Ticker",
-            colorHex = 0xFFE50000,
-            headlineDe = "U7-Großsanierung Neukölln: Gleisarbeiten vorzeitig abgeschlossen",
-            headlineTr = "U7 Neukölln Yenilemesi: Ray Bakım Çalışmaları Planlanandan Önce Tamamlandı",
-            teaserDe = "Gute Nachrichten für Pendler: Die U-Bahnlinie U7 fährt wieder im 4-Minuten-Takt zwischen Rudow und Rathaus Spandau.",
-            teaserTr = "U7 hattında yapılan kapsamlı bakım bitti; metro seferleri Rudow ile Rathaus Spandau arasında kesintisiz devam ediyor.",
-            author = "B.Z. Verkehr",
-            imageResId = R.drawable.kiez_neukoelln,
-            originalUrl = "https://www.bz-berlin.de/berlin/neukoelln/u7-sanierung-abgeschlossen-freigabe"
-        ),
-        MansetSlide(
-            id = "slide_bz_friedrichstr",
-            publisher = "B.Z. Berlin",
-            badge = "Mitte Debatte",
-            colorHex = 0xFFE50000,
-            headlineDe = "Friedrichstraße: Neuer Flanierbereich mit Bäumen und Sitzbänken eingeweiht",
-            headlineTr = "Friedrichstraße: Ağaçlandırılmış Yeni Yürüyüş ve Oturma Alanı Açıldı",
-            teaserDe = "Nach langen Debatten präsentiert der Senat die Neugestaltung der Friedrichstraße als moderne Flaniermeile.",
-            teaserTr = "Trafik düzenlemelerinin ardından Friedrichstraße'de yayalar için yeşillendirilmiş oturma ve dinlenme alanları kuruldu.",
-            author = "B.Z. Lokalpolitik",
-            imageResId = R.drawable.kiez_mitte,
-            originalUrl = "https://www.bz-berlin.de/berlin/mitte/friedrichstrasse-flaniermeile-neugestaltung"
-        ),
-
-        // ==================== 4. rbb24 Berlin/Brandenburg (4 Authentic Slides) ====================
-        MansetSlide(
-            id = "slide_rbb_uhr",
-            publisher = "rbb24 Panorama",
-            badge = "Umstellung auf Winterzeit",
-            colorHex = 0xFFE30613,
-            headlineDe = "Der 25. Oktober hat in diesem Jahr 25 Stunden",
-            headlineTr = "Kış Saati Uygulaması: 25 Ekim Bu Yıl Berlin'de 25 Saat Sürecek",
-            teaserDe = "Die Winterzeit beginnt – mit einer zusätzlichen Stunde zum Ausschlafen am Sonntag in Berlin und Brandenburg.",
-            teaserTr = "Kış saati uygulaması başlıyor; pazar sabahı saatler 1 saat geri alınarak ekstra 1 saat uyku fırsatı doğuyor.",
-            author = "rbb24 Panorama",
-            imageResId = R.drawable.news_rbb_uhr,
-            originalUrl = "https://www.rbb24.de/panorama/beitrag/2024/10/zeitumstellung-winterzeit-berlin-brandenburg.html"
-        ),
-        MansetSlide(
-            id = "slide_rbb_spion",
-            publisher = "rbb24 Investigativ",
-            badge = "Festnahme in Eisenhüttenstadt",
-            colorHex = 0xFF005A9C,
-            headlineDe = "Mutmaßlicher Russland-Spion kommt in Untersuchungshaft",
-            headlineTr = "Casusluk Soruşturması: Şüpheli Rusya Ajanı Tutuklandı",
-            teaserDe = "In Eisenhüttenstadt wurde ein Mann festgenommen, der mutmaßlich militärische Daten in Berlin & Brandenburg gesammelt hat.",
-            teaserTr = "Berlin ve Brandenburg eyaletlerinde askeri tesis bilgileri topladığı tespit edilen şüpheli gözaltına alındı.",
-            author = "rbb24 Investigativ",
-            imageResId = R.drawable.news_rbb_spion,
-            originalUrl = "https://www.rbb24.de/panorama/beitrag/2024/10/eisenhuettenstadt-festnahme-russland-spionage.html"
-        ),
-        MansetSlide(
-            id = "slide_rbb_feuerwehr",
-            publisher = "rbb24 Landespolitik",
-            badge = "Einsatzbilanz Hauptstadt",
-            colorHex = 0xFFE30613,
-            headlineDe = "Berliner Feuerwehr meistert über 500.000 Einsätze im Jahresverlauf",
-            headlineTr = "Berlin İtfaiyesi Yıllık Bilançosu: Başkentte 500.000'den Fazla Müdahale",
-            teaserDe = "Landesbranddirektor zieht Bilanz: Moderne Rettungswagen und Freiwillige Wehren sichern Notfallversorgung rund um die Uhr.",
-            teaserTr = "Berlin İtfaiye Teşkilatı, başkent genelinde acil tıbbi kurtarma ve yangın söndürme müdahalelerinde yeni rekorlar kaydetti.",
-            author = "rbb24 Aktuell",
-            imageResId = R.drawable.kiez_schoeneberg,
-            originalUrl = "https://www.rbb24.de/panorama/beitrag/feuerwehr-jahresbilanz-einsaetze.html"
-        ),
-        MansetSlide(
-            id = "slide_rbb_museum",
-            publisher = "rbb24 Kultur",
-            badge = "UNESCO Welterbe",
-            colorHex = 0xFF005A9C,
-            headlineDe = "Museumsinsel Berlin: Neuer Besucheransturm im Pergamonmuseum und Bode-Museum",
-            headlineTr = "Berlin Müzeler Adası: Pergamon ve Bode Müzesi'ne Ziyaretçi Akını",
-            teaserDe = "Historische Ausstellungen und restaurierte Meisterwerke locken Kulturbegeisterte aus aller Welt in Berlins Mitte.",
-            teaserTr = "UNESCO Dünya Mirası Müzeler Adası'ndaki tarihi yapılar ve sanat koleksiyonları yoğun uluslararası ilgi görmeye devam ediyor.",
-            author = "rbb24 Kultur-Redaktion",
-            imageResId = R.drawable.kiez_mitte,
-            originalUrl = "https://www.rbb24.de/kultur/beitrag/museumsinsel-besucherrekord.html"
-        ),
-
-        // ==================== 5. Berliner Kurier (2 Authentic Slides) ====================
-        MansetSlide(
-            id = "slide_kurier_01",
-            publisher = "Berliner Kurier",
-            badge = "Kiezkultur Oranienstraße",
-            colorHex = 0xFF005A9C,
-            headlineDe = "Kreuzberg: Traditionslokale an der Oranienstraße schließen Rettungsbündnis",
-            headlineTr = "Kreuzberg Oranienstraße: Tarihi Esnaf ve Lokantalar Dayanışma Birliği Kurdu",
-            teaserDe = "Gegen rasant steigende Gewerbemieten formiert sich Widerstand der Kreuzberger Gastronomen und Händler.",
-            teaserTr = "Kreuzberg esnafı, artan ticari kiralara karşı bir araya gelerek tarihi mekanların korunması için kampanya başlattı.",
-            author = "Berliner Kurier Kiez",
-            imageResId = R.drawable.kiez_kreuzberg,
-            originalUrl = "https://www.berliner-kurier.de/berlin/kiez-oranienstrasse-gastronomie-rettung"
-        ),
-        MansetSlide(
-            id = "slide_kurier_02",
-            publisher = "Berliner Kurier",
-            badge = "Tarifrunde Berlin",
-            colorHex = 0xFF005A9C,
-            headlineDe = "BVG-Tarifstreit: Schlichtung erfolgreich – Keine weiteren Streiks im Nahverkehr",
-            headlineTr = "BVG Toplu Sözleşmesi: Uzlaşma Sağlandı – Toplu Taşımada Grev Yok",
-            teaserDe = "Verdi und die Berliner Verkehrsbetriebe einigen sich auf ein neues Lohnpaket mit spürbaren Entlastungen für Bus- und U-Bahn-Fahrer.",
-            teaserTr = "Sendika ve BVG yönetimi maaş artışında anlaşmaya vardı; Berlin'de metro ve otobüs seferleri kesintisiz devam edecek.",
-            author = "Berliner Kurier Verkehr",
-            imageResId = R.drawable.kiez_prenzlauerberg,
-            originalUrl = "https://www.berliner-kurier.de/berlin/bvg-tarif-einigung-kein-streik"
-        ),
-
-        // ==================== 6. Dünya Piyasaları & Basın (2 Verified Slides from Screenshots) ====================
-        MansetSlide(
-            id = "slide_hurriyet",
-            publisher = "Hürriyet / Bigpara",
-            badge = "Dünya Borsaları & BIST",
-            colorHex = 0xFFC90000,
-            headlineDe = "Börsen & Weltmärkte: Borsa Istanbul BIST 100 und DAX im Fokus",
-            headlineTr = "Canlı Borsa: BİST 100, DAX ve Dünya Piyasalarında Güncel Hacimler",
-            teaserDe = "Aktuelle Kurse, Handelsvolumen und Finanztrends live auf Bigpara und Frankfurter Börse einsehbar.",
-            teaserTr = "BİST 100 hisseleri, işlem hacimleri, Avrupa DAX endeksi ve canlı döviz kurları tek tıkla Bigpara üzerinden yayında.",
-            author = "Hürriyet Ekonomi",
-            imageResId = R.drawable.news_hurriyet_protest,
-            originalUrl = "https://bigpara.hurriyet.com.tr/borsa/canli-borsa/"
-        ),
-        MansetSlide(
-            id = "slide_gunes",
-            publisher = "Güneş / Asayiş",
-            badge = "Güncel Asayiş & Gündem",
-            colorHex = 0xFFD32F2F,
-            headlineDe = "Polizeiberichte & Sicherheit: Aktuelle Maßnahmen der Sicherheitskräfte",
-            headlineTr = "Güvenlik & Asayiş Raporu: Emniyet Birimlerinin Güncel Tedbirleri",
-            teaserDe = "Sicherheitskräfte greifen durch und sichern Straßenabschnitte in Wohnvierteln.",
-            teaserTr = "Güvenlik güçlerinin huzur ve asayişi korumaya yönelik saha denetimleri ve güncel asayiş bülteni.",
-            author = "Güneş Gündem",
-            imageResId = R.drawable.news_gunes_police,
-            originalUrl = "https://www.gunes.com/"
-        )
-    )
+    // Berlin Manşet Slaytları (Exclusively server-driven from https://mykiezberlin.com/api/live)
+    val mansetSlides: List<MansetSlide> = emptyList()
 }
-

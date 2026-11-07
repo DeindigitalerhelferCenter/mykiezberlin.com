@@ -436,5 +436,114 @@ data class MansetSlide(
     fun localizedTeaser(lang: AppLanguage): String = if (lang == AppLanguage.TURKISH) teaserTr else teaserDe
 }
 
+data class LiveWeatherDay(
+    val date: String = "",
+    val code: Int = 0,
+    val max: Double = 0.0,
+    val min: Double = 0.0,
+    val rainChance: Int = 0
+)
+
+data class LiveWeather(
+    val temperature: Double = 0.0,
+    val feelsLike: Double = 0.0,
+    val code: Int = 0,
+    val wind: Double = 0.0,
+    val humidity: Int = 0,
+    val observedAt: String = "",
+    val days: List<LiveWeatherDay> = emptyList()
+)
+
+data class LiveQuote(
+    val code: String = "",
+    val name: String = "",
+    val value: Double = 0.0,
+    val changePercent: Double = 0.0,
+    val currency: String = "",
+    val source: String = "",
+    val updatedAt: Long = 0L
+) {
+    val isPositive: Boolean get() = changePercent >= 0.0
+    fun formattedChange(): String {
+        val sign = if (changePercent > 0) "+" else ""
+        return String.format(java.util.Locale.GERMANY, "%s%.2f%%", sign, changePercent)
+    }
+    fun formattedValue(): String {
+        return if (value >= 1000) {
+            String.format(java.util.Locale.GERMANY, "%,.2f", value)
+        } else {
+            val s = String.format(java.util.Locale.GERMANY, "%.4f", value)
+            if (s.contains(",")) s.trimEnd('0').trimEnd(',') else s
+        }
+    }
+}
+
+data class LiveNewsItem(
+    val title: String = "",
+    val link: String = "",
+    val summary: String = "",
+    val image: String = "",
+    val publishedAt: Long = 0L,
+    val source: String = ""
+)
+
+data class LeagueTableRow(
+    val position: Int = 0,
+    val team: String = "",
+    val short: String = "",
+    val icon: String = "",
+    val played: Int = 0,
+    val goalDiff: Int = 0,
+    val points: Int = 0,
+    val berlin: Boolean = false
+)
+
+data class LeagueMatch(
+    val kickoff: Long = 0L,
+    val home: String = "",
+    val away: String = "",
+    val homeGoals: Int? = null,
+    val awayGoals: Int? = null,
+    val finished: Boolean = false
+)
+
+data class SportLeague(
+    val id: String = "",
+    val name: String = "",
+    val table: List<LeagueTableRow> = emptyList(),
+    val matches: List<LeagueMatch> = emptyList()
+)
+
+data class BerlinTeamInfo(
+    val team: String = "",
+    val league: String = "",
+    val position: Int = 0,
+    val points: Int = 0,
+    val lastMatch: String = "",
+    val nextMatch: String = ""
+)
+
+data class SportData(
+    val updatedAt: Long = 0L,
+    val leagues: List<SportLeague> = emptyList(),
+    val berlin: List<BerlinTeamInfo> = emptyList()
+)
+
+data class AppUpdateInfo(
+    val versionCode: Int = 1,
+    val versionName: String = "1.0",
+    val apkUrl: String = "",
+    val mandatory: Boolean = false,
+    val notesDe: String = "",
+    val notesTr: String = "",
+    val notesEn: String = ""
+) {
+    fun localizedNotes(lang: AppLanguage): String = when (lang) {
+        AppLanguage.TURKISH -> notesTr.ifBlank { notesDe }
+        AppLanguage.ENGLISH -> notesEn.ifBlank { notesDe }
+        else -> notesDe
+    }
+}
+
 
 

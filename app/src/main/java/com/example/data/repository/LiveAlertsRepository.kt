@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -226,6 +227,74 @@ object LiveAlertsRepository {
         emptyList()
     }
 
+    suspend fun postStoryMultipart(
+        headline: String,
+        subtext: String,
+        kiez: String,
+        kind: String,
+        durationHours: Int, // Only 24 or 48 hours
+        fileBytes: ByteArray? = null,
+        fileName: String? = null,
+        mimeType: String? = null
+    ): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val validDuration = if (durationHours == 48) 48 else 24
+            val builder = MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("headline", headline)
+                .addFormDataPart("subtext", subtext)
+                .addFormDataPart("kiez", kiez)
+                .addFormDataPart("kind", kind)
+                .addFormDataPart("durationHours", validDuration.toString())
+
+            if (fileBytes != null && fileBytes.isNotEmpty()) {
+                val mediaType = (mimeType ?: "image/jpeg").toMediaType()
+                val requestFile = fileBytes.toRequestBody(mediaType)
+                builder.addFormDataPart("file", fileName ?: "story_${System.currentTimeMillis()}.jpg", requestFile)
+            }
+
+            val req = Request.Builder()
+                .url(API_STORIES_URL)
+                .header("User-Agent", "MyKiezBerlin-Android/2.0")
+                .post(builder.build())
+                .build()
+
+            val resp = httpClient.newCall(req).execute()
+            resp.isSuccessful
+        } catch (e: Exception) {
+            Log.w(TAG, "postStoryMultipart notice: ${e.message}")
+            false
+        }
+    }
+
+    suspend fun fetchAppVersion(): AppUpdateInfo? = withContext(Dispatchers.IO) {
+        try {
+            val req = Request.Builder()
+                .url("https://mykiezberlin.com/version.json")
+                .header("User-Agent", "MyKiezBerlin-Android/2.0")
+                .build()
+
+            val resp = httpClient.newCall(req).execute()
+            if (resp.isSuccessful) {
+                val jsonStr = resp.body?.string() ?: ""
+                val root = JSONObject(jsonStr)
+                val notesObj = root.optJSONObject("notes")
+                return@withContext AppUpdateInfo(
+                    versionCode = root.optInt("versionCode", 1),
+                    versionName = root.optString("versionName", "1.0"),
+                    apkUrl = root.optString("apkUrl", APK_DOWNLOAD_URL),
+                    mandatory = root.optBoolean("mandatory", false),
+                    notesDe = notesObj?.optString("de", "") ?: "",
+                    notesTr = notesObj?.optString("tr", "") ?: "",
+                    notesEn = notesObj?.optString("en", "") ?: ""
+                )
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "fetchAppVersion error: ${e.message}")
+        }
+        null
+    }
+
     suspend fun postRemoteStory(story: KiezStory): Boolean = withContext(Dispatchers.IO) {
         try {
             val json = JSONObject().apply {
@@ -238,7 +307,7 @@ object LiveAlertsRepository {
                 put("author", story.author)
                 put("timeAgo", story.timeAgo)
                 put("link", story.link)
-                put("durationHours", story.durationHours)
+                put("durationHours", if (story.durationHours == 48) 48 else 24)
                 put("status", story.status)
             }
             val body = json.toString().toRequestBody("application/json; charset=utf-8".toMediaType())

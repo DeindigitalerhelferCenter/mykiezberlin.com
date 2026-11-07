@@ -7,8 +7,10 @@ import com.example.data.model.*
 import com.example.data.repository.KiezStorageManager
 import com.example.data.repository.LiveAlert
 import com.example.data.repository.LiveAlertsRepository
+import com.example.data.repository.LiveBerlinFeedRepository
 import com.example.data.repository.SampleData
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -99,7 +101,8 @@ data class UiState(
     val isNotificationsEnabled: Boolean = true,
     val isLiveAlertsAvailable: Boolean = false,
     val activeAlertBanner: LiveAlert? = null,
-    val kieze: List<Kiez> = SampleData.kieze
+    val kieze: List<Kiez> = SampleData.kieze,
+    val appUpdateInfo: AppUpdateInfo? = null
 )
 
 class MyKiezViewModel(application: Application) : AndroidViewModel(application) {
@@ -253,6 +256,113 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                 }
             } catch (e: Exception) {
                 // Graceful
+            }
+        }
+
+        // Version Check on startup
+        viewModelScope.launch {
+            try {
+                val remoteVer = LiveAlertsRepository.fetchAppVersion()
+                if (remoteVer != null && remoteVer.versionCode > com.example.BuildConfig.VERSION_CODE) {
+                    _uiState.update { it.copy(appUpdateInfo = remoteVer) }
+                }
+            } catch (_: Exception) {}
+        }
+
+        // Periodic 60s background refresh for live, stories, reporter, and submissions
+        viewModelScope.launch {
+            while (isActive) {
+                delay(60_000L)
+                try {
+                    LiveAlertsRepository.fetchLiveAlerts()
+                    LiveBerlinFeedRepository.fetchLiveApi()
+
+                    val remoteStories = LiveAlertsRepository.fetchRemoteStories()
+                    if (remoteStories.isNotEmpty()) {
+                        val current = _uiState.value.allStories
+                        val combined = (remoteStories + current).distinctBy { it.id }
+                        _uiState.update { it.copy(allStories = combined) }
+                    }
+
+                    val remoteReports = LiveAlertsRepository.fetchRemoteReporterPosts()
+                    if (remoteReports.isNotEmpty()) {
+                        val currentRep = _uiState.value.customReports
+                        val combinedRep = (remoteReports + currentRep).distinctBy { it.id }
+                        _uiState.update { it.copy(customReports = combinedRep) }
+                    }
+
+                    val approvedItems = LiveAlertsRepository.fetchSubmissions()
+                    if (approvedItems.isNotEmpty()) {
+                        val newBiz = mutableListOf<LocalBusiness>()
+                        val newEvents = mutableListOf<KiezEvent>()
+                        val newJobs = mutableListOf<KiezJob>()
+                        for (item in approvedItems) {
+                            when (item.optString("type")) {
+                                "business" -> newBiz.add(
+                                    LocalBusiness(
+                                        id = item.optString("id", "biz_${System.currentTimeMillis()}"),
+                                        name = item.optString("name", "Unternehmen"),
+                                        category = item.optString("category", "Handel"),
+                                        rating = 5.0,
+                                        reviewsCount = 1,
+                                        kiezName = item.optString("kiez", "Berlin"),
+                                        distance = "0.5 km",
+                                        address = item.optString("address", "Berlin"),
+                                        imageUrl = item.optString("imageUrl", "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600"),
+                                        phone = item.optString("contact", "+49 30 123456"),
+                                        whatsapp = item.optString("whatsapp", "+4915126509586"),
+                                        website = item.optString("website", "https://mykiezberlin.com"),
+                                        description = item.optString("description", "")
+                                    )
+                                )
+                                "event" -> newEvents.add(
+                                    KiezEvent(
+                                        id = item.optString("id", "event_${System.currentTimeMillis()}"),
+                                        title = item.optString("title", "Kiez Event"),
+                                        dayLabel = "HEUTE",
+                                        dateNum = "28",
+                                        monthLabel = "OKT",
+                                        time = item.optString("date", "19:00"),
+                                        kiezName = item.optString("kiez", "Berlin"),
+                                        price = item.optString("price", "Kostenlos"),
+                                        isFree = true,
+                                        category = item.optString("category", "Kultur"),
+                                        description = item.optString("description", "")
+                                    )
+                                )
+                                "job" -> newJobs.add(
+                                    KiezJob(
+                                        id = item.optString("id", "job_${System.currentTimeMillis()}"),
+                                        title = item.optString("title", "Kiez Job"),
+                                        company = item.optString("company", "Unternehmen"),
+                                        kiez = item.optString("kiez", "Berlin"),
+                                        jobType = item.optString("jobType", "Vollzeit"),
+                                        salary = item.optString("salary", "Nach Vereinbarung"),
+                                        description = item.optString("description", ""),
+                                        contactWa = item.optString("contact", "+4915126509586")
+                                    )
+                                )
+                            }
+                        }
+                        _uiState.update {
+                            it.copy(
+                                customBusinesses = (newBiz + it.customBusinesses).distinctBy { b -> b.id },
+                                customEvents = (newEvents + it.customEvents).distinctBy { ev -> ev.id },
+                                customJobs = (newJobs + it.customJobs).distinctBy { j -> j.id }
+                            )
+                        }
+                    }
+                } catch (_: Exception) {}
+            }
+        }
+
+        // Periodic 15 min (900s) background refresh for sport data
+        viewModelScope.launch {
+            while (isActive) {
+                delay(900_000L)
+                try {
+                    LiveBerlinFeedRepository.fetchSportApi()
+                } catch (_: Exception) {}
             }
         }
     }
@@ -616,7 +726,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
             return
         }
 
-        // Stories are immediately approved and visible on home page and story bar
+        val validDuration = if (durationHours == 48) 48 else 24
         val newStory = KiezStory(
             id = "story_${System.currentTimeMillis()}",
             headline = headline,
@@ -629,7 +739,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
             mediaUri = persistentMediaUri,
             isVideo = isVideo,
             isCommercial = isCommercial,
-            durationHours = durationHours,
+            durationHours = validDuration,
             pricePaid = pricePaid,
             link = link,
             status = "approved",
@@ -643,12 +753,41 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                 allStories = updatedStories,
                 customStories = listOf(newStory) + it.customStories,
                 showAddStoryDialog = false,
-                storySubmissionFeedback = "APPROVED"
+                storySubmissionFeedback = "Wird vor der Veröffentlichung geprüft"
             )
         }
         viewModelScope.launch {
+            var fileBytes: ByteArray? = null
+            var fileName: String? = null
+            var mimeType: String? = null
+            if (mediaUri != null && mediaUri.isNotBlank()) {
+                try {
+                    val uri = android.net.Uri.parse(mediaUri)
+                    val cr = app.contentResolver
+                    mimeType = cr.getType(uri) ?: "image/jpeg"
+                    val inputStream = cr.openInputStream(uri)
+                    fileBytes = inputStream?.readBytes()
+                    inputStream?.close()
+                    fileName = "story_${System.currentTimeMillis()}.${if (mimeType.contains("png")) "png" else "jpg"}"
+                } catch (_: Exception) {}
+            }
+            LiveAlertsRepository.postStoryMultipart(
+                headline = headline,
+                subtext = subtext,
+                kiez = kiez,
+                kind = kind,
+                durationHours = validDuration,
+                fileBytes = fileBytes,
+                fileName = fileName,
+                mimeType = mimeType
+            )
             LiveAlertsRepository.postRemoteStory(newStory)
         }
+        android.widget.Toast.makeText(app, "Wird vor der Veröffentlichung geprüft", android.widget.Toast.LENGTH_LONG).show()
+    }
+
+    fun dismissUpdateDialog() {
+        _uiState.update { it.copy(appUpdateInfo = null) }
     }
 
     // Admin Actions (Freigeben, Ablehnen, Löschen, Verlängern, Bearbeiten)

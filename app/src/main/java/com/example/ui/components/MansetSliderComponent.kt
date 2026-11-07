@@ -50,7 +50,35 @@ fun MansetSliderComponent(
     val isRefreshing by LiveBerlinFeedRepository.isRefreshing.collectAsState()
     val slides = customSlides ?: liveSlides
 
-    if (slides.isEmpty()) return
+    if (slides.isEmpty()) {
+        Surface(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 6.dp),
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        ) {
+            Row(
+                modifier = Modifier.padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(16.dp)
+                )
+                Text(
+                    text = "Live-Daten nicht erreichbar",
+                    fontSize = 12.5.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        return
+    }
     val context = LocalContext.current
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { slides.size })
 
@@ -297,19 +325,47 @@ fun BigparaMarketStrip(
     val liveQuotes by LiveBerlinFeedRepository.liveQuotes.collectAsState()
     val isRefreshing by LiveBerlinFeedRepository.isRefreshing.collectAsState()
 
-    // Map 4 key items: Dolar, Euro, Altın, BIST 100
+    // Map key items: Dolar, Euro, Altın, BIST 100 directly from LiveQuotes
     val items = remember(liveQuotes) {
-        val dolar = liveQuotes.firstOrNull { it.code.startsWith("DOLAR") }
-        val euro = liveQuotes.firstOrNull { it.code.startsWith("EUR/TRY") }
-        val altin = liveQuotes.firstOrNull { it.code.startsWith("ALTIN") }
-        val bist = liveQuotes.firstOrNull { it.code.startsWith("BIST") }
+        val dolar = liveQuotes.firstOrNull { it.code.contains("USD", true) || it.code.contains("DOLAR", true) }
+        val euro = liveQuotes.firstOrNull { it.code.contains("EUR/TRY", true) }
+        val altin = liveQuotes.firstOrNull { it.code.contains("GOLD", true) || it.code.contains("ALTIN", true) }
+        val bist = liveQuotes.firstOrNull { it.code.contains("BIST", true) || it.code.contains("DAX", true) }
 
-        listOf(
-            MarketItem("DOLAR", "${dolar?.priceStr ?: "49,69"} ₺", dolar?.changeStr ?: "+0,08%", dolar?.isPositive ?: true, "https://bigpara.hurriyet.com.tr/doviz/dolar/"),
-            MarketItem("EURO", "${euro?.priceStr ?: "55,72"} ₺", euro?.changeStr ?: "-0,14%", euro?.isPositive ?: false, "https://bigpara.hurriyet.com.tr/doviz/euro/"),
-            MarketItem("ALTIN", "${altin?.priceStr ?: "6.384,76"} ₺", altin?.changeStr ?: "-0,62%", altin?.isPositive ?: false, "https://bigpara.hurriyet.com.tr/altin/gram-altin-fiyati/"),
-            MarketItem("BIST 100", bist?.priceStr ?: "11.116,99", bist?.changeStr ?: "-0,92%", bist?.isPositive ?: false, "https://bigpara.hurriyet.com.tr/borsa/canli-borsa/")
-        )
+        val list = mutableListOf<MarketItem>()
+        dolar?.let {
+            list.add(MarketItem("DOLAR", "${it.formattedValue()} ₺", it.formattedChange(), it.isPositive, "https://bigpara.hurriyet.com.tr/doviz/dolar/"))
+        }
+        euro?.let {
+            list.add(MarketItem("EURO", "${it.formattedValue()} ₺", it.formattedChange(), it.isPositive, "https://bigpara.hurriyet.com.tr/doviz/euro/"))
+        }
+        altin?.let {
+            list.add(MarketItem("ALTIN", "${it.formattedValue()} ₺", it.formattedChange(), it.isPositive, "https://bigpara.hurriyet.com.tr/altin/gram-altin-fiyati/"))
+        }
+        bist?.let {
+            list.add(MarketItem(if (it.code.contains("BIST")) "BIST 100" else it.code, it.formattedValue(), it.formattedChange(), it.isPositive, "https://bigpara.hurriyet.com.tr/borsa/canli-borsa/"))
+        }
+        list
+    }
+
+    if (items.isEmpty()) {
+        Surface(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 4.dp),
+            shape = RoundedCornerShape(10.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        ) {
+            Row(
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(imageVector = Icons.Default.Refresh, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+                Text(text = "Live-Daten nicht erreichbar", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        return
     }
 
     Column(

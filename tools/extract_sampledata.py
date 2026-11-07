@@ -31,7 +31,7 @@ LISTS = {
     "foodSpots": "FOOD_SPOTS",
     "events": "EVENTS_FULL",
     "businesses": "BUSINESSES",
-    "deals": "DEALS",
+    "rawDeals": "DEALS",
     "quizQuestions": "QUIZ_FULL",
     "articles": "ARTICLES",
     "pricingPackages": "PRICING_PACKAGES",
@@ -178,7 +178,8 @@ def apply_kiez_overrides(kieze):
         kiez.update(overrides.get(kiez["id"], {}))
         if kiez.get("impressionImages") and kiez.get("photoCredits"):
             kiez["imageUrl"] = kiez["impressionImages"][0]
-    kieze.append(UMGEBUNG)
+    if not any(k["id"] == UMGEBUNG["id"] for k in kieze):
+        kieze.append(UMGEBUNG)
     with open(KIEZ_API, "w", encoding="utf-8", newline="\n") as f:
         json.dump({"kieze": kieze}, f, ensure_ascii=False)
     return kieze

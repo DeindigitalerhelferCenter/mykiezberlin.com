@@ -446,6 +446,84 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
         )
     }
 
+    // In-App Version Update Dialog (https://mykiezberlin.com/version.json)
+    uiState.appUpdateInfo?.let { updateInfo ->
+        val context = LocalContext.current
+        AlertDialog(
+            onDismissRequest = {
+                if (!updateInfo.mandatory) {
+                    viewModel.dismissUpdateDialog()
+                }
+            },
+            title = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(imageVector = Icons.Default.SystemUpdate, contentDescription = null, tint = BerlinBlue)
+                    Text(
+                        text = if (uiState.language == AppLanguage.TURKISH) "Yeni Sürüm Mevcut (v${updateInfo.versionName})" else "Neue Version verfügbar (v${updateInfo.versionName})",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        text = updateInfo.localizedNotes(uiState.language).ifBlank {
+                            if (uiState.language == AppLanguage.TURKISH)
+                                "Uygulamamızın en güncel özelliklerini ve iyileştirmelerini kullanmak için lütfen güncelleyin."
+                            else
+                                "Ein neues Update für My Kiez Berlin steht bereit mit aktuellen Verbesserungen."
+                        },
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    if (updateInfo.mandatory) {
+                        Text(
+                            text = if (uiState.language == AppLanguage.TURKISH)
+                                "⚠️ Bu güncelleme uygulamayı kullanmaya devam edebilmeniz için zorunludur."
+                            else
+                                "⚠️ Dieses Update ist erforderlich, um My Kiez Berlin weiter zu nutzen.",
+                            fontSize = 11.5.sp,
+                            color = BerlinRed,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val browserIntent = android.content.Intent(
+                            android.content.Intent.ACTION_VIEW,
+                            android.net.Uri.parse(updateInfo.apkUrl)
+                        )
+                        context.startActivity(browserIntent)
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = BerlinBlue)
+                ) {
+                    Text(
+                        text = if (uiState.language == AppLanguage.TURKISH) "Şimdi Güncelle" else "Jetzt aktualisieren",
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+            },
+            dismissButton = if (!updateInfo.mandatory) {
+                {
+                    TextButton(onClick = { viewModel.dismissUpdateDialog() }) {
+                        Text(
+                            text = if (uiState.language == AppLanguage.TURKISH) "Daha Sonra" else "Später",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            } else null
+        )
+    }
+
     // More Bottom Sheet Menu
     if (showMoreBottomSheet) {
         ModalBottomSheet(

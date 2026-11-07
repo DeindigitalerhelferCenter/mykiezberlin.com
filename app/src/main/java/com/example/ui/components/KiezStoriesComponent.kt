@@ -1676,9 +1676,7 @@ fun StoryCreateDialog(
                     ) {
                         listOf(
                             24 to (if (language == AppLanguage.TURKISH) "24 Saat (Ücretsiz · 0€)" else "24 Std. (Kostenlos · 0€)"),
-                            48 to (if (language == AppLanguage.TURKISH) "48 Saat (Ücretsiz · 0€)" else "48 Std. (Kostenlos · 0€)"),
-                            168 to (if (language == AppLanguage.TURKISH) "7 Gün (5,00€)" else "7 Tage (5,00€)"),
-                            720 to (if (language == AppLanguage.TURKISH) "30 Gün (9,90€)" else "30 Tage (9,90€)")
+                            48 to (if (language == AppLanguage.TURKISH) "48 Saat (Ücretsiz · 0€)" else "48 Std. (Kostenlos · 0€)")
                         ).forEach { (dur, label) ->
                             DropdownMenuItem(
                                 text = {
@@ -1702,91 +1700,45 @@ fun StoryCreateDialog(
                     }
                 }
 
-                // Compact alt alta 2x2 grid (Never wraps weirdly, neat & tidy)
-                Column(
+                // 24s and 48s choice buttons
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = if (selectedDurationHours == 24) BerlinGreen.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, if (selectedDurationHours == 24) BerlinGreen else Color.Transparent),
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { selectedDurationHours = 24 }
                     ) {
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = if (selectedDurationHours == 24) BerlinGreen.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, if (selectedDurationHours == 24) BerlinGreen else Color.Transparent),
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable { selectedDurationHours = 24 }
-                        ) {
-                            Text(
-                                text = "24s · 0€",
-                                fontSize = 11.sp,
-                                fontWeight = if (selectedDurationHours == 24) FontWeight.Bold else FontWeight.Normal,
-                                color = if (selectedDurationHours == 24) BerlinGreen else MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.padding(vertical = 8.dp),
-                                textAlign = TextAlign.Center
-                            )
-                        }
-
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = if (selectedDurationHours == 48) BerlinGreen.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, if (selectedDurationHours == 48) BerlinGreen else Color.Transparent),
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable { selectedDurationHours = 48 }
-                        ) {
-                            Text(
-                                text = "48s · 0€",
-                                fontSize = 11.sp,
-                                fontWeight = if (selectedDurationHours == 48) FontWeight.Bold else FontWeight.Normal,
-                                color = if (selectedDurationHours == 48) BerlinGreen else MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.padding(vertical = 8.dp),
-                                textAlign = TextAlign.Center
-                            )
-                        }
+                        Text(
+                            text = if (language == AppLanguage.TURKISH) "24 Saat (0€)" else "24 Std. (0€)",
+                            fontSize = 12.sp,
+                            fontWeight = if (selectedDurationHours == 24) FontWeight.Bold else FontWeight.Normal,
+                            color = if (selectedDurationHours == 24) BerlinGreen else MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(vertical = 10.dp),
+                            textAlign = TextAlign.Center
+                        )
                     }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = if (selectedDurationHours == 48) BerlinGreen.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, if (selectedDurationHours == 48) BerlinGreen else Color.Transparent),
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { selectedDurationHours = 48 }
                     ) {
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = if (selectedDurationHours == 168) BerlinRed.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, if (selectedDurationHours == 168) BerlinRed else Color.Transparent),
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable { selectedDurationHours = 168 }
-                        ) {
-                            Text(
-                                text = "7 Gün · 5€",
-                                fontSize = 11.sp,
-                                fontWeight = if (selectedDurationHours == 168) FontWeight.Bold else FontWeight.Normal,
-                                color = if (selectedDurationHours == 168) BerlinRed else MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.padding(vertical = 8.dp),
-                                textAlign = TextAlign.Center
-                            )
-                        }
-
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = if (selectedDurationHours == 720) BerlinRed.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, if (selectedDurationHours == 720) BerlinRed else Color.Transparent),
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable { selectedDurationHours = 720 }
-                        ) {
-                            Text(
-                                text = "30 Gün · 9,90€",
-                                fontSize = 11.sp,
-                                fontWeight = if (selectedDurationHours == 720) FontWeight.Bold else FontWeight.Normal,
-                                color = if (selectedDurationHours == 720) BerlinRed else MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.padding(vertical = 8.dp),
-                                textAlign = TextAlign.Center
-                            )
-                        }
+                        Text(
+                            text = if (language == AppLanguage.TURKISH) "48 Saat (0€)" else "48 Std. (0€)",
+                            fontSize = 12.sp,
+                            fontWeight = if (selectedDurationHours == 48) FontWeight.Bold else FontWeight.Normal,
+                            color = if (selectedDurationHours == 48) BerlinGreen else MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(vertical = 10.dp),
+                            textAlign = TextAlign.Center
+                        )
                     }
                 }
 
