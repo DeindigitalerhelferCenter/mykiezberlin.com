@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
@@ -28,6 +29,8 @@ fun KiezMatchQuizScreen(onBack: () -> Unit) {
         modifier = Modifier.fillMaxSize(),
         factory = { context ->
             WebView(context).apply {
+                // Without a fixed size the page sees no viewport height and its dialogs collapse.
+                layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
                 webViewClient = WebViewClient()

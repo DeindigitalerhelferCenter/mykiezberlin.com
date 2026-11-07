@@ -140,16 +140,14 @@ object LiveAlertsRepository {
                         )
                     }
 
-                    _liveAlerts.value = parsed
+                    // Flags come first: collectors of liveAlerts read them immediately.
                     _isLiveAvailable.value = true
                     _errorMessage.value = null
                     _lastUpdatedMillis.value = System.currentTimeMillis()
-
-                    if (parsed.isNotEmpty()) {
-                        if (_activeAlertBanner.value == null) {
-                            _activeAlertBanner.value = parsed[0]
-                        }
+                    if (_activeAlertBanner.value == null) {
+                        _activeAlertBanner.value = parsed[0]
                     }
+                    _liveAlerts.value = parsed
                     return@withContext parsed
                 } else {
                     _isLiveAvailable.value = false

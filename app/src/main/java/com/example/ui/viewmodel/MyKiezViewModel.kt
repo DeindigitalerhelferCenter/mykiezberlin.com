@@ -164,6 +164,18 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
             }
         }
 
+        // Availability and banner change independently of the alert list.
+        viewModelScope.launch {
+            LiveAlertsRepository.isLiveAvailable.collect { available ->
+                _uiState.update { it.copy(isLiveAlertsAvailable = available) }
+            }
+        }
+        viewModelScope.launch {
+            LiveAlertsRepository.activeAlertBanner.collect { banner ->
+                _uiState.update { it.copy(activeAlertBanner = banner) }
+            }
+        }
+
         // Fetch stories and reporter posts from https://mykiezberlin.com/api/stories & /api/reporter
         viewModelScope.launch {
             try {
