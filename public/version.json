@@ -1,11 +1,11 @@
 {
-  "versionCode": 10,
-  "versionName": "1.9",
+  "versionCode": 11,
+  "versionName": "1.10",
   "apkUrl": "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin.com.apk",
   "mandatory": false,
   "notes": {
-    "de": "Neu: „Teilen → My Kiez Berlin“ aus WhatsApp, stündliche Berlin-Meldungen (8–21 Uhr), Quiz auf Türkisch/Englisch, ein Kommentar pro Meldung.",
-    "tr": "Yeni: WhatsApp'tan „Paylaş → My Kiez Berlin“, saat başı Berlin bildirimleri (08–21), quiz Türkçe/İngilizce, her habere bir yorum.",
-    "en": "New: “Share → My Kiez Berlin” from WhatsApp, hourly Berlin notifications (8 am–9 pm), quiz in Turkish/English, one comment per post."
+    "de": "Neu: Kiez-Stars der Woche mit Pokal und Abzeichen, Name beim Teilen von Stories, Admin wird über neue Stories benachrichtigt.",
+    "tr": "Yeni: Haftanın Kiez Yıldızları, kupa ve rozetler, hikâye paylaşırken isim, yeni hikâyelerde admine bildirim.",
+    "en": "New: Kiez Stars of the week with trophy and badges, name when sharing stories, admin is notified about new stories."
   }
 }
