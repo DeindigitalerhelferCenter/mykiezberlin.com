@@ -1,11 +1,11 @@
 {
-  "versionCode": 9,
-  "versionName": "1.8",
+  "versionCode": 10,
+  "versionName": "1.9",
   "apkUrl": "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin.com.apk",
   "mandatory": false,
   "notes": {
-    "de": "Neu: Admin-Stories sofort für alle sichtbar, eigene Stories zeigen „Wartet auf Freigabe“, keine doppelten Stories mehr.",
-    "tr": "Yeni: admin hikâyeleri herkese anında görünür, kendi hikâyelerin „Onay bekliyor“ gösterir, çift hikâyeler kalktı.",
-    "en": "New: admin stories visible to everyone at once, own stories show “waiting for approval”, no more duplicate stories."
+    "de": "Neu: „Teilen → My Kiez Berlin“ aus WhatsApp, stündliche Berlin-Meldungen (8–21 Uhr), Quiz auf Türkisch/Englisch, ein Kommentar pro Meldung.",
+    "tr": "Yeni: WhatsApp'tan „Paylaş → My Kiez Berlin“, saat başı Berlin bildirimleri (08–21), quiz Türkçe/İngilizce, her habere bir yorum.",
+    "en": "New: “Share → My Kiez Berlin” from WhatsApp, hourly Berlin notifications (8 am–9 pm), quiz in Turkish/English, one comment per post."
   }
 }
