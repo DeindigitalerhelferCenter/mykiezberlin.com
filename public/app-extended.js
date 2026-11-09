@@ -178,6 +178,13 @@ async function submitUserStory() {
     showToast(tr("Bitte gib einen Titel ein.", "Lütfen bir başlık girin."));
     return;
   }
+  // Name is required (weekly Kiez-Stars, see kiez-stars.js)
+  const authorField = document.getElementById("new-story-author");
+  if (authorField && !authorField.value.trim()) {
+    showToast(tr("Bitte gib deinen Namen ein.", "Lütfen adını yaz."));
+    authorField.focus();
+    return;
+  }
 
   const form = new FormData();
   form.append("headline", headline);
