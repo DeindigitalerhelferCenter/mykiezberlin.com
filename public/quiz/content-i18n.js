@@ -1458,8 +1458,17 @@
     [/^Detailfrage (\d+) \/ (\d+)$/, ["Detail question $1 / $2", "Detay sorusu $1 / $2"]],
     [/^Punkte: (\d+)$/, ["Points: $1", "Puan: $1"]],
     [/^Du hast (\d+) von (\d+) Fragen richtig beantwortet!$/, ["You answered $1 of $2 questions correctly!", "$2 sorudan $1 tanesini doğru bildin!"]],
-    [/^Dein Match: (.+)!$/, ["Your match: $1!", "Senin mahallen: $1!"]]
+    [/^Dein Match: (.+)!$/, ["Your match: $1!", "Senin mahallen: $1!"]],
+    [/^Gefühlt: (.+) · Luftfeuchtigkeit: (.+) · Wind: (.+)$/, ["Feels like: $1 · Humidity: $2 · Wind: $3", "Hissedilen: $1 · Nem: $2 · Rüzgâr: $3"]],
+    [/^(\d{1,2}:\d{2}) Uhr$/, ["$1", "$1"]]
   ];
+  var EXTRA = {
+    "Heute": ["Today", "Bugün"], "Mo": ["Mon", "Pzt"], "Di": ["Tue", "Sal"], "Mi": ["Wed", "Çar"], "Do": ["Thu", "Per"],
+    "Fr": ["Fri", "Cum"], "Sa": ["Sat", "Cmt"], "So": ["Sun", "Paz"],
+    "Berlin Aktuell · Kiez News": ["Berlin today · Kiez news", "Berlin'de bugün · Mahalle haberleri"],
+    "Alle News ↗": ["All news ↗", "Tüm haberler ↗"]
+  };
+  for (var key in EXTRA) if (!T[key]) T[key] = EXTRA[key];
   function lang() {
     var l = (typeof currentLanguage === "string" ? currentLanguage : "DE").toUpperCase();
     return l === "EN" ? 0 : l === "TR" ? 1 : -1;
