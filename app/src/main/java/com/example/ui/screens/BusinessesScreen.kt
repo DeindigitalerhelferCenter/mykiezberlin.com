@@ -120,6 +120,9 @@ fun BusinessesScreen(
                                 onAddStoryClick = onAddStoryClick
                             )
                         }
+                        if (showHomeExtras) item(key = "kiez_stars") {
+                            com.example.ui.components.KiezStarsCard(language = language, onShareStory = onAddStoryClick)
+                        }
                         if (showHomeExtras) item(key = "sponsors") {
                             SponsorBannerComponent(
                                 language = language,
@@ -170,6 +173,9 @@ fun BusinessesScreen(
                                 onStoryClick = onStoryClick,
                                 onAddStoryClick = onAddStoryClick
                             )
+                        }
+                        if (showHomeExtras) item(key = "kiez_stars") {
+                            com.example.ui.components.KiezStarsCard(language = language, onShareStory = onAddStoryClick)
                         }
                         if (showHomeExtras) item(key = "sponsors") {
                             SponsorBannerComponent(
@@ -250,6 +256,9 @@ fun BusinessesScreen(
                                 onStoryClick = onStoryClick,
                                 onAddStoryClick = onAddStoryClick
                             )
+                        }
+                        if (showHomeExtras) item(key = "kiez_stars") {
+                            com.example.ui.components.KiezStarsCard(language = language, onShareStory = onAddStoryClick)
                         }
                         if (showHomeExtras) item(key = "sponsors") {
                             SponsorBannerComponent(

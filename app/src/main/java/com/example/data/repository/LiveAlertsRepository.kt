@@ -502,7 +502,8 @@ object LiveAlertsRepository {
         durationHours: Int,
         fileBytes: ByteArray? = null,
         fileName: String? = null,
-        mimeType: String? = null
+        mimeType: String? = null,
+        author: String = ""
     ): String? = withContext(Dispatchers.IO) {
         try {
             val validDuration = if (durationHours == 48) 48 else 24
@@ -513,6 +514,7 @@ object LiveAlertsRepository {
                 .addFormDataPart("kiez", kiez)
                 .addFormDataPart("kind", kind)
                 .addFormDataPart("durationHours", validDuration.toString())
+            if (author.isNotBlank()) builder.addFormDataPart("author", author.trim().take(40))
             if (fileBytes != null && fileBytes.isNotEmpty()) {
                 val requestFile = fileBytes.toRequestBody((mimeType ?: "image/jpeg").toMediaType())
                 builder.addFormDataPart("file", fileName ?: "story_${System.currentTimeMillis()}.jpg", requestFile)

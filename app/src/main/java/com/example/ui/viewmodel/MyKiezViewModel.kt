@@ -153,9 +153,10 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     /** Free category, place and web link of an approved server story (server only knows a fixed list for users). */
-    private suspend fun applyStoryMeta(serverId: String, kind: String, kiez: String, link: String) {
-        val extra = mutableMapOf<String, Any>("kind" to kind, "kiez" to kiez)
+    private suspend fun applyStoryMeta(serverId: String, kind: String, kiez: String, link: String, author: String = "") {
+        val extra = mutableMapOf<String, Any>("kind" to kind, "kiez" to kiez, "byAdmin" to true)
         if (link.isNotBlank()) extra["link"] = link
+        if (author.isNotBlank()) extra["author"] = author
         LiveAlertsRepository.adminStoryAction(KiezStorageManager.getAdminToken(app), serverId, "storyMeta", extra)
     }
 
@@ -939,7 +940,8 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                 durationHours = validDuration,
                 fileBytes = fileBytes,
                 fileName = fileName,
-                mimeType = mimeType
+                mimeType = mimeType,
+                author = author.ifBlank { "Kiez-User" }
             )
             if (serverId == null) {
                 android.widget.Toast.makeText(app, "Server-Upload fehlgeschlagen – Story nur auf diesem Handy", android.widget.Toast.LENGTH_LONG).show()
@@ -948,7 +950,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
             if (isAdminPost) {
                 // Admin: approve on the server right away, so every user sees it.
                 val ok = LiveAlertsRepository.adminStoryAction(KiezStorageManager.getAdminToken(app), serverId, "approve")
-                if (ok) applyStoryMeta(serverId, kind, kiez.ifBlank { "Ganz Berlin" }, link)
+                if (ok) applyStoryMeta(serverId, kind, kiez.ifBlank { "Ganz Berlin" }, link, author)
                 if (ok) {
                     _uiState.update { state ->
                         val newAll = state.allStories.filterNot { it.id == newStory.id }
@@ -1155,7 +1157,8 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                 durationHours = if (durationHours >= 48) 48 else 24,
                 fileBytes = fileBytes,
                 fileName = fileName,
-                mimeType = mimeType
+                mimeType = mimeType,
+                author = author.ifBlank { "Admin" }
             )
             val token = KiezStorageManager.getAdminToken(app)
             val ok = serverId != null && LiveAlertsRepository.adminStoryAction(token, serverId, "approve")
@@ -1164,7 +1167,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
             }
             val adminLink = nextAdminStoryLink
             nextAdminStoryLink = ""
-            if (ok && serverId != null) applyStoryMeta(serverId, kind, kiez.ifBlank { "Ganz Berlin" }, adminLink)
+            if (ok && serverId != null) applyStoryMeta(serverId, kind, kiez.ifBlank { "Ganz Berlin" }, adminLink, author.ifBlank { "Admin" })
             if (ok && serverId != null) {
                 // Server copy replaces the local-only copy.
                 _uiState.update { state ->

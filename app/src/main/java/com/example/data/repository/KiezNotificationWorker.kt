@@ -62,7 +62,7 @@ class KiezNotificationWorker(context: Context, params: WorkerParameters) : Corou
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
             val list = JSONObject(response.body?.string().orEmpty()).optJSONArray("items")
-            return demo + adminRequestItems() + (0 until (list?.length() ?: 0)).map { i ->
+            return demo + adminRequestItems() + adminPendingStories() + (0 until (list?.length() ?: 0)).map { i ->
                 val o = list!!.getJSONObject(i)
                 // Hourly items carry DE / TR / EN text; show the app language
                 val suffix = when (KiezStorageManager.loadLanguage(applicationContext)) {
@@ -74,6 +74,26 @@ class KiezNotificationWorker(context: Context, params: WorkerParameters) : Corou
                 val body = o.optString("body$suffix").ifBlank { o.optString("body") }
                 Item(o.optString("id"), o.optString("kind"), title, body, o.optString("screen"))
             }
+        }
+    }
+
+    // Admin only: stories waiting for approval, so the admin does not have to check the list.
+    private fun adminPendingStories(): List<Item> {
+        if (!KiezStorageManager.isAdminAuthenticated(applicationContext)) return emptyList()
+        return try {
+            val request = Request.Builder().url(ADMIN_PENDING_URL)
+                .header("x-admin-token", KiezStorageManager.getAdminToken(applicationContext)).build()
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return emptyList()
+                val arr = JSONObject(response.body?.string().orEmpty()).optJSONArray("stories") ?: return emptyList()
+                (0 until arr.length()).map { i ->
+                    val o = arr.getJSONObject(i)
+                    val author = o.optString("author").ifBlank { "Kiez Community" }
+                    Item("pending-" + o.optString("id"), "admin", "🆕 Neue Story wartet auf Freigabe", "${o.optString("headline")} – $author (${o.optString("kiez")})", "ADMIN")
+                }
+            }
+        } catch (_: Exception) {
+            emptyList()
         }
     }
 
@@ -154,6 +174,7 @@ class KiezNotificationWorker(context: Context, params: WorkerParameters) : Corou
     companion object {
         private const val NOTIFY_URL = "https://mykiezberlin.com/api/notify"
         private const val WERBEN_ADMIN_URL = "https://mykiezberlin.com/api/werben"
+        private const val ADMIN_PENDING_URL = "https://mykiezberlin.com/api/admin-pending"
         private const val WORK_NAME = "kiez_notifications"
         private const val CHANNEL_ID = "kiez_alerts"
         private const val PREFS = "kiez_notifications"

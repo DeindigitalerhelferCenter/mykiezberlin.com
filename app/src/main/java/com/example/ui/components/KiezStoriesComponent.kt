@@ -1108,7 +1108,9 @@ fun StoryCreateDialog(
     var selectedKiez by remember { mutableStateOf("Kreuzberg") }
     var selectedKind by remember { mutableStateOf("news") }
     var selectedColor by remember { mutableStateOf("blau") }
-    var author by remember { mutableStateOf("") }
+    val storyContext = LocalContext.current
+    // Name is required (weekly Kiez-Stars); the last one used is filled in
+    var author by remember { mutableStateOf(com.example.ui.components.KiezStarsRepository.savedName(storyContext)) }
     var urlLink by remember { mutableStateOf(initialLink) }
     var customKind by remember { mutableStateOf("") }
     var isCustomKindSelected by remember { mutableStateOf(false) }
@@ -1559,8 +1561,15 @@ fun StoryCreateDialog(
 
                 OutlinedTextField(
                     value = author,
-                    onValueChange = { author = it },
-                    label = { Text(if (language == AppLanguage.TURKISH) "Adınız / İşletme" else "Name / Betrieb") },
+                    onValueChange = { author = it.take(40) },
+                    label = { Text(if (language == AppLanguage.TURKISH) "Adın / kullanıcı adın (zorunlu) *" else if (language == AppLanguage.ENGLISH) "Your name / user name (required) *" else "Dein Name / Nutzername (Pflicht) *") },
+                    supportingText = {
+                        Text(
+                            if (language == AppLanguage.TURKISH) "🏆 Haftanın Kiez Yıldızları bu isimle sayılır" else if (language == AppLanguage.ENGLISH) "🏆 Counts for the Kiez Stars of the week" else "🏆 Zählt für die Kiez-Stars der Woche",
+                            fontSize = 11.sp
+                        )
+                    },
+                    isError = author.isBlank(),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -1757,7 +1766,8 @@ fun StoryCreateDialog(
 
                 Button(
                     onClick = {
-                        if (headline.isNotBlank() && rulesAccepted) {
+                        if (headline.isNotBlank() && rulesAccepted && author.isNotBlank()) {
+                            com.example.ui.components.KiezStarsRepository.saveName(storyContext, author)
                             val finalKind = if (isCustomKindSelected && customKind.isNotBlank()) customKind.trim() else selectedKind
                             onSubmit(
                                 headline,
@@ -1775,7 +1785,7 @@ fun StoryCreateDialog(
                             )
                         }
                     },
-                    enabled = headline.isNotBlank() && rulesAccepted,
+                    enabled = headline.isNotBlank() && rulesAccepted && author.isNotBlank(),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = BerlinRed)
