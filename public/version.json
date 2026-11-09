@@ -1,11 +1,11 @@
 {
-  "versionCode": 7,
-  "versionName": "1.6",
+  "versionCode": 8,
+  "versionName": "1.7",
   "apkUrl": "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin.com.apk",
   "mandatory": false,
   "notes": {
-    "de": "Neu: Live-Kurse, nächster Spieltag, aktuelle Jobs und Events, Instagram-Videos als Stories, korrigiertes Logo.",
-    "tr": "Yeni: Canlı kurlar, sıradaki maç haftası, güncel iş ilanları ve etkinlikler, hikâye olarak Instagram videoları, düzeltilmiş logo.",
-    "en": "New: live rates, next matchday, current jobs and events, Instagram videos as stories, fixed logo."
+    "de": "Neu: echtes Logo, Logo oben rechts in Stories, Werbepakete und Sponsoren, Kiez-Betriebe unter Essen & Trinken.",
+    "tr": "Yeni: gerçek logo, hikâyelerde sağ üstte logo, reklam paketleri ve sponsorlar, mahalle işletmeleri Yeme & İçme altında.",
+    "en": "New: real logo, logo top right in stories, ad packages and sponsors, Kiez businesses under Food & Drink."
   }
 }
