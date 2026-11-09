@@ -160,7 +160,8 @@ data class KiezJob(
     val contactPhone: String = "",
     val contactWa: String = "",
     val contactEmail: String = "",
-    val isUrgent: Boolean = false
+    val isUrgent: Boolean = false,
+    val url: String = "" // live offers (Bundesagentur) link to the official job page
 )
 
 data class KiezCoupon(
@@ -511,7 +512,10 @@ data class SportLeague(
     val id: String = "",
     val name: String = "",
     val table: List<LeagueTableRow> = emptyList(),
-    val matches: List<LeagueMatch> = emptyList()
+    val matches: List<LeagueMatch> = emptyList(),
+    val matchday: String = "",
+    val previousMatchday: String = "",
+    val previousMatches: List<LeagueMatch> = emptyList()
 )
 
 data class BerlinTeamInfo(

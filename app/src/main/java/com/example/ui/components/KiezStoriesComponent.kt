@@ -743,7 +743,9 @@ fun StoryViewerDialog(
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
-                                    text = if (hasExternalSource) {
+                                    text = if (hasExternalSource && story.link.contains("instagram.com/")) {
+                                        if (language == AppLanguage.TURKISH) "INSTAGRAM'DA İZLE" else "AUF INSTAGRAM ANSEHEN"
+                                    } else if (hasExternalSource) {
                                         if (language == AppLanguage.TURKISH) "KAYNAĞA GİT" else "QUELLE ÖFFNEN"
                                     } else {
                                         if (language == AppLanguage.TURKISH) "DEVAM OKU" else "WEITERLESEN"

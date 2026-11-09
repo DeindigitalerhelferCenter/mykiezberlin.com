@@ -1,5 +1,5 @@
 // Server-side moderation for all shared content.
-import { cleanText, db, isAdmin, json, noDb } from "../_lib/util.js";
+import { cleanText, db, instagramUrl, isAdmin, json, noDb } from "../_lib/util.js";
 
 const TABLES = { story: "stories", post: "reporter_posts", comment: "reporter_comments", submission: "submissions" };
 
@@ -9,7 +9,7 @@ export async function onRequestGet({ request, env }) {
   if (!database) return noDb();
   const read = (sql) => database.prepare(sql).all().then((r) => r.results);
   const [stories, posts, comments, submissions, users] = await Promise.all([
-    read(`SELECT id, headline, subtext, kiez, kind, media_key, media_type, duration_hours, status, created_at, approved_at FROM stories ORDER BY created_at DESC LIMIT 100`),
+    read(`SELECT id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, created_at, approved_at, link FROM stories ORDER BY created_at DESC LIMIT 100`),
     read(`SELECT id, title, description, kiez, category, author, media_key, user_id, status, created_at FROM reporter_posts ORDER BY created_at DESC LIMIT 100`),
     read(`SELECT id, post_id, target, kind, user_id, author, text, status, created_at FROM reporter_comments ORDER BY created_at DESC LIMIT 100`),
     read(`SELECT id, type, payload, status, created_at FROM submissions ORDER BY created_at DESC LIMIT 100`),
@@ -30,6 +30,23 @@ async function createStory(database, body) {
     .bind(id, headline, cleanText(body.subtext, 500), cleanText(body.kiez, 60) || "Ganz Berlin", cleanText(body.kind, 20) || "news", Math.min(Number(body.durationHours) || 24, 720), now, now)
     .run();
   return json({ id }, 201);
+}
+
+// Instagram videos of partner accounts: shown as a story with the post embedded, at least 48 hours.
+const INSTAGRAM_MIN_HOURS = 48;
+async function createInstagramStory(database, body) {
+  const link = instagramUrl(body.link);
+  if (!link) return json({ error: "bad_instagram_link" }, 400);
+  const account = cleanText(body.account, 40).replace(/^@/, "");
+  const headline = cleanText(body.headline, 120) || (account ? `Neues Video von @${account}` : "Neues Instagram-Video");
+  const hours = Math.min(Math.max(Number(body.durationHours) || INSTAGRAM_MIN_HOURS, INSTAGRAM_MIN_HOURS), 720);
+  const now = Date.now();
+  const id = crypto.randomUUID();
+  await database
+    .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, author, status, duration_hours, created_at, approved_at, link) VALUES (?, ?, ?, ?, 'instagram', ?, 'approved', ?, ?, ?, ?)`)
+    .bind(id, headline, cleanText(body.subtext, 500), cleanText(body.kiez, 60) || "Ganz Berlin", account ? `@${account}` : "Instagram", hours, now, now, link)
+    .run();
+  return json({ id, link, durationHours: hours }, 201);
 }
 
 // Editorial comments always carry the fixed, visible "Kiez-Redaktion" label.
@@ -53,6 +70,7 @@ export async function onRequestPost({ request, env }) {
   const body = await request.json().catch(() => ({}));
   const { type, id, action } = body;
   if (action === "createStory") return createStory(database, body);
+  if (action === "createInstagramStory") return createInstagramStory(database, body);
   if (action === "editorialComment") return createEditorialComment(database, body);
   if (action === "trustUser") {
     await database.prepare(`UPDATE users SET trusted = ? WHERE id = ?`).bind(body.trusted ? 1 : 0, cleanText(body.userId, 60)).run();

@@ -84,6 +84,11 @@ fun SportsAndMarketsScreen(
     val liveSportNews by LiveBerlinFeedRepository.liveSportNews.collectAsState()
     val liveSportData by LiveBerlinFeedRepository.liveSportData.collectAsState()
     val isRefreshingFeeds by LiveBerlinFeedRepository.isRefreshing.collectAsState()
+    val liveUpdatedAt by LiveBerlinFeedRepository.lastUpdatedMillis.collectAsState()
+    val updatedLabel = if (liveUpdatedAt > 0L)
+        (if (language == AppLanguage.TURKISH) "Son güncelleme: " else "Aktualisiert: ") +
+            java.text.SimpleDateFormat("HH:mm", java.util.Locale.GERMANY).apply { timeZone = java.util.TimeZone.getTimeZone("Europe/Berlin") }.format(java.util.Date(liveUpdatedAt))
+    else ""
 
     // Sport League Tab State (0 = 1. Bundesliga, 1 = 2. Bundesliga)
     var selectedLeagueTabIndex by remember { mutableIntStateOf(0) }
@@ -244,11 +249,16 @@ fun SportsAndMarketsScreen(
                                     fontSize = 15.sp
                                 )
                             }
-                            Text(
-                                text = "Station: Berlin Alexanderplatz",
-                                fontSize = 11.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(
+                                    text = "Station: Berlin Alexanderplatz",
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                if (updatedLabel.isNotBlank()) {
+                                    Text(text = updatedLabel, fontSize = 10.5.sp, color = BerlinGreen, fontWeight = FontWeight.Bold)
+                                }
+                            }
                         }
 
                         Spacer(modifier = Modifier.height(12.dp))
@@ -417,7 +427,7 @@ fun SportsAndMarketsScreen(
                                 color = BerlinGreen.copy(alpha = 0.15f)
                             ) {
                                 Text(
-                                    text = "mykiezberlin.com/api/live",
+                                    text = updatedLabel.ifBlank { "mykiezberlin.com/api/live" },
                                     color = BerlinGreen,
                                     fontSize = 10.5.sp,
                                     fontWeight = FontWeight.Bold,
@@ -749,7 +759,8 @@ fun SportsAndMarketsScreen(
                                 if (activeLeague.matches.isNotEmpty()) {
                                     Spacer(modifier = Modifier.height(10.dp))
                                     Text(
-                                        text = activeLeague.name + (if (language == AppLanguage.TURKISH) " — Maç Fikstürü" else " — Spieltag"),
+                                        text = activeLeague.name + (if (language == AppLanguage.TURKISH) " — Maç Fikstürü" else " — Spieltag") +
+                                            (if (activeLeague.matchday.isNotBlank()) " · ${activeLeague.matchday}" else ""),
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 12.5.sp
                                     )
@@ -782,6 +793,36 @@ fun SportsAndMarketsScreen(
                                                     }
                                                     Text(match.away, fontSize = 11.5.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.End)
                                                 }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // Results of the matchday that just finished
+                                if (activeLeague.previousMatches.isNotEmpty()) {
+                                    Spacer(modifier = Modifier.height(10.dp))
+                                    Text(
+                                        text = (if (language == AppLanguage.TURKISH) "Son Sonuçlar" else "Letzte Ergebnisse") +
+                                            (if (activeLeague.previousMatchday.isNotBlank()) " · ${activeLeague.previousMatchday}" else ""),
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.5.sp
+                                    )
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        activeLeague.previousMatches.forEach { match ->
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(match.home, fontSize = 11.sp, modifier = Modifier.weight(1f))
+                                                Text(
+                                                    text = if (match.homeGoals != null && match.awayGoals != null) "${match.homeGoals} : ${match.awayGoals}" else "–",
+                                                    fontSize = 11.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = BerlinRed
+                                                )
+                                                Text(match.away, fontSize = 11.sp, modifier = Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.End)
                                             }
                                         }
                                     }

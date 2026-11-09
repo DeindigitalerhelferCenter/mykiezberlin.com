@@ -162,7 +162,8 @@ async function loadServerStories() {
       videoUri: s.media_type === "video" ? `/media/${s.media_key}` : "",
       durationHours: s.duration_hours,
       status: "approved",
-      link: "https://mykiezberlin.com",
+      link: safeUrl(s.link || "https://mykiezberlin.com"),
+      instagram: /^https:\/\/www\.instagram\.com\/(p|reel|tv)\//.test(s.link || "") ? s.link : "",
     }));
     renderStoriesBar();
   } catch (e) {}

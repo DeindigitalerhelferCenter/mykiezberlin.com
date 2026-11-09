@@ -44,8 +44,8 @@ export function parseRss(xml, limit = 12) {
   return items;
 }
 
-export async function fetchText(url, ms = 7000) {
-  const res = await fetch(url, { headers: { "user-agent": UA, accept: "*/*" }, signal: AbortSignal.timeout(ms) });
+export async function fetchText(url, ms = 7000, extraHeaders = {}) {
+  const res = await fetch(url, { headers: { "user-agent": UA, accept: "*/*", ...extraHeaders }, signal: AbortSignal.timeout(ms) });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.text();
 }
@@ -78,7 +78,16 @@ const MIGRATIONS = [
   `ALTER TABLE reporter_posts ADD COLUMN media_key TEXT DEFAULT ''`,
   `ALTER TABLE reporter_posts ADD COLUMN media_type TEXT DEFAULT ''`,
   `ALTER TABLE reporter_posts ADD COLUMN user_id TEXT DEFAULT ''`,
+  `ALTER TABLE stories ADD COLUMN link TEXT DEFAULT ''`,
 ];
+
+// Accepts only Instagram post/reel links and returns them in one canonical form.
+export function instagramUrl(value) {
+  const m = String(value ?? "").trim().match(/^https?:\/\/(?:www\.)?instagram\.com\/(?:[\w.]+\/)?(p|reel|reels|tv)\/([\w-]{5,40})/i);
+  if (!m) return "";
+  const kind = m[1].toLowerCase() === "reels" ? "reel" : m[1].toLowerCase();
+  return `https://www.instagram.com/${kind}/${m[2]}/`;
+}
 
 let schemaReady = false;
 

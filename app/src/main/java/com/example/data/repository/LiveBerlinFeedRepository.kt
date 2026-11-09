@@ -272,6 +272,25 @@ object LiveBerlinFeedRepository {
         }
     }
 
+    private fun parseLeagueMatches(arr: org.json.JSONArray?): List<LeagueMatch> {
+        if (arr == null) return emptyList()
+        val list = mutableListOf<LeagueMatch>()
+        for (m in 0 until arr.length()) {
+            val o = arr.optJSONObject(m) ?: continue
+            list.add(
+                LeagueMatch(
+                    kickoff = o.optLong("kickoff", 0L),
+                    home = o.optString("home", ""),
+                    away = o.optString("away", ""),
+                    homeGoals = if (o.isNull("homeGoals")) null else o.optInt("homeGoals"),
+                    awayGoals = if (o.isNull("awayGoals")) null else o.optInt("awayGoals"),
+                    finished = o.optBoolean("finished", false)
+                )
+            )
+        }
+        return list
+    }
+
     suspend fun fetchSportApi(): Boolean = withContext(Dispatchers.IO) {
         try {
             val req = Request.Builder()
@@ -356,7 +375,10 @@ object LiveBerlinFeedRepository {
                             id = l.optString("id", ""),
                             name = l.optString("name", ""),
                             table = tableList,
-                            matches = matchesList
+                            matches = matchesList,
+                            matchday = l.optString("matchday", ""),
+                            previousMatchday = l.optString("previousMatchday", ""),
+                            previousMatches = parseLeagueMatches(l.optJSONArray("previousMatches"))
                         )
                     )
                 }

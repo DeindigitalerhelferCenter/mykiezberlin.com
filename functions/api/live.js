@@ -176,9 +176,58 @@ async function cryptoRates() {
   }));
 }
 
+// Yahoo answers Cloudflare Workers reliably and updates every minute; Truncgil and
+// CoinGecko often refuse Worker requests, and open.er-api only changes once a day.
+const YAHOO_RATES = [
+  ["USD/TRY", "Dolar / TL", "TRY=X", "TRY"],
+  ["EUR/TRY", "Euro / TL", "EURTRY=X", "TRY"],
+  ["EUR/USD", "EUR/USD", "EURUSD=X", "USD"],
+  ["EUR/GBP", "EUR/GBP", "EURGBP=X", "GBP"],
+  ["EUR/CHF", "EUR/CHF", "EURCHF=X", "CHF"],
+  ["BTC", "Bitcoin", "BTC-EUR", "EUR"],
+  ["ETH", "Ethereum", "ETH-EUR", "EUR"],
+];
+const TROY_OUNCE_GRAMS = 31.1034768;
+
+async function yahooRates() {
+  const [rates, gold] = await Promise.all([
+    Promise.allSettled(YAHOO_RATES.map((r) => indexQuote(r).then((q) => ({ ...q, source: "Yahoo Finance" })))),
+    indexQuote(["GOLD_OUNCE", "Ons Altın", "GC%3DF", "USD"]).catch(() => null),
+  ]);
+  const list = rates.filter((r) => r.status === "fulfilled").map((r) => r.value);
+  const usdTry = list.find((q) => q.code === "USD/TRY");
+  if (gold) {
+    list.push(gold);
+    if (usdTry) {
+      list.push({
+        code: "GOLD_GRAM", name: "Gram Altın", currency: "TRY", source: "Yahoo Finance (berechnet)",
+        value: Math.round((gold.value * usdTry.value) / TROY_OUNCE_GRAMS * 100) / 100,
+        changePercent: gold.changePercent != null && usdTry.changePercent != null ? gold.changePercent + usdTry.changePercent : gold.changePercent,
+        updatedAt: Math.max(gold.updatedAt || 0, usdTry.updatedAt || 0) || null,
+      });
+    }
+  }
+  return list;
+}
+
+const RATE_ORDER = ["USD/TRY", "EUR/TRY", "GOLD_GRAM", "GOLD_OUNCE", "EUR/USD", "EUR/GBP", "EUR/CHF", "BTC", "ETH"];
+
 async function quotes() {
-  const groups = await Promise.allSettled([...INDICES.map(indexQuote), turkishRates(), exchangeRates(), cryptoRates()]);
+  const groups = await Promise.allSettled([...INDICES.map(indexQuote), turkishRates(), exchangeRates(), cryptoRates(), yahooRates()]);
+  const [yahoo] = groups.splice(groups.length - 1, 1);
   const list = groups.flatMap((g) => (g.status === "fulfilled" ? g.value : []));
+  const live = yahoo.status === "fulfilled" ? yahoo.value : [];
+  // Fill missing rates from Yahoo; replace the once-a-day EUR/x rates with live ones.
+  for (const q of live) {
+    const i = list.findIndex((x) => x.code === q.code);
+    if (i < 0) list.push(q);
+    else if (q.code.startsWith("EUR/") && list[i].source === "ExchangeRate-API") list[i] = q;
+  }
+  const rank = (q) => {
+    const i = RATE_ORDER.indexOf(q.code);
+    return INDICES.some(([c]) => c === q.code) ? -1 : i < 0 ? RATE_ORDER.length : i;
+  };
+  list.sort((a, b) => rank(a) - rank(b));
   if (!list.length) throw new Error("rates unavailable");
   return list;
 }

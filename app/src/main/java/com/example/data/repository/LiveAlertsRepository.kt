@@ -220,7 +220,7 @@ object LiveAlertsRepository {
                             author = o.optString("author", "Kiez Community"),
                             timeAgo = ageText(approvedAt),
                             source = "My Kiez",
-                            link = "https://mykiezberlin.com",
+                            link = o.optString("link", "").ifBlank { "https://mykiezberlin.com" },
                             mediaUri = if (mediaKey.isNotBlank()) "https://mykiezberlin.com/media/$mediaKey" else null,
                             isVideo = o.optString("media_type", "") == "video",
                             durationHours = o.optInt("duration_hours", 24),
@@ -331,6 +331,82 @@ object LiveAlertsRepository {
     }
 
     // ==========================================
+    // Live jobs (/api/jobs, Bundesagentur) and events (/api/events, berlin.de open data)
+    // ==========================================
+    private fun getJson(url: String): JSONObject? {
+        val req = Request.Builder().url(url).header("User-Agent", "MyKiezBerlin-Android/2.0").build()
+        return httpClient.newCall(req).execute().use { resp ->
+            if (!resp.isSuccessful) null else JSONObject(resp.body?.string() ?: "{}")
+        }
+    }
+
+    suspend fun fetchLiveJobs(): List<KiezJob> = withContext(Dispatchers.IO) {
+        try {
+            val arr = getJson("https://mykiezberlin.com/api/jobs")?.optJSONArray("jobs") ?: return@withContext emptyList()
+            (0 until arr.length()).mapNotNull { i ->
+                val o = arr.optJSONObject(i) ?: return@mapNotNull null
+                val plz = o.optString("plz", "")
+                KiezJob(
+                    id = o.optString("id", "ba_$i"),
+                    title = o.optString("title", ""),
+                    company = o.optString("company", ""),
+                    kiez = if (plz.isNotBlank()) "Berlin $plz" else "Berlin",
+                    jobType = o.optString("jobType", "Vollzeit"),
+                    salary = "Siehe Stellenangebot",
+                    description = listOf(
+                        o.optString("profession", ""),
+                        o.optString("address", ""),
+                        "Vertrag: ${o.optString("contract", "")}",
+                        "Quelle: Bundesagentur für Arbeit"
+                    ).filter { it.isNotBlank() }.joinToString(" · "),
+                    url = o.optString("url", "")
+                )
+            }.filter { it.title.isNotBlank() }
+        } catch (e: Exception) {
+            Log.w(TAG, "fetchLiveJobs notice: ${e.message}")
+            emptyList()
+        }
+    }
+
+    suspend fun fetchLiveEvents(): List<KiezEvent> = withContext(Dispatchers.IO) {
+        try {
+            val arr = getJson("https://mykiezberlin.com/api/events")?.optJSONArray("events") ?: return@withContext emptyList()
+            val utc = java.util.TimeZone.getTimeZone("UTC")
+            val day = java.text.SimpleDateFormat("EE", java.util.Locale.GERMANY).apply { timeZone = utc }
+            val num = java.text.SimpleDateFormat("dd", java.util.Locale.GERMANY).apply { timeZone = utc }
+            val month = java.text.SimpleDateFormat("MMM", java.util.Locale.GERMANY).apply { timeZone = utc }
+            val full = java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.GERMANY).apply { timeZone = utc }
+            (0 until arr.length()).mapNotNull { i ->
+                val o = arr.optJSONObject(i) ?: return@mapNotNull null
+                val from = o.optLong("from", 0L)
+                if (from <= 0L) return@mapNotNull null
+                val to = o.optLong("to", from)
+                val range = if (to > from) "${full.format(java.util.Date(from))} – ${full.format(java.util.Date(to))}" else full.format(java.util.Date(from))
+                val firstTime = o.optString("time", "").lineSequence().firstOrNull().orEmpty()
+                KiezEvent(
+                    id = o.optString("id", "ev_$i"),
+                    title = o.optString("title", ""),
+                    dayLabel = day.format(java.util.Date(from)).trimEnd('.'),
+                    dateNum = num.format(java.util.Date(from)),
+                    monthLabel = month.format(java.util.Date(from)).trimEnd('.'),
+                    time = firstTime.ifBlank { range },
+                    kiezName = o.optString("district", "Berlin").ifBlank { "Berlin" },
+                    price = "Siehe Website",
+                    isFree = false,
+                    category = o.optString("category", "Volksfest"),
+                    description = (range + "\n\n" + o.optString("description", "")).trim(),
+                    locationAddress = o.optString("address", "Berlin").ifBlank { "Berlin" },
+                    organizer = o.optString("organizer", "berlin.de").ifBlank { "berlin.de" },
+                    officialUrl = o.optString("url", "https://www.berlin.de/events/volksfeste/")
+                )
+            }.filter { it.title.isNotBlank() }
+        } catch (e: Exception) {
+            Log.w(TAG, "fetchLiveEvents notice: ${e.message}")
+            emptyList()
+        }
+    }
+
+    // ==========================================
     // Server-side admin (https://mykiezberlin.com/api/admin)
     // Approve/reject/extend/edit/delete must reach the server, otherwise
     // only the admin phone sees the change and other users never get the story.
@@ -369,7 +445,7 @@ object LiveAlertsRepository {
                             author = o.optString("author", "Kiez Community").ifBlank { "Kiez Community" },
                             timeAgo = ageText(approvedAt),
                             source = "My Kiez",
-                            link = "https://mykiezberlin.com",
+                            link = o.optString("link", "").ifBlank { "https://mykiezberlin.com" },
                             mediaUri = if (mediaKey.isNotBlank()) "https://mykiezberlin.com/media/$mediaKey" else null,
                             isVideo = o.optString("media_type", "") == "video",
                             durationHours = o.optInt("duration_hours", 24),

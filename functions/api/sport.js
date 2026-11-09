@@ -2,6 +2,8 @@
 import { fetchJson, fetchText, json } from "../_lib/util.js";
 
 const TTL_SECONDS = 900;
+// Results stay visible for a few hours after the last match of a matchday.
+const NEXT_MATCHDAY_AFTER_MS = 3 * 3600 * 1000;
 const API = "https://api.openligadb.de";
 const LEAGUES = [["bl1", "1. Bundesliga"], ["bl2", "2. Bundesliga"], ["del", "DEL Eishockey"]];
 const BERLIN_TEAMS = /(Union Berlin|Hertha|Eisbären)/i;
@@ -45,11 +47,26 @@ function matchText(m) {
 }
 
 async function loadLeague([id, name], season) {
-  const [table, matches] = await Promise.all([fetchJson(`${API}/getbltable/${id}/${season}`), fetchJson(`${API}/getmatchdata/${id}`)]);
+  const [table, current] = await Promise.all([fetchJson(`${API}/getbltable/${id}/${season}`), fetchJson(`${API}/getmatchdata/${id}`)]);
+  // OpenLigaDB keeps a finished matchday as "current" until the next one starts,
+  // so after the last final whistle the next matchday is shown instead.
+  let matches = current;
+  let previousMatches = [];
+  const group = current[0]?.group;
+  const lastKickoff = Math.max(0, ...current.map((m) => Date.parse(m.matchDateTimeUTC || m.matchDateTime) || 0));
+  if (current.length && current.every((m) => m.matchIsFinished) && Date.now() - lastKickoff > NEXT_MATCHDAY_AFTER_MS && group?.groupOrderID) {
+    const next = await fetchJson(`${API}/getmatchdata/${id}/${season}/${group.groupOrderID + 1}`).catch(() => []);
+    if (Array.isArray(next) && next.length) {
+      previousMatches = current;
+      matches = next;
+    }
+  }
   return {
     id,
     name,
-    leagueId: matches[0]?.leagueId,
+    leagueId: current[0]?.leagueId,
+    matchday: matches[0]?.group?.groupName || "",
+    previousMatchday: previousMatches[0]?.group?.groupName || "",
     table: table.map((t, i) => ({
       position: i + 1,
       teamId: t.teamInfoId,
@@ -67,6 +84,7 @@ async function loadLeague([id, name], season) {
       berlin: BERLIN_TEAMS.test(t.teamName),
     })),
     matches: matches.map(matchRow),
+    previousMatches: previousMatches.map(matchRow),
   };
 }
 

@@ -13,7 +13,7 @@ export async function onRequestGet({ env, waitUntil }) {
   waitUntil(cleanupExpiredStories(env));
   const now = Date.now();
   const { results } = await database
-    .prepare(`SELECT id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, approved_at FROM stories WHERE status = 'approved' AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT 60`)
+    .prepare(`SELECT id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, approved_at, link FROM stories WHERE status = 'approved' AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT 60`)
     .bind(now)
     .all();
   return json({ stories: results });

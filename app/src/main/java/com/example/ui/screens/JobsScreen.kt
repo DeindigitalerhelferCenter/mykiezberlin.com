@@ -29,6 +29,7 @@ import androidx.compose.ui.window.Dialog
 import com.example.data.model.AppLanguage
 import com.example.data.model.KiezJob
 import com.example.data.repository.SampleData
+import com.example.ui.theme.BerlinBlue
 import com.example.ui.theme.BerlinGreen
 import com.example.ui.theme.BerlinRed
 import com.example.ui.theme.BerlinYellow
@@ -235,6 +236,19 @@ fun JobsScreen(
                                         colors = ButtonDefaults.buttonColors(containerColor = BerlinGreen)
                                     ) {
                                         Text("WhatsApp", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+
+                                if (job.url.isNotEmpty()) {
+                                    Button(
+                                        onClick = {
+                                            try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(job.url))) } catch (_: Exception) {}
+                                        },
+                                        modifier = Modifier.weight(1f),
+                                        shape = RoundedCornerShape(10.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = BerlinBlue)
+                                    ) {
+                                        Text(if (language == AppLanguage.TURKISH) "İlana Git ↗" else "Zum Angebot ↗", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                     }
                                 }
 

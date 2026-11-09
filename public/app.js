@@ -1036,7 +1036,9 @@ function renderStorySlide() {
       <div class="story-content-view">
         <div class="story-nav-tap story-nav-prev" onclick="prevStory()"></div>
         <div class="story-nav-tap story-nav-next" onclick="nextStory()"></div>
-        ${s.isVideo ? `
+        ${s.instagram ? `
+          <iframe src="${s.instagram}embed/" style="width: 100%; height: 100%; border: 0; background: #fff; position: relative; z-index: 2;" allow="autoplay; encrypted-media" loading="lazy" title="Instagram"></iframe>
+        ` : s.isVideo ? `
           <video src="${s.videoUri || ''}" autoplay playsinline loop style="width: 100%; height: 100%; object-fit: contain;"></video>
         ` : `
           <img src="${s.image}" alt="${s.headline}">
@@ -1047,7 +1049,7 @@ function renderStorySlide() {
         <div style="font-weight: 900; font-size: 16px; margin-bottom: 6px;">${s.headline}</div>
         <div style="font-size: 13px; line-height: 1.4; color: #E2E8F0;">${s.subtext}</div>
         ${s.link ? `
-          <a href="${s.link}" target="_blank" style="display: inline-block; margin-top: 10px; color: var(--berlin-yellow); font-weight: 800; font-size: 12px; text-decoration: none;">Mehr erfahren ↗</a>
+          <a href="${s.link}" target="_blank" style="display: inline-block; margin-top: 10px; color: var(--berlin-yellow); font-weight: 800; font-size: 12px; text-decoration: none;">${s.instagram ? 'Auf Instagram ansehen ↗' : 'Mehr erfahren ↗'}</a>
         ` : ''}
       </div>
     </div>

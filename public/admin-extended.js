@@ -90,6 +90,7 @@ async function loadModerationQueue() {
       <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
         ${tabs.map((t) => `<button class="chip-btn ${t === moderationTab ? "active" : ""}" onclick="setModerationTab('${t}')">${labels[t]} (${all.filter(([, i]) => i.status === t).length})</button>`).join("")}
         <button class="chip-btn" onclick="createServerStory()">+ Admin Story</button>
+        <button class="chip-btn" onclick="createInstagramStory()">+ Instagram Video</button>
       </div>
       ${shown.map(([type, item]) => moderationCard(type, item)).join("")}
       ${shown.length ? "" : `<p style="font-size: 12px; color: #8b949e;">Burada gönderi yok.</p>`}
@@ -127,6 +128,27 @@ async function editStory(id) {
   if (!headline) return;
   const subtext = prompt("Yeni açıklama:") || "";
   await adminRequest("POST", { type: "story", id, action: "edit", headline, subtext });
+  loadModerationQueue();
+}
+
+// Partner accounts whose newest videos are shown as stories (at least 48 hours).
+const INSTAGRAM_PARTNERS = ["terraverdegetraenke", "thevisitcoffeeroastery"];
+
+async function createInstagramStory() {
+  const link = prompt("Instagram video linki (instagram.com/reel/... veya /p/...):");
+  if (!link) return;
+  const choice = prompt(`Hesap:
+1 = @${INSTAGRAM_PARTNERS[0]}
+2 = @${INSTAGRAM_PARTNERS[1]}
+veya hesap adını yaz`, "1");
+  if (choice === null) return;
+  const account = INSTAGRAM_PARTNERS[Number(choice) - 1] || choice.trim();
+  const headline = prompt("Başlık (boş bırakılabilir):", "") || "";
+  const kiez = prompt("Kiez:", "Ganz Berlin") || "Ganz Berlin";
+  const durationHours = Math.max(Number(prompt("Süre (saat, en az 48):", "48")) || 48, 48);
+  const res = await adminRequest("POST", { action: "createInstagramStory", link, account, headline, kiez, durationHours });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok && data.error === "bad_instagram_link") alert("Link geçersiz. Bir video/gönderi linki olmalı (…/reel/… veya …/p/…).");
   loadModerationQueue();
 }
 

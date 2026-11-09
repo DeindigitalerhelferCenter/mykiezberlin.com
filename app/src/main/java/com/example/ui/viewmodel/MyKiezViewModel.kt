@@ -242,6 +242,23 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
             }
         }
 
+        // Live jobs (Bundesagentur) and events (berlin.de) – refreshed every 30 min
+        viewModelScope.launch {
+            while (isActive) {
+                try {
+                    val jobs = LiveAlertsRepository.fetchLiveJobs()
+                    val events = LiveAlertsRepository.fetchLiveEvents()
+                    _uiState.update { state ->
+                        state.copy(
+                            customJobs = (state.customJobs.filterNot { it.id.startsWith("ba-") } + jobs).distinctBy { j -> j.id },
+                            customEvents = (state.customEvents.filterNot { it.id.startsWith("fest-") || it.id.startsWith("xmas-") } + events).distinctBy { ev -> ev.id }
+                        )
+                    }
+                } catch (_: Exception) {}
+                delay(30 * 60_000L)
+            }
+        }
+
         // Fetch live 24 kieze from https://mykiezberlin.com/api/kieze
         viewModelScope.launch {
             try {

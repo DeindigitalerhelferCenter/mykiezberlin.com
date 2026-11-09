@@ -100,6 +100,14 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    // Coming back to the app refreshes weather, quotes and sport right away instead of
+    // waiting for the next 60 s / 15 min cycle (Android pauses network while in background).
+    override fun onResume() {
+        super.onResume()
+        com.example.data.repository.LiveBerlinFeedRepository.refreshLiveFeeds()
+        com.example.data.repository.LiveBerlinFeedRepository.refreshSportData()
+    }
+
     override fun onNewIntent(intent: android.content.Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
