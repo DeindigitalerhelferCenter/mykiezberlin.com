@@ -16,8 +16,8 @@ android {
     applicationId = "com.aistudio.mykiezberlin.bkrztx"
     minSdk = 24
     targetSdk = 36
-    versionCode = 8
-    versionName = "1.7"
+    versionCode = 9
+    versionName = "1.8"
         // Only for one-off test builds: gradle assembleRelease -PgoalDemo
         buildConfigField("boolean", "GOAL_DEMO", project.hasProperty("goalDemo").toString())
 

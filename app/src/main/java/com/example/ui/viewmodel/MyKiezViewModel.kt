@@ -124,7 +124,9 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
         adminStoriesCache = server
         _uiState.update { state ->
             val kept = state.allStories.filter { story ->
-                previous.none { it.id == story.id } && server.none { it.id == story.id }
+                previous.none { it.id == story.id } && server.none { it.id == story.id } &&
+                    // local-only copy of a story the server already has
+                    !(story.id.startsWith("story_") && server.any { it.headline.trim() == story.headline.trim() })
             }
             state.copy(allStories = server + kept)
         }
@@ -186,13 +188,19 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
         remoteStoriesCache = remote
         _uiState.update { state ->
             val kept = state.allStories.filter { story -> previous.none { it.id == story.id } }
+                // local-only copy (story_…) of a story the server already has: show the server copy only
+                .filterNot { story -> story.id.startsWith("story_") && remote.any { it.headline.trim() == story.headline.trim() } }
             state.copy(allStories = (remote + kept).distinctBy { it.id })
         }
     }
 
     init {
         val initialLang = KiezStorageManager.loadLanguage(application)
-        val userStories = KiezStorageManager.loadStories(application)
+        val userStories = KiezStorageManager.loadStories(application).map { st ->
+            if (st.status == "approved" && st.modNote == "KI: Geprüft & Freigegeben")
+                st.copy(status = "pending", modNote = "⏳ Wartet auf Freigabe / Onay bekliyor")
+            else st
+        }
         val initialAlerts = LiveAlertsRepository.liveAlerts.value
         val instStories = LiveAlertsRepository.generateInstitutionStories(initialAlerts, initialLang)
         val mergedStories = instStories + userStories.filter { u -> instStories.none { it.id == u.id } }
@@ -836,6 +844,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
         }
 
         val validDuration = if (durationHours == 48) 48 else 24
+        val isAdminPost = _uiState.value.isAdminAuthenticated
         val newStory = KiezStory(
             id = "story_${System.currentTimeMillis()}",
             headline = headline,
@@ -851,8 +860,8 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
             durationHours = validDuration,
             pricePaid = pricePaid,
             link = link,
-            status = "approved",
-            modNote = "KI: Geprüft & Freigegeben",
+            status = if (isAdminPost) "approved" else "pending",
+            modNote = if (isAdminPost) "KI: Admin Direktfreigabe" else "⏳ Wartet auf Freigabe / Onay bekliyor",
             createdAtMillis = System.currentTimeMillis()
         )
         _uiState.update {
@@ -862,7 +871,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                 allStories = updatedStories,
                 customStories = listOf(newStory) + it.customStories,
                 showAddStoryDialog = false,
-                storySubmissionFeedback = "Wird vor der Veröffentlichung geprüft"
+                storySubmissionFeedback = if (isAdminPost) "Veröffentlicht" else "Wird vor der Veröffentlichung geprüft"
             )
         }
         viewModelScope.launch {
@@ -880,19 +889,40 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                     fileName = "story_${System.currentTimeMillis()}.${if (mimeType.contains("png")) "png" else "jpg"}"
                 } catch (_: Exception) {}
             }
-            LiveAlertsRepository.postStoryMultipart(
+            val serverId = LiveAlertsRepository.postStoryMultipartForId(
                 headline = headline,
                 subtext = subtext,
-                kiez = kiez,
+                kiez = kiez.ifBlank { "Ganz Berlin" },
                 kind = kind,
                 durationHours = validDuration,
                 fileBytes = fileBytes,
                 fileName = fileName,
                 mimeType = mimeType
             )
-            LiveAlertsRepository.postRemoteStory(newStory)
+            if (serverId == null) {
+                android.widget.Toast.makeText(app, "Server-Upload fehlgeschlagen – Story nur auf diesem Handy", android.widget.Toast.LENGTH_LONG).show()
+                return@launch
+            }
+            if (isAdminPost) {
+                // Admin: approve on the server right away, so every user sees it.
+                val ok = LiveAlertsRepository.adminStoryAction(KiezStorageManager.getAdminToken(app), serverId, "approve")
+                if (ok) {
+                    _uiState.update { state ->
+                        val newAll = state.allStories.filterNot { it.id == newStory.id }
+                        KiezStorageManager.saveStories(app, newAll)
+                        state.copy(allStories = newAll, customStories = state.customStories.filterNot { it.id == newStory.id })
+                    }
+                    val remote = LiveAlertsRepository.fetchRemoteStories()
+                    if (remote.isNotEmpty()) applyRemoteStories(remote)
+                    refreshAdminStories()
+                    android.widget.Toast.makeText(app, "Story veröffentlicht – alle sehen sie", android.widget.Toast.LENGTH_LONG).show()
+                } else {
+                    android.widget.Toast.makeText(app, "Hochgeladen, aber Freigabe fehlgeschlagen – bitte im Admin-Bereich freigeben", android.widget.Toast.LENGTH_LONG).show()
+                    refreshAdminStories()
+                }
+            }
         }
-        android.widget.Toast.makeText(app, "Wird vor der Veröffentlichung geprüft", android.widget.Toast.LENGTH_LONG).show()
+        if (!isAdminPost) android.widget.Toast.makeText(app, "Wird vor der Veröffentlichung geprüft", android.widget.Toast.LENGTH_LONG).show()
     }
 
     fun dismissUpdateDialog() {
