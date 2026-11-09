@@ -249,15 +249,19 @@ fun SportsAndMarketsScreen(
                                     fontSize = 15.sp
                                 )
                             }
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text(
-                                    text = "Station: Berlin Alexanderplatz",
-                                    fontSize = 11.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                if (updatedLabel.isNotBlank()) {
-                                    Text(text = updatedLabel, fontSize = 10.5.sp, color = BerlinGreen, fontWeight = FontWeight.Bold)
-                                }
+                        }
+                        // Station and last update on their own line, so the title is not squeezed.
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Station: Berlin Alexanderplatz",
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            if (updatedLabel.isNotBlank()) {
+                                Text(text = updatedLabel, fontSize = 11.sp, color = BerlinGreen, fontWeight = FontWeight.Bold)
                             }
                         }
 

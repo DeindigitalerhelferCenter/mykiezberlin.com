@@ -24,8 +24,9 @@ object WatermarkHelper {
         val resultBitmap = originalBitmap.copy(Bitmap.Config.ARGB_8888, true)
         val canvas = Canvas(resultBitmap)
 
-        // Load the official logo
-        val logoBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.mykiez_logo)
+        // Plain logo with a soft white halo, readable on light and dark photos
+        val logoBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.mykiez_logo_watermark)
+            ?: BitmapFactory.decodeResource(context.resources, R.drawable.mykiez_logo)
             ?: return originalBitmap
 
         // Desired width of watermark is approx 22% of target width
@@ -34,14 +35,15 @@ object WatermarkHelper {
         val watermarkHeight = (watermarkWidth * aspectRatio).toInt()
 
         val margin = (resultBitmap.width * 0.03f).toInt().coerceAtLeast(16)
+        // Top-right corner
         val left = resultBitmap.width - watermarkWidth - margin
-        val top = resultBitmap.height - watermarkHeight - margin
+        val top = margin
 
         val destRect = Rect(left, top, left + watermarkWidth, top + watermarkHeight)
         val paint = Paint().apply {
             isAntiAlias = true
             isFilterBitmap = true
-            alpha = 220 // ~86% opacity seal / damga
+            alpha = 235 // transparent background, logo fully visible
         }
 
         canvas.drawBitmap(logoBitmap, null, destRect, paint)
@@ -132,7 +134,7 @@ object WatermarkHelper {
             }
         }
 
-        // Stamp logo at bottom right
+        // Stamp logo at top right
         return addLogoWatermark(context, bitmap)
     }
 

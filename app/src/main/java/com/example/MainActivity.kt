@@ -167,7 +167,7 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
         ) {
             // Real-time In-App Live Alert Heads-up Banner (S-Bahn, BVG, Feuerwehr, Polizei)
             // Full-page web screens need the room; the ticker stays one tap away.
-            if (uiState.currentScreen != AppScreen.KIEZ_MATCH && uiState.currentScreen != AppScreen.COMMUNITY) {
+            if (uiState.currentScreen != AppScreen.KIEZ_MATCH && uiState.currentScreen != AppScreen.COMMUNITY && uiState.currentScreen != AppScreen.WERBEN) {
                 InAppAlertBannerComponent(
                     alert = uiState.activeAlertBanner,
                     isLiveAvailable = uiState.isLiveAlertsAvailable,
@@ -210,7 +210,40 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     showAddBusinessDialog = uiState.showAddBusinessDialog,
                     onOpenAddBusiness = { viewModel.openAddBusinessDialog() },
                     onCloseAddBusiness = { viewModel.closeAddBusinessDialog() },
-                    onNavigateToScreen = { viewModel.navigateTo(it) }
+                    onNavigateToScreen = { viewModel.navigateTo(it) },
+                    showBusinessList = false,
+                    onOpenWerben = { size, claim -> viewModel.openWerben(size, claim) }
+                )
+
+                // The 18 Kiez businesses (moved from the home page), reached from "Yeme & İçme"
+                AppScreen.KIEZ_BETRIEBE -> BusinessesScreen(
+                    language = uiState.language,
+                    activeCategory = uiState.activeBusinessCategory,
+                    onCategoryChange = { viewModel.setBusinessCategory(it) },
+                    activeKiezFilter = uiState.activeKiezFilter,
+                    onKiezFilterChange = { viewModel.setKiezFilter(it) },
+                    selectedBusiness = uiState.selectedBusiness,
+                    onSelectBusiness = { viewModel.openBusinessDetail(it) },
+                    onCloseDetail = { viewModel.closeBusinessDetail() },
+                    favoriteIds = uiState.favoriteIds,
+                    onToggleFavorite = { viewModel.toggleFavorite(it) },
+                    searchQuery = uiState.searchQuery,
+                    customBusinesses = uiState.customBusinesses,
+                    onAddBusiness = { viewModel.addCustomBusiness(it) },
+                    viewMode = uiState.businessViewMode,
+                    onViewModeChange = { viewModel.setBusinessViewMode(it) },
+                    onResetFilters = { viewModel.resetFilters() },
+                    showAddBusinessDialog = uiState.showAddBusinessDialog,
+                    onOpenAddBusiness = { viewModel.openAddBusinessDialog() },
+                    onCloseAddBusiness = { viewModel.closeAddBusinessDialog() },
+                    onNavigateToScreen = { viewModel.navigateTo(it) },
+                    showHomeExtras = false,
+                    onOpenWerben = { size, claim -> viewModel.openWerben(size, claim) }
+                )
+
+                AppScreen.WERBEN -> com.example.ui.screens.KiezWebScreen(
+                    url = viewModel.werbenUrl,
+                    onBack = { viewModel.navigateTo(AppScreen.HOME) }
                 )
 
                 AppScreen.JOBS -> JobsScreen(
@@ -277,13 +310,42 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     onNavigateKieze = { viewModel.navigateTo(AppScreen.KIEZE) }
                 )
 
-                AppScreen.FOOD -> FoodScreen(
-                    language = uiState.language,
-                    activeCuisine = uiState.activeFoodCuisine,
-                    onSelectCuisine = { viewModel.setFoodCuisine(it) },
-                    favoriteIds = uiState.favoriteIds,
-                    onToggleFavorite = { viewModel.toggleFavorite(it) }
-                )
+                AppScreen.FOOD -> Column(modifier = Modifier.fillMaxSize()) {
+                    // Entry to the Kiez businesses that used to fill the home page
+                    Surface(
+                        shape = RoundedCornerShape(14.dp),
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .clickable { viewModel.navigateTo(AppScreen.KIEZ_BETRIEBE) }
+                    ) {
+                        Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text("🏪", fontSize = 22.sp)
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    if (uiState.language == AppLanguage.TURKISH) "Mahalle İşletmeleri (${com.example.data.repository.SampleData.businesses.size + uiState.customBusinesses.size})" else "Kiez-Betriebe (${com.example.data.repository.SampleData.businesses.size + uiState.customBusinesses.size})",
+                                    fontWeight = FontWeight.Bold, fontSize = 15.sp
+                                )
+                                Text(
+                                    if (uiState.language == AppLanguage.TURKISH) "Dükkanlar, kafeler, fırınlar – adres ve iletişim" else "Läden, Cafés, Bäckereien – Adressen und Kontakt",
+                                    fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Text("→", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    Box(modifier = Modifier.weight(1f)) {
+                        FoodScreen(
+                            language = uiState.language,
+                            activeCuisine = uiState.activeFoodCuisine,
+                            onSelectCuisine = { viewModel.setFoodCuisine(it) },
+                            favoriteIds = uiState.favoriteIds,
+                            onToggleFavorite = { viewModel.toggleFavorite(it) }
+                        )
+                    }
+                }
 
                 AppScreen.EVENTS -> EventsScreen(
                     language = uiState.language,

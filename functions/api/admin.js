@@ -8,16 +8,27 @@ export async function onRequestGet({ request, env }) {
   const database = await db(env);
   if (!database) return noDb();
   const read = (sql) => database.prepare(sql).all().then((r) => r.results);
-  const [stories, posts, comments, submissions, users] = await Promise.all([
+  const statsFrom = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
+  const [stories, posts, comments, submissions, users, ads, adRequests, adStats] = await Promise.all([
     read(`SELECT id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, created_at, approved_at, link FROM stories ORDER BY created_at DESC LIMIT 100`),
     read(`SELECT id, title, description, kiez, category, author, media_key, user_id, status, created_at FROM reporter_posts ORDER BY created_at DESC LIMIT 100`),
     read(`SELECT id, post_id, target, kind, user_id, author, text, status, created_at FROM reporter_comments ORDER BY created_at DESC LIMIT 100`),
     read(`SELECT id, type, payload, status, created_at FROM submissions ORDER BY created_at DESC LIMIT 100`),
     read(`SELECT id, email, display_name, trusted, created_at FROM users ORDER BY created_at DESC LIMIT 200`),
+    read(`SELECT * FROM ads ORDER BY active DESC, priority DESC, created_at DESC LIMIT 200`),
+    read(`SELECT id, company, person, email, phone, size, message, status, paid_until, created_at FROM ad_requests ORDER BY created_at DESC LIMIT 100`),
+    database.prepare(`SELECT ad_id, SUM(imp) AS imp, SUM(clk) AS clk FROM ad_stats WHERE day >= ? GROUP BY ad_id`).bind(statsFrom).all().then((r) => r.results),
   ]);
+  const statsById = Object.fromEntries(adStats.map((s) => [s.ad_id, s]));
   const now = Date.now();
   const marked = stories.map((s) => (s.status === "approved" && s.approved_at + s.duration_hours * 3600000 < now ? { ...s, status: "expired" } : s));
-  return json({ stories: marked, posts, comments, users, submissions: submissions.map((s) => ({ ...s, payload: JSON.parse(s.payload) })) });
+  return json({
+    stories: marked, posts, comments, users,
+    submissions: submissions.map((s) => ({ ...s, payload: JSON.parse(s.payload) })),
+    ads: ads.map((a) => ({ ...a, imp30: statsById[a.id]?.imp || 0, clk30: statsById[a.id]?.clk || 0 })),
+    adRequests,
+    stripe: Boolean(env.STRIPE_SECRET_KEY), stripeWebhook: Boolean(env.STRIPE_WEBHOOK_SECRET),
+  });
 }
 
 async function createStory(database, body) {
@@ -49,6 +60,35 @@ async function createInstagramStory(database, body) {
   return json({ id, link, durationHours: hours }, 201);
 }
 
+// Sponsor ads (web + app). Links must be http(s), tel: or WhatsApp numbers.
+const AD_TEXT_FIELDS = ["name", "headline_de", "headline_tr", "headline_en", "cta_de", "cta_tr", "cta_en", "kieze", "plan", "request_id"];
+function adUrl(value) {
+  const v = String(value ?? "").trim();
+  return /^(https:\/\/|http:\/\/|\/media\/ads\/|assets\/)/.test(v) ? v.slice(0, 400) : "";
+}
+async function saveAd(database, ad) {
+  const now = Date.now();
+  const id = /^[\w-]{2,40}$/.test(ad.id || "") ? ad.id : `ad_${crypto.randomUUID().slice(0, 8)}`;
+  const row = Object.fromEntries(AD_TEXT_FIELDS.map((k) => [k, cleanText(ad[k], k.startsWith("headline") ? 200 : 120)]));
+  if (!row.name) return json({ error: "missing_fields" }, 400);
+  const places = String(ad.places || "slider,home").split(",").map((p) => p.trim()).filter((p) => ["slider", "home", "quiz"].includes(p)).join(",") || "slider,home";
+  const values = [
+    row.name, adUrl(ad.image), row.headline_de, row.headline_tr, row.headline_en, row.cta_de, row.cta_tr, row.cta_en,
+    adUrl(ad.link_web), cleanText(ad.link_wa, 40).replace(/[^\d+]/g, ""), cleanText(ad.link_tel, 40).replace(/[^\d+ ]/g, ""), adUrl(ad.link_ig),
+    places, row.kieze, Math.max(0, Math.min(Number(ad.priority) || 0, 100)), row.plan, row.request_id,
+    Number(ad.start_at) || 0, Number(ad.end_at) || 0, ad.active === false || ad.active === 0 ? 0 : 1, now,
+  ];
+  const exists = await database.prepare(`SELECT id FROM ads WHERE id = ?`).bind(id).first();
+  if (exists) {
+    await database.prepare(`UPDATE ads SET name=?, image=?, headline_de=?, headline_tr=?, headline_en=?, cta_de=?, cta_tr=?, cta_en=?, link_web=?, link_wa=?, link_tel=?, link_ig=?, places=?, kieze=?, priority=?, plan=?, request_id=?, start_at=?, end_at=?, active=?, updated_at=? WHERE id=?`)
+      .bind(...values, id).run();
+  } else {
+    await database.prepare(`INSERT INTO ads (name, image, headline_de, headline_tr, headline_en, cta_de, cta_tr, cta_en, link_web, link_wa, link_tel, link_ig, places, kieze, priority, plan, request_id, start_at, end_at, active, updated_at, id, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+      .bind(...values, id, now).run();
+  }
+  return json({ ok: true, id });
+}
+
 // Editorial comments always carry the fixed, visible "Kiez-Redaktion" label.
 async function createEditorialComment(database, body) {
   const text = cleanText(body.text, 500);
@@ -71,6 +111,16 @@ export async function onRequestPost({ request, env }) {
   const { type, id, action } = body;
   if (action === "createStory") return createStory(database, body);
   if (action === "createInstagramStory") return createInstagramStory(database, body);
+  if (action === "adSave") return saveAd(database, body.ad || {});
+  if (action === "adDelete") {
+    await database.prepare(`DELETE FROM ads WHERE id = ?`).bind(cleanText(body.id, 40)).run();
+    return json({ ok: true });
+  }
+  if (action === "requestStatus") {
+    const status = ["new", "contacted", "done", "paid", "canceled"].includes(body.status) ? body.status : "done";
+    await database.prepare(`UPDATE ad_requests SET status = ? WHERE id = ?`).bind(status, cleanText(body.id, 40)).run();
+    return json({ ok: true });
+  }
   if (action === "editorialComment") return createEditorialComment(database, body);
   if (action === "trustUser") {
     await database.prepare(`UPDATE users SET trusted = ? WHERE id = ?`).bind(body.trusted ? 1 : 0, cleanText(body.userId, 60)).run();

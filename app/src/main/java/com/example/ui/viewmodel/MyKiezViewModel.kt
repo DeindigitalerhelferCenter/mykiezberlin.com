@@ -39,7 +39,9 @@ enum class AppScreen {
     BERLIN_TIPS,
     SPORTS_AND_MARKETS,
     KIEZ_MATCH,
-    COMMUNITY
+    COMMUNITY,
+    WERBEN,
+    KIEZ_BETRIEBE
 }
 
 data class UiState(
@@ -139,6 +141,23 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                 android.widget.Toast.makeText(app, "Server-Admin nicht erreichbar oder Token falsch", android.widget.Toast.LENGTH_LONG).show()
             }
         }
+    }
+
+    /** URL of the advertising page (mykiezberlin.com/werben) shown inside the app. */
+    var werbenUrl: String = "https://mykiezberlin.com/werben"
+        private set
+
+    fun openWerben(size: String = "", claim: String = "") {
+        val lang = when (_uiState.value.language) {
+            AppLanguage.TURKISH -> "tr"
+            AppLanguage.ENGLISH -> "en"
+            else -> "de"
+        }
+        val query = StringBuilder("?lang=$lang")
+        if (size.isNotBlank()) query.append("&size=").append(android.net.Uri.encode(size))
+        if (claim.isNotBlank()) query.append("&claim=").append(android.net.Uri.encode(claim))
+        werbenUrl = "https://mykiezberlin.com/werben$query"
+        navigateTo(AppScreen.WERBEN)
     }
 
     fun setAdminToken(token: String) {
@@ -289,6 +308,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                                         category = item.optString("category", "Handel"),
                                         rating = 0.0,
                                         reviewsCount = 0,
+                                        verified = true, // submitted by the business itself and approved by the admin
                                         kiezName = item.optString("kiezName", item.optString("kiez", "Berlin")),
                                         distance = "0.5 km",
                                         address = item.optString("address", "Berlin"),
@@ -391,6 +411,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                                         category = item.optString("category", "Handel"),
                                         rating = 0.0,
                                         reviewsCount = 0,
+                                        verified = true, // submitted by the business itself and approved by the admin
                                         kiezName = item.optString("kiezName", item.optString("kiez", "Berlin")),
                                         distance = "0.5 km",
                                         address = item.optString("address", "Berlin"),

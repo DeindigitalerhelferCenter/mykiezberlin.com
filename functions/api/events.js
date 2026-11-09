@@ -43,7 +43,14 @@ function festivals(rows, today) {
       url: /^https?:\/\//.test(r.www || "") ? r.www : "https://www.berlin.de/events/volksfeste/",
       description: clean(r.bemerkungen),
     };
-  }).filter((e) => e.title && e.from && e.to >= today);
+  }).filter((e) => e.title && e.from && e.to >= today && !implausibleRange(e, today));
+}
+
+// Some source rows carry a typo in the end year (e.g. a May festival "until 2029").
+// A festival that already started and claims to run more than 60 days is skipped.
+const MAX_FESTIVAL_DAYS = 60;
+function implausibleRange(event, today) {
+  return event.from < today && event.to - event.from > MAX_FESTIVAL_DAYS * DAY_MS;
 }
 
 // The market list keeps old seasons; only markets with a date in the future are kept.

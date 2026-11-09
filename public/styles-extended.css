@@ -102,3 +102,22 @@ html.ext-dark .chip-btn.active { background-color: var(--berlin-red); color: #ff
 html.ext-dark .ext-table tr.ext-berlin { color: #111; }
 .ext-place { display: block; width: 100%; padding: 8px 10px; margin-bottom: 6px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--surface-color); color: var(--text-main); text-align: left; cursor: pointer; }
 .ext-place span { display: block; font-size: 11px; color: var(--text-muted); }
+
+/* ---------- Advertising (app-werbung.js): sponsors, packages, unverified businesses ---------- */
+.mkb-ad { display: block; text-decoration: none; color: inherit; position: relative; }
+.mkb-ad-example { border: 2px dashed var(--berlin-red); background: var(--surface-color, #fff); }
+.mkb-packages { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin: 8px 0 12px; }
+.mkb-pk { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 14px; border: 2px solid #121212; border-radius: 16px; background: var(--surface-color, #fff); color: inherit; text-decoration: none; box-shadow: 0 8px 24px rgba(0, 0, 0, .08); }
+.mkb-pk.hl { border-width: 3px; box-shadow: 6px 6px 0 #F0D722, 0 8px 24px rgba(0, 0, 0, .08); }
+.mkb-pk b { font-size: 19px; font-weight: 800; }
+.mkb-pk small { color: var(--text-muted, #606770); font-size: 13px; }
+.mkb-price { font-size: 32px; font-weight: 800; line-height: 1; color: #E30613; }
+.mkb-price small { font-size: 13px; font-weight: 700; }
+.mkb-start { background: #F0D722; color: #000; border: 1.5px solid #121212; border-radius: 10px; padding: 5px 8px; font-size: 13px; font-weight: 700; }
+.mkb-pk ul { margin: 2px 0 6px; padding: 0; list-style: none; font-size: 13.5px; }
+.mkb-pk li { padding-left: 22px; position: relative; margin: 4px 0; }
+.mkb-pk li::before { content: "✅"; position: absolute; left: 0; font-size: 13px; }
+.mkb-badge { position: absolute; top: -12px; right: 12px; background: #F0D722; color: #000; border: 2px solid #121212; border-radius: 20px; padding: 1px 10px; font-size: 12px; font-weight: 800; }
+.mkb-unverified { display: grid; gap: 4px; margin: 8px 0; padding: 8px 10px; border-radius: 10px; background: rgba(240, 215, 34, .18); font-size: 12.5px; }
+.mkb-unverified a { color: #0288D1; font-weight: 700; text-decoration: none; }
+.mkb-unverified-tag { color: #B26A00; font-weight: 700; }

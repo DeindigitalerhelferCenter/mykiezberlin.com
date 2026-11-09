@@ -1,5 +1,7 @@
 package com.example.ui.screens
 
+import com.example.ui.components.HomeAdsSection
+
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -60,7 +62,11 @@ fun BusinessesScreen(
     showAddBusinessDialog: Boolean = false,
     onOpenAddBusiness: () -> Unit = {},
     onCloseAddBusiness: () -> Unit = {},
-    onNavigateToScreen: (AppScreen) -> Unit = {}
+    onNavigateToScreen: (AppScreen) -> Unit = {},
+    // Home page: sponsors and packages instead of the business list (the list lives under "Yeme & İçme").
+    showBusinessList: Boolean = true,
+    showHomeExtras: Boolean = true,
+    onOpenWerben: (size: String, claim: String) -> Unit = { _, _ -> }
 ) {
     val context = LocalContext.current
     var localAddBusinessModal by remember { mutableStateOf(false) }
@@ -106,7 +112,7 @@ fun BusinessesScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(bottom = 90.dp)
                     ) {
-                        item(key = "stories") {
+                        if (showHomeExtras) item(key = "stories") {
                             KiezStoriesBar(
                                 stories = stories,
                                 language = language,
@@ -114,13 +120,13 @@ fun BusinessesScreen(
                                 onAddStoryClick = onAddStoryClick
                             )
                         }
-                        item(key = "sponsors") {
+                        if (showHomeExtras) item(key = "sponsors") {
                             SponsorBannerComponent(
                                 language = language,
                                 modifier = Modifier.padding(vertical = 2.dp)
                             )
                         }
-                        item(key = "control_bar") {
+                        if (showBusinessList) item(key = "control_bar") {
                             BusinessesControlBar(
                                 businessCount = allBusinesses.size,
                                 isFilterActive = isFilterActive,
@@ -157,7 +163,7 @@ fun BusinessesScreen(
                         contentPadding = PaddingValues(bottom = 90.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        item(key = "stories") {
+                        if (showHomeExtras) item(key = "stories") {
                             KiezStoriesBar(
                                 stories = stories,
                                 language = language,
@@ -165,25 +171,25 @@ fun BusinessesScreen(
                                 onAddStoryClick = onAddStoryClick
                             )
                         }
-                        item(key = "sponsors") {
+                        if (showHomeExtras) item(key = "sponsors") {
                             SponsorBannerComponent(
                                 language = language,
                                 modifier = Modifier.padding(vertical = 2.dp)
                             )
                         }
-                        item(key = "live_quick_hub") {
+                        if (showHomeExtras) item(key = "live_quick_hub") {
                             BerlinLiveQuickAccessBanner(
                                 language = language,
                                 onNavigateToScreen = onNavigateToScreen
                             )
                         }
-                        item(key = "manset_slider") {
+                        if (showHomeExtras) item(key = "manset_slider") {
                             MansetSliderComponent(language = language)
                         }
-                        item(key = "bigpara_strip") {
+                        if (showHomeExtras) item(key = "bigpara_strip") {
                             BigparaMarketStrip(language = language)
                         }
-                        item(key = "control_bar") {
+                        if (showBusinessList) item(key = "control_bar") {
                             BusinessesControlBar(
                                 businessCount = allBusinesses.size,
                                 isFilterActive = isFilterActive,
@@ -195,7 +201,11 @@ fun BusinessesScreen(
                             )
                         }
 
-                        if (allBusinesses.isEmpty()) {
+                        if (!showBusinessList) {
+                            item(key = "home_ads") {
+                                HomeAdsSection(language = language, onOpenWerben = { size -> onOpenWerben(size, "") })
+                            }
+                        } else if (allBusinesses.isEmpty()) {
                             item(key = "empty") {
                                 EmptyBusinessesView(language = language, onResetFilters = onResetFilters)
                             }
@@ -207,6 +217,7 @@ fun BusinessesScreen(
                                         business = business,
                                         isFav = isFav,
                                         language = language,
+                                        onClaim = { onOpenWerben("s", business.name) },
                                         onSelect = { onSelectBusiness(business) },
                                         onToggleFav = { onToggleFavorite(business.id) },
                                         onCall = {
@@ -232,7 +243,7 @@ fun BusinessesScreen(
                         contentPadding = PaddingValues(bottom = 90.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        item(key = "stories") {
+                        if (showHomeExtras) item(key = "stories") {
                             KiezStoriesBar(
                                 stories = stories,
                                 language = language,
@@ -240,25 +251,25 @@ fun BusinessesScreen(
                                 onAddStoryClick = onAddStoryClick
                             )
                         }
-                        item(key = "sponsors") {
+                        if (showHomeExtras) item(key = "sponsors") {
                             SponsorBannerComponent(
                                 language = language,
                                 modifier = Modifier.padding(vertical = 2.dp)
                             )
                         }
-                        item(key = "live_quick_hub") {
+                        if (showHomeExtras) item(key = "live_quick_hub") {
                             BerlinLiveQuickAccessBanner(
                                 language = language,
                                 onNavigateToScreen = onNavigateToScreen
                             )
                         }
-                        item(key = "manset_slider") {
+                        if (showHomeExtras) item(key = "manset_slider") {
                             MansetSliderComponent(language = language)
                         }
-                        item(key = "bigpara_strip") {
+                        if (showHomeExtras) item(key = "bigpara_strip") {
                             BigparaMarketStrip(language = language)
                         }
-                        item(key = "control_bar") {
+                        if (showBusinessList) item(key = "control_bar") {
                             BusinessesControlBar(
                                 businessCount = allBusinesses.size,
                                 isFilterActive = isFilterActive,
@@ -270,7 +281,11 @@ fun BusinessesScreen(
                             )
                         }
 
-                        if (allBusinesses.isEmpty()) {
+                        if (!showBusinessList) {
+                            item(key = "home_ads") {
+                                HomeAdsSection(language = language, onOpenWerben = { size -> onOpenWerben(size, "") })
+                            }
+                        } else if (allBusinesses.isEmpty()) {
                             item(key = "empty") {
                                 EmptyBusinessesView(language = language, onResetFilters = onResetFilters)
                             }
@@ -282,6 +297,7 @@ fun BusinessesScreen(
                                         business = business,
                                         isFav = isFav,
                                         language = language,
+                                        onClaim = { onOpenWerben("s", business.name) },
                                         onSelect = { onSelectBusiness(business) },
                                         onToggleFav = { onToggleFavorite(business.id) },
                                         onCall = {
@@ -519,6 +535,7 @@ private fun CardBusinessItem(
     business: LocalBusiness,
     isFav: Boolean,
     language: AppLanguage,
+    onClaim: () -> Unit = {},
     onSelect: () -> Unit,
     onToggleFav: () -> Unit,
     onCall: () -> Unit,
@@ -614,14 +631,16 @@ private fun CardBusinessItem(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Icon(imageVector = Icons.Default.Star, contentDescription = null, tint = BerlinYellow, modifier = Modifier.size(13.dp))
-                        Text(
-                            text = "${business.rating} (${business.reviewsCount})",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                        Text(text = "·", color = Color.LightGray, fontSize = 10.sp)
+                        if (business.verified && business.reviewsCount > 0) {
+                            Icon(imageVector = Icons.Default.Star, contentDescription = null, tint = BerlinYellow, modifier = Modifier.size(13.dp))
+                            Text(
+                                text = "${business.rating} (${business.reviewsCount})",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Text(text = "·", color = Color.LightGray, fontSize = 10.sp)
+                        }
                         Text(text = business.distance, fontSize = 11.sp, color = Color.White)
                     }
                 }
@@ -629,6 +648,7 @@ private fun CardBusinessItem(
 
             // Card Body Info
             Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (!business.verified) UnverifiedNotice(language = language, onClaim = onClaim)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -725,6 +745,7 @@ private fun CompactBusinessListItem(
     business: LocalBusiness,
     isFav: Boolean,
     language: AppLanguage,
+    onClaim: () -> Unit = {},
     onSelect: () -> Unit,
     onToggleFav: () -> Unit,
     onCall: () -> Unit,
@@ -785,8 +806,16 @@ private fun CompactBusinessListItem(
                 )
 
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Icon(imageVector = Icons.Default.Star, contentDescription = null, tint = BerlinYellow, modifier = Modifier.size(12.dp))
-                    Text(text = "${business.rating}", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                    if (business.verified && business.reviewsCount > 0) {
+                        Icon(imageVector = Icons.Default.Star, contentDescription = null, tint = BerlinYellow, modifier = Modifier.size(12.dp))
+                        Text(text = "${business.rating}", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                    } else {
+                        Text(
+                            text = if (language == AppLanguage.TURKISH) "doğrulanmadı" else "nicht verifiziert",
+                            fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFFB26A00),
+                            modifier = Modifier.clickable { onClaim() }
+                        )
+                    }
                     Text(text = "·", color = Color.Gray, fontSize = 10.sp)
                     Text(text = business.distance, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
@@ -1238,3 +1267,28 @@ fun BerlinLiveQuickAccessBanner(
     }
 }
 
+
+
+/** Shown on sample businesses whose details were not confirmed: no rating, link to claim the listing. */
+@Composable
+private fun UnverifiedNotice(language: AppLanguage, onClaim: () -> Unit) {
+    val tr = language == AppLanguage.TURKISH
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(Color(0x2EF0D722))
+            .clickable { onClaim() }
+            .padding(horizontal = 10.dp, vertical = 7.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        Text(
+            text = if (tr) "ℹ️ Bilgiler doğrulanmadı · henüz değerlendirilmedi" else "ℹ️ Angaben nicht verifiziert · noch nicht bewertet",
+            fontSize = 12.sp
+        )
+        Text(
+            text = if (tr) "Bu senin işletmen mi? Kaydını sahiplen →" else "Dein Betrieb? Eintrag übernehmen →",
+            fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0288D1)
+        )
+    }
+}

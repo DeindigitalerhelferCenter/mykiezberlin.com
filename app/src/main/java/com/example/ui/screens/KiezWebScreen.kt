@@ -42,7 +42,23 @@ fun KiezWebScreen(url: String, onBack: () -> Unit) {
                 layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
-                webViewClient = WebViewClient()
+                webViewClient = object : WebViewClient() {
+                    // Card payment (Stripe), phone, mail and WhatsApp open outside the in-app page.
+                    override fun shouldOverrideUrlLoading(view: WebView, request: android.webkit.WebResourceRequest): Boolean {
+                        val target = request.url
+                        val scheme = target.scheme.orEmpty()
+                        val host = target.host.orEmpty()
+                        val external = scheme in listOf("tel", "mailto", "whatsapp", "intent") ||
+                            host.endsWith("stripe.com") || host == "wa.me" || host.endsWith("instagram.com")
+                        if (!external) return false
+                        return try {
+                            view.context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, target))
+                            true
+                        } catch (_: Exception) {
+                            false
+                        }
+                    }
+                }
                 webChromeClient = object : WebChromeClient() {
                     override fun onShowFileChooser(
                         view: WebView,

@@ -67,6 +67,11 @@ const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS sessions (token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL, expires_at INTEGER)`,
   `CREATE TABLE IF NOT EXISTS login_attempts (ip TEXT, created_at INTEGER)`,
   `CREATE TABLE IF NOT EXISTS likes (target TEXT NOT NULL, target_id TEXT NOT NULL, voter TEXT NOT NULL, created_at INTEGER, PRIMARY KEY (target, target_id, voter))`,
+  // Advertising: requests from /werben, paid subscriptions (Stripe), sponsor ads and their daily counters.
+  `CREATE TABLE IF NOT EXISTS ad_requests (id TEXT PRIMARY KEY, company TEXT NOT NULL, person TEXT DEFAULT '', email TEXT NOT NULL, phone TEXT DEFAULT '', size TEXT DEFAULT 's', message TEXT DEFAULT '', status TEXT DEFAULT 'new', stripe_session TEXT DEFAULT '', stripe_sub TEXT DEFAULT '', paid_until INTEGER DEFAULT 0, created_at INTEGER)`,
+  `CREATE TABLE IF NOT EXISTS ads (id TEXT PRIMARY KEY, name TEXT NOT NULL, image TEXT DEFAULT '', headline_de TEXT DEFAULT '', headline_tr TEXT DEFAULT '', headline_en TEXT DEFAULT '', cta_de TEXT DEFAULT '', cta_tr TEXT DEFAULT '', cta_en TEXT DEFAULT '', link_web TEXT DEFAULT '', link_wa TEXT DEFAULT '', link_tel TEXT DEFAULT '', link_ig TEXT DEFAULT '', places TEXT DEFAULT 'slider,home', kieze TEXT DEFAULT '', priority INTEGER DEFAULT 0, plan TEXT DEFAULT '', request_id TEXT DEFAULT '', start_at INTEGER DEFAULT 0, end_at INTEGER DEFAULT 0, active INTEGER DEFAULT 1, created_at INTEGER, updated_at INTEGER)`,
+  `CREATE TABLE IF NOT EXISTS ad_stats (ad_id TEXT NOT NULL, day TEXT NOT NULL, imp INTEGER DEFAULT 0, clk INTEGER DEFAULT 0, PRIMARY KEY (ad_id, day))`,
+  `CREATE TABLE IF NOT EXISTS payments (id TEXT PRIMARY KEY, request_id TEXT, kind TEXT, amount INTEGER, created_at INTEGER)`,
 ];
 
 // Columns added after launch. SQLite has no ADD COLUMN IF NOT EXISTS, so a repeat simply fails.

@@ -1030,7 +1030,7 @@ function renderStorySlide() {
       </div>
 
       <div class="story-watermark-logo">
-        <img src="assets/images/mykiez_logo.png" alt="My Kiez Berlin">
+        <img src="assets/images/mykiez_logo_watermark.png" alt="">
       </div>
 
       <div class="story-content-view">

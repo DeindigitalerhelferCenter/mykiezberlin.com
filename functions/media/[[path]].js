@@ -2,7 +2,7 @@
 export async function onRequestGet({ params, env }) {
   if (!env.BUCKET) return new Response("Not found", { status: 404 });
   const key = (params.path || []).join("/");
-  if (!key.startsWith("stories/") && !key.startsWith("posts/")) return new Response("Not found", { status: 404 });
+  if (!key.startsWith("stories/") && !key.startsWith("posts/") && !key.startsWith("ads/")) return new Response("Not found", { status: 404 });
   const object = await env.BUCKET.get(key);
   if (!object) return new Response("Not found", { status: 404 });
   const headers = new Headers();

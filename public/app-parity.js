@@ -813,10 +813,14 @@ function canvasToFile(canvas, name) {
   return new Promise((resolve) => canvas.toBlob((blob) => resolve(new File([blob], name, { type: "image/jpeg" })), "image/jpeg", 0.88));
 }
 
-// Images get the logo watermark; a text-only story becomes a generated image.
+// The story viewer (web and app) shows the logo top right, so uploads stay unstamped;
+// otherwise the logo would appear twice. Set to true to burn the logo into uploads again.
+const STAMP_UPLOADS = false;
+
+// A text-only story becomes a generated image.
 async function prepareStoryFile(file, headline, subtext) {
   if (file && !file.type.startsWith("image/")) return file;
-  const logo = await loadImage("assets/images/mykiez_logo.png").catch(() => null);
+  const logo = await loadImage("assets/images/mykiez_logo_watermark.png").catch(() => null);
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
   if (file) {
@@ -838,10 +842,10 @@ async function prepareStoryFile(file, headline, subtext) {
     drawWrapped(ctx, headline, 540, 520, 900, 76, "800 64px sans-serif");
     drawWrapped(ctx, subtext, 540, 900, 900, 52, "400 40px sans-serif");
   }
-  if (logo) {
-    const size = canvas.width * 0.16;
-    ctx.globalAlpha = 0.9;
-    ctx.drawImage(logo, canvas.width - size - 24, canvas.height - size - 24, size, size);
+  if (logo && STAMP_UPLOADS) {
+    const size = canvas.width * 0.24;
+    ctx.globalAlpha = 0.92;
+    ctx.drawImage(logo, canvas.width - size - 24, 24, size, size);
     ctx.globalAlpha = 1;
   }
   return canvasToFile(canvas, "story.jpg");

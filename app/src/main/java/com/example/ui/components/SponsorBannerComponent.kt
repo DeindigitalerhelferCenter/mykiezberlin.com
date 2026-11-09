@@ -44,7 +44,21 @@ fun SponsorBannerComponent(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val sponsors = SampleData.sponsors
+    // Ads from the admin panel come first; the built-in sponsors stay behind them (same order as the web).
+    val serverAds by com.example.data.repository.AdsRepository.sliderAds.collectAsState()
+    LaunchedEffect(Unit) { com.example.data.repository.AdsRepository.refresh() }
+    val sponsors = remember(serverAds) {
+        serverAds.map { ad ->
+            SponsorBanner(
+                id = "srv_" + ad.id, name = ad.name, drawableRes = com.example.R.drawable.mykiez_logo,
+                headlineDe = ad.headlineDe.ifBlank { ad.name }, headlineTr = ad.headlineTr.ifBlank { ad.headlineDe.ifBlank { ad.name } }, headlineEn = ad.headlineEn.ifBlank { ad.headlineDe.ifBlank { ad.name } },
+                ctaDe = ad.ctaDe.ifBlank { "Ansehen" }, ctaTr = ad.ctaTr.ifBlank { "Gör" }, ctaEn = ad.ctaEn.ifBlank { "View" },
+                linkWeb = ad.linkWeb.ifBlank { ad.linkIg }, linkWa = if (ad.linkWa.isNotBlank()) "https://wa.me/" + ad.linkWa.filter { it.isDigit() } else "", linkTel = ad.linkTel,
+                category = "Anzeige", priority = 10, imageUrl = ad.image, serverAdId = ad.id
+            )
+        } + SampleData.sponsors
+    }
+    LaunchedEffect(serverAds) { com.example.data.repository.AdsRepository.trackImpressions(serverAds.map { it.id }) }
     if (sponsors.isEmpty()) return
 
     // 1. GÖREV: 5 Saniyede bir akıcı değişim (Auto carousel every 5 seconds)
@@ -57,7 +71,7 @@ fun SponsorBannerComponent(
         }
     }
 
-    val currentSponsor = sponsors[currentIndex]
+    val currentSponsor = sponsors[currentIndex % sponsors.size]
 
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
@@ -142,7 +156,10 @@ fun SponsorBannerComponent(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { openSponsorAction(context, sponsor) },
+                        .clickable {
+                            if (sponsor.serverAdId.isNotBlank()) com.example.data.repository.AdsRepository.trackClick(sponsor.serverAdId)
+                            openSponsorAction(context, sponsor)
+                        },
                     shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(2.dp)
@@ -157,7 +174,16 @@ fun SponsorBannerComponent(
                                 .clip(RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Image(
+                            if (sponsor.imageUrl.isNotBlank()) {
+                                coil.compose.AsyncImage(
+                                    model = sponsor.imageUrl,
+                                    contentDescription = sponsor.name,
+                                    contentScale = ContentScale.Fit,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
+                            } else Image(
                                 painter = painterResource(id = sponsor.drawableRes),
                                 contentDescription = sponsor.name,
                                 contentScale = ContentScale.Fit,

@@ -25,6 +25,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -577,30 +579,17 @@ fun StoryViewerDialog(
                         )
                     }
 
-                    // Watermark Preview Badge auf Bild unten rechts
-                    Surface(
-                        shape = RoundedCornerShape(topStart = 8.dp),
-                        color = Color.Black.copy(alpha = 0.75f),
-                        modifier = Modifier.align(Alignment.BottomEnd)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.mykiez_logo),
-                                contentDescription = null,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "mykiezberlin.com",
-                                color = Color.White,
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
+                    // Plain logo watermark, top right, transparent (same as the saved image and the web)
+                    Image(
+                        painter = painterResource(id = R.drawable.mykiez_logo_watermark),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(top = 10.dp, end = 10.dp)
+                            .fillMaxWidth(0.24f)
+                            .aspectRatio(1f)
+                            .alpha(0.92f)
+                    )
                 }
 
                 // Zoom hint overlay for user convenience

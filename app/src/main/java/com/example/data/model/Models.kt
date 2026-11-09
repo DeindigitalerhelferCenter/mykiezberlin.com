@@ -106,6 +106,7 @@ data class LocalBusiness(
     val description: String = "Ihr lokaler Kiez-Partner für erstklassige Qualität und persönlichen Service direkt vor Ort.",
     val hasCoupon: Boolean = false,
     val couponText: String = "",
+    val verified: Boolean = false, // false = details not confirmed by the business; rating is hidden
     val lat: Double = 52.4986,
     val lng: Double = 13.4030
 )
@@ -223,7 +224,9 @@ data class SponsorBanner(
     val linkWa: String,
     val linkTel: String,
     val category: String,
-    val priority: Int = 5
+    val priority: Int = 5,
+    val imageUrl: String = "",     // server ads (admin panel) bring an image URL instead of a drawable
+    val serverAdId: String = ""    // set for ads from /api/ads; used for anonymous click counting
 )
 
 data class QuizQuestion(

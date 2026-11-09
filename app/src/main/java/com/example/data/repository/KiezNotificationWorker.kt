@@ -62,16 +62,37 @@ class KiezNotificationWorker(context: Context, params: WorkerParameters) : Corou
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
             val list = JSONObject(response.body?.string().orEmpty()).optJSONArray("items")
-            return demo + (0 until (list?.length() ?: 0)).map { i ->
+            return demo + adminRequestItems() + (0 until (list?.length() ?: 0)).map { i ->
                 val o = list!!.getJSONObject(i)
                 Item(o.optString("id"), o.optString("kind"), o.optString("title"), o.optString("body"), o.optString("screen"))
             }
         }
     }
 
+    // Admin only: new advertising requests from /werben (also listed in the web admin panel).
+    private fun adminRequestItems(): List<Item> {
+        if (!KiezStorageManager.isAdminAuthenticated(applicationContext)) return emptyList()
+        return try {
+            val request = Request.Builder().url(WERBEN_ADMIN_URL)
+                .header("x-admin-token", KiezStorageManager.getAdminToken(applicationContext)).build()
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return emptyList()
+                val list = JSONObject(response.body?.string().orEmpty()).optJSONArray("requests") ?: return emptyList()
+                (0 until list.length()).mapNotNull { i ->
+                    val o = list.getJSONObject(i)
+                    if (o.optString("status") != "new") return@mapNotNull null
+                    val size = mapOf("s" to "Klein 29 €", "m" to "Mittel 49 €", "l" to "Groß 89 €", "banner" to "Banner", "gp" to "Gründungspartner")[o.optString("size")] ?: o.optString("size")
+                    Item("req-" + o.optString("id"), "admin", "Neue Werbeanfrage", "${o.optString("company")} · $size", "ADMIN")
+                }
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
     // Critical warnings always get through; everything else shares a small daily budget.
     private fun mayShow(item: Item): Boolean {
-        if (item.kind == "critical") return true
+        if (item.kind == "critical" || item.kind == "admin") return true
         val today = LocalDate.now().toString()
         val used = if (prefs.getString(KEY_DAY, "") == today) prefs.getInt(KEY_COUNT, 0) else 0
         if (used >= DAILY_LIMIT) return false
@@ -93,7 +114,7 @@ class KiezNotificationWorker(context: Context, params: WorkerParameters) : Corou
         )
         val logo = ContextCompat.getDrawable(applicationContext, R.mipmap.ic_launcher)?.toBitmap(LOGO_SIZE, LOGO_SIZE)
         val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_mykiez_logo)
             .setLargeIcon(logo)
             .setContentTitle(item.title)
             .setContentText(item.body)
@@ -117,6 +138,7 @@ class KiezNotificationWorker(context: Context, params: WorkerParameters) : Corou
 
     companion object {
         private const val NOTIFY_URL = "https://mykiezberlin.com/api/notify"
+        private const val WERBEN_ADMIN_URL = "https://mykiezberlin.com/api/werben"
         private const val WORK_NAME = "kiez_notifications"
         private const val CHANNEL_ID = "kiez_alerts"
         private const val PREFS = "kiez_notifications"

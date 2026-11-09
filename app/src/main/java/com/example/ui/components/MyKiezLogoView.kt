@@ -35,7 +35,7 @@ fun MyKiezLogoView(
     ) {
         // High-res Vector Logo featuring Berlin Bear and TV Tower
         Image(
-            painter = painterResource(id = R.drawable.ic_mykiez_logo),
+            painter = painterResource(id = R.drawable.mykiez_logo),
             contentDescription = "My Kiez Berlin Logo",
             contentScale = ContentScale.Fit,
             modifier = Modifier
