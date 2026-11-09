@@ -1,11 +1,11 @@
 {
-  "versionCode": 5,
-  "versionName": "1.4",
+  "versionCode": 6,
+  "versionName": "1.5",
   "apkUrl": "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin.com.apk",
   "mandatory": false,
   "notes": {
-    "de": "Neu: Community mit Antworten, kostenlose Kleinanzeigen, Benachrichtigungen und Tor-Jubel für Hertha.",
-    "tr": "Yeni: Cevaplı topluluk, ücretsiz ilanlar, bildirimler ve Hertha gol kutlaması.",
-    "en": "New: community replies, free classifieds, notifications and a Hertha goal celebration."
+    "de": "Fix: Vom Admin freigegebene Stories sind jetzt für alle Nutzer sichtbar.",
+    "tr": "Düzeltme: Admin onayladığı hikâyeler artık tüm kullanıcılara görünüyor.",
+    "en": "Fix: stories approved by the admin are now visible to all users."
   }
 }
