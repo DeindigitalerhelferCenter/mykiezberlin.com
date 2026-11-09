@@ -114,11 +114,25 @@ async function hourlyItem(now) {
   }];
 }
 
+// One-off test on the evening of 9 Nov 2026 (user request): 23:10, 23:30, 00:00, 00:30 Berlin time.
+// Each slot stays in the list 25 minutes so the app (polls every 15 min) catches it. Ends by itself after 01:00.
+const TEST_SLOTS = ["2026-11-09T23:10:00+01:00", "2026-11-09T23:30:00+01:00", "2026-11-10T00:00:00+01:00", "2026-11-10T00:30:00+01:00"];
+function eveningTest(now) {
+  return TEST_SLOTS.map((iso, i) => [Date.parse(iso), i])
+    .filter(([start]) => now >= start && now < start + 25 * 60000)
+    .map(([start, i]) => ({
+      id: `test-${start}`, kind: "test", screen: "ADD_STORY",
+      title: `🔔 Test ${i + 1}/4 – My Kiez Berlin`, body: "Testbenachrichtigung: Wenn du das siehst, funktionieren die Meldungen.",
+      title_tr: `🔔 Test ${i + 1}/4 – My Kiez Berlin`, body_tr: "Test bildirimi: Bunu görüyorsan bildirimler çalışıyor.",
+      title_en: `🔔 Test ${i + 1}/4 – My Kiez Berlin`, body_en: "Test notification: if you see this, notifications work.",
+    }));
+}
+
 async function build() {
   const now = Date.now();
   const [warnings, alerts, matches, hourly] = await Promise.allSettled([officialWarnings(), urgentAlerts(now), loadBerlinMatches(), hourlyItem(now)]);
   const value = (r) => (r.status === "fulfilled" ? r.value : []);
-  return [...value(warnings), ...value(alerts), ...value(matches).flatMap((m) => matchEvents(m, now)), ...value(hourly)];
+  return [...value(warnings), ...value(alerts), ...value(matches).flatMap((m) => matchEvents(m, now)), ...value(hourly), ...eveningTest(now)];
 }
 
 export async function onRequestGet(context) {
