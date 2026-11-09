@@ -156,8 +156,10 @@ async function createServerStory() {
   const headline = prompt("Story başlığı:");
   if (!headline) return;
   const subtext = prompt("Açıklama:") || "";
-  const kiez = prompt("Kiez:") || "Ganz Berlin";
+  const kiez = prompt("Kiez / yer (serbest: örn. Neukölln, Deutschland, Polen):", "Ganz Berlin") || "Ganz Berlin";
+  const kind = prompt("Kategori (serbest: örn. news, event, Verkehr, Politik, Sport):", "news") || "news";
+  const link = prompt("Web sayfası (https://…) – boş bırakılabilir:", "") || "";
   const durationHours = Number(prompt("Süre (saat):", "48")) || 48;
-  await adminRequest("POST", { action: "createStory", headline, subtext, kiez, durationHours });
+  await adminRequest("POST", { action: "createStory", headline, subtext, kiez, kind, link, durationHours });
   loadModerationQueue();
 }

@@ -632,10 +632,14 @@ EXTRA_TABS.reporter = function (container) {
     const card = cards[i + 1];
     if (!card) return;
     const comments = (post.comments || []).map((c) => `<div class="ext-comment"><strong>${esc(c.author)}</strong> ${esc(c.text)}</div>`).join("");
+    // One comment per person and post (same rule as the app and the server).
+    const form = hasCommented(post.id)
+      ? `<div class="ext-row" style="font-size:12px;font-weight:700;color:var(--berlin-green,#1F9D55)">✔ ${esc(tr("Dein Kommentar ist eingegangen.", "Yorumun alındı."))}</div>`
+      : `<div class="ext-row"><input id="cmt-${esc(post.id)}" class="form-control" maxlength="500" placeholder="${esc(tr("Kommentar schreiben", "Yorum yaz"))}">
+        <button class="chip-btn active" onclick="sendComment(${jsArg(post.id)})"><i class="bi bi-send-fill"></i></button></div>`;
     card.insertAdjacentHTML("beforeend", `
       <div class="ext-comments">${comments}
-        <div class="ext-row"><input id="cmt-${esc(post.id)}" class="form-control" maxlength="500" placeholder="${esc(tr("Kommentar schreiben", "Yorum yaz"))}">
-        <button class="chip-btn active" onclick="sendComment(${jsArg(post.id)})"><i class="bi bi-send-fill"></i></button></div>
+        ${form}
       </div>`);
   });
 };
@@ -645,8 +649,32 @@ async function sendComment(postId) {
   const text = input?.value.trim();
   if (!text) return;
   const res = await fetch("/api/reporter", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ comment: { postId, text } }) }).catch(() => null);
-  showToast(res?.status === 201 ? tr("Danke! Wird vor der Veröffentlichung geprüft.", "Teşekkürler! Yayından önce incelenecek.") : tr("Senden ist gerade nicht möglich.", "Şu anda gönderilemiyor."));
-  if (res?.status === 201) input.value = "";
+  if (res?.status === 409) {
+    markCommented(postId);
+    showToast(tr("Du hast hier schon kommentiert.", "Bu habere zaten yorum yazdın."));
+  } else {
+    showToast(res?.status === 201 ? tr("Danke! Wird vor der Veröffentlichung geprüft.", "Teşekkürler! Yayından önce incelenecek.") : tr("Senden ist gerade nicht möglich.", "Şu anda gönderilemiyor."));
+  }
+  if (res?.status === 201) {
+    input.value = "";
+    markCommented(postId);
+  }
+  if (res?.status === 201 || res?.status === 409) {
+    const row = input?.closest(".ext-row");
+    if (row) row.outerHTML = `<div class="ext-row" style="font-size:12px;font-weight:700;color:var(--berlin-green,#1F9D55)">✔ ${esc(tr("Dein Kommentar ist eingegangen.", "Yorumun alındı."))}</div>`;
+  }
+}
+
+function hasCommented(postId) {
+  try { return JSON.parse(localStorage.getItem("mk_commented") || "[]").includes(postId); } catch (e) { return false; }
+}
+
+function markCommented(postId) {
+  try {
+    const list = JSON.parse(localStorage.getItem("mk_commented") || "[]");
+    if (!list.includes(postId)) list.push(postId);
+    localStorage.setItem("mk_commented", JSON.stringify(list.slice(-300)));
+  } catch (e) {}
 }
 
 /* ---------- B2B ---------- */

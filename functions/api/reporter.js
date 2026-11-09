@@ -35,6 +35,9 @@ export async function onRequestPost({ request, env }) {
     if (!text || !postId) return json({ error: "missing_fields" }, 400);
     const commentIp = await ipHash(request, env);
     if (await rateLimited(database, "reporter_comments", commentIp, 10)) return json({ error: "rate_limited" }, 429);
+    // One comment per person and post; replies are left to the other neighbours.
+    const already = await database.prepare(`SELECT 1 FROM reporter_comments WHERE post_id = ? AND ip = ? LIMIT 1`).bind(postId, commentIp).first();
+    if (already) return json({ error: "already_commented" }, 409);
     await database
       .prepare(`INSERT INTO reporter_comments (id, post_id, author, text, status, ip, created_at) VALUES (?, ?, ?, ?, 'pending', ?, ?)`)
       .bind(crypto.randomUUID(), postId, cleanText(body.comment.author, 40) || "Kiez Community", text, commentIp, Date.now())
