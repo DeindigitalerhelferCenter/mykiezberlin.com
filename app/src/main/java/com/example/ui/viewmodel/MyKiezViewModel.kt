@@ -114,6 +114,54 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
     private var remoteStoriesCache: List<KiezStory> = emptyList()
 
     // Replaces the previous server stories so removed ones disappear too.
+    // Stories the admin loaded from /api/admin (incl. pending), replaced on every refresh.
+    private var adminStoriesCache: List<KiezStory> = emptyList()
+
+    private fun applyAdminStories(server: List<KiezStory>) {
+        val previous = adminStoriesCache
+        adminStoriesCache = server
+        _uiState.update { state ->
+            val kept = state.allStories.filter { story ->
+                previous.none { it.id == story.id } && server.none { it.id == story.id }
+            }
+            state.copy(allStories = server + kept)
+        }
+    }
+
+    /** Loads all server stories (incl. pending) into the admin screen. */
+    fun refreshAdminStories(showError: Boolean = false) {
+        if (!_uiState.value.isAdminAuthenticated) return
+        viewModelScope.launch {
+            val server = LiveAlertsRepository.fetchAdminStories(KiezStorageManager.getAdminToken(app))
+            if (server != null) {
+                applyAdminStories(server)
+            } else if (showError) {
+                android.widget.Toast.makeText(app, "Server-Admin nicht erreichbar oder Token falsch", android.widget.Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    fun setAdminToken(token: String) {
+        KiezStorageManager.setAdminToken(app, token)
+    }
+
+    private fun isServerStory(storyId: String): Boolean =
+        adminStoriesCache.any { it.id == storyId } || remoteStoriesCache.any { it.id == storyId }
+
+    /** Sends one moderation action to /api/admin so every user sees the result. */
+    private fun syncStoryActionToServer(storyId: String, action: String, extra: Map<String, Any> = emptyMap()) {
+        if (!isServerStory(storyId)) return
+        viewModelScope.launch {
+            val ok = LiveAlertsRepository.adminStoryAction(KiezStorageManager.getAdminToken(app), storyId, action, extra)
+            if (!ok) {
+                android.widget.Toast.makeText(app, "Server hat \"$action\" nicht übernommen", android.widget.Toast.LENGTH_LONG).show()
+            }
+            val remote = LiveAlertsRepository.fetchRemoteStories()
+            if (remote.isNotEmpty()) applyRemoteStories(remote)
+            refreshAdminStories()
+        }
+    }
+
     private fun applyRemoteStories(remote: List<KiezStory>) {
         val previous = remoteStoriesCache
         remoteStoriesCache = remote
@@ -182,6 +230,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
             try {
                 val remoteStories = LiveAlertsRepository.fetchRemoteStories()
                 if (remoteStories.isNotEmpty()) applyRemoteStories(remoteStories)
+                refreshAdminStories()
                 val remoteReports = LiveAlertsRepository.fetchRemoteReporterPosts()
                 if (remoteReports.isNotEmpty()) {
                     val currentRep = _uiState.value.customReports
@@ -302,6 +351,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
 
                     val remoteStories = LiveAlertsRepository.fetchRemoteStories()
                     if (remoteStories.isNotEmpty()) applyRemoteStories(remoteStories)
+                    refreshAdminStories()
 
                     val remoteReports = LiveAlertsRepository.fetchRemoteReporterPosts()
                     if (remoteReports.isNotEmpty()) {
@@ -815,6 +865,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
     fun setAdminAuthenticated(auth: Boolean) {
         KiezStorageManager.setAdminAuthenticated(app, auth)
         _uiState.update { it.copy(isAdminAuthenticated = auth) }
+        if (auth) refreshAdminStories(showError = true)
     }
 
     fun setAdminStoriesTab(tab: String) {
@@ -822,6 +873,23 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun approveStory(storyId: String, durationHours: Int? = null) {
+        val oldHours = _uiState.value.allStories.firstOrNull { it.id == storyId }?.durationHours
+        if (isServerStory(storyId)) {
+            viewModelScope.launch {
+                val token = KiezStorageManager.getAdminToken(app)
+                val ok = LiveAlertsRepository.adminStoryAction(token, storyId, "approve")
+                val diff = (durationHours ?: 0) - (oldHours ?: 0)
+                if (ok && durationHours != null && oldHours != null && diff > 0) {
+                    LiveAlertsRepository.adminStoryAction(token, storyId, "extend", mapOf("hours" to diff))
+                }
+                if (!ok) {
+                    android.widget.Toast.makeText(app, "Server hat die Freigabe nicht übernommen", android.widget.Toast.LENGTH_LONG).show()
+                }
+                val remote = LiveAlertsRepository.fetchRemoteStories()
+                if (remote.isNotEmpty()) applyRemoteStories(remote)
+                refreshAdminStories()
+            }
+        }
         _uiState.update { state ->
             val updateFn = { story: KiezStory ->
                 if (story.id == storyId) {
@@ -842,6 +910,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun rejectStory(storyId: String, reason: String = "Von Admin abgelehnt") {
+        syncStoryActionToServer(storyId, "reject")
         _uiState.update { state ->
             val updateFn = { story: KiezStory ->
                 if (story.id == storyId) {
@@ -858,6 +927,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun extendStory(storyId: String, additionalHours: Int) {
+        syncStoryActionToServer(storyId, "extend", mapOf("hours" to additionalHours))
         _uiState.update { state ->
             val updateFn = { story: KiezStory ->
                 if (story.id == storyId) {
@@ -877,6 +947,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun deleteStory(storyId: String) {
+        syncStoryActionToServer(storyId, "delete")
         _uiState.update { state ->
             val newAll = state.allStories.filterNot { it.id == storyId }
             KiezStorageManager.saveStories(app, newAll)
@@ -888,6 +959,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun updateStoryHeadline(storyId: String, newHeadline: String, newSubtext: String) {
+        syncStoryActionToServer(storyId, "edit", mapOf("headline" to newHeadline, "subtext" to newSubtext))
         _uiState.update { state ->
             val updateFn = { story: KiezStory ->
                 if (story.id == storyId) {
@@ -944,6 +1016,54 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
         }
         viewModelScope.launch {
             LiveAlertsRepository.postRemoteStory(adminStory)
+        }
+        // Upload to the server and approve right away, so every user sees the admin story.
+        viewModelScope.launch {
+            var fileBytes: ByteArray? = null
+            var fileName: String? = null
+            var mimeType: String? = null
+            if (!mediaUri.isNullOrBlank()) {
+                try {
+                    val uri = android.net.Uri.parse(mediaUri)
+                    mimeType = app.contentResolver.getType(uri) ?: if (isVideo) "video/mp4" else "image/jpeg"
+                    fileBytes = app.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                    val ext = when {
+                        mimeType.contains("png") -> "png"
+                        mimeType.contains("webp") -> "webp"
+                        mimeType.startsWith("video") -> "mp4"
+                        else -> "jpg"
+                    }
+                    fileName = "story_${System.currentTimeMillis()}.$ext"
+                } catch (_: Exception) {}
+            }
+            val serverId = LiveAlertsRepository.postStoryMultipartForId(
+                headline = headline,
+                subtext = subtext,
+                kiez = kiez.ifBlank { "Ganz Berlin" },
+                kind = kind,
+                durationHours = if (durationHours >= 48) 48 else 24,
+                fileBytes = fileBytes,
+                fileName = fileName,
+                mimeType = mimeType
+            )
+            val token = KiezStorageManager.getAdminToken(app)
+            val ok = serverId != null && LiveAlertsRepository.adminStoryAction(token, serverId, "approve")
+            if (ok && serverId != null && durationHours > 48) {
+                LiveAlertsRepository.adminStoryAction(token, serverId, "extend", mapOf("hours" to durationHours - 48))
+            }
+            if (ok && serverId != null) {
+                // Server copy replaces the local-only copy.
+                _uiState.update { state ->
+                    val newAll = state.allStories.filterNot { it.id == adminStory.id }
+                    KiezStorageManager.saveStories(app, newAll)
+                    state.copy(allStories = newAll, customStories = state.customStories.filterNot { it.id == adminStory.id })
+                }
+                val remote = LiveAlertsRepository.fetchRemoteStories()
+                if (remote.isNotEmpty()) applyRemoteStories(remote)
+                refreshAdminStories()
+            } else {
+                android.widget.Toast.makeText(app, "Story nur lokal gespeichert – Server-Upload fehlgeschlagen", android.widget.Toast.LENGTH_LONG).show()
+            }
         }
     }
 

@@ -204,6 +204,15 @@ object KiezStorageManager {
         getPrefs(context).edit().putBoolean(KEY_ADMIN_AUTH, authenticated).apply()
     }
 
+    // Token typed at admin login; sent as x-admin-token so moderation reaches the server.
+    fun getAdminToken(context: Context): String {
+        return getPrefs(context).getString("saved_admin_token", null) ?: "admin123"
+    }
+
+    fun setAdminToken(context: Context, token: String) {
+        getPrefs(context).edit().putString("saved_admin_token", token.trim()).apply()
+    }
+
     // --- Custom Kieze Added by Users / Admin ---
     fun loadCustomKieze(context: Context): Set<String> {
         val prefs = getPrefs(context)

@@ -344,6 +344,7 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     stories = uiState.allStories,
                     onLogin = { token ->
                         val success = token == "admin123" || token == "kiez2026" || token == "admin"
+                        if (success) viewModel.setAdminToken(token)
                         viewModel.setAdminAuthenticated(success)
                         success
                     },

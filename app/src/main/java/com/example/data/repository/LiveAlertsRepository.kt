@@ -331,6 +331,132 @@ object LiveAlertsRepository {
     }
 
     // ==========================================
+    // Server-side admin (https://mykiezberlin.com/api/admin)
+    // Approve/reject/extend/edit/delete must reach the server, otherwise
+    // only the admin phone sees the change and other users never get the story.
+    // ==========================================
+    const val API_ADMIN_URL = "https://mykiezberlin.com/api/admin"
+
+    /** All stories incl. pending ones (needs admin token). Null = server refused or offline. */
+    suspend fun fetchAdminStories(token: String): List<KiezStory>? = withContext(Dispatchers.IO) {
+        try {
+            val req = Request.Builder()
+                .url(API_ADMIN_URL)
+                .header("User-Agent", "MyKiezBerlin-Android/2.0")
+                .header("x-admin-token", token)
+                .build()
+            httpClient.newCall(req).execute().use { resp ->
+                if (!resp.isSuccessful) {
+                    Log.w(TAG, "fetchAdminStories http ${resp.code}")
+                    return@withContext null
+                }
+                val arr = JSONObject(resp.body?.string() ?: "{}").optJSONArray("stories")
+                    ?: return@withContext emptyList()
+                val result = mutableListOf<KiezStory>()
+                for (i in 0 until arr.length()) {
+                    val o = arr.getJSONObject(i)
+                    val mediaKey = o.optString("media_key", "")
+                    val createdAt = o.optLong("created_at", System.currentTimeMillis())
+                    val approvedAt = o.optLong("approved_at", 0L).takeIf { it > 0L } ?: createdAt
+                    result.add(
+                        KiezStory(
+                            id = o.optString("id", "admin_story_$i"),
+                            headline = o.optString("headline", ""),
+                            subtext = o.optString("subtext", ""),
+                            kind = o.optString("kind", "news"),
+                            headlineColor = "rot",
+                            kiez = o.optString("kiez", "Berlin"),
+                            author = o.optString("author", "Kiez Community").ifBlank { "Kiez Community" },
+                            timeAgo = ageText(approvedAt),
+                            source = "My Kiez",
+                            link = "https://mykiezberlin.com",
+                            mediaUri = if (mediaKey.isNotBlank()) "https://mykiezberlin.com/media/$mediaKey" else null,
+                            isVideo = o.optString("media_type", "") == "video",
+                            durationHours = o.optInt("duration_hours", 24),
+                            status = o.optString("status", "pending"),
+                            modNote = "Server",
+                            createdAtMillis = approvedAt
+                        )
+                    )
+                }
+                result
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "fetchAdminStories notice: ${e.message}")
+            null
+        }
+    }
+
+    /** action: approve | reject | extend | edit | delete. Returns true when the server confirmed. */
+    suspend fun adminStoryAction(
+        token: String,
+        storyId: String,
+        action: String,
+        extra: Map<String, Any> = emptyMap()
+    ): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val json = JSONObject().apply {
+                put("type", "story")
+                put("id", storyId)
+                put("action", action)
+                extra.forEach { (k, v) -> put(k, v) }
+            }
+            val req = Request.Builder()
+                .url(API_ADMIN_URL)
+                .header("User-Agent", "MyKiezBerlin-Android/2.0")
+                .header("x-admin-token", token)
+                .post(json.toString().toRequestBody("application/json; charset=utf-8".toMediaType()))
+                .build()
+            httpClient.newCall(req).execute().use { resp ->
+                if (!resp.isSuccessful) Log.w(TAG, "adminStoryAction $action http ${resp.code}")
+                resp.isSuccessful
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "adminStoryAction notice: ${e.message}")
+            false
+        }
+    }
+
+    /** Same upload as postStoryMultipart, but returns the server story id (or null). */
+    suspend fun postStoryMultipartForId(
+        headline: String,
+        subtext: String,
+        kiez: String,
+        kind: String,
+        durationHours: Int,
+        fileBytes: ByteArray? = null,
+        fileName: String? = null,
+        mimeType: String? = null
+    ): String? = withContext(Dispatchers.IO) {
+        try {
+            val validDuration = if (durationHours == 48) 48 else 24
+            val builder = MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("headline", headline)
+                .addFormDataPart("subtext", subtext)
+                .addFormDataPart("kiez", kiez)
+                .addFormDataPart("kind", kind)
+                .addFormDataPart("durationHours", validDuration.toString())
+            if (fileBytes != null && fileBytes.isNotEmpty()) {
+                val requestFile = fileBytes.toRequestBody((mimeType ?: "image/jpeg").toMediaType())
+                builder.addFormDataPart("file", fileName ?: "story_${System.currentTimeMillis()}.jpg", requestFile)
+            }
+            val req = Request.Builder()
+                .url(API_STORIES_URL)
+                .header("User-Agent", "MyKiezBerlin-Android/2.0")
+                .post(builder.build())
+                .build()
+            httpClient.newCall(req).execute().use { resp ->
+                if (!resp.isSuccessful) return@withContext null
+                JSONObject(resp.body?.string() ?: "{}").optString("id").ifBlank { null }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "postStoryMultipartForId notice: ${e.message}")
+            null
+        }
+    }
+
+    // ==========================================
     // Remote Reporter API (https://mykiezberlin.com/api/reporter)
     // ==========================================
     suspend fun fetchRemoteReporterPosts(): List<KiezReporterPost> = withContext(Dispatchers.IO) {
