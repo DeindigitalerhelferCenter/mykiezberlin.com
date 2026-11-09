@@ -28,6 +28,8 @@ export async function onRequestPost({ request, env }) {
   const subtext = cleanText(form.get("subtext"), 500);
   const kiez = cleanText(form.get("kiez"), 60);
   const kind = KINDS.includes(form.get("kind")) ? form.get("kind") : "news";
+  // Name of the person who shares (needed for the weekly Kiez-Stars)
+  const author = cleanText(form.get("author"), 40) || "Kiez Community";
   const durationHours = USER_DURATIONS.includes(Number(form.get("durationHours"))) ? Number(form.get("durationHours")) : 24;
   if (!headline || !kiez) return json({ error: "missing_fields" }, 400);
 
@@ -50,8 +52,8 @@ export async function onRequestPost({ request, env }) {
   }
 
   await database
-    .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, media_key, media_type, duration_hours, status, ip, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`)
-    .bind(id, headline, subtext, kiez, kind, mediaKey, mediaType, durationHours, ip, Date.now())
+    .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, ip, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`)
+    .bind(id, headline, subtext, kiez, kind, author, mediaKey, mediaType, durationHours, ip, Date.now())
     .run();
   return json({ id, status: "pending" }, 201);
 }

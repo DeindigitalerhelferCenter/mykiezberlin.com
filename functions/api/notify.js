@@ -1,5 +1,7 @@
 // Short list of events worth a phone notification. The app polls this list.
 import { loadBerlinMatches } from "../_lib/matches.js";
+import { weekStars } from "../_lib/stars.js";
+import { db } from "../_lib/util.js";
 import { fetchJson, fetchText, json, parseRss } from "../_lib/util.js";
 
 const TTL_SECONDS = 120;
@@ -128,11 +130,29 @@ function eveningTest(now) {
     }));
 }
 
-async function build() {
+// Monday 09:00–12:00 Berlin: last week's Kiez-Star (only when someone shared stories).
+async function weeklyStar(env, now) {
+  const { day, hour } = berlinClock(now);
+  const weekday = new Intl.DateTimeFormat("en-US", { timeZone: "Europe/Berlin", weekday: "short" }).format(new Date(now));
+  if (weekday !== "Mon" || hour < 9 || hour > 11) return [];
+  const database = await db(env);
+  if (!database) return [];
+  const stars = await weekStars(database, now);
+  const winner = stars.lastWeek.top[0];
+  if (!winner) return [];
+  return [{
+    id: `star-${day}`, kind: "star", screen: "HOME",
+    title: "🏆 Kiez-Star der Woche", body: `${winner.name} hat letzte Woche ${winner.count} Stories geteilt – Glückwunsch!`,
+    title_tr: "🏆 Haftanın Kiez Yıldızı", body_tr: `${winner.name} geçen hafta ${winner.count} hikâye paylaştı – tebrikler!`,
+    title_en: "🏆 Kiez Star of the week", body_en: `${winner.name} shared ${winner.count} stories last week – congratulations!`,
+  }];
+}
+
+async function build(env) {
   const now = Date.now();
-  const [warnings, alerts, matches, hourly] = await Promise.allSettled([officialWarnings(), urgentAlerts(now), loadBerlinMatches(), hourlyItem(now)]);
+  const [warnings, alerts, matches, hourly, star] = await Promise.allSettled([officialWarnings(), urgentAlerts(now), loadBerlinMatches(), hourlyItem(now), weeklyStar(env, now)]);
   const value = (r) => (r.status === "fulfilled" ? r.value : []);
-  return [...value(warnings), ...value(alerts), ...value(matches).flatMap((m) => matchEvents(m, now)), ...value(hourly), ...eveningTest(now)];
+  return [...value(warnings), ...value(alerts), ...value(matches).flatMap((m) => matchEvents(m, now)), ...value(hourly), ...eveningTest(now), ...value(star)];
 }
 
 export async function onRequestGet(context) {
@@ -140,7 +160,7 @@ export async function onRequestGet(context) {
   const key = new Request(new URL("/api/notify", context.request.url).toString());
   const hit = await cache.match(key);
   if (hit) return hit;
-  const response = json({ updatedAt: Date.now(), items: await build() }, 200, { "cache-control": `public, max-age=${TTL_SECONDS}` });
+  const response = json({ updatedAt: Date.now(), items: await build(context.env) }, 200, { "cache-control": `public, max-age=${TTL_SECONDS}` });
   context.waitUntil(cache.put(key, response.clone()));
   return response;
 }

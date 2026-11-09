@@ -158,6 +158,10 @@ export async function onRequestPost({ request, env }) {
     if (kind) await database.prepare(`UPDATE stories SET kind = ? WHERE id = ?`).bind(kind, id).run();
     if (kiez) await database.prepare(`UPDATE stories SET kiez = ? WHERE id = ?`).bind(kiez, id).run();
     if (body.link !== undefined) await database.prepare(`UPDATE stories SET link = ? WHERE id = ?`).bind(storyLink(body.link), id).run();
+    // Admin posts are not part of the weekly Kiez-Stars ranking
+    if (body.byAdmin) await database.prepare(`UPDATE stories SET by_admin = 1 WHERE id = ?`).bind(id).run();
+    const author = cleanText(body.author, 40);
+    if (author) await database.prepare(`UPDATE stories SET author = ? WHERE id = ?`).bind(author, id).run();
   } else if (action === "delete") {
     if ((type === "story" || type === "post") && env.BUCKET) {
       const row = await database.prepare(`SELECT media_key FROM ${table} WHERE id = ?`).bind(id).first();
