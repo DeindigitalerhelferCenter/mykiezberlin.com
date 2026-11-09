@@ -25,6 +25,16 @@ BUSINESSES.forEach((b) => {
   b.reviewsCount = 0;
 });
 
+// Same for the sample food spots: their ratings are not verified (data unchanged).
+FOOD_SPOTS.forEach((f) => {
+  if (f.verified) return;
+  f.unverified = true;
+  f.hiddenRating = f.rating;
+  f.hiddenReviews = f.reviewsCount;
+  f.rating = 0;
+  f.reviewsCount = 0;
+});
+
 function werbenUrl(size, claim) {
   const params = new URLSearchParams({ lang: currentLanguage === "tr" ? "tr" : currentLanguage === "en" ? "en" : "de" });
   if (size) params.set("size", size);

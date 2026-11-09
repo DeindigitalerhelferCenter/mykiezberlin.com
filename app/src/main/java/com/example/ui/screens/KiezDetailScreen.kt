@@ -992,10 +992,6 @@ fun KiezDetailScreen(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(text = spot.name, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                                 Text(text = spot.cuisine, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    Icon(imageVector = Icons.Default.Star, contentDescription = null, tint = BerlinYellow, modifier = Modifier.size(12.dp))
-                                    Text(text = "${spot.rating} (${spot.reviewsCount})", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-                                }
                                 Text(text = spot.address, fontSize = 11.sp, color = Color.Gray, maxLines = 1)
                             }
                         }

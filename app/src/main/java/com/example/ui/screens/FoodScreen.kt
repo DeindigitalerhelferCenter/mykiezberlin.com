@@ -166,10 +166,11 @@ fun FoodScreen(
 
                         Spacer(modifier = Modifier.height(6.dp))
 
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Icon(imageVector = Icons.Default.Star, contentDescription = null, tint = BerlinYellow, modifier = Modifier.size(16.dp))
-                            Text(text = "${spot.rating} (${spot.reviewsCount} Bewertungen)", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        }
+                        // Ratings of sample spots are not verified, so they stay hidden.
+                        Text(
+                            text = if (language == AppLanguage.TURKISH) "ℹ️ Bilgiler doğrulanmadı · henüz değerlendirilmedi" else "ℹ️ Angaben nicht verifiziert · noch nicht bewertet",
+                            fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
 
                         Spacer(modifier = Modifier.height(10.dp))
                         HorizontalDivider()
@@ -297,13 +298,6 @@ fun FoodSpotCard(
                     }
 
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Icon(imageVector = Icons.Default.Star, contentDescription = null, tint = BerlinYellow, modifier = Modifier.size(13.dp))
-                        Text(
-                            text = "${spot.rating} (${spot.reviewsCount})",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text("•", color = Color.Gray, fontSize = 10.sp)
                         Text(text = spot.cuisine, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
 

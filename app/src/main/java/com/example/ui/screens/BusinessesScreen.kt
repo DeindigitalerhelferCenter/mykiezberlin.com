@@ -571,7 +571,7 @@ private fun CardBusinessItem(
                         .padding(10.dp),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    if (business.isSponsored) {
+                    if (business.isSponsored && business.verified) {
                         Surface(color = BerlinYellow, shape = RoundedCornerShape(6.dp)) {
                             Text(
                                 text = "Anzeige",
@@ -791,7 +791,7 @@ private fun CompactBusinessListItem(
                         maxLines = 1,
                         modifier = Modifier.weight(1f, fill = false)
                     )
-                    if (business.isSponsored) {
+                    if (business.isSponsored && business.verified) {
                         Surface(color = BerlinYellow, shape = RoundedCornerShape(4.dp)) {
                             Text(text = "Ad", fontSize = 8.5.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp))
                         }
