@@ -222,20 +222,7 @@ fun EmergencyScreen(
                                         fontSize = 15.sp,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
-                                    if (contact.isFree) {
-                                        Surface(
-                                            shape = RoundedCornerShape(4.dp),
-                                            color = BerlinGreen.copy(alpha = 0.15f)
-                                        ) {
-                                            Text(
-                                                text = if (language == AppLanguage.TURKISH) "Ücretsiz" else "Gebührenfrei",
-                                                color = BerlinGreen,
-                                                fontSize = 9.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                            )
-                                        }
-                                    }
+                                    // the "free" label sits under the call button, so long names keep their width
                                 }
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
@@ -250,10 +237,13 @@ fun EmergencyScreen(
                                 )
                             }
 
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.padding(start = 10.dp)
+                            ) {
                             Surface(
                                 shape = RoundedCornerShape(10.dp),
-                                color = BerlinRed,
-                                modifier = Modifier.padding(start = 10.dp)
+                                color = BerlinRed
                             ) {
                                 Row(
                                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
@@ -273,6 +263,27 @@ fun EmergencyScreen(
                                         fontSize = 13.sp
                                     )
                                 }
+                            }
+                            if (contact.isFree) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Surface(
+                                    shape = RoundedCornerShape(4.dp),
+                                    color = BerlinGreen.copy(alpha = 0.15f)
+                                ) {
+                                    Text(
+                                        text = when (language) {
+                                            AppLanguage.TURKISH -> "Ücretsiz"
+                                            AppLanguage.ENGLISH -> "Free"
+                                            else -> "Kostenlos"
+                                        },
+                                        color = BerlinGreen,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
                             }
                         }
                     }

@@ -64,7 +64,15 @@ class KiezNotificationWorker(context: Context, params: WorkerParameters) : Corou
             val list = JSONObject(response.body?.string().orEmpty()).optJSONArray("items")
             return demo + adminRequestItems() + (0 until (list?.length() ?: 0)).map { i ->
                 val o = list!!.getJSONObject(i)
-                Item(o.optString("id"), o.optString("kind"), o.optString("title"), o.optString("body"), o.optString("screen"))
+                // Hourly items carry DE / TR / EN text; show the app language
+                val suffix = when (KiezStorageManager.loadLanguage(applicationContext)) {
+                    com.example.data.model.AppLanguage.TURKISH -> "_tr"
+                    com.example.data.model.AppLanguage.ENGLISH -> "_en"
+                    else -> ""
+                }
+                val title = o.optString("title$suffix").ifBlank { o.optString("title") }
+                val body = o.optString("body$suffix").ifBlank { o.optString("body") }
+                Item(o.optString("id"), o.optString("kind"), title, body, o.optString("screen"))
             }
         }
     }
@@ -94,6 +102,13 @@ class KiezNotificationWorker(context: Context, params: WorkerParameters) : Corou
     private fun mayShow(item: Item): Boolean {
         if (item.kind == "critical" || item.kind == "admin") return true
         val today = LocalDate.now().toString()
+        if (item.kind == "hourly") {
+            // Own quota for the hourly news / invitations (08–21 h), so urgent alerts keep theirs.
+            val usedHourly = if (prefs.getString(KEY_HOURLY_DAY, "") == today) prefs.getInt(KEY_HOURLY_COUNT, 0) else 0
+            if (usedHourly >= HOURLY_DAILY_LIMIT) return false
+            prefs.edit().putString(KEY_HOURLY_DAY, today).putInt(KEY_HOURLY_COUNT, usedHourly + 1).apply()
+            return true
+        }
         val used = if (prefs.getString(KEY_DAY, "") == today) prefs.getInt(KEY_COUNT, 0) else 0
         if (used >= DAILY_LIMIT) return false
         prefs.edit().putString(KEY_DAY, today).putInt(KEY_COUNT, used + 1).apply()
@@ -146,6 +161,9 @@ class KiezNotificationWorker(context: Context, params: WorkerParameters) : Corou
         private const val KEY_DAY = "day"
         private const val KEY_COUNT = "count"
         private const val DAILY_LIMIT = 4
+        private const val KEY_HOURLY_DAY = "hourly_day"
+        private const val KEY_HOURLY_COUNT = "hourly_count"
+        private const val HOURLY_DAILY_LIMIT = 14
         private const val MAX_PER_RUN = 2
         private const val MAX_SEEN_IDS = 200
         private const val LOGO_SIZE = 128

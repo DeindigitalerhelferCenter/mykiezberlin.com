@@ -146,14 +146,18 @@ private fun KiezReporterPostCard(
     val comments = remember(post.id) {
         mutableStateListOf<KiezReporterComment>().apply {
             val saved = KiezStorageManager.loadCommentsForPost(context, post.id)
+            // Older versions stored each comment twice: show it once.
             if (saved.isNotEmpty()) {
-                addAll(saved)
+                addAll(saved.distinctBy { it.author.trim() + "|" + it.text.trim() })
             } else {
                 addAll(post.comments)
             }
         }
     }
 
+    // One comment per person and post; the other neighbours keep their chance to answer.
+    val commentedPrefs = remember { context.getSharedPreferences("kiez_reporter_commented", android.content.Context.MODE_PRIVATE) }
+    var hasCommented by remember(post.id) { mutableStateOf(commentedPrefs.getBoolean(post.id, false)) }
     var newCommentAuthor by remember { mutableStateOf("") }
     var newCommentText by remember { mutableStateOf("") }
 
@@ -374,7 +378,19 @@ private fun KiezReporterPostCard(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     // Input Form for New Reply (Up to 10 max)
-                    if (comments.size < 10) {
+                    if (hasCommented) {
+                        Text(
+                            text = when (language) {
+                                AppLanguage.TURKISH -> "✔ Yorumun alındı. Her habere bir yorum yazılabilir."
+                                AppLanguage.ENGLISH -> "✔ Your comment was received. One comment per post."
+                                else -> "✔ Dein Kommentar ist eingegangen. Ein Kommentar pro Meldung."
+                            },
+                            fontSize = 11.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1F9D55),
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    } else if (comments.size < 10) {
                         Column(
                             verticalArrangement = Arrangement.spacedBy(6.dp),
                             modifier = Modifier.fillMaxWidth()
@@ -428,6 +444,8 @@ private fun KiezReporterPostCard(
                                             comments.addAll(updatedList)
                                             onAddComment(post.id, authorClean, newCommentText.trim())
                                             newCommentText = ""
+                                            commentedPrefs.edit().putBoolean(post.id, true).apply()
+                                            hasCommented = true
                                         }
                                     },
                                     enabled = newCommentText.isNotBlank()

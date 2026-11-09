@@ -145,6 +145,48 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
+    // Web link typed in the admin "+ Story" form, used by the next addAdminStory call.
+    private var nextAdminStoryLink: String = ""
+
+    fun setAdminStoryLink(link: String) {
+        nextAdminStoryLink = link
+    }
+
+    /** Free category, place and web link of an approved server story (server only knows a fixed list for users). */
+    private suspend fun applyStoryMeta(serverId: String, kind: String, kiez: String, link: String) {
+        val extra = mutableMapOf<String, Any>("kind" to kind, "kiez" to kiez)
+        if (link.isNotBlank()) extra["link"] = link
+        LiveAlertsRepository.adminStoryAction(KiezStorageManager.getAdminToken(app), serverId, "storyMeta", extra)
+    }
+
+    /** Text / picture shared from another app (e.g. WhatsApp) that prefills "Story teilen". */
+    data class ShareDraft(
+        val headline: String,
+        val subtext: String,
+        val link: String,
+        val mediaUri: String?,
+        val isVideo: Boolean
+    )
+
+    private val _shareDraft = MutableStateFlow<ShareDraft?>(null)
+    val shareDraft: StateFlow<ShareDraft?> = _shareDraft
+
+    fun startSharedStory(text: String?, mediaUri: String?, isVideo: Boolean) {
+        val clean = text.orEmpty().trim()
+        val link = Regex("""https?://\S+""").find(clean)?.value.orEmpty()
+        val withoutLink = if (link.isNotBlank()) clean.replace(link, "").trim() else clean
+        val lines = withoutLink.lines().map { it.trim() }.filter { it.isNotBlank() }
+        val headline = lines.firstOrNull().orEmpty().take(120)
+        val subtext = lines.drop(1).joinToString("\n").take(500)
+        val localMedia = mediaUri?.let { KiezStorageManager.copyMediaToInternalStorage(app, it, isVideo) ?: it }
+        _shareDraft.value = ShareDraft(headline, subtext, link, localMedia, isVideo)
+        _uiState.update { it.copy(showAddStoryDialog = true, currentScreen = AppScreen.HOME) }
+    }
+
+    fun clearShareDraft() {
+        _shareDraft.value = null
+    }
+
     /** URL of the advertising page (mykiezberlin.com/werben) shown inside the app. */
     var werbenUrl: String = "https://mykiezberlin.com/werben"
         private set
@@ -906,6 +948,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
             if (isAdminPost) {
                 // Admin: approve on the server right away, so every user sees it.
                 val ok = LiveAlertsRepository.adminStoryAction(KiezStorageManager.getAdminToken(app), serverId, "approve")
+                if (ok) applyStoryMeta(serverId, kind, kiez.ifBlank { "Ganz Berlin" }, link)
                 if (ok) {
                     _uiState.update { state ->
                         val newAll = state.allStories.filterNot { it.id == newStory.id }
@@ -1119,6 +1162,9 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
             if (ok && serverId != null && durationHours > 48) {
                 LiveAlertsRepository.adminStoryAction(token, serverId, "extend", mapOf("hours" to durationHours - 48))
             }
+            val adminLink = nextAdminStoryLink
+            nextAdminStoryLink = ""
+            if (ok && serverId != null) applyStoryMeta(serverId, kind, kiez.ifBlank { "Ganz Berlin" }, adminLink)
             if (ok && serverId != null) {
                 // Server copy replaces the local-only copy.
                 _uiState.update { state ->
@@ -1210,7 +1256,8 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
             author = if (author.isBlank()) "Berliner Nachbar" else author.trim(),
             text = text.trim()
         )
-        val updatedComments = KiezStorageManager.addCommentToPost(app, postId, comment)
+        // The reporter screen already stored this comment; only read the list (storing again made duplicates).
+        val updatedComments = KiezStorageManager.loadCommentsForPost(app, postId).ifEmpty { listOf(comment) }
 
         val updatedCustom = _uiState.value.customReports.map { post ->
             if (post.id == postId) {

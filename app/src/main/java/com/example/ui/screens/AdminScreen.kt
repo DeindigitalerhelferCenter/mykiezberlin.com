@@ -67,7 +67,8 @@ fun AdminScreen(
         durationHours: Int
     ) -> Unit,
     onLogout: () -> Unit = {},
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onAdminStoryLink: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     var tokenInput by remember { mutableStateOf("") }
@@ -790,6 +791,7 @@ fun AdminScreen(
         AdminCreateStoryModal(
             language = language,
             onDismiss = { showAdminCreateStoryDialog = false },
+            onLink = onAdminStoryLink,
             onSubmit = { h, s, k, kd, c, a, uri, isVid, dur ->
                 onAddAdminStory(h, s, k, kd, c, a, uri, isVid, dur)
                 showAdminCreateStoryDialog = false
@@ -1135,9 +1137,13 @@ fun AdminCreateStoryModal(
         mediaUri: String?,
         isVideo: Boolean,
         durationHours: Int
-    ) -> Unit
+    ) -> Unit,
+    // Web link of the story, sent right before onSubmit.
+    onLink: (String) -> Unit = {}
 ) {
     var headline by remember { mutableStateOf("") }
+    var webLink by remember { mutableStateOf("") }
+    var customKindText by remember { mutableStateOf("") }
     var subtext by remember { mutableStateOf("") }
     var selectedKiez by remember { mutableStateOf("Mitte") }
     var selectedKind by remember { mutableStateOf("news") }
@@ -1173,7 +1179,8 @@ fun AdminCreateStoryModal(
     val kieze = remember(showCustomKiezDialog) {
         val base = com.example.data.repository.KiezStorageManager.ALL_BERLIN_OFFICIAL_KIEZE
         val custom = com.example.data.repository.KiezStorageManager.loadCustomKieze(context)
-        (base + custom).distinct()
+        // Wider areas for news from Germany or neighbouring countries
+        (listOf("Ganz Berlin", "Brandenburg", "Deutschland", "Polen", "Europa") + base + custom).distinct()
     }
 
     Dialog(
@@ -1362,11 +1369,26 @@ fun AdminCreateStoryModal(
                     listOf("news" to "News", "event" to "Event", "traffic" to "Verkehr", "warn" to "Polizei/Warnung").forEach { (kd, label) ->
                         FilterChip(
                             selected = selectedKind == kd,
-                            onClick = { selectedKind = kd },
+                            onClick = { selectedKind = kd; customKindText = "" },
                             label = { Text(label, fontSize = 11.sp) }
                         )
                     }
                 }
+                // Free category written by the admin (e.g. Politik, Sport, Deutschland)
+                OutlinedTextField(
+                    value = customKindText,
+                    onValueChange = {
+                        customKindText = it.take(30)
+                        selectedKind = if (it.isNotBlank()) it.trim().take(30) else "news"
+                    },
+                    label = { Text(if (language == AppLanguage.TURKISH) "✏️ Kategoriyi kendin yaz (isteğe bağlı)" else "✏️ Eigene Kategorie (optional)", color = Color(0xFFA9B3BC)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White
+                    )
+                )
 
                 // Color selection
                 Text("Farbe:", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
@@ -1388,6 +1410,19 @@ fun AdminCreateStoryModal(
                     onValueChange = { author = it },
                     label = { Text("Autor / Quelle (z.B. Polizei Berlin, Kiez-Team)", color = Color(0xFFA9B3BC)) },
                     singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White
+                    )
+                )
+
+                OutlinedTextField(
+                    value = webLink,
+                    onValueChange = { webLink = it.trim() },
+                    label = { Text(if (language == AppLanguage.TURKISH) "🔗 Web sayfası (https://…) – isteğe bağlı" else "🔗 Webseite (https://…) – optional", color = Color(0xFFA9B3BC)) },
+                    singleLine = true,
+                    isError = webLink.isNotBlank() && !(webLink.startsWith("https://") || webLink.startsWith("http://")),
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = Color.White,
@@ -1421,6 +1456,7 @@ fun AdminCreateStoryModal(
                 Button(
                     onClick = {
                         if (headline.isNotBlank()) {
+                            onLink(if (webLink.startsWith("https://") || webLink.startsWith("http://")) webLink else "")
                             onSubmit(
                                 headline,
                                 subtext,

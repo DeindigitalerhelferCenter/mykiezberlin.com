@@ -1095,15 +1095,21 @@ fun StoryCreateDialog(
         durationHours: Int,
         pricePaid: Double,
         urlLink: String
-    ) -> Unit
+    ) -> Unit,
+    // Prefill when text / a picture was shared from another app (e.g. WhatsApp)
+    initialHeadline: String = "",
+    initialSubtext: String = "",
+    initialLink: String = "",
+    initialMediaUri: String? = null,
+    initialIsVideo: Boolean = false
 ) {
-    var headline by remember { mutableStateOf("") }
-    var subtext by remember { mutableStateOf("") }
+    var headline by remember { mutableStateOf(initialHeadline) }
+    var subtext by remember { mutableStateOf(initialSubtext) }
     var selectedKiez by remember { mutableStateOf("Kreuzberg") }
     var selectedKind by remember { mutableStateOf("news") }
     var selectedColor by remember { mutableStateOf("blau") }
     var author by remember { mutableStateOf("") }
-    var urlLink by remember { mutableStateOf("") }
+    var urlLink by remember { mutableStateOf(initialLink) }
     var customKind by remember { mutableStateOf("") }
     var isCustomKindSelected by remember { mutableStateOf(false) }
     var kiezMenuExpanded by remember { mutableStateOf(false) }
@@ -1112,8 +1118,8 @@ fun StoryCreateDialog(
     var isCommercial by remember { mutableStateOf(false) }
     var rulesAccepted by remember { mutableStateOf(false) }
 
-    var selectedMediaUri by remember { mutableStateOf<String?>(null) }
-    var isVideoMedia by remember { mutableStateOf(false) }
+    var selectedMediaUri by remember { mutableStateOf<String?>(initialMediaUri) }
+    var isVideoMedia by remember { mutableStateOf(initialIsVideo) }
     var durationMenuExpanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
 

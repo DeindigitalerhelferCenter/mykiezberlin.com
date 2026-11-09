@@ -55,6 +55,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         launchTarget = intent?.getStringExtra("extra_target_screen")
+        readShareIntent(intent)
         KiezNotificationWorker.schedule(applicationContext)
         setContent {
             val viewModel: MyKiezViewModel = viewModel()
@@ -90,9 +91,23 @@ class MainActivity : ComponentActivity() {
                         "LIVE_BULLETIN" -> viewModel.navigateTo(AppScreen.LIVE_BULLETIN)
                         "NOTRUF" -> viewModel.navigateTo(AppScreen.NOTRUF)
                         "SPORTS_AND_MARKETS" -> viewModel.navigateTo(AppScreen.SPORTS_AND_MARKETS)
+                        // Hourly invitations
+                        "ADD_STORY" -> { viewModel.navigateTo(AppScreen.HOME); viewModel.openAddStoryDialog() }
+                        "WERBEN" -> viewModel.openWerben()
+                        else -> AppScreen.entries.firstOrNull { it.name == target }?.let { viewModel.navigateTo(it) }
                     }
                 }
             }
+
+            // Text / picture shared from WhatsApp or another app opens "Story teilen" prefilled
+            LaunchedEffect(sharedPayload) {
+                sharedPayload?.let { share ->
+                    viewModel.startSharedStory(share.text, share.mediaUri, share.isVideo)
+                    sharedPayload = null
+                }
+            }
+
+            BatteryHintDialog(language = uiState.language)
 
             MyApplicationTheme(darkTheme = uiState.isDarkMode) {
                 MyKiezMainApp(viewModel)
@@ -112,7 +127,77 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         launchTarget = intent.getStringExtra("extra_target_screen")
+        readShareIntent(intent)
     }
+
+    private class SharedPayload(val text: String?, val mediaUri: String?, val isVideo: Boolean)
+
+    private var sharedPayload by mutableStateOf<SharedPayload?>(null)
+
+    /** "Teilen → My Kiez Berlin": text and/or one picture or video from another app. */
+    private fun readShareIntent(intent: android.content.Intent?) {
+        if (intent?.action != android.content.Intent.ACTION_SEND) return
+        val type = intent.type.orEmpty()
+        val text = intent.getStringExtra(android.content.Intent.EXTRA_TEXT)
+            ?: intent.getStringExtra(android.content.Intent.EXTRA_SUBJECT)
+        val stream: android.net.Uri? = if (Build.VERSION.SDK_INT >= 33) {
+            intent.getParcelableExtra(android.content.Intent.EXTRA_STREAM, android.net.Uri::class.java)
+        } else {
+            @Suppress("DEPRECATION") intent.getParcelableExtra(android.content.Intent.EXTRA_STREAM)
+        }
+        if (text.isNullOrBlank() && stream == null) return
+        sharedPayload = SharedPayload(text, stream?.toString(), type.startsWith("video/"))
+        // handled once; a rotation must not open the dialog again
+        intent.action = android.content.Intent.ACTION_MAIN
+    }
+}
+
+/** Xiaomi / HyperOS and others stop background work: ask once to allow it, so notifications arrive. */
+@Composable
+private fun BatteryHintDialog(language: AppLanguage) {
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("kiez_battery_hint", android.content.Context.MODE_PRIVATE) }
+    val powerManager = remember { context.getSystemService(android.content.Context.POWER_SERVICE) as android.os.PowerManager }
+    var show by remember {
+        mutableStateOf(!prefs.getBoolean("asked", false) && !powerManager.isIgnoringBatteryOptimizations(context.packageName))
+    }
+    if (!show) return
+    val tr = language == AppLanguage.TURKISH
+    val en = language == AppLanguage.ENGLISH
+    AlertDialog(
+        onDismissRequest = { prefs.edit().putBoolean("asked", true).apply(); show = false },
+        title = { Text(if (tr) "🔔 Haberler kaçmasın" else if (en) "🔔 Don't miss the news" else "🔔 Keine Meldung verpassen", fontWeight = FontWeight.Bold) },
+        text = {
+            Text(
+                if (tr) "Bildirimlerin zamanında gelmesi için My Kiez Berlin'in arka planda çalışmasına izin ver (pil: Kısıtlama yok)."
+                else if (en) "Allow My Kiez Berlin to run in the background (battery: no restrictions) so notifications arrive on time."
+                else "Erlaube My Kiez Berlin im Hintergrund zu laufen (Akku: keine Einschränkungen), damit Meldungen pünktlich ankommen."
+            )
+        },
+        confirmButton = {
+            Button(onClick = {
+                prefs.edit().putBoolean("asked", true).apply()
+                show = false
+                try {
+                    @android.annotation.SuppressLint("BatteryLife")
+                    val intent = android.content.Intent(
+                        android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                        android.net.Uri.parse("package:" + context.packageName)
+                    )
+                    context.startActivity(intent)
+                } catch (_: Exception) {
+                    try {
+                        context.startActivity(android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:" + context.packageName)))
+                    } catch (_: Exception) {}
+                }
+            }) { Text(if (tr) "İzin ver" else if (en) "Allow" else "Erlauben") }
+        },
+        dismissButton = {
+            TextButton(onClick = { prefs.edit().putBoolean("asked", true).apply(); show = false }) {
+                Text(if (tr) "Sonra" else if (en) "Later" else "Später")
+            }
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -288,7 +373,12 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                 )
 
                 AppScreen.KIEZ_MATCH -> com.example.ui.screens.KiezMatchQuizScreen(
-                    onBack = { viewModel.navigateTo(AppScreen.HOME) }
+                    onBack = { viewModel.navigateTo(AppScreen.HOME) },
+                    langCode = when (uiState.language) {
+                        AppLanguage.TURKISH -> "tr"
+                        AppLanguage.ENGLISH -> "en"
+                        else -> "de"
+                    }
                 )
 
                 AppScreen.COMMUNITY -> com.example.ui.screens.KiezWebScreen(
@@ -430,7 +520,8 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     onLogout = {
                         viewModel.setAdminAuthenticated(false)
                     },
-                    onBack = { viewModel.navigateTo(AppScreen.HOME) }
+                    onBack = { viewModel.navigateTo(AppScreen.HOME) },
+                    onAdminStoryLink = { viewModel.setAdminStoryLink(it) }
                 )
 
                 AppScreen.LIVE_BULLETIN -> BerlinLiveBulletinScreen(
@@ -495,13 +586,22 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
 
     // Story Create Modal
     if (uiState.showAddStoryDialog) {
-        StoryCreateDialog(
-            language = uiState.language,
-            onClose = { viewModel.closeAddStoryDialog() },
-            onSubmit = { h, s, k, kd, c, a, uri, isVid, isComm, dur, pr, link ->
-                viewModel.submitStory(h, s, k, kd, c, a, uri, isVid, isComm, dur, pr, link)
-            }
-        )
+        val draft by viewModel.shareDraft.collectAsStateWithLifecycle()
+        key(draft) {
+            StoryCreateDialog(
+                language = uiState.language,
+                onClose = { viewModel.closeAddStoryDialog(); viewModel.clearShareDraft() },
+                onSubmit = { h, s, k, kd, c, a, uri, isVid, isComm, dur, pr, link ->
+                    viewModel.submitStory(h, s, k, kd, c, a, uri, isVid, isComm, dur, pr, link)
+                    viewModel.clearShareDraft()
+                },
+                initialHeadline = draft?.headline.orEmpty(),
+                initialSubtext = draft?.subtext.orEmpty(),
+                initialLink = draft?.link.orEmpty(),
+                initialMediaUri = draft?.mediaUri,
+                initialIsVideo = draft?.isVideo ?: false
+            )
+        }
     }
 
     // Story Submission Feedback Toast / Alert
@@ -513,7 +613,8 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     text = if (feedback == "REJECTED")
                         (if (uiState.language == AppLanguage.TURKISH) "İçerik Reddedildi" else "Beitrag abgelehnt")
                     else
-                        (if (uiState.language == AppLanguage.TURKISH) "Hikâye Yayında! 🎉" else "Story ist online! 🎉"),
+                        if (feedback == "Veröffentlicht") (if (uiState.language == AppLanguage.TURKISH) "Hikâye Yayında! 🎉" else "Story ist online! 🎉")
+                        else (if (uiState.language == AppLanguage.TURKISH) "Hikâye gönderildi ⏳" else "Story eingereicht ⏳"),
                     fontWeight = FontWeight.Bold
                 )
             },
@@ -524,11 +625,16 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                             "Gönderiniz politik, küfür veya 18+ içerik kurallarımıza aykırı olduğu için reddedilmiştir."
                         else
                             "Dein Beitrag verstößt gegen unsere Richtlinien (keine Politik, keine Beleidigungen, keine 18+ Inhalte) und wurde abgelehnt."
-                    } else {
+                    } else if (feedback == "Veröffentlicht") {
                         if (uiState.language == AppLanguage.TURKISH)
                             "Hikâyeniz başarıyla yüklendi ve yayına alındı! Belirlediğiniz süre boyunca ana sayfa story barında ve ilgili mahallede aktif kalacaktır."
                         else
                             "Deine Story wurde erfolgreich veröffentlicht und ist jetzt live im Story-Bereich sichtbar!"
+                    } else {
+                        if (uiState.language == AppLanguage.TURKISH)
+                            "Hikâyen alındı. Kısa bir kontrolden sonra herkes görebilecek."
+                        else
+                            "Deine Story ist eingegangen. Nach einer kurzen Prüfung sehen sie alle."
                     }
                 )
             },
