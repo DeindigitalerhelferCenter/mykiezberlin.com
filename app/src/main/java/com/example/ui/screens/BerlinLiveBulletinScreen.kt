@@ -101,7 +101,7 @@ fun BerlinLiveBulletinScreen(
                         ) {}
                         Column {
                             Text(
-                                text = if (language == AppLanguage.TURKISH) "🔴 Berlin Canlı Bülten" else "🔴 Berlin Live-Ticker",
+                                text = if (language == AppLanguage.TURKISH) "🔴 Berlin Canlı Ticker" else "🔴 Berlin Live-Ticker",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp
                             )

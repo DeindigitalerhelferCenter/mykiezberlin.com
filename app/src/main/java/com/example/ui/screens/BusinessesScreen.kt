@@ -110,7 +110,7 @@ fun BusinessesScreen(
                     // 1. HARİTA MODU: Tam sayfa kaydırılabilir (Sponsor ve hikâyeler yukarı kaydırılabilir!)
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 90.dp)
+                        contentPadding = PaddingValues(bottom = 24.dp) /* Scaffold already leaves room for the bottom bar */
                     ) {
                         if (showHomeExtras) item(key = "stories") {
                             KiezStoriesBar(
@@ -163,7 +163,7 @@ fun BusinessesScreen(
                     // 2. LİSTE MODU: Hikâyeler & Sponsorlar liste ile birlikte yukarı kayar, tam ekran görünürlük!
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 90.dp),
+                        contentPadding = PaddingValues(bottom = 24.dp) /* Scaffold already leaves room for the bottom bar */,
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         if (showHomeExtras) item(key = "stories") {
@@ -246,7 +246,7 @@ fun BusinessesScreen(
                     // 3. KART MODU: Hikâyeler & Sponsorlar kartlar ile birlikte yukarı kayar, kartlar ferahça incelenir!
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 90.dp),
+                        contentPadding = PaddingValues(bottom = 24.dp) /* Scaffold already leaves room for the bottom bar */,
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         if (showHomeExtras) item(key = "stories") {

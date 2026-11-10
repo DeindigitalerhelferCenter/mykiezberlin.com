@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import android.media.MediaMetadataRetriever
 import android.widget.VideoView
 import android.widget.FrameLayout
@@ -216,12 +217,8 @@ fun StoryAvatarItem(
                         textAlign = TextAlign.Center
                     )
                 } else if (story.mediaUri != null) {
-                    AsyncImage(
-                        model = story.mediaUri,
-                        contentDescription = story.headline,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
+                    // Small thumbnail + Kiez photo while loading (the full 350-720 KB images left the rings white for >12 s)
+                    StoryRingImage(url = story.mediaUri, description = story.headline, placeholderRes = KiezPhotoHelper.getKiezDrawable(story.kiez))
                 } else if (story.mediaResId != null) {
                     Image(
                         painter = painterResource(id = story.mediaResId),
@@ -1843,4 +1840,37 @@ fun AdminShareRow(story: KiezStory) {
             }
         }
     }
+}
+
+/** Cloudflare image resizing ("/cdn-cgi/image/"); switched off for the session after the first failure. */
+private object StoryThumbs { @Volatile var resizeAvailable = true }
+
+private const val MEDIA_PREFIX = "https://mykiezberlin.com/media/"
+
+private fun storyThumbUrl(url: String): String? =
+    if (StoryThumbs.resizeAvailable && url.startsWith(MEDIA_PREFIX))
+        "https://mykiezberlin.com/cdn-cgi/image/width=200,quality=75,format=auto/media/" + url.removePrefix(MEDIA_PREFIX)
+    else null
+
+/** Story ring picture: thumbnail first, full image as fallback, decoded at ring size. */
+@Composable
+private fun StoryRingImage(url: String, description: String, placeholderRes: Int) {
+    val context = LocalContext.current
+    var useFull by remember(url) { mutableStateOf(storyThumbUrl(url) == null) }
+    val request = remember(url, useFull) {
+        ImageRequest.Builder(context)
+            .data(if (useFull) url else storyThumbUrl(url) ?: url)
+            .size(200)
+            .crossfade(true)
+            .build()
+    }
+    AsyncImage(
+        model = request,
+        contentDescription = description,
+        modifier = Modifier.fillMaxSize(),
+        contentScale = ContentScale.Crop,
+        placeholder = painterResource(id = placeholderRes),
+        error = painterResource(id = placeholderRes),
+        onError = { if (!useFull) { StoryThumbs.resizeAvailable = false; useFull = true } }
+    )
 }

@@ -411,7 +411,7 @@ fun HamburgerHubModal(
                         }
 
                         FolderNavTile(
-                            title = if (language == AppLanguage.TURKISH) "🔴 Canlı Bülten" else "🔴 Live-Ticker",
+                            title = if (language == AppLanguage.TURKISH) "🔴 Canlı Ticker" else "🔴 Live-Ticker",
                             subtitle = if (language == AppLanguage.TURKISH) "Polis & BVG Resmî" else "Offizielle Meldungen",
                             icon = Icons.Default.Sensors,
                             color = BerlinRed,

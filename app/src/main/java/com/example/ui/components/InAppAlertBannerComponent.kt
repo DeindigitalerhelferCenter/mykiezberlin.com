@@ -112,6 +112,48 @@ fun InAppAlertBannerComponent(
             alert.formatTimeAgo(System.currentTimeMillis(), language)
         }
 
+        // Collapsed by default: one line (tag · title), tap to open the full card.
+        // The full card took ~20 % of the screen and stayed fixed while scrolling.
+        var expanded by remember(alert.id) { mutableStateOf(false) }
+        // Live texts come from German sources; mark them when the app is TR/EN
+        val germanSource = language != AppLanguage.GERMAN
+        if (!expanded) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 4.dp)
+                    .clickable { expanded = true },
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surface,
+                border = BorderStroke(1.dp, brandColor.copy(alpha = 0.6f))
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp).padding(start = 10.dp, end = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Surface(shape = RoundedCornerShape(6.dp), color = brandColor) {
+                        Text(alert.tag, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp))
+                    }
+                    Text(
+                        text = alert.title,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 13.sp,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (germanSource) DeChip()
+                    Icon(Icons.Default.ExpandMore, contentDescription = if (language == AppLanguage.TURKISH) "Aç" else "Öffnen", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
+                    IconButton(onClick = onDismiss, modifier = Modifier.size(44.dp)) {
+                        Icon(Icons.Default.Close, contentDescription = "Schließen", modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
+            return@AnimatedVisibility
+        }
+
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
@@ -151,6 +193,12 @@ fun InAppAlertBannerComponent(
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        if (germanSource) DeChip()
+                    }
+
+                    // Collapse back to one line
+                    IconButton(onClick = { expanded = false }, modifier = Modifier.size(36.dp)) {
+                        Icon(Icons.Default.ExpandLess, contentDescription = if (language == AppLanguage.TURKISH) "Küçült" else "Einklappen", modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
 
                     IconButton(
@@ -245,7 +293,7 @@ fun InAppAlertBannerComponent(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = if (language == AppLanguage.TURKISH) "Bülteni Aç" else "Live-Ticker",
+                            text = if (language == AppLanguage.TURKISH) "Ticker'ı Aç" else if (language == AppLanguage.ENGLISH) "Live ticker" else "Live-Ticker",
                             fontSize = 11.5.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
@@ -275,5 +323,13 @@ fun InAppAlertBannerComponent(
                 }
             }
         }
+    }
+}
+
+/** Small "DE" tag: this live text comes from a German source and is not translated. */
+@Composable
+private fun DeChip() {
+    Surface(shape = RoundedCornerShape(4.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
+        Text("DE", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp))
     }
 }

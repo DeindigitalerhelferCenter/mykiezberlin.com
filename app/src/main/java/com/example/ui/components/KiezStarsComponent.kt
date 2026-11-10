@@ -8,6 +8,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -152,7 +154,7 @@ fun KiezStarsCard(language: AppLanguage, onShareStory: () -> Unit) {
                 if (d != null && d.lastWeekTop.isNotEmpty()) {
                     Text(
                         if (tr) "Geçen hafta →" else if (en) "Last week →" else "Letzte Woche →",
-                        fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0288D1),
+                        fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0369A1),
                         modifier = Modifier.clickable { showTrophy = true }
                     )
                 }
@@ -160,9 +162,9 @@ fun KiezStarsCard(language: AppLanguage, onShareStory: () -> Unit) {
             val top = d?.top.orEmpty().take(3)
             if (top.isEmpty()) {
                 Text(
-                    if (tr) "Bu hafta henüz kimse hikâye paylaşmadı. İlk sen ol, kupayı kap! 🚀"
-                    else if (en) "Nobody has shared a story this week yet. Be the first and grab the trophy! 🚀"
-                    else "Diese Woche hat noch niemand eine Story geteilt. Sei die/der Erste und hol dir den Pokal! 🚀",
+                    if (tr) "Bu hafta henüz kimse hikâye paylaşmadı. İlk sen ol, kupayı kap!"
+                    else if (en) "Nobody has shared a story this week yet. Be the first and grab the trophy!"
+                    else "Diese Woche hat noch niemand eine Story geteilt. Sei die/der Erste und hol dir den Pokal!",
                     fontSize = 13.sp
                 )
             } else {
@@ -186,7 +188,7 @@ fun KiezStarsCard(language: AppLanguage, onShareStory: () -> Unit) {
                             }
                         }
                         Text(
-                            "${star.count} " + (if (tr) "hikâye" else if (en) "stories" else "Stories"),
+                            "${star.count} " + storyWord(star.count, tr, en),
                             fontWeight = FontWeight.ExtraBold, fontSize = 14.sp
                         )
                     }
@@ -199,12 +201,12 @@ fun KiezStarsCard(language: AppLanguage, onShareStory: () -> Unit) {
                 .firstOrNull { mine < it.first }
             val progress = when {
                 name.isBlank() -> if (tr) "Hikâye paylaş, adınla listeye gir!" else if (en) "Share a story and get on the list with your name!" else "Teile eine Story und komm mit deinem Namen auf die Liste!"
-                next == null -> if (tr) "$name, bu hafta $mine hikâye – 🥇 Altın rozet senin! 🎉" else if (en) "$name, $mine stories this week – 🥇 Gold badge is yours! 🎉" else "$name, $mine Stories diese Woche – 🥇 Gold-Abzeichen gehört dir! 🎉"
+                next == null -> if (tr) "$name, bu hafta $mine hikâye – 🥇 Altın rozet senin!" else if (en) "$name, $mine stories this week – 🥇 Gold badge is yours!" else "$name, $mine Stories diese Woche – 🥇 Gold-Abzeichen gehört dir!"
                 else -> {
                     val left = next.first - mine
-                    if (tr) "$name, bu hafta $mine hikâye paylaştın – ${next.second} rozete $left kaldı 💪"
-                    else if (en) "$name, you shared $mine stories this week – $left more for ${next.second} 💪"
-                    else "$name, du hast diese Woche $mine Stories geteilt – noch $left bis ${next.second} 💪"
+                    if (tr) "$name, bu hafta $mine hikâye paylaştın – ${next.second} rozete $left kaldı"
+                    else if (en) "$name, you shared $mine stories this week – $left more for ${next.second}"
+                    else "$name, du hast diese Woche $mine Stories geteilt – noch $left bis ${next.second}"
                 }
             }
             Text(progress, fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold)
@@ -218,11 +220,17 @@ fun KiezStarsCard(language: AppLanguage, onShareStory: () -> Unit) {
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE30613)),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(if (tr) "📸 Hikâye paylaş" else if (en) "📸 Share a story" else "📸 Story teilen", fontWeight = FontWeight.Bold)
+                Icon(Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(if (tr) "Hikâye paylaş" else if (en) "Share a story" else "Story teilen", fontWeight = FontWeight.Bold)
             }
         }
     }
 }
+
+/** "1 Story" / "2 Stories" (TR has no plural form). */
+private fun storyWord(n: Int, tr: Boolean, en: Boolean): String =
+    if (tr) "hikâye" else if (en) (if (n == 1) "story" else "stories") else (if (n == 1) "Story" else "Stories")
 
 private class Piece(val x: Float, val y: Float, val size: Float, val speed: Float, val drift: Float, val color: Color)
 
@@ -238,6 +246,8 @@ fun TrophyOverlay(language: AppLanguage, winners: List<KiezStar>, onClose: () ->
         val start = withInfiniteAnimationFrameMillis { it }
         while (elapsed < 9000L) elapsed = withInfiniteAnimationFrameMillis { it } - start
     }
+    // Closes by itself after 6 s (tap or "Kapat" still close it earlier)
+    LaunchedEffect(Unit) { kotlinx.coroutines.delay(6000L); onClose() }
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Box(
             modifier = Modifier.fillMaxSize().background(Color(0xEE101820)).clickable(onClick = onClose),
@@ -257,18 +267,18 @@ fun TrophyOverlay(language: AppLanguage, winners: List<KiezStar>, onClose: () ->
             ) {
                 Text("🏆", fontSize = 96.sp)
                 Text(
-                    if (tr) "Haftanın Kiez Yıldızı" else if (en) "Kiez Star of the week" else "Kiez-Star der Woche",
+                    if (tr) "Geçen haftanın Kiez Yıldızı" else if (en) "Last week's Kiez Star" else "Kiez-Star der letzten Woche",
                     color = Gold, fontSize = 26.sp, fontWeight = FontWeight.Black, textAlign = TextAlign.Center
                 )
                 winners.take(3).forEach { w ->
                     Text(
-                        "${medal(w.rank)}  ${w.name} · ${w.count} " + (if (tr) "hikâye" else if (en) "stories" else "Stories"),
+                        "${medal(w.rank)}  ${w.name} · ${w.count} " + storyWord(w.count, tr, en),
                         color = Color.White, fontSize = if (w.rank == 1) 24.sp else 18.sp,
                         fontWeight = if (w.rank == 1) FontWeight.ExtraBold else FontWeight.Bold, textAlign = TextAlign.Center
                     )
                 }
                 Text(
-                    if (tr) "Tebrikler! Bu hafta sıra sende – hikâyeni paylaş 📸" else if (en) "Congratulations! This week it's your turn – share your story 📸" else "Glückwunsch! Diese Woche bist du dran – teile deine Story 📸",
+                    if (tr) "Tebrikler! Bu hafta sıra sende – hikâyeni paylaş." else if (en) "Congratulations! This week it's your turn – share your story." else "Glückwunsch! Diese Woche bist du dran – teile deine Story.",
                     color = Color.White, fontSize = 15.sp, textAlign = TextAlign.Center
                 )
                 OutlinedButton(onClick = onClose, border = BorderStroke(1.dp, Color.White)) {

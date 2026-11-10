@@ -8,6 +8,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -102,7 +106,10 @@ fun HomeAdsSection(
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(containerColor = BerlinRed)
         ) {
-            Text(if (tr) "📨 Şimdi reklam ver – talep gönder" else "📨 Jetzt werben – Anfrage senden", fontWeight = FontWeight.Bold)
+            // Icon instead of the 📨 emoji (same as the web page)
+            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(if (tr) "Şimdi reklam ver – talep gönder" else "Jetzt werben – Anfrage senden", fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -182,16 +189,29 @@ private fun PackageCard(pk: AdPackage, tr: Boolean, onClick: () -> Unit) {
             Text(if (tr) pk.nameTr else pk.nameDe, fontWeight = FontWeight.ExtraBold, fontSize = 19.sp)
             Text(if (tr) pk.tagTr else pk.tagDe, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Row(verticalAlignment = Alignment.Bottom) {
-                Text("${pk.price} €", fontWeight = FontWeight.ExtraBold, fontSize = 30.sp, color = BerlinRed)
+                Text("${pk.price} €", fontWeight = FontWeight.ExtraBold, fontSize = 30.sp, color = MaterialTheme.colorScheme.onSurface) // red only for actions
                 Text(if (tr) "/ay" else "/Monat", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 2.dp, bottom = 4.dp))
             }
-            Text(
-                if (tr) "🎉 Başlangıç: ilk 3 ay sadece 19 €/ay" else "🎉 Start: 3 Monate nur 19 €/Monat",
-                fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.Black,
-                modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(AdYellow).border(1.5.dp, AdInk, RoundedCornerShape(10.dp)).padding(horizontal = 8.dp, vertical = 4.dp)
-            )
-            pk.points.forEach { (de, t) -> Text("✅ " + (if (tr) t else de), fontSize = 13.5.sp) }
-            Text(if (tr) "Paketi seç →" else "Paket wählen →", fontWeight = FontWeight.Bold, color = BerlinRed, fontSize = 13.sp)
+            // Launch offer as plain text: yellow stays for "Empfohlen" only
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurface)
+                Spacer(Modifier.width(6.dp))
+                Text(if (tr) "Başlangıç: ilk 3 ay sadece 19 €/ay" else "Start: 3 Monate nur 19 €/Monat", fontSize = 13.5.sp, fontWeight = FontWeight.Bold)
+            }
+            pk.points.forEach { (de, t) ->
+                Row(verticalAlignment = Alignment.Top) {
+                    Icon(Icons.Default.Check, contentDescription = null, tint = Color(0xFF2E7D32), modifier = Modifier.size(18.dp).padding(top = 1.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(if (tr) t else de, fontSize = 13.5.sp)
+                }
+            }
+            // Real button instead of a text link (same as the web page)
+            Button(
+                onClick = onClick,
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp).heightIn(min = 44.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = BerlinRed)
+            ) { Text(if (tr) "Paketi seç →" else "Paket wählen →", fontWeight = FontWeight.Bold) }
         }
         if (pk.recommended) {
             Text(

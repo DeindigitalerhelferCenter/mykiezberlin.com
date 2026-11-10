@@ -6,6 +6,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -20,9 +21,12 @@ fun MyKiezBottomNav(
     onNavigate: (AppScreen) -> Unit,
     onOpenMoreMenu: () -> Unit
 ) {
+    // tonalElevation tinted the bar pink (red primary); plain surface + thin top line instead
+    val topLine = MaterialTheme.colorScheme.outlineVariant
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = 8.dp
+        tonalElevation = 0.dp,
+        modifier = Modifier.drawBehind { drawLine(topLine, androidx.compose.ui.geometry.Offset(0f, 0f), androidx.compose.ui.geometry.Offset(size.width, 0f), 1.dp.toPx()) }
     ) {
         // 1. Betriebe (Businesses)
         val isBetriebeActive = currentScreen == AppScreen.BUSINESSES || currentScreen == AppScreen.HOME

@@ -458,7 +458,7 @@ fun HamburgerMenuModal(
                             }
                         )
                         FolderNavButton(
-                            title = if (language == AppLanguage.TURKISH) "Canlı Bülten" else "Live-Ticker",
+                            title = if (language == AppLanguage.TURKISH) "Canlı Ticker" else "Live-Ticker",
                             icon = Icons.Default.RssFeed,
                             tint = BerlinGreen,
                             modifier = Modifier.weight(1f),

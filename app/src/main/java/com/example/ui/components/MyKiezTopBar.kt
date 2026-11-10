@@ -82,7 +82,7 @@ fun MyKiezTopBar(
                             modifier = Modifier.size(6.dp)
                         ) {}
                         Text(
-                            text = if (currentLanguage == AppLanguage.TURKISH) "Canlı Bülten" else "Live-Ticker",
+                            text = if (currentLanguage == AppLanguage.TURKISH) "Canlı Ticker" else "Live-Ticker", // same name as the bottom bar
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
                             fontSize = 10.5.sp
@@ -108,7 +108,8 @@ fun MyKiezTopBar(
                             modifier = Modifier.size(15.dp)
                         )
                         Text(
-                            text = if (currentLanguage == AppLanguage.TURKISH) "İşletmeler" else if (currentLanguage == AppLanguage.ENGLISH) "B2B" else "B2B",
+                            // "İşletmeler" was the same word as the first bottom tab, but this opens the B2B portal
+                            text = "B2B",
                             color = BerlinRed,
                             fontWeight = FontWeight.Bold,
                             fontSize = 10.5.sp
@@ -354,7 +355,7 @@ OutlinedButton(
                 // Hamburger Menu Button (Header Sağ Köşe - Menü & Filtreler)
                 Surface(
                     shape = RoundedCornerShape(10.dp),
-                    color = BerlinRed,
+                    color = MaterialTheme.colorScheme.surfaceVariant, // neutral: red is kept for Live and main actions
                     modifier = Modifier
                         .size(36.dp)
                         .clickable { onOpenHamburgerMenu() }
@@ -364,7 +365,7 @@ OutlinedButton(
                         Icon(
                             imageVector = Icons.Default.Menu,
                             contentDescription = "Hamburger Menü & Filtreler",
-                            tint = Color.White,
+                            tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(20.dp)
                         )
                     }
