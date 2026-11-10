@@ -51,12 +51,16 @@ function fit(text, max) {
 }
 
 function matchKiez(place, fullText) {
-  const p = place.toLowerCase();
-  const byName = p ? KIEZ_NAMES.find((k) => p.includes(k.toLowerCase()) || k.toLowerCase().includes(p)) : "";
+  const p = place.toLowerCase().trim();
+  // "Berlin" alone is no Kiez; "Berlin & Umgebung" only when the picture says Umgebung / Brandenburg
+  const names = KIEZ_NAMES.filter((k) => k !== "Berlin & Umgebung");
+  const byName = p && p !== "berlin" ? names.find((k) => p.includes(k.toLowerCase()) || (p.length > 4 && k.toLowerCase().includes(p))) : "";
   if (byName) return byName;
   for (const code of String(fullText || "").match(/\b1[0-4]\d{3}\b/g) || []) if (KIEZ_BY_PLZ[code]) return KIEZ_BY_PLZ[code];
   const t = String(fullText || "").toLowerCase();
-  return KIEZ_NAMES.find((k) => k.length > 4 && t.includes(k.toLowerCase())) || "";
+  const named = names.find((k) => k.length > 4 && t.includes(k.toLowerCase()));
+  if (named) return named;
+  return /umgebung|brandenburg/.test(t) ? "Berlin & Umgebung" : "";
 }
 
 // Turkish text when the vision model left it out (translation model, German -> Turkish)
