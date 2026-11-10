@@ -82,8 +82,8 @@ async function loadModerationQueue() {
       ...stories.map((i) => ["story", i]), ...posts.map((i) => ["post", i]),
       ...comments.map((i) => ["comment", i]), ...submissions.map((i) => ["submission", i]),
     ];
-    const tabs = ["pending", "approved", "expired", "rejected"];
-    const labels = { pending: "Bekleyen", approved: "Yayında", expired: "Süresi doldu", rejected: "Reddedilen" };
+    const tabs = ["pending", "scheduled", "approved", "expired", "rejected"];
+    const labels = { pending: "Bekleyen", scheduled: "Planlı", approved: "Yayında", expired: "Süresi doldu", rejected: "Reddedilen" };
     const shown = all.filter(([, i]) => i.status === moderationTab);
     box.innerHTML = `
       <h2 style="font-size: 17px; font-weight: 800; color: #fff; margin-bottom: 12px;">Kullanıcı Gönderileri (Sunucu)</h2>

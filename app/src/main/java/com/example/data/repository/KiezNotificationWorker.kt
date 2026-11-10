@@ -122,6 +122,13 @@ class KiezNotificationWorker(context: Context, params: WorkerParameters) : Corou
     private fun mayShow(item: Item): Boolean {
         if (item.kind == "critical" || item.kind == "admin") return true
         val today = LocalDate.now().toString()
+        if (item.kind == "story") {
+            // Planned stories of the admin: one notification each time a story goes live (own quota).
+            val usedStory = if (prefs.getString(KEY_STORY_DAY, "") == today) prefs.getInt(KEY_STORY_COUNT, 0) else 0
+            if (usedStory >= STORY_DAILY_LIMIT) return false
+            prefs.edit().putString(KEY_STORY_DAY, today).putInt(KEY_STORY_COUNT, usedStory + 1).apply()
+            return true
+        }
         if (item.kind == "hourly") {
             // Own quota for the hourly news / invitations (08–21 h), so urgent alerts keep theirs.
             val usedHourly = if (prefs.getString(KEY_HOURLY_DAY, "") == today) prefs.getInt(KEY_HOURLY_COUNT, 0) else 0
@@ -185,6 +192,9 @@ class KiezNotificationWorker(context: Context, params: WorkerParameters) : Corou
         private const val KEY_HOURLY_DAY = "hourly_day"
         private const val KEY_HOURLY_COUNT = "hourly_count"
         private const val HOURLY_DAILY_LIMIT = 14
+        private const val KEY_STORY_DAY = "story_day"
+        private const val KEY_STORY_COUNT = "story_count"
+        private const val STORY_DAILY_LIMIT = 30
         private const val MAX_PER_RUN = 2
         private const val MAX_SEEN_IDS = 200
         private const val LOGO_SIZE = 128

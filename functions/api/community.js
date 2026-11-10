@@ -10,7 +10,7 @@ export async function onRequestGet({ env }) {
   if (!database) return noDb();
   const read = (sql, ...args) => database.prepare(sql).bind(...args).all().then((r) => r.results);
   const [stories, posts, comments, likes] = await Promise.all([
-    read(`SELECT id, headline AS title, subtext AS text, kiez, author, media_key, media_type, approved_at AS created_at FROM stories WHERE status = 'approved' AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT 30`, Date.now()),
+    read(`SELECT id, headline AS title, subtext AS text, kiez, author, media_key, media_type, approved_at AS created_at FROM stories WHERE status = 'approved' AND approved_at <= ? AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT 30`, Date.now(), Date.now()),
     read(`SELECT id, title, description AS text, kiez, category, author, media_key, media_type, upvotes, created_at FROM reporter_posts WHERE status = 'approved' ORDER BY created_at DESC LIMIT 40`),
     read(`SELECT id, post_id, target, parent_id, kind, author, text, created_at FROM reporter_comments WHERE status = 'approved' ORDER BY created_at ASC LIMIT 600`),
     read(`SELECT target, target_id, COUNT(*) AS n FROM likes GROUP BY target, target_id`),

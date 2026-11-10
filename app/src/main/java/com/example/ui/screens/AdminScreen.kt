@@ -71,6 +71,8 @@ fun AdminScreen(
     onAdminStoryLink: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
+    var showStoryPlanner by remember { mutableStateOf(false) }
+    if (showStoryPlanner) AdminStoryPlanner(onDismiss = { showStoryPlanner = false })
     var tokenInput by remember { mutableStateOf("") }
     var loginError by remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) } // Eye icon toggle
@@ -290,6 +292,15 @@ fun AdminScreen(
                     }
                 },
                 actions = {
+                    // Story planner: many stories with their own start / end time
+                    FilledTonalButton(
+                        onClick = { showStoryPlanner = true },
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(end = 4.dp)
+                    ) {
+                        Text("📅 Plan", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    }
                     // Small + Story button
                     FilledTonalButton(
                         onClick = { showAdminCreateStoryDialog = true },

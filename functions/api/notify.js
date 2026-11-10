@@ -148,11 +148,27 @@ async function weeklyStar(env, now) {
   }];
 }
 
+// Story planner: every planned story gets a notification when it goes live (window 40 minutes).
+async function plannedStories(env, now) {
+  const database = await db(env);
+  if (!database) return [];
+  const { results } = await database
+    .prepare(`SELECT id, headline, kiez FROM stories WHERE status = 'approved' AND by_admin = 1 AND approved_at <= ? AND approved_at > ? AND approved_at > created_at + 300000 ORDER BY approved_at DESC LIMIT 5`)
+    .bind(now, now - 40 * 60000)
+    .all();
+  return results.map((s) => ({
+    id: `story-${s.id}`, kind: "story", screen: "HOME",
+    title: "🆕 Neue Kiez-Story", body: `${s.headline} (${s.kiez})`,
+    title_tr: "🆕 Yeni Kiez hikâyesi", body_tr: `${s.headline} (${s.kiez})`,
+    title_en: "🆕 New Kiez story", body_en: `${s.headline} (${s.kiez})`,
+  }));
+}
+
 async function build(env) {
   const now = Date.now();
-  const [warnings, alerts, matches, hourly, star] = await Promise.allSettled([officialWarnings(), urgentAlerts(now), loadBerlinMatches(), hourlyItem(now), weeklyStar(env, now)]);
+  const [warnings, alerts, matches, hourly, star, planned] = await Promise.allSettled([officialWarnings(), urgentAlerts(now), loadBerlinMatches(), hourlyItem(now), weeklyStar(env, now), plannedStories(env, now)]);
   const value = (r) => (r.status === "fulfilled" ? r.value : []);
-  return [...value(warnings), ...value(alerts), ...value(matches).flatMap((m) => matchEvents(m, now)), ...value(hourly), ...eveningTest(now), ...value(star)];
+  return [...value(warnings), ...value(alerts), ...value(matches).flatMap((m) => matchEvents(m, now)), ...value(hourly), ...eveningTest(now), ...value(star), ...value(planned)];
 }
 
 export async function onRequestGet(context) {
