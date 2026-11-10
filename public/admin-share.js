@@ -63,7 +63,7 @@
     if (!overlay || overlay.querySelector(".mk-admin-share")) return;
     var bar = document.createElement("div");
     bar.className = "mk-admin-share";
-    bar.style.cssText = "position:absolute;left:8px;right:8px;bottom:84px;z-index:30;display:flex;gap:6px;justify-content:center;flex-wrap:wrap";
+    bar.style.cssText = "position:absolute;left:8px;right:8px;top:64px;z-index:30;display:flex;gap:6px;justify-content:center;flex-wrap:wrap";
     var btn = function (t, label, bg) { return '<button onclick="event.stopPropagation();mkAdminShare(\'' + t + '\')" style="border:0;border-radius:18px;padding:7px 11px;font-weight:700;font-size:12px;color:#fff;background:' + bg + '">' + label + "</button>"; };
     bar.innerHTML = btn("whatsapp", "WhatsApp", "#25D366") + btn("instagram", "Instagram", "#C13584") + btn("facebook", "Facebook", "#1877F2") + btn("tiktok", "TikTok", "#111");
     overlay.appendChild(bar);
