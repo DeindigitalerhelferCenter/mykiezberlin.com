@@ -7,7 +7,7 @@
 <meta name="description" content="Mehr Kunden aus deinem Berliner Kiez: 3 Monate für 19 € pro Monat, danach 29, 49 oder 89 €. Hervorhebung, Sponsor-Karte, Gutscheine und Jobs in der App und auf mykiezberlin.com.">
 <link rel="canonical" href="https://mykiezberlin.com/werben">
 <meta name="theme-color" content="#E30613">
-<script>try{var kcT=localStorage.getItem('mkb_theme');if(kcT)document.documentElement.setAttribute('data-theme',kcT)}catch(e){}</script>
+<script>try{var kcT=localStorage.getItem('mkb_theme');document.documentElement.setAttribute('data-theme',kcT||'light')}catch(e){document.documentElement.setAttribute('data-theme','light')}/* light by default like the home page; dark only after the user picks it */</script>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" href="/assets/images/mykiez_logo.png">
 <link rel="apple-touch-icon" href="/assets/images/apple-touch-icon.png">
@@ -84,11 +84,50 @@ footer{max-width:1100px;margin:0 auto;padding:22px 16px 30px;border-top:2px soli
 footer a{color:var(--muted)}
 .paybox{display:grid;gap:10px}.btn.pay{text-decoration:none;background:var(--green);font-size:17px}.btn.pay::before{content:"💳"}.paid{border-left:8px solid var(--green)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* === UI fixes from the visual critique (2026-11-10) === */
+:root{--blue:#0369A1}                                                   /* #12 link contrast on white 5.9:1 */
+:root[data-theme=dark]{--blue:#38BDF8}                                   /* #12 link contrast on dark ≈ 8:1 */
+.btn::before{content:none}                                               /* #13 no emoji in buttons */
+.btn svg{width:18px;height:18px;flex:none}
+.pk li::before{content:"";left:2px;top:.35em;width:14px;height:8px;border:solid #2E7D32;border-width:0 0 3px 3px;transform:rotate(-45deg)} /* #13 check mark instead of ✅ */
+.pk .then{display:none}                                                  /* #5 / #6 offer is explained once above */
+.btn.gpbtn,.btn.pay{background:var(--pink)}                              /* #7 one primary colour */
+.top .back{font-weight:700;font-size:14px;text-decoration:none;color:var(--ink);padding:10px 4px;white-space:nowrap} /* #16 */
+@media (max-width:420px){.top .back span{display:none}}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:18px}  /* #2 */
+.cta-row .btn{font-size:17px;padding:13px 22px;text-decoration:none}
+.ghost{font-weight:800;color:var(--ink);text-decoration:underline;text-underline-offset:3px;padding:12px 4px}
+.steps{list-style:none;counter-reset:st;margin:0 0 22px;padding:0;display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))} /* #3 */
+.steps li{counter-increment:st;background:var(--card);border:2px solid var(--line);border-radius:var(--r);padding:14px 16px 14px 58px;position:relative;box-shadow:var(--shadow)}
+.steps li::before{content:counter(st);position:absolute;left:14px;top:14px;width:32px;height:32px;border-radius:50%;background:var(--ink);color:var(--paper);display:grid;place-items:center;font-weight:800}
+.steps b{display:block;font-size:16px;font-weight:800}
+.steps p{margin:4px 0 0;color:var(--muted);font-size:15px}
+.steps .btn{margin-top:10px;font-size:14px;padding:8px 14px;text-decoration:none}
+.pk .pick{margin-top:auto;justify-self:stretch;justify-content:center;text-decoration:none} /* #1 */
+.pk ul{margin-bottom:8px}
+.req{color:var(--pink)}                                                  /* #8 */
+.reqnote{margin:0;font-size:13px;color:var(--muted)}
+.formwrap{display:grid;gap:18px;align-items:start}                       /* #10 */
+@media (min-width:900px){.formwrap{grid-template-columns:minmax(0,640px) minmax(0,1fr)}}
+.formwrap .how{background:var(--card);border:2px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow)}
+.formwrap .how b{display:block;font-size:17px;margin-bottom:6px}
+.formwrap .how p{margin:0;color:var(--muted)}
+.btable{width:100%;border-collapse:collapse;margin:14px 0 4px;font-size:15px;background:var(--card);border:2px solid var(--line);border-radius:var(--r);overflow:hidden} /* #15 */
+.btable th,.btable td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--soft)}
+.btable th{background:var(--sv);font-weight:800}
+.btable td:last-child{font-weight:800;white-space:nowrap}
+.langs button,.themebtn,.chk input{position:relative}                    /* #11 44px hit areas, same look */
+.langs{overflow:visible}
+.langs button::after,.themebtn::after{content:"";position:absolute;left:50%;top:50%;width:max(100%,44px);height:max(100%,44px);transform:translate(-50%,-50%)}
+.chk{padding:6px 0;cursor:pointer}
+.chk input{width:22px;height:22px;flex:0 0 22px}
+#f,#pakete{scroll-margin-top:96px}                                       /* not hidden under the sticky header */
 </style>
 </head>
 <body>
 <header class="top">
   <a class="logo" href="/"><img src="/assets/images/mykiez_logo.png" alt="" width="44" height="44">My Kiez Berlin</a>
+  <a class="back" href="/">← <span data-i="back"></span></a>
   <div class="langs" role="group" aria-label="Sprache"><button data-l="de">DE</button><button data-l="tr">TR</button><button data-l="en">EN</button></div>
   <button class="themebtn" id="themeBtn" type="button" aria-label="Dark Mode">🌙</button>
 </header>
@@ -98,48 +137,72 @@ footer a{color:var(--muted)}
     <div>
       <h1 data-i="h1"></h1>
       <p class="lead" data-i="lead"></p>
+      <div class="cta-row">
+        <a class="btn" href="#f"><span data-i="cta"></span> →</a>
+        <a class="ghost" href="#pakete" data-i="cta2"></a>
+      </div>
     </div>
     <figure class="kiezpic"><img src="/assets/kiez/berlin_city_banner-800.webp" alt="" width="800" height="447" decoding="async"><figcaption>📍 Berlin</figcaption></figure>
   </section>
 
-  <h2 data-i="h_pk"></h2>
-  <div class="offer">
-    <div class="of"><b data-i="offer_h"></b><p data-i="offer_txt"></p></div>
-    <div class="of gp"><b data-i="gp_h"></b><p data-i="gp_txt"></p><a class="btn gpbtn" href="#f" data-i="gp_btn"></a></div>
-  </div>
+  <h2 id="pakete" data-i="h_pk"></h2>
+  <!-- #3 one clear order instead of two competing offers -->
+  <ol class="steps">
+    <li><b data-i="st1_h"></b><p data-i="st1_txt"></p><a class="btn gpbtn" href="#f" data-size="gp" data-i="gp_btn"></a></li>
+    <li><b data-i="st2_h"></b><p data-i="st2_txt"></p></li>
+    <li><b data-i="st3_h"></b><p data-i="st3_txt"></p></li>
+  </ol>
   <div class="grid">
-    <div class="pk"><h3 data-i="s"></h3><p class="size" data-i="s_size"></p><div class="price">29 €<small data-i="pm"></small></div><p class="then" data-i="start"></p><ul><li data-i="f_top"></li><li data-i="f_mark"></li><li data-i="f_coupon"></li></ul></div>
-    <div class="pk hl"><span class="badge" data-i="rec"></span><h3 data-i="m"></h3><p class="size" data-i="m_size"></p><div class="price">49 €<small data-i="pm"></small></div><p class="then" data-i="start"></p><ul><li data-i="f_all_s"></li><li data-i="f_berlin"></li></ul></div>
-    <div class="pk"><h3 data-i="l"></h3><p class="size" data-i="l_size"></p><div class="price">89 €<small data-i="pm"></small></div><p class="then" data-i="start"></p><ul><li data-i="f_all_m"></li><li data-i="f_sponsor"></li></ul></div>
+    <div class="pk"><h3 data-i="s"></h3><p class="size" data-i="s_size"></p><div class="price">29 €<small data-i="pm"></small></div><p class="then" data-i="start"></p><ul><li data-i="f_top"></li><li data-i="f_mark"></li><li data-i="f_coupon"></li></ul><a class="btn pick" href="#f" data-size="s"><span data-i="pick"></span> →</a></div>
+    <div class="pk hl"><span class="badge" data-i="rec"></span><h3 data-i="m"></h3><p class="size" data-i="m_size"></p><div class="price">49 €<small data-i="pm"></small></div><p class="then" data-i="start"></p><ul><li data-i="f_all_s"></li><li data-i="f_berlin"></li></ul><a class="btn pick" href="#f" data-size="m"><span data-i="pick"></span> →</a></div>
+    <div class="pk"><h3 data-i="l"></h3><p class="size" data-i="l_size"></p><div class="price">89 €<small data-i="pm"></small></div><p class="then" data-i="start"></p><ul><li data-i="f_all_m"></li><li data-i="f_sponsor"></li></ul><a class="btn pick" href="#f" data-size="l"><span data-i="pick"></span> →</a></div>
   </div>
-  <p class="note" data-i="self"></p>
 
   <h2 data-i="h_banner"></h2>
   <p data-i="banner_txt" style="max-width:70ch"></p>
+  <!-- #15 which placement costs what (same placements as the packages above) -->
+  <table class="btable">
+    <thead><tr><th data-i="bt_place"></th><th data-i="bt_price"></th></tr></thead>
+    <tbody>
+      <tr><td data-i="bt_s"></td><td>29 €<span data-i="pm"></span></td></tr>
+      <tr><td data-i="bt_m"></td><td>49 €<span data-i="pm"></span></td></tr>
+      <tr><td data-i="bt_l"></td><td>89 €<span data-i="pm"></span></td></tr>
+    </tbody>
+  </table>
   <div class="grid">
-    <div class="pk"><h3 data-i="b_where"></h3><ul><li data-i="b1"></li><li data-i="b2"></li><li data-i="b3"></li><li data-i="b4"></li></ul></div>
+    <div class="pk"><h3 data-i="b_where"></h3><ul><li data-i="b1"></li><li data-i="b2"></li><li data-i="b3"></li><li data-i="b4"></li></ul><a class="btn pick" href="#f" data-size="banner"><span data-i="pick_b"></span> →</a></div>
     <div class="pk"><h3 data-i="b_report"></h3><p style="margin:0" data-i="b_report_txt"></p></div>
+  </div>
+
+  <!-- #9 job ads are their own offer, not banner sponsoring -->
+  <h2 data-i="h_more"></h2>
+  <div class="grid">
     <div class="pk"><h3 data-i="b_jobs"></h3><div class="price">29 €</div><p style="margin:0" data-i="b_jobs_txt"></p></div>
   </div>
 
   <h2 data-i="h_form"></h2>
+  <div class="formwrap">
   <div id="formBox">
     <form id="f" novalidate>
       <div class="two">
-        <label><span data-i="l_company"></span><input name="company" required maxlength="120" autocomplete="organization"></label>
+        <label><span><span data-i="l_company"></span> <span class="req" aria-hidden="true">*</span></span><input name="company" required maxlength="120" autocomplete="organization"></label>
         <label><span data-i="l_person"></span><input name="person" maxlength="80" autocomplete="name"></label>
       </div>
       <div class="two">
-        <label><span data-i="l_email"></span><input name="email" type="email" required maxlength="120" autocomplete="email"></label>
+        <label><span><span data-i="l_email"></span> <span class="req" aria-hidden="true">*</span></span><input name="email" type="email" required maxlength="120" autocomplete="email"></label>
         <label><span data-i="l_phone"></span><input name="phone" type="tel" maxlength="40" autocomplete="tel"></label>
       </div>
-      <label><span data-i="l_interest"></span><select name="size">
+      <label><span><span data-i="l_interest"></span> <span class="req" aria-hidden="true">*</span></span><select name="size" required>
+        <option value="" data-i="o_pick" disabled selected></option>
         <option value="s" data-i="o_s"></option><option value="m" data-i="o_m"></option><option value="l" data-i="o_l"></option><option value="banner" data-i="o_b"></option><option value="gp" data-i="o_gp"></option></select></label>
       <label><span data-i="l_msg"></span><textarea name="message" maxlength="1000"></textarea></label>
       <div class="hp" aria-hidden="true"><input name="hp" tabindex="-1" autocomplete="off"></div>
-      <label class="chk"><input type="checkbox" name="consent" required><span id="consent"></span></label>
-      <button class="btn" type="submit" data-i="send"></button>
+      <label class="chk"><input type="checkbox" name="consent" required><span><span id="consent"></span> <span class="req" aria-hidden="true">*</span></span></label>
+      <p class="reqnote"><span class="req">*</span> <span data-i="req_note"></span></p>
+      <button class="btn" type="submit"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 21 23 12 2 3v7l15 2-15 2z"/></svg><span data-i="send"></span></button>
     </form>
+  </div>
+  <aside class="how"><b data-i="how_h"></b><p id="howtxt"></p></aside>
   </div>
   <p style="margin-top:18px"><span data-i="or_mail"></span> <a id="mail" href="mailto:info@deindigitalerhelfer.com">info@deindigitalerhelfer.com</a></p>
 </main>
@@ -163,7 +226,14 @@ de:{pay_btn:"Jetzt per Karte buchen – 3 Monate 19 €/Monat",pay_txt:"Danke! D
  h_form:"Anfrage senden",l_company:"Betrieb / Firma",l_person:"Ansprechperson",l_email:"E-Mail",l_phone:"Telefon",l_interest:"Interesse an",l_msg:"Nachricht (optional)",
  o_s:"Paket Klein – 29 €/Monat",o_m:"Paket Mittel – 49 €/Monat",o_l:"Paket Groß – 89 €/Monat",o_b:"Banner-Sponsoring",
  consent:"Ich bin einverstanden, dass meine Angaben zur Bearbeitung der Anfrage gespeichert werden ({ds}).",ds_word:"Datenschutzerklärung",send:"Anfrage senden",
- ok:"Danke! Wir melden uns innerhalb von zwei Werktagen.",err:"Bitte Firma und eine gültige E-Mail angeben.",err_rate:"Zu viele Anfragen. Bitte schreib uns per E-Mail.",err_net:"Keine Verbindung. Bitte schreib uns per E-Mail.",or_mail:"Oder per E-Mail:",imp:"Impressum",ds:"Datenschutz"},
+ ok:"Danke! Wir melden uns innerhalb von zwei Werktagen.",err:"Bitte Firma und eine gültige E-Mail angeben.",err_rate:"Zu viele Anfragen. Bitte schreib uns per E-Mail.",err_net:"Keine Verbindung. Bitte schreib uns per E-Mail.",or_mail:"Oder per E-Mail:",imp:"Impressum",ds:"Datenschutz",
+ back:"Zur App",cta:"Jetzt Platz anfragen",cta2:"Pakete ansehen",
+ st1_h:"Gründungspartner: 3 Monate kostenlos",st1_txt:"Für die ersten 20 Betriebe. Als Dankeschön teilst du uns einmal auf Instagram oder hängst unser QR-Plakat im Laden auf. Kein Abo.",
+ st2_h:"Danach: 3 Monate für 19 €/Monat",st2_txt:"Startpreis für alle Pakete – auch ohne Gründungspartner-Platz geht es hier los.",
+ st3_h:"Dann: 29, 49 oder 89 €/Monat",st3_txt:"Je nach Paket. Jederzeit monatlich kündbar, ohne Mindestlaufzeit.",
+ pick:"Paket wählen",pick_b:"Banner anfragen",bt_place:"Platzierung",bt_price:"Preis",
+ bt_s:"Gezielt in deinem Kiez und deiner Kategorie",bt_m:"Zusätzlich zwischen den Einträgen in ganz Berlin",bt_l:"Zusätzlich in der Sponsor-Leiste auf der Startseite",
+ h_more:"Weitere Angebote",o_pick:"Bitte wählen …",req_note:"Pflichtfeld",how_h:"So geht's"},
 tr:{pay_btn:"Şimdi kartla satın al – ilk 3 ay 19 €/ay",pay_txt:"Teşekkürler! Talebin bize ulaştı. Paketini şimdi doğrudan satın alabilirsin:",pay_later:"Ödeme bağlantısını ayrıca e-postayla da göndereceğiz.",paid_ok:"Ödeme alındı – çok teşekkürler! Öne çıkarmanı kurup sana döneceğiz.",canceled:"Ödeme iptal edildi. Talebin kayıtlı, sana döneceğiz.",h1:"Mahallenden daha fazla müşteri",lead:"My Kiez Berlin, Berlin'deki işletmeleri mahalle ve kategoriye göre Almanca, Türkçe ve İngilizce gösterir. Temel kayıt her zaman ücretsizdir. Daha fazla müşteri isteyenler bir paketle en üstte görünür – aylık iptal edilebilir, asgari süre yok.",
  h_pk:"İşletme paketleri",s:"Küçük",m:"Orta",l:"Büyük",s_size:"Mahallende görün",m_size:"Tüm Berlin'den müşteri",l_size:"En yüksek görünürlük",start:"🎉 Başlangıç: ilk 3 ay sadece 19 €/ay",rec:"Önerimiz",offer_h:"🎉 Başlangıç teklifi",offer_txt:"Tüm paketler ilk 3 ay aylık sadece 19 €. Sonra aylık 29, 49 veya 89 € – her ay iptal edilebilir.",gp_h:"🤝 Kurucu ortak: ilk 20 işletmeye 3 ay ücretsiz",gp_txt:"Teşekkür olarak bizi bir kez Instagram'da paylaşırsın veya küçük QR afişimizi dükkanına asarsın. Sonrasında başlangıç teklifi geçerli olur. Ücretsiz dönemde abonelik ve ücret yok.",gp_btn:"Yer iste",o_gp:"Kurucu ortak (3 ay ücretsiz)",pm:"/ay",intro:"3 ay, sonra",
  f_top:"Mahallende ve kategorinde en üstte",f_mark:"Sarı işaretli, reklam olarak etiketli",f_coupon:"„Kuponlar“ bölümünde kendi kuponun",f_all_s:"Küçük paketteki her şey",f_berlin:"Ek olarak tüm Berlin listesinde üstte",f_all_m:"Orta paketteki her şey",f_sponsor:"Ek olarak ana sayfada ve liste arasında sponsor kartı",
@@ -175,7 +245,14 @@ tr:{pay_btn:"Şimdi kartla satın al – ilk 3 ay 19 €/ay",pay_txt:"Teşekkür
  h_form:"Talep gönder",l_company:"İşletme / firma",l_person:"İletişim kişisi",l_email:"E-posta",l_phone:"Telefon",l_interest:"İlgilendiğin",l_msg:"Mesaj (isteğe bağlı)",
  o_s:"Küçük paket – 29 €/ay",o_m:"Orta paket – 49 €/ay",o_l:"Büyük paket – 89 €/ay",o_b:"Banner sponsorluğu",
  consent:"Bilgilerimin talebin işlenmesi için saklanmasını kabul ediyorum ({ds}).",ds_word:"Gizlilik politikası",send:"Talebi gönder",
- ok:"Teşekkürler! İki iş günü içinde sana döneceğiz.",err:"Lütfen firma adı ve geçerli bir e-posta gir.",err_rate:"Çok fazla talep. Lütfen e-posta ile yaz.",err_net:"Bağlantı yok. Lütfen e-posta ile yaz.",or_mail:"Veya e-posta ile:",imp:"Künye",ds:"Gizlilik"},
+ ok:"Teşekkürler! İki iş günü içinde sana döneceğiz.",err:"Lütfen firma adı ve geçerli bir e-posta gir.",err_rate:"Çok fazla talep. Lütfen e-posta ile yaz.",err_net:"Bağlantı yok. Lütfen e-posta ile yaz.",or_mail:"Veya e-posta ile:",imp:"Künye",ds:"Gizlilik",
+ back:"Uygulamaya dön",cta:"Şimdi yer iste",cta2:"Paketlere bak",
+ st1_h:"Kurucu ortak: 3 ay ücretsiz",st1_txt:"İlk 20 işletme için. Teşekkür olarak bizi bir kez Instagram'da paylaşırsın veya QR afişimizi dükkanına asarsın. Abonelik yok.",
+ st2_h:"Sonra: 3 ay aylık 19 €",st2_txt:"Tüm paketler için başlangıç fiyatı – kurucu ortak yeri olmadan da buradan başlarsın.",
+ st3_h:"Ardından: aylık 29, 49 veya 89 €",st3_txt:"Pakete göre. Her ay iptal edilebilir, asgari süre yok.",
+ pick:"Paketi seç",pick_b:"Banner iste",bt_place:"Yerleşim",bt_price:"Fiyat",
+ bt_s:"Mahallende ve kategorinde hedefli",bt_m:"Ek olarak tüm Berlin'de kayıtların arasında",bt_l:"Ek olarak ana sayfadaki sponsor şeridinde",
+ h_more:"Diğer teklifler",o_pick:"Lütfen seç …",req_note:"Zorunlu alan",how_h:"Nasıl işler"},
 en:{pay_btn:"Book now by card – 3 months €19/month",pay_txt:"Thank you! Your request is in. You can book your package right away:",pay_later:"We will also email you the payment link.",paid_ok:"Payment received – thank you! We will set up your promotion and get in touch.",canceled:"Payment canceled. Your request is saved and we will get in touch.",h1:"More customers from your Kiez",lead:"My Kiez Berlin shows Berlin businesses by Kiez and category – in German, Turkish and English. The basic listing is always free. If you want more customers, a package puts you at the top – cancel monthly, no minimum term.",
  h_pk:"Packages for businesses",s:"Small",m:"Medium",l:"Large",s_size:"Get seen in your Kiez",m_size:"Customers from all over Berlin",l_size:"Maximum visibility",start:"🎉 Launch offer: first 3 months only €19/month",rec:"Recommended",offer_h:"🎉 Launch offer",offer_txt:"All packages only €19/month for the first 3 months. Then €29, €49 or €89/month – cancel any month.",gp_h:"🤝 Founding partners: the first 20 businesses get 3 months free",gp_txt:"As a thank-you, share us once on Instagram or put our small QR poster up in your shop. After that the launch offer applies. No subscription and no costs during the free period.",gp_btn:"Request a spot",o_gp:"Founding partner (3 months free)",pm:"/month",intro:"3 months, then",
  f_top:"Top of your Kiez and category",f_mark:"Highlighted, labelled as an ad",f_coupon:"Your own coupon under “Coupons”",f_all_s:"Everything in Small",f_berlin:"Plus top of the Berlin-wide list",f_all_m:"Everything in Medium",f_sponsor:"Plus a sponsor card on the home page and between listings",
@@ -187,7 +264,14 @@ en:{pay_btn:"Book now by card – 3 months €19/month",pay_txt:"Thank you! Your
  h_form:"Send a request",l_company:"Business / company",l_person:"Contact person",l_email:"Email",l_phone:"Phone",l_interest:"Interested in",l_msg:"Message (optional)",
  o_s:"Small package – €29/month",o_m:"Medium package – €49/month",o_l:"Large package – €89/month",o_b:"Banner sponsorship",
  consent:"I agree that my details are stored to handle this request ({ds}).",ds_word:"privacy policy",send:"Send request",
- ok:"Thank you! We'll get back to you within two working days.",err:"Please enter a company name and a valid email.",err_rate:"Too many requests. Please email us.",err_net:"No connection. Please email us.",or_mail:"Or by email:",imp:"Legal notice",ds:"Privacy"}
+ ok:"Thank you! We'll get back to you within two working days.",err:"Please enter a company name and a valid email.",err_rate:"Too many requests. Please email us.",err_net:"No connection. Please email us.",or_mail:"Or by email:",imp:"Legal notice",ds:"Privacy",
+ back:"Back to the app",cta:"Request a spot now",cta2:"See packages",
+ st1_h:"Founding partner: 3 months free",st1_txt:"For the first 20 businesses. As a thank-you, share us once on Instagram or put our QR poster up in your shop. No subscription.",
+ st2_h:"Then: 3 months at €19/month",st2_txt:"Launch price for all packages – this is where you start without a founding partner spot.",
+ st3_h:"After that: €29, €49 or €89/month",st3_txt:"Depending on the package. Cancel any month, no minimum term.",
+ pick:"Choose package",pick_b:"Request a banner",bt_place:"Placement",bt_price:"Price",
+ bt_s:"Targeted to your Kiez and category",bt_m:"Plus between listings across Berlin",bt_l:"Plus the sponsor strip on the home page",
+ h_more:"More offers",o_pick:"Please choose …",req_note:"Required field",how_h:"How it works"}
 };
 var lang = (function () { var l = new URLSearchParams(location.search).get('lang'); try { l = l || localStorage.getItem('mkb_lang'); } catch (e) { } l = l || (navigator.language || 'de').slice(0, 2); return T[l] ? l : 'de'; })();
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -196,6 +280,7 @@ function apply() {
   try { localStorage.setItem('mkb_lang', lang); } catch (e) { }
   document.querySelectorAll('[data-i]').forEach(function (el) { el.textContent = d[el.getAttribute('data-i')]; });
   document.querySelectorAll('.langs button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.l === lang); });
+  document.getElementById('howtxt').textContent = d.self.replace(/^[^:]{1,20}:\s*/, ''); /* heading already says "So geht's" */
   document.getElementById('consent').innerHTML = esc(d.consent).replace('{ds}', '<a href="' + document.getElementById('ds').href + '" target="_blank" rel="noopener">' + esc(d.ds_word) + '</a>');
 }
 document.querySelectorAll('.langs button').forEach(function (b) { b.onclick = function () { lang = b.dataset.l; apply(); }; });
@@ -247,6 +332,16 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.se
 })();
 /* Gründungspartner-Button: Formular mit passender Auswahl öffnen */
 document.querySelectorAll('.gpbtn').forEach(function (b) { b.addEventListener('click', function () { var f = document.getElementById('f'); if (f && f.elements.size) f.elements.size.value = 'gp'; }); });
+/* #1 / #2: every "choose" button preselects its package, scrolls to the form and focuses the first field */
+document.querySelectorAll('a[href="#f"]').forEach(function (b) {
+  b.addEventListener('click', function (e) {
+    var f = document.getElementById('f'); if (!f) return;
+    e.preventDefault();
+    if (b.dataset.size && f.elements.size) f.elements.size.value = b.dataset.size;
+    f.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(function () { try { f.elements.company.focus({ preventScroll: true }); } catch (x) { } }, 450);
+  });
+});
 </script>
 </body>
 </html>
