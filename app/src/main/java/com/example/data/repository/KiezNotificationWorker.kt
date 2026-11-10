@@ -47,9 +47,10 @@ class KiezNotificationWorker(context: Context, params: WorkerParameters) : Corou
         var shownThisRun = 0
         for (item in fresh) {
             seen.add(item.id)
-            if (shownThisRun < MAX_PER_RUN && mayShow(item)) {
+            // Admin notes (share reminder, new requests) do not take the place of user notifications
+            if ((item.kind == "admin" || shownThisRun < MAX_PER_RUN) && mayShow(item)) {
                 show(item)
-                shownThisRun += 1
+                if (item.kind != "admin") shownThisRun += 1
             }
         }
         prefs.edit().putStringSet(KEY_SEEN, seen.toList().takeLast(MAX_SEEN_IDS).toSet()).apply()
