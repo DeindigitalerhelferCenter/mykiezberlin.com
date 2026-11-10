@@ -54,7 +54,7 @@ function matchKiez(place, fullText) {
   const p = place.toLowerCase();
   const byName = p ? KIEZ_NAMES.find((k) => p.includes(k.toLowerCase()) || k.toLowerCase().includes(p)) : "";
   if (byName) return byName;
-  for (const code of String(fullText || "").match(/b1[0-4]\d{3}b/g) || []) if (KIEZ_BY_PLZ[code]) return KIEZ_BY_PLZ[code];
+  for (const code of String(fullText || "").match(/\b1[0-4]\d{3}\b/g) || []) if (KIEZ_BY_PLZ[code]) return KIEZ_BY_PLZ[code];
   const t = String(fullText || "").toLowerCase();
   return KIEZ_NAMES.find((k) => k.length > 4 && t.includes(k.toLowerCase())) || "";
 }
