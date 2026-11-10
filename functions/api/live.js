@@ -7,7 +7,7 @@ const STALE_SECONDS = 3600;
 const STYLE = {
   polizei: { tag: "POLIZEI BERLIN", color: "#003399", bgLight: "#E8EEFB" },
   feuerwehr: { tag: "FEUERWEHR", color: "#D32F2F", bgLight: "#FDECEA" },
-  bvg: { tag: "BVG", color: "#B58900", bgLight: "#FFF8DC" },
+  bvg: { tag: "BVG", color: "#7A5D00", bgLight: "#FFF8DC" }, // darker gold: contrast ≥ 4.5:1 on #FFF8DC
   sbahn: { tag: "S-BAHN BERLIN", color: "#008754", bgLight: "#E6F4EA" },
 };
 

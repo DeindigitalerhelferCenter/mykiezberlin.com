@@ -17,13 +17,15 @@
   <!-- Core Stylesheet -->
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="styles-extended.css">
+  <link rel="stylesheet" href="ui-fixes.css?v=1">
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
 
   <!-- Main Responsive Mobile Container -->
   <div id="app-container">
-    
+    <h1 class="mk-sr-only">My Kiez Berlin – Dein Kiez-Guide für Berlin</h1>
+
     <!-- Top Bar (Header with Pure Vector Logo, Hamburger Hub, APK Download & Live Alerts) -->
     <header class="top-bar">
       <div class="top-bar-left">
@@ -47,7 +49,7 @@
         <button class="btn-b2b ext-b2b-pill" onclick="switchTab('portal')" title="B2B"><i class="bi bi-building"></i> <span>B2B</span></button>
 
         <!-- Live Alerts Bell Toggle -->
-        <button id="bell-toggle-btn" class="btn-icon-circle" title="Berlin Canlı Hatırlatma & Bildirimler">
+        <button id="bell-toggle-btn" class="btn-icon-circle" title="Live-Hinweise & Benachrichtigungen" aria-label="Live-Hinweise & Benachrichtigungen">
           <i class="bi bi-bell-fill"></i>
           <span class="badge-dot pulse"></span>
         </button>
@@ -58,7 +60,7 @@
         </button>
 
         <!-- Admin -->
-        <a href="admin.html" class="btn-b2b" style="text-decoration: none;" title="Yönetici Paneli">
+        <a href="admin.html" class="btn-b2b mk-admin-link" style="text-decoration: none;" title="Admin-Bereich" aria-label="Admin-Bereich">
           <i class="bi bi-shield-lock-fill"></i> <span class="admin-btn-text">Admin</span>
         </a>
       </div>
@@ -126,9 +128,10 @@
   <script src="app-werbung.js"></script>
 <script src="goal-celebration.js"></script>
 <script src="classified-promo.js"></script>
-<script src="kiez-stars.js?v=1"></script>
+<script src="kiez-stars.js?v=2"></script>
 <script src="sponsor-rotation.js?v=1"></script>
 <script src="story-download.js?v=1"></script>
 <script src="admin-share.js?v=2"></script>
+<script src="ui-fixes.js?v=1"></script>
 </body>
 </html>

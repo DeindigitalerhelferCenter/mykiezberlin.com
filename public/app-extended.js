@@ -29,7 +29,8 @@ function esc(value) {
 // Only http(s), tel and relative asset links may reach an href or src.
 function safeUrl(value) {
   const url = String(value ?? "");
-  return /^(https:\/\/|http:\/\/|tel:|assets\/|\/media\/)/.test(url) ? esc(url) : "#";
+  // "/assets/..." added: server ads (/api/ads) use root-relative sponsor images
+  return /^(https:\/\/|http:\/\/|tel:|assets\/|\/assets\/|\/media\/)/.test(url) ? esc(url) : "#";
 }
 
 function jsArg(value) {

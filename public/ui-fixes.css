@@ -1,0 +1,86 @@
+/* My Kiez Berlin – UI fixes from the visual critique (2026-11-10).
+   Only adds/overrides rules; the original styles.css / styles-extended.css stay unchanged. */
+
+/* ---------- Accessibility helpers ---------- */
+.mk-sr-only {
+  position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* #10 Buttons and inputs use the page font (they fell back to Arial) */
+button, input, select, textarea { font-family: inherit; }
+
+/* ---------- #1 / #2 Kiez-Star overlay ---------- */
+.mk-stars-overlay .mk-stars-close {
+  position: absolute; top: max(12px, env(safe-area-inset-top)); right: 12px; z-index: 2;
+  width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.12); color: #fff; font-size: 20px; line-height: 1; cursor: pointer;
+}
+.mk-stars-overlay .mk-stars-close:focus-visible { outline: 3px solid #F2B705; outline-offset: 2px; }
+
+/* ---------- #5 Admin link only for admins (html.mk-is-admin set by ui-fixes.js) ---------- */
+html:not(.mk-is-admin) .mk-admin-link { display: none !important; }
+
+/* ---------- #6 / #16 / #19 Desktop: headings and wide blocks span the full grid ---------- */
+@media (min-width: 768px) {
+  .main-content > h3.ext-subheading,
+  .main-content > .ext-row,
+  .main-content > .ext-kiez-scroll,
+  .main-content > .mkb-packages,
+  .main-content > .ext-cta {
+    grid-column: 1 / -1;
+  }
+  .main-content > h3.ext-subheading { margin: 8px 0 -4px; }
+  .main-content > .ext-quick { align-self: start; margin: 0; }   /* tiles keep their own height */
+  .main-content > .ext-cta { justify-self: center; width: min(480px, 100%); }
+  /* three packages in one row */
+  .main-content > .mkb-packages { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ---------- #7 Red only for primary actions, Notruf and Live ---------- */
+.ext-sponsor .card-subtitle { color: var(--text-muted, #475569) !important; }
+.mkb-price { color: var(--text-main, #0F172A); }
+
+/* ---------- #16 Campaign line is plain text, yellow stays for "Empfohlen" ---------- */
+.mkb-start {
+  background: transparent; border: 0; padding: 0; border-radius: 0;
+  color: var(--text-main, #0F172A); font-size: 13.5px; font-weight: 700;
+}
+
+/* ---------- #9 Typography: nothing under 12px for content ---------- */
+.story-label { font-size: 12px; }
+.ext-ad-label { font-size: 12px; }
+.alert-tag-pill, .alert-timestamp, .alert-action-btn { font-size: 12px; }
+.ext-quick button span, .ext-quick a span { font-size: 12.5px; }
+.ext-sponsor .card-subtitle { font-size: 13px; }
+.nav-item span { font-size: 11.5px; }
+#mk-stars div[style*="font-size:11px"] { font-size: 12px !important; }
+
+/* ---------- #12 Contrast ---------- */
+.alert-action-btn.share { color: #075985; }          /* was 3.6:1, now ≥ 7:1 */
+
+/* ---------- #11 Touch targets ≥ 44px without changing the look ---------- */
+.top-bar-right > a, .top-bar-right > button, .btn-icon-circle,
+.alert-dismiss-btn, .alert-action-btn, .stories-add-btn, #mk-stars-last {
+  position: relative;
+}
+.top-bar-right > a::after, .top-bar-right > button::after, .btn-icon-circle::after,
+.alert-dismiss-btn::after, .alert-action-btn::after, .stories-add-btn::after, #mk-stars-last::after {
+  content: ""; position: absolute; left: 50%; top: 50%;
+  width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%);
+}
+.top-bar-right { gap: 6px; }
+
+/* ---------- #14 Phone header: logo, Live-Ticker, B2B (with text), bell, language ---------- */
+@media (max-width: 480px) {
+  .top-bar-right > .btn-apk-download { display: none; }   /* APK download stays in the ☰ menu */
+  .top-bar-right .ext-b2b-pill span { display: inline; }
+  .top-bar-right .ext-b2b-pill .bi { display: none; }
+}
+
+/* ---------- #17 Kieze row: hint that it scrolls ---------- */
+.ext-kiez-scroll {
+  -webkit-mask-image: linear-gradient(to right, #000 88%, transparent);
+          mask-image: linear-gradient(to right, #000 88%, transparent);
+  align-items: flex-start;
+}

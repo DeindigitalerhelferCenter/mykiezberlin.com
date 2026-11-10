@@ -15,6 +15,8 @@
   function getName() { try { return localStorage.getItem(NAME_KEY) || ""; } catch (e) { return ""; } }
   function setName(v) { try { localStorage.setItem(NAME_KEY, v); } catch (e) {} }
   function medal(r) { return r === 1 ? "🏆" : r === 2 ? "🥈" : r === 3 ? "🥉" : "⭐"; }
+  // singular / plural: "1 Story", "2 Stories"
+  function storyWord(n) { return n === 1 ? t("Story", "hikâye", "story") : t("Stories", "hikâye", "stories"); }
   function badgeName(b) { return b ? b.icon + " " + (lang() === "tr" ? b.tr : lang() === "en" ? b.en : b.de) : ""; }
 
   function render() {
@@ -30,7 +32,7 @@
     var top = (data && data.top || []).slice(0, 3);
     var rows = top.length ? top.map(function (s) {
       var bg = s.rank === 1 ? "rgba(242,183,5,.22)" : s.rank === 2 ? "rgba(184,194,204,.25)" : "rgba(205,127,50,.18)";
-      return '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;margin-top:6px;background:' + bg + '"><span style="font-size:22px">' + medal(s.rank) + '</span><div style="flex:1"><b>' + esc(s.name) + '</b>' + (s.badge ? '<div style="font-size:11.5px">' + esc(badgeName(s.badge)) + "</div>" : "") + '</div><b>' + s.count + " " + t("Stories", "hikâye", "stories") + "</b></div>";
+      return '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;margin-top:6px;background:' + bg + '"><span style="font-size:22px">' + medal(s.rank) + '</span><div style="flex:1"><b>' + esc(s.name) + '</b>' + (s.badge ? '<div style="font-size:11.5px">' + esc(badgeName(s.badge)) + "</div>" : "") + '</div><b>' + s.count + " " + storyWord(s.count) + "</b></div>";
     }).join("") : '<div style="font-size:13px;margin-top:6px">' + t("Diese Woche hat noch niemand eine Story geteilt. Sei die/der Erste und hol dir den Pokal! 🚀", "Bu hafta henüz kimse hikâye paylaşmadı. İlk sen ol, kupayı kap! 🚀", "Nobody has shared a story this week yet. Be the first and grab the trophy! 🚀") + "</div>";
     var name = getName(), mine = data && data.me ? data.me.count : 0, progress;
     var steps = [[3, t("Bronze", "Bronz", "Bronze")], [7, t("Silber", "Gümüş", "Silver")], [12, "Gold"]];
@@ -40,10 +42,10 @@
     else progress = esc(name) + t(", du hast diese Woche " + mine + " Stories geteilt – noch " + (next[0] - mine) + " bis " + next[1] + " 💪", ", bu hafta " + mine + " hikâye paylaştın – " + next[1] + " rozete " + (next[0] - mine) + " kaldı 💪", ", you shared " + mine + " stories this week – " + (next[0] - mine) + " more for " + next[1] + " 💪");
     var last = data && data.lastWeek && data.lastWeek.top && data.lastWeek.top.length;
     box.innerHTML = '<div style="display:flex;align-items:center"><b style="font-size:17px;flex:1">🏆 ' + t("Kiez-Stars der Woche", "Haftanın Kiez Yıldızları", "Kiez Stars of the week") + "</b>" +
-      (last ? '<a href="#" id="mk-stars-last" style="font-size:12px;font-weight:700;color:#0288D1">' + t("Letzte Woche →", "Geçen hafta →", "Last week →") + "</a>" : "") + "</div>" + rows +
+      (last ? '<a href="#" id="mk-stars-last" style="font-size:12px;font-weight:700;color:#0369A1">' + t("Letzte Woche →", "Geçen hafta →", "Last week →") + "</a>" : "") + "</div>" + rows +
       '<div style="font-size:12.5px;font-weight:600;margin-top:8px">' + progress + "</div>" +
       '<div style="font-size:11px;opacity:.7;margin-top:2px">🥉 3 · 🥈 7 · 🥇 12 ' + t("Stories / Woche", "hikâye / hafta", "stories / week") + "</div>" +
-      '<button id="mk-stars-share" style="margin-top:10px;width:100%;padding:10px;border:0;border-radius:12px;background:#E30613;color:#fff;font-weight:700">📸 ' + t("Story teilen", "Hikâye paylaş", "Share a story") + "</button>";
+      '<button id="mk-stars-share" style="margin-top:10px;width:100%;padding:10px;border:0;border-radius:12px;background:#E30613;color:#fff;font-weight:700"><i class="bi bi-camera-fill" aria-hidden="true"></i> ' + t("Story teilen", "Hikâye paylaş", "Share a story") + "</button>";
     var share = document.getElementById("mk-stars-share");
     if (share) share.onclick = function () { if (typeof openCreateStoryModal === "function") openCreateStoryModal(); };
     var lastLink = document.getElementById("mk-stars-last");
@@ -54,12 +56,26 @@
     var winners = data && data.lastWeek && data.lastWeek.top || [];
     if (!winners.length) return;
     var o = document.createElement("div");
-    o.style.cssText = "position:fixed;inset:0;z-index:99999;background:rgba(16,24,32,.93);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:24px;cursor:pointer";
-    o.innerHTML = '<div style="font-size:96px">🏆</div><div style="color:#F2B705;font-size:26px;font-weight:900">' + t("Kiez-Star der Woche", "Haftanın Kiez Yıldızı", "Kiez Star of the week") + "</div>" +
-      winners.map(function (w) { return '<div style="font-size:' + (w.rank === 1 ? 24 : 18) + 'px;font-weight:800;margin-top:8px">' + medal(w.rank) + " " + esc(w.name) + " · " + w.count + " " + t("Stories", "hikâye", "stories") + "</div>"; }).join("") +
-      '<div style="margin-top:12px">' + t("Glückwunsch! Diese Woche bist du dran – teile deine Story 📸", "Tebrikler! Bu hafta sıra sende – hikâyeni paylaş 📸", "Congratulations! This week it's your turn – share your story 📸") + "</div>";
-    o.onclick = function () { o.remove(); };
+    o.className = "mk-stars-overlay";
+    o.setAttribute("role", "dialog");
+    o.setAttribute("aria-modal", "true");
+    o.setAttribute("aria-label", t("Kiez-Star der letzten Woche", "Geçen haftanın Kiez Yıldızı", "Last week's Kiez Star"));
+    o.style.cssText = "position:fixed;inset:0;z-index:99999;background:rgba(16,24,32,.93);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:24px 16px;cursor:pointer;box-sizing:border-box;overflow-wrap:anywhere";
+    // Title says "last week": the card below shows the current week, the overlay last week's winners
+    o.innerHTML = '<button type="button" class="mk-stars-close" aria-label="' + t("Schließen", "Kapat", "Close") + '">✕</button>' +
+      '<div style="max-width:min(520px,100%);position:relative">' +
+      '<div style="font-size:clamp(64px,18vw,96px)">🏆</div><div style="color:#F2B705;font-size:clamp(20px,6vw,26px);font-weight:900">' + t("Kiez-Star der letzten Woche", "Geçen haftanın Kiez Yıldızı", "Last week's Kiez Star") + "</div>" +
+      winners.map(function (w) { return '<div style="font-size:' + (w.rank === 1 ? "clamp(18px,5.5vw,24px)" : "clamp(15px,4.5vw,18px)") + ';font-weight:800;margin-top:8px">' + medal(w.rank) + " " + esc(w.name) + " · " + w.count + " " + storyWord(w.count) + "</div>"; }).join("") +
+      '<div style="margin-top:12px;font-size:15px;line-height:1.4">' + t("Glückwunsch! Diese Woche bist du dran – teile deine Story.", "Tebrikler! Bu hafta sıra sende – hikâyeni paylaş.", "Congratulations! This week it's your turn – share your story.") + "</div>" +
+      '<div style="margin-top:14px;font-size:12px;opacity:.75">' + t("Tippen oder Esc zum Schließen", "Kapatmak için dokun veya Esc", "Tap or press Esc to close") + "</div></div>";
+    function close() { if (o.isConnected) o.remove(); document.removeEventListener("keydown", onKey); }
+    function onKey(e) { if (e.key === "Escape") close(); }
+    o.onclick = close;
+    document.addEventListener("keydown", onKey);
+    setTimeout(close, 6000); // closes by itself after 6 s
     document.body.appendChild(o);
+    var btn = o.querySelector(".mk-stars-close");
+    if (btn) btn.focus();
     // Confetti (own canvas, no library needed)
     var c = document.createElement("canvas");
     c.style.cssText = "position:absolute;inset:0;width:100%;height:100%;pointer-events:none";
