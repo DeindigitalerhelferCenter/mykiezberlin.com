@@ -819,6 +819,11 @@ fun StoryViewerDialog(
                                 )
                             }
                         }
+                        // Admin only: share to WhatsApp, Instagram, Facebook, TikTok (always with link + app link + web name)
+                        if (com.example.data.repository.KiezStorageManager.isAdminAuthenticated(context)) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            AdminShareRow(story = story)
+                        }
                     }
                 }
             }
@@ -1791,6 +1796,49 @@ fun StoryCreateDialog(
                         text = if (language == AppLanguage.TURKISH) "Durumu Paylaş / Yayınla 🚀" else "Story veröffentlichen 🚀",
                         fontWeight = FontWeight.Bold
                     )
+                }
+            }
+        }
+    }
+}
+
+
+/** Admin only: one tap shares the story with media, text, link, app link and web name. */
+@Composable
+fun AdminShareRow(story: KiezStory) {
+    val context = LocalContext.current
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    var busy by remember { mutableStateOf(false) }
+    val targets = listOf(
+        Triple("whatsapp", "WhatsApp", Color(0xFF25D366)),
+        Triple("instagram", "Instagram", Color(0xFFC13584)),
+        Triple("facebook", "Facebook", Color(0xFF1877F2)),
+        Triple("tiktok", "TikTok", Color(0xFF111111))
+    )
+    Column {
+        Text("📣 Admin: teilen / paylaş", color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(4.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+            targets.forEach { (key, label, color) ->
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(if (busy) color.copy(alpha = 0.5f) else color)
+                        .clickable(enabled = !busy) {
+                            busy = true
+                            scope.launch {
+                                val media = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                                    com.example.util.StoryShareHelper.prepareMedia(context, story)
+                                }
+                                com.example.util.StoryShareHelper.share(context, story, key, media)
+                                busy = false
+                            }
+                        }
+                        .padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(if (busy) "…" else label, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                 }
             }
         }

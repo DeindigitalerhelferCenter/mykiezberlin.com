@@ -1184,6 +1184,25 @@ fun AdminCreateStoryModal(
         }
     }
 
+    // KI: when a picture or video is chosen, empty fields are filled from it (headline + text in DE and TR)
+    LaunchedEffect(selectedMediaUri) {
+        val chosen = selectedMediaUri ?: return@LaunchedEffect
+        android.widget.Toast.makeText(context, "✨ KI liest das Bild… / resmi okuyor…", android.widget.Toast.LENGTH_SHORT).show()
+        try {
+            val r = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                com.example.data.repository.StoryAiClient.analyze(context, android.net.Uri.parse(chosen), isVideoMedia)
+            }
+            if (headline.isBlank() && r.headline.isNotBlank()) headline = r.headline.take(120)
+            if (subtext.isBlank() && r.subtext.isNotBlank()) subtext = r.subtext.take(500)
+            if (webLink.isBlank() && r.link.isNotBlank()) webLink = r.link
+            if (r.kiez.isNotBlank()) selectedKiez = r.kiez
+            if (r.kind.isNotBlank() && selectedKind == "news") selectedKind = r.kind
+            android.widget.Toast.makeText(context, "✨ KI: Felder ausgefüllt / alanlar dolduruldu", android.widget.Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            android.widget.Toast.makeText(context, "KI: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+        }
+    }
+
     var showCustomKiezDialog by remember { mutableStateOf(false) }
     var customKiezInput by remember { mutableStateOf("") }
 

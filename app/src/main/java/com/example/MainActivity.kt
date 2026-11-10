@@ -94,7 +94,13 @@ class MainActivity : ComponentActivity() {
                         // Hourly invitations
                         "ADD_STORY" -> { viewModel.navigateTo(AppScreen.HOME); viewModel.openAddStoryDialog() }
                         "WERBEN" -> viewModel.openWerben()
-                        else -> AppScreen.entries.firstOrNull { it.name == target }?.let { viewModel.navigateTo(it) }
+                        else -> if (target.startsWith("SHARE_STORY:")) {
+                            // Admin: planned story is online -> open it with the share buttons
+                            viewModel.navigateTo(AppScreen.HOME)
+                            viewModel.openStoryById(target.removePrefix("SHARE_STORY:"))
+                        } else {
+                            AppScreen.entries.firstOrNull { it.name == target }?.let { viewModel.navigateTo(it) }
+                        }
                     }
                 }
             }

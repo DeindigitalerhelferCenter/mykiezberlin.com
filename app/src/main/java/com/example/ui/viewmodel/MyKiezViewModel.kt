@@ -771,6 +771,20 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     // Stories
+    /** Opens one story by its server id (admin notification "Story online – teilen"); loads the list first if needed. */
+    fun openStoryById(id: String) {
+        val found = _uiState.value.allStories.firstOrNull { it.id == id }
+        if (found != null) {
+            openStory(found)
+            return
+        }
+        viewModelScope.launch {
+            val remote = LiveAlertsRepository.fetchRemoteStories()
+            if (remote.isNotEmpty()) applyRemoteStories(remote)
+            _uiState.value.allStories.firstOrNull { it.id == id }?.let { openStory(it) }
+        }
+    }
+
     fun openStory(story: KiezStory, list: List<KiezStory> = emptyList(), index: Int = 0) {
         // If it's an institution story (BVG, S-Bahn, Feuerwehr, Polizei, Bürgeramt, Senat, Kultur),
         // load all 10 authentic reports for this specific institution so user can browse all official incident reports

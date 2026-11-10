@@ -68,6 +68,26 @@ private class PlanRow(val key: Int, val uri: Uri?, val isVideo: Boolean) {
     var end by mutableLongStateOf(0L)
     var status by mutableStateOf("") // "" | busy | ok | error
     var error by mutableStateOf("")
+    var ai by mutableStateOf("") // "" | busy | ok | error (KI reads the picture)
+    var aiError by mutableStateOf("")
+}
+
+/** Fills empty fields from the picture / video frame (force = overwrite, the ✨ button). */
+private suspend fun aiFill(context: Context, row: PlanRow, force: Boolean) {
+    val uri = row.uri ?: return
+    row.ai = "busy"
+    try {
+        val r = withContext(Dispatchers.IO) { com.example.data.repository.StoryAiClient.analyze(context, uri, row.isVideo) }
+        if ((force || row.headline.isBlank()) && r.headline.isNotBlank()) row.headline = r.headline.take(120)
+        if ((force || row.subtext.isBlank()) && r.subtext.isNotBlank()) row.subtext = r.subtext.take(500)
+        if ((force || row.link.isBlank()) && r.link.isNotBlank()) row.link = r.link
+        if (r.kiez.isNotBlank() && (force || row.kiez.isBlank() || row.kiez == "Ganz Berlin")) row.kiez = r.kiez
+        if (r.kind.isNotBlank() && (force || row.kind.isBlank() || row.kind == "news")) row.kind = r.kind
+        row.ai = "ok"
+    } catch (e: Exception) {
+        row.ai = "error"
+        row.aiError = e.message ?: "Fehler"
+    }
 }
 
 private data class PlannedStory(val id: String, val headline: String, val kiez: String, val kind: String, val mediaKey: String, val isVideo: Boolean, val start: Long, val hours: Int)
@@ -167,17 +187,21 @@ fun AdminStoryPlanner(onDismiss: () -> Unit) {
     fun reload() = scope.launch { planned = withContext(Dispatchers.IO) { runCatching { loadPlanned(token) }.getOrDefault(emptyList()) } }
     LaunchedEffect(Unit) { reload() }
 
-    fun addRow(uri: Uri?, isVideo: Boolean) {
+    fun addRow(uri: Uri?, isVideo: Boolean): PlanRow {
         val last = rows.lastOrNull()
         val start = if (last != null && last.start > 0) last.start + 3 * HOUR else ((System.currentTimeMillis() + 15 * 60_000L) / 300_000L + 1) * 300_000L
-        rows.add(PlanRow(++seq, uri, isVideo).apply { this.start = start; end = start + 24 * HOUR })
+        val row = PlanRow(++seq, uri, isVideo).apply { this.start = start; end = start + 24 * HOUR }
+        rows.add(row)
+        return row
     }
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(50)) { uris ->
-        uris.forEach { uri ->
+        val added = uris.map { uri ->
             val type = context.contentResolver.getType(uri).orEmpty()
             addRow(uri, type.startsWith("video/"))
         }
+        // Empty fields are filled from the pictures (KI, DE + TR), one after another
+        scope.launch { added.forEach { if (it in rows) aiFill(context, it, false) } }
     }
 
     fun distribute() {
@@ -259,7 +283,7 @@ fun AdminStoryPlanner(onDismiss: () -> Unit) {
                             }
                         }
                         itemsIndexed(rows, key = { _, r -> r.key }) { index, row ->
-                            PlanRowCard(index, row, onRemove = { rows.remove(row) }, onMove = { step ->
+                            PlanRowCard(index, row, onAi = { scope.launch { aiFill(context, row, true) } }, onRemove = { rows.remove(row) }, onMove = { step ->
                                 val j = index + step
                                 if (j in rows.indices) { val r = rows.removeAt(index); rows.add(j, r) }
                             })
@@ -316,7 +340,7 @@ private fun PlannerField(value: String, onChange: (String) -> Unit, label: Strin
 }
 
 @Composable
-private fun PlanRowCard(index: Int, row: PlanRow, onRemove: () -> Unit, onMove: (Int) -> Unit) {
+private fun PlanRowCard(index: Int, row: PlanRow, onAi: () -> Unit, onRemove: () -> Unit, onMove: (Int) -> Unit) {
     val context = LocalContext.current
     val borderColor = when (row.status) { "ok" -> Color(0xFF2EA043); "error" -> Color(0xFFDA3633); else -> PlannerBorder }
     Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(PlannerDark).border(1.dp, borderColor, RoundedCornerShape(10.dp)).padding(8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -328,7 +352,11 @@ private fun PlanRowCard(index: Int, row: PlanRow, onRemove: () -> Unit, onMove: 
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             PlannerField(row.headline, { row.headline = it.take(120) }, "Başlık *")
-            PlannerField(row.subtext, { row.subtext = it.take(500) }, "Metin")
+            OutlinedTextField(
+                value = row.subtext, onValueChange = { row.subtext = it.take(500) }, label = { Text("Metin", fontSize = 11.sp) },
+                minLines = 2, maxLines = 6, modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedLabelColor = PlannerGold, unfocusedLabelColor = Color(0xFF8B949E))
+            )
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 PlannerField(row.kiez, { row.kiez = it.take(60) }, "Kiez", Modifier.weight(1f))
                 PlannerField(row.kind, { row.kind = it.take(30) }, "Kategori", Modifier.weight(1f))
@@ -344,10 +372,25 @@ private fun PlanRowCard(index: Int, row: PlanRow, onRemove: () -> Unit, onMove: 
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    when (row.status) { "ok" -> "✅ Planlandı"; "busy" -> "⏳ Yükleniyor…"; "error" -> "❌ ${row.error}"; else -> "${maxOf(1L, (row.end - row.start + HOUR - 1) / HOUR)} saat yayında" },
+                    when {
+                        row.status == "ok" -> "✅ Planlandı"
+                        row.status == "busy" -> "⏳ Yükleniyor…"
+                        row.status == "error" -> "❌ ${row.error}"
+                        row.ai == "busy" -> "✨ KI resmi okuyor…"
+                        row.ai == "error" -> "KI: ${row.aiError}"
+                        else -> "${maxOf(1L, (row.end - row.start + HOUR - 1) / HOUR)} saat yayında"
+                    },
                     color = Color(0xFF8B949E), fontSize = 11.sp, modifier = Modifier.weight(1f)
                 )
-                TextButton(onClick = onRemove) { Text("Kaldır", color = PlannerRed, fontSize = 12.sp) }
+                if (row.uri != null) TextButton(onClick = onAi, enabled = row.ai != "busy", contentPadding = PaddingValues(4.dp)) {
+                    Text(when (row.ai) { "busy" -> "⏳"; "ok" -> "✨ ✓"; else -> "✨ KI" }, color = PlannerGold, fontSize = 12.sp)
+                }
+                TextButton(onClick = {
+                    val length = row.end - row.start
+                    row.start = System.currentTimeMillis()
+                    row.end = row.start + if (length > 0) length else 24 * HOUR
+                }, contentPadding = PaddingValues(4.dp)) { Text("▶️ Şimdi", color = Color.White, fontSize = 12.sp) }
+                TextButton(onClick = onRemove, contentPadding = PaddingValues(4.dp)) { Text("Kaldır", color = PlannerRed, fontSize = 12.sp) }
             }
         }
     }

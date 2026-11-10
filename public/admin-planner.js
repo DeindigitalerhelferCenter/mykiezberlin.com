@@ -81,7 +81,82 @@ function renderPlannerSection() {
 }
 
 function plannerAddFiles(files) {
-  [...files].forEach((file) => plannerAddRow(file));
+  const added = [...files].map((file) => plannerAddRow(file));
+  // Empty fields are filled from the picture (KI), one after another
+  plannerAiQueue(added.filter(Boolean));
+}
+
+// ---- KI: read the picture / video frame and fill empty fields (DE + TR) ----
+let plannerAiBusy = Promise.resolve();
+function plannerAiQueue(rows) {
+  rows.forEach((row) => { plannerAiBusy = plannerAiBusy.then(() => plannerAiFill(row, false)).catch(() => {}); });
+}
+
+function plannerFrame(row) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(row.file);
+    const done = (canvasSource, w, h) => {
+      const scale = Math.min(1, 1024 / Math.max(w, h));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(w * scale);
+      canvas.height = Math.round(h * scale);
+      canvas.getContext("2d").drawImage(canvasSource, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("frame"))), "image/jpeg", 0.85);
+    };
+    if (row.isVideo) {
+      const video = document.createElement("video");
+      video.muted = true;
+      video.preload = "auto";
+      video.onloadeddata = () => { video.currentTime = Math.min(1, (video.duration || 2) / 2); };
+      video.onseeked = () => done(video, video.videoWidth, video.videoHeight);
+      video.onerror = () => reject(new Error("video"));
+      video.src = url;
+    } else {
+      const img = new Image();
+      img.onload = () => done(img, img.naturalWidth, img.naturalHeight);
+      img.onerror = () => reject(new Error("image"));
+      img.src = url;
+    }
+  });
+}
+
+async function plannerAiFill(row, force) {
+  if (!row || !row.file || !plannerRows.includes(row)) return;
+  row.ai = "busy";
+  renderPlannerRows();
+  try {
+    const form = new FormData();
+    form.set("image", await plannerFrame(row), "frame.jpg");
+    const res = await fetch("/api/story-ai", { method: "POST", headers: { "x-admin-token": plannerToken() }, body: form });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error === "ai_unbound" ? "KI nicht verbunden" : data.error || `HTTP ${res.status}`);
+    // Only empty fields – what the admin typed stays (✨ button = overwrite)
+    if (force || !row.headline.trim()) row.headline = data.headline || row.headline;
+    if (force || !row.subtext.trim()) row.subtext = data.subtext || row.subtext;
+    if (force || !row.link.trim()) row.link = data.link || row.link;
+    if (data.kiez && (force || !row.kiez.trim() || row.kiez === "Ganz Berlin")) row.kiez = data.kiez;
+    if (data.kind && (force || !row.kind.trim() || row.kind === "news")) row.kind = data.kind;
+    row.ai = "ok";
+  } catch (e) {
+    row.ai = "error";
+    row.aiError = e.message;
+  }
+  renderPlannerRows();
+}
+
+function plannerAiButton(key) {
+  const row = plannerRows.find((r) => r.key === key);
+  if (row) plannerAiFill(row, true);
+}
+
+function plannerStartNow(key) {
+  const row = plannerRows.find((r) => r.key === key);
+  if (!row) return;
+  const length = row.end - row.start;
+  row.start = Date.now();
+  row.end = row.start + (length > 0 ? length : 24 * 3600000);
+  renderPlannerRows();
 }
 
 function plannerAddRow(file) {
@@ -89,9 +164,10 @@ function plannerAddRow(file) {
   const start = last && last.start ? last.start + 3 * 3600000 : Math.ceil((Date.now() + 15 * 60000) / 300000) * 300000;
   plannerRows.push({
     key: ++plannerSeq, file, preview: file ? URL.createObjectURL(file) : "", isVideo: !!(file && file.type.startsWith("video/")),
-    headline: "", subtext: "", kiez: "Ganz Berlin", kind: "news", link: "", start, end: start + 24 * 3600000, status: "",
+    headline: "", subtext: "", kiez: "Ganz Berlin", kind: "news", link: "", start, end: start + 24 * 3600000, status: "", ai: "",
   });
   renderPlannerRows();
+  return plannerRows[plannerRows.length - 1];
 }
 
 function plannerSet(key, field, value) {
@@ -169,7 +245,7 @@ function renderPlannerRows() {
       </div>
       <div style="flex: 1; display: grid; gap: 5px;">
         ${input(row, "headline", "Başlık *", 'maxlength="120"')}
-        ${input(row, "subtext", "Metin", 'maxlength="500"')}
+        <textarea class="form-control" rows="3" maxlength="500" placeholder="Metin" oninput="plannerSet(${row.key}, 'subtext', this.value)">${adminEsc(row.subtext)}</textarea>
         <div style="display: flex; gap: 5px;">${input(row, "kiez", "Kiez", 'style="flex: 1;"')}${input(row, "kind", "Kategori", 'list="planner-kinds" style="flex: 1;"')}</div>
         ${input(row, "link", "Web linki (isteğe bağlı) https://…")}
         <div style="display: flex; gap: 5px; flex-wrap: wrap;">
@@ -177,8 +253,12 @@ function renderPlannerRows() {
           <label style="display: grid; gap: 2px; flex: 1;">⏹️ Bitiş<input type="datetime-local" class="form-control" value="${toLocalInput(row.end)}" onchange="plannerSet(${row.key}, 'end', this.value)"></label>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="color: #8b949e;">${row.status === "ok" ? "✅ Planlandı" : row.status === "error" ? `❌ ${adminEsc(row.error || "Hata")}` : row.status === "busy" ? "⏳ Yükleniyor…" : `${Math.max(1, Math.ceil((row.end - row.start) / 3600000))} saat yayında`}</span>
-          <button class="chip-btn" onclick="plannerRemove(${row.key})">Kaldır</button>
+          <span style="color: #8b949e;">${row.status === "ok" ? "✅ Planlandı" : row.status === "error" ? `❌ ${adminEsc(row.error || "Hata")}` : row.status === "busy" ? "⏳ Yükleniyor…" : row.ai === "busy" ? "✨ KI resmi okuyor…" : row.ai === "error" ? `KI: ${adminEsc(row.aiError || "Fehler")} · ` + `${Math.max(1, Math.ceil((row.end - row.start) / 3600000))} saat yayında` : `${Math.max(1, Math.ceil((row.end - row.start) / 3600000))} saat yayında`}</span>
+          <span style="display: flex; gap: 5px;">
+            ${row.file ? `<button class="chip-btn" title="Resimden yeniden doldur" onclick="plannerAiButton(${row.key})">${row.ai === "busy" ? "⏳ KI…" : row.ai === "ok" ? "✨ KI ✓" : row.ai === "error" ? `✨ KI ✗` : "✨ KI"}</button>` : ""}
+            <button class="chip-btn" onclick="plannerStartNow(${row.key})">▶️ Şimdi</button>
+            <button class="chip-btn" onclick="plannerRemove(${row.key})">Kaldır</button>
+          </span>
         </div>
       </div>
     </div>`).join("");

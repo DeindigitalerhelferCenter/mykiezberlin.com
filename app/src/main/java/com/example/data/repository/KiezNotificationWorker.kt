@@ -38,7 +38,7 @@ class KiezNotificationWorker(context: Context, params: WorkerParameters) : Corou
     override suspend fun doWork(): Result {
         if (!KiezStorageManager.isNotificationsEnabled(applicationContext)) return Result.success()
         val items = try {
-            fetchItems()
+            fetchItems().let { it + adminShareItems(it) }
         } catch (e: IOException) {
             return Result.retry()
         }
@@ -74,6 +74,14 @@ class KiezNotificationWorker(context: Context, params: WorkerParameters) : Corou
                 val body = o.optString("body$suffix").ifBlank { o.optString("body") }
                 Item(o.optString("id"), o.optString("kind"), title, body, o.optString("screen"))
             }
+        }
+    }
+
+    // Admin only: a planned story just went live -> one tap opens it with the share buttons.
+    private fun adminShareItems(items: List<Item>): List<Item> {
+        if (!KiezStorageManager.isAdminAuthenticated(applicationContext)) return emptyList()
+        return items.filter { it.kind == "story" && it.id.startsWith("story-") }.map {
+            Item("share-" + it.id, "admin", "📣 Story online – jetzt teilen / şimdi paylaş", it.body, "SHARE_STORY:" + it.id.removePrefix("story-"))
         }
     }
 
