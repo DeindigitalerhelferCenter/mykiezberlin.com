@@ -1,5 +1,6 @@
 // Server-side moderation for all shared content.
 import { cleanText, db, instagramUrl, isAdmin, json, noDb } from "../_lib/util.js";
+import { AD_PLACE_KEYS, planRule } from "../_lib/plans.js";
 
 const TABLES = { story: "stories", post: "reporter_posts", comment: "reporter_comments", submission: "submissions" };
 
@@ -82,7 +83,7 @@ async function saveAd(database, ad) {
   const id = /^[\w-]{2,40}$/.test(ad.id || "") ? ad.id : `ad_${crypto.randomUUID().slice(0, 8)}`;
   const row = Object.fromEntries(AD_TEXT_FIELDS.map((k) => [k, cleanText(ad[k], k.startsWith("headline") ? 200 : 120)]));
   if (!row.name) return json({ error: "missing_fields" }, 400);
-  const places = String(ad.places || "slider,home").split(",").map((p) => p.trim()).filter((p) => ["slider", "home", "quiz"].includes(p)).join(",") || "slider,home";
+  const places = String(ad.places || "slider,home").split(",").map((p) => p.trim()).filter((p) => AD_PLACE_KEYS.includes(p)).join(",") || (planRule(ad.plan) ? "" : "slider,home");
   const values = [
     row.name, adUrl(ad.image), row.headline_de, row.headline_tr, row.headline_en, row.cta_de, row.cta_tr, row.cta_en,
     adUrl(ad.link_web), cleanText(ad.link_wa, 40).replace(/[^\d+]/g, ""), cleanText(ad.link_tel, 40).replace(/[^\d+ ]/g, ""), adUrl(ad.link_ig),
@@ -96,6 +97,16 @@ async function saveAd(database, ad) {
   } else {
     await database.prepare(`INSERT INTO ads (name, image, headline_de, headline_tr, headline_en, cta_de, cta_tr, cta_en, link_web, link_wa, link_tel, link_ig, places, kieze, priority, plan, request_id, start_at, end_at, active, updated_at, id, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
       .bind(...values, id, now).run();
+  }
+  // Extra details (logo, category, address, hours, coupon) – only changed when sent
+  if (ad.extra && typeof ad.extra === "object") {
+    const e = ad.extra;
+    const pick = (o) => (o && typeof o === "object" ? { de: cleanText(o.de, 120), tr: cleanText(o.tr, 120), en: cleanText(o.en, 120) } : undefined);
+    const extra = {
+      logo: adUrl(e.logo), category: pick(e.category), address: cleanText(e.address, 120), hours: cleanText(e.hours, 80),
+      coupon: e.coupon && cleanText(e.coupon.code, 30) ? { code: cleanText(e.coupon.code, 30), ...pick(e.coupon) } : undefined,
+    };
+    await database.prepare(`UPDATE ads SET extra = ? WHERE id = ?`).bind(JSON.stringify(extra), id).run();
   }
   return json({ ok: true, id });
 }

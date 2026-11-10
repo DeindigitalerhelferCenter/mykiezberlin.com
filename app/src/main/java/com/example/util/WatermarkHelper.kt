@@ -139,10 +139,51 @@ object WatermarkHelper {
     }
 
     /**
+     * Loads the story picture: app resource, local file/content URI, or the server URL (https://…/media/…).
+     * For a video the frame at one second is used. Must run off the main thread. Null = no usable media.
+     */
+    fun loadStoryBitmap(context: Context, mediaResId: Int?, mediaUri: String?, isVideo: Boolean): Bitmap? {
+        if (mediaResId != null) return BitmapFactory.decodeResource(context.resources, mediaResId)
+        if (mediaUri.isNullOrBlank()) return null
+        val remote = mediaUri.startsWith("http://") || mediaUri.startsWith("https://")
+        if (isVideo) {
+            val retriever = android.media.MediaMetadataRetriever()
+            return try {
+                if (remote) retriever.setDataSource(mediaUri, HashMap()) else retriever.setDataSource(context, Uri.parse(mediaUri))
+                retriever.getFrameAtTime(1_000_000L, android.media.MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                    ?: retriever.frameAtTime
+            } catch (_: Exception) {
+                null
+            } finally {
+                try { retriever.release() } catch (_: Exception) {}
+            }
+        }
+        return try {
+            if (remote) {
+                val connection = java.net.URL(mediaUri).openConnection() as java.net.HttpURLConnection
+                connection.connectTimeout = 10000
+                connection.readTimeout = 20000
+                connection.setRequestProperty("User-Agent", "MyKiezBerlin-Android")
+                try {
+                    if (connection.responseCode !in 200..299) null
+                    else connection.inputStream.use { BitmapFactory.decodeStream(it) }
+                } finally {
+                    connection.disconnect()
+                }
+            } else {
+                context.contentResolver.openInputStream(Uri.parse(mediaUri))?.use { BitmapFactory.decodeStream(it) }
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    /**
      * Saves the watermarked bitmap to device gallery / Downloads folder.
      */
-    fun saveWatermarkedImageToGallery(context: Context, bitmap: Bitmap, title: String = "MyKiezBerlin_Story"): Boolean {
-        val watermarked = addLogoWatermark(context, bitmap)
+    fun saveWatermarkedImageToGallery(context: Context, bitmap: Bitmap, title: String = "MyKiezBerlin_Story", stamp: Boolean = true): Boolean {
+        // The text image already carries the logo, so it is not stamped twice
+        val watermarked = if (stamp) addLogoWatermark(context, bitmap) else bitmap
         val filename = "${title}_${System.currentTimeMillis()}.jpg"
 
         return try {

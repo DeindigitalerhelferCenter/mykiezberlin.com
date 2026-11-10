@@ -262,6 +262,16 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                 )
             }
 
+            // Sponsor on every page change, sized by its package (home and the business lists have their own sponsors)
+            if (uiState.currentScreen !in setOf(AppScreen.HOME, AppScreen.BUSINESSES, AppScreen.KIEZ_BETRIEBE, AppScreen.KIEZ_MATCH, AppScreen.COMMUNITY, AppScreen.WERBEN, AppScreen.ADMIN)) {
+                com.example.ui.components.PageSponsorSlot(
+                    screenKey = uiState.currentScreen.name,
+                    language = uiState.language,
+                    activeKiez = uiState.activeKiezFilter,
+                    showCoupons = uiState.currentScreen == AppScreen.DEALS
+                )
+            }
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

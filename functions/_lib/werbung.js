@@ -89,6 +89,18 @@ export async function verifyStripeEvent(request, env) {
 // A paid request keeps its linked ads running until the paid period ends.
 async function extendAds(database, requestId, until) {
   await database.prepare(`UPDATE ads SET end_at = ?, active = 1, updated_at = ? WHERE request_id = ?`).bind(until, Date.now(), requestId).run();
+  // First payment without an ad yet: create it automatically from the request, placed by its package.
+  // The admin can add image and texts later; the business is visible right away.
+  const exists = await database.prepare(`SELECT id FROM ads WHERE request_id = ?`).bind(requestId).first();
+  if (exists) return;
+  const req = await database.prepare(`SELECT company, phone, size, message FROM ad_requests WHERE id = ?`).bind(requestId).first();
+  if (!req) return;
+  const plan = ["s", "m", "l", "banner", "gp"].includes(req.size) ? req.size : "s";
+  const now = Date.now();
+  const text = String(req.message || "").replace(/[<>]/g, "").replace(/\s+/g, " ").trim().slice(0, 200);
+  await database.prepare(`INSERT INTO ads (id, name, image, headline_de, headline_tr, headline_en, link_tel, places, plan, request_id, priority, start_at, end_at, active, extra, created_at, updated_at) VALUES (?, ?, '', ?, ?, ?, ?, '', ?, ?, ?, ?, ?, 1, '', ?, ?)`)
+    .bind(`ad_${crypto.randomUUID().slice(0, 8)}`, req.company, text, text, text, String(req.phone || "").replace(/[^\d+ ]/g, ""), plan, requestId, plan === "l" ? 30 : plan === "s" ? 10 : 20, now, until, now, now)
+    .run();
 }
 
 export async function handleStripeEvent(event, database) {

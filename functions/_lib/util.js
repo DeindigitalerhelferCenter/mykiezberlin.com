@@ -85,6 +85,7 @@ const MIGRATIONS = [
   `ALTER TABLE reporter_posts ADD COLUMN user_id TEXT DEFAULT ''`,
   `ALTER TABLE stories ADD COLUMN link TEXT DEFAULT ''`,
   `ALTER TABLE stories ADD COLUMN by_admin INTEGER DEFAULT 0`,
+  `ALTER TABLE ads ADD COLUMN extra TEXT DEFAULT ''`,
 ];
 
 // Accepts only Instagram post/reel links and returns them in one canonical form.

@@ -3,7 +3,23 @@
  * Adds its own section below the moderation queue.
  */
 
-const AD_PLACES = { slider: "Sponsor-Leiste", home: "Startseite", quiz: "Kiez-Quiz" };
+const AD_PLACES = { slider: "Sponsor-Leiste", home: "Startseite", quiz: "Kiez-Quiz", page: "Seitenwechsel", list: "In Listen", kiez: "Eigener Kiez oben" };
+// Same rules as functions/_lib/plans.js: the package decides size, places and how often an ad is shown.
+const PLAN_INFO = {
+  l: { label: "Groß 89 €", size: "große Karte", weight: 3, places: ["home", "slider", "page", "list"] },
+  m: { label: "Mittel 49 €", size: "mittleres Banner", weight: 2, places: ["slider", "page", "list"] },
+  gp: { label: "Gründungspartner", size: "mittleres Banner", weight: 2, places: ["slider", "page", "list"] },
+  s: { label: "Klein 29 €", size: "kleiner Streifen", weight: 1, places: ["page", "kiez"] },
+  banner: { label: "Banner", size: "Banner", weight: 2, places: ["slider", "page"] },
+};
+function adPlanLine(a) {
+  const info = PLAN_INFO[a.plan];
+  if (!info) return "";
+  const running = (x) => x.active && (!x.end_at || x.end_at > Date.now());
+  const total = adminAds.filter((x) => running(x) && PLAN_INFO[x.plan]).reduce((n, x) => n + PLAN_INFO[x.plan].weight, 0) || 1;
+  const share = running(a) ? Math.round((info.weight / total) * 100) : 0;
+  return `<div style="color: #F2B705;">📦 ${info.label} · ${info.size} · ${info.weight}× · Anteil Seitenwechsel ${share} % · automatisch: ${info.places.map((p) => AD_PLACES[p]).join(", ")}</div>`;
+}
 const REQUEST_LABELS = { new: "Neu", contacted: "Kontaktiert", paid: "Bezahlt", done: "Erledigt", canceled: "Gekündigt" };
 const SIZE_LABELS = { s: "Klein 29 €", m: "Mittel 49 €", l: "Groß 89 €", banner: "Banner", gp: "Gründungspartner" };
 let adminAds = [];
@@ -68,6 +84,7 @@ function adCard(a) {
       <div style="flex: 1;">
         <div style="display: flex; justify-content: space-between;"><b>${adminEsc(a.name)}</b><span>${running ? "🟢 aktiv" : "⚪ aus"}</span></div>
         <div style="color: #8b949e;">${adminEsc(a.headline_de)}</div>
+        ${adPlanLine(a)}
         <div style="color: #8b949e;">${String(a.places || "").split(",").map((p) => AD_PLACES[p] || p).join(", ")} · ${adDate(a.start_at)} – ${adDate(a.end_at)} · 30 Tage: ${a.imp30} Aufrufe, ${a.clk30} Klicks</div>
         <div style="display: flex; gap: 6px; margin-top: 6px;">
           <button class="chip-btn" onclick="openAdForm('${adminEsc(a.id)}')">Bearbeiten</button>
@@ -121,11 +138,12 @@ function openAdForm(id, requestId = "") {
       ${field("cta_de", "Button DE (z. B. Ansehen)")}${field("cta_tr", "Button TR (ör. Gör)")}${field("cta_en", "Button EN")}
       ${field("link_web", "Webseite (https://…)")}${field("link_wa", "WhatsApp-Nummer")}${field("link_tel", "Telefon")}${field("link_ig", "Instagram (https://…)")}
       <div style="font-size: 12px;">Platzierung: ${Object.entries(AD_PLACES).map(([k, v]) => `<label style="margin-right: 10px;"><input type="checkbox" class="ad-place" value="${k}" ${places.includes(k) ? "checked" : ""}> ${v}</label>`).join("")}</div>
-      ${field("kieze", "Nur in Kiezen (leer = ganz Berlin)")}${field("priority", "Priorität 0–100", ad.priority ?? 0)}
+      <label style="display: grid; gap: 3px; font-size: 12px;">Paket (legt Größe, Plätze und Häufigkeit automatisch fest)<select id="ad-plan" class="form-control"><option value="">– kein Paket (nur gewählte Plätze) –</option>${Object.entries(PLAN_INFO).map(([k, v]) => `<option value="${k}" ${ad.plan === k ? "selected" : ""}>${v.label} – ${v.size}, ${v.weight}×</option>`).join("")}</select></label>
+      ${field("kieze", "Kiez des Betriebs (Klein: dort ganz oben)")}${field("priority", "Priorität 0–100", ad.priority ?? 0)}
       <label style="display: grid; gap: 3px; font-size: 12px;">Start<input id="ad-start" type="date" class="form-control" value="${toDateInput(ad.start_at)}"></label>
       <label style="display: grid; gap: 3px; font-size: 12px;">Ende (leer = unbegrenzt; bei Stripe-Zahlung automatisch)<input id="ad-end" type="date" class="form-control" value="${toDateInput(ad.end_at)}"></label>
       <div style="display: flex; gap: 8px;"><button class="btn-primary" onclick="saveAdForm('${adminEsc(id || "")}')">Speichern</button><button class="chip-btn" onclick="document.getElementById('ad-form-modal').remove()">Abbrechen</button></div>
-      <input id="ad-request_id" type="hidden" value="${adminEsc(ad.request_id || "")}"><input id="ad-plan" type="hidden" value="${adminEsc(ad.plan || "")}">
+      <input id="ad-request_id" type="hidden" value="${adminEsc(ad.request_id || "")}">
     </div>`;
   document.body.appendChild(modal);
 }

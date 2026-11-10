@@ -3,6 +3,7 @@ package com.example.ui.components
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
+import kotlinx.coroutines.launch
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -303,6 +304,7 @@ fun StoryViewerDialog(
     }
     val story = stories.getOrElse(currentIndex) { stories.first() }
     val context = LocalContext.current
+    val downloadScope = androidx.compose.runtime.rememberCoroutineScope()
     var progress by remember(currentIndex) { mutableFloatStateOf(0f) }
     var showFullTextDialog by remember { mutableStateOf(false) }
     var isImageZoomed by remember { mutableStateOf(false) }
@@ -748,28 +750,23 @@ fun StoryViewerDialog(
                             // [DAMGALI İNDİR] Button
                             Button(
                                 onClick = {
-                                    val bmp = if (story.mediaResId != null) {
-                                        BitmapFactory.decodeResource(context.resources, story.mediaResId)
-                                    } else if (story.mediaUri != null) {
-                                        try {
-                                            val uri = Uri.parse(story.mediaUri)
-                                            val stream = context.contentResolver.openInputStream(uri)
-                                            BitmapFactory.decodeStream(stream)
-                                        } catch (_: Exception) { null }
-                                    } else {
-                                        null
-                                    }
-
-                                    if (bmp != null) {
-                                        WatermarkHelper.saveWatermarkedImageToGallery(context, bmp, "Story_${story.kiez}")
-                                    } else {
-                                        val textBmp = WatermarkHelper.createTextStoryBitmap(
-                                            context = context,
-                                            headline = story.headline,
-                                            subtext = story.subtext,
-                                            kiez = story.kiez
-                                        )
-                                        WatermarkHelper.saveWatermarkedImageToGallery(context, textBmp, "Story_${story.kiez}")
+                                    // Photo (also from the server) or a video frame, always with the logo on top;
+                                    // the text image is only used when the story has no media at all.
+                                    downloadScope.launch {
+                                        val bmp = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                                            WatermarkHelper.loadStoryBitmap(context, story.mediaResId, story.mediaUri, story.isVideo)
+                                        }
+                                        if (bmp != null) {
+                                            WatermarkHelper.saveWatermarkedImageToGallery(context, bmp, "Story_${story.kiez}")
+                                        } else {
+                                            val textBmp = WatermarkHelper.createTextStoryBitmap(
+                                                context = context,
+                                                headline = story.headline,
+                                                subtext = story.subtext,
+                                                kiez = story.kiez
+                                            )
+                                            WatermarkHelper.saveWatermarkedImageToGallery(context, textBmp, "Story_${story.kiez}", stamp = false)
+                                        }
                                     }
                                 },
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF475569)),
