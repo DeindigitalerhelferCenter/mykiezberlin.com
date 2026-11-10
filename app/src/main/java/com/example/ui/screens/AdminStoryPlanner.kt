@@ -146,6 +146,12 @@ fun AdminStoryPlanner(onDismiss: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val token = remember { KiezStorageManager.getAdminToken(context) }
+    // Height of the system navigation bar (the dialog does not always receive window insets)
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val navBar = remember {
+        val id = context.resources.getIdentifier("navigation_bar_height", "dimen", "android")
+        with(density) { (if (id > 0) context.resources.getDimensionPixelSize(id) else 0).toDp() }
+    }
     val rows = remember { mutableStateListOf<PlanRow>() }
     var seq by remember { mutableIntStateOf(0) }
     var planned by remember { mutableStateOf<List<PlannedStory>>(emptyList()) }
@@ -213,9 +219,9 @@ fun AdminStoryPlanner(onDismiss: () -> Unit) {
         }
     }
 
-    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF0D1117)) {
-            Column {
+            Column(Modifier.systemBarsPadding().imePadding()) {
                 TopAppBar(
                     title = { Text("📅 Story Planlayıcı", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 17.sp) },
                     navigationIcon = { TextButton(onClick = onDismiss) { Text("✕", color = Color.White, fontSize = 18.sp) } },
@@ -244,7 +250,7 @@ fun AdminStoryPlanner(onDismiss: () -> Unit) {
                                     PlannerField(hours, { hours = it.filter(Char::isDigit).take(3) }, "Süre (saat)", Modifier.width(110.dp))
                                 }
                                 PlannerField(times, { times = it }, "Saatler (09:00, 12:30, …)")
-                                Button(onClick = { distribute() }, enabled = rows.isNotEmpty(), colors = ButtonDefaults.buttonColors(containerColor = PlannerGold, contentColor = Color.Black)) { Text("Dağıt") }
+                                Button(onClick = { distribute() }, enabled = rows.isNotEmpty(), colors = ButtonDefaults.buttonColors(containerColor = PlannerGold, contentColor = Color.Black, disabledContainerColor = PlannerGold.copy(alpha = 0.3f), disabledContentColor = Color.White.copy(alpha = 0.6f))) { Text(if (rows.isEmpty()) "Dağıt (önce story ekle)" else "Dağıt") }
                                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                                     PlannerField(allKiez, { allKiez = it }, "Hepsi: Kiez", Modifier.weight(1f))
                                     PlannerField(allKind, { allKind = it }, "Hepsi: kategori", Modifier.weight(1f))
@@ -267,6 +273,7 @@ fun AdminStoryPlanner(onDismiss: () -> Unit) {
                             OutlinedButton(onClick = { rows.removeAll { it.status == "ok" } }) { Text("Temizle", color = Color.White) }
                         }
                     }
+                    Spacer(Modifier.fillMaxWidth().height(maxOf(navBar, 56.dp)).background(Color(0xFF161B22)))
                 } else {
                     LazyColumn(Modifier.weight(1f).padding(horizontal = 12.dp), verticalArrangement = Arrangement.spacedBy(6.dp), contentPadding = PaddingValues(vertical = 10.dp)) {
                         if (planned.isEmpty()) item { Text("Şu an planlanmış story yok.", color = Color(0xFF8B949E)) }
