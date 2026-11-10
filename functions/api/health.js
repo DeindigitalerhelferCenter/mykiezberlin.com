@@ -2,5 +2,5 @@
 import { json } from "../_lib/util.js";
 
 export function onRequestGet({ env }) {
-  return json({ ok: true, db: Boolean(env.DB), r2: Boolean(env.BUCKET), adminTokenSet: Boolean(env.ADMIN_TOKEN) });
+  return json({ ok: true, db: Boolean(env.DB), r2: Boolean(env.BUCKET), adminTokenSet: Boolean(env.ADMIN_TOKEN), ai: Boolean(env.AI) });
 }
