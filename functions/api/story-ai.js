@@ -7,6 +7,9 @@ import kiezData from "../_lib/kieze.json";
 const MODELS = ["@cf/meta/llama-4-scout-17b-16e-instruct", "@cf/mistralai/mistral-small-3.1-24b-instruct"];
 const KINDS = ["news", "event", "info", "traffic", "warn", "politics", "sport", "kultur", "angebot"];
 const KIEZ_NAMES = kiezData.kieze.map((k) => k.name);
+// Postal code -> Kiez (addresses on flyers usually carry one)
+const KIEZ_BY_PLZ = {};
+kiezData.kieze.forEach((k) => String(k.postalCodes || "").split(/[^\d]+/).filter((c) => c.length === 5).forEach((c) => { if (!KIEZ_BY_PLZ[c]) KIEZ_BY_PLZ[c] = k.name; }));
 
 const PROMPT = `Du bist Redakteur der Berliner Lokal-App "My Kiez Berlin". Lies ALLES, was auf dem Bild steht (Überschriften, Datum, Uhrzeit, Ort, Preise, Webadressen) und beschreibe, was zu sehen ist.
 Antworte NUR mit JSON, ohne Erklärung, genau in dieser Form:
@@ -47,10 +50,24 @@ function fit(text, max) {
   return end > max * 0.5 ? cut.slice(0, end + 1) : cut.slice(0, max - 1) + "…";
 }
 
-function matchKiez(place) {
+function matchKiez(place, fullText) {
   const p = place.toLowerCase();
-  if (!p) return "";
-  return KIEZ_NAMES.find((k) => p.includes(k.toLowerCase()) || k.toLowerCase().includes(p)) || "";
+  const byName = p ? KIEZ_NAMES.find((k) => p.includes(k.toLowerCase()) || k.toLowerCase().includes(p)) : "";
+  if (byName) return byName;
+  for (const code of String(fullText || "").match(/1[0-4]\d{3}/g) || []) if (KIEZ_BY_PLZ[code]) return KIEZ_BY_PLZ[code];
+  const t = String(fullText || "").toLowerCase();
+  return KIEZ_NAMES.find((k) => k.length > 4 && t.includes(k.toLowerCase())) || "";
+}
+
+// Turkish text when the vision model left it out (translation model, German -> Turkish)
+async function toTurkish(env, text) {
+  if (!text) return "";
+  try {
+    const r = await env.AI.run("@cf/meta/m2m100-1.2b", { text, source_lang: "german", target_lang: "turkish" });
+    return clean(r && r.translated_text, 400);
+  } catch (e) {
+    return "";
+  }
 }
 
 function webLink(value) {
@@ -93,16 +110,21 @@ export async function onRequestPost({ request, env }) {
   if (!data) return json({ error: "ai_failed", detail: lastError || String(raw || "").slice(0, 200) }, 502);
 
   const hDe = clean(data.headline_de, 70);
-  const hTr = clean(data.headline_tr, 70);
+  let hTr = clean(data.headline_tr, 70);
   const tDe = clean(data.text_de, 400);
-  const tTr = clean(data.text_tr, 400);
+  let tTr = clean(data.text_tr, 400);
+  if (!hTr || !tTr) {
+    const [h, t] = await Promise.all([hTr ? hTr : toTurkish(env, hDe), tTr ? tTr : toTurkish(env, tDe)]);
+    hTr = clean(h, 70);
+    tTr = clean(t, 400);
+  }
   // Story fields: headline max 120, text max 500 – German first, then Turkish
   const headline = fit([hDe, hTr].filter(Boolean).join(" · "), 120);
   const half = 245;
   const subtext = [tDe && fit(tDe, half), tTr && "🇹🇷 " + fit(tTr, half)].filter(Boolean).join("\n\n").slice(0, 500);
   const kind = KINDS.includes(String(data.kind || "").toLowerCase()) ? String(data.kind).toLowerCase() : "news";
   return json({
-    headline, subtext, kiez: matchKiez(clean(data.place, 60)), place: clean(data.place, 60), kind, link: webLink(data.link),
+    headline, subtext, kiez: matchKiez(clean(data.place, 60), [data.place, data.text_de, data.headline_de, raw].join(" ")), place: clean(data.place, 60), kind, link: webLink(data.link),
     headline_de: hDe, headline_tr: hTr, text_de: tDe, text_tr: tTr, model: used,
   });
 }
