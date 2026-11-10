@@ -1,11 +1,11 @@
 {
-  "versionCode": 11,
-  "versionName": "1.10",
+  "versionCode": 12,
+  "versionName": "1.11",
   "apkUrl": "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin.com.apk",
   "mandatory": false,
   "notes": {
-    "de": "Neu: Kiez-Stars der Woche mit Pokal und Abzeichen, Name beim Teilen von Stories, Admin wird über neue Stories benachrichtigt.",
-    "tr": "Yeni: Haftanın Kiez Yıldızları, kupa ve rozetler, hikâye paylaşırken isim, yeni hikâyelerde admine bildirim.",
-    "en": "New: Kiez Stars of the week with trophy and badges, name when sharing stories, admin is notified about new stories."
+    "de": "Neu: Stories werden mit Bild und Logo gespeichert, Kiez-Partner und Gutscheine auf jeder Seite.",
+    "tr": "Yeni: Hikâyeler resim ve logoyla kaydediliyor, her sayfada Kiez partnerleri ve kuponlar.",
+    "en": "New: stories are saved with the picture and logo, Kiez partners and coupons on every page."
   }
 }
