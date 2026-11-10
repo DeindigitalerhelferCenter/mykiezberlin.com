@@ -1,11 +1,11 @@
 {
-  "versionCode": 13,
-  "versionName": "1.12",
+  "versionCode": 14,
+  "versionName": "1.13",
   "apkUrl": "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin.com.apk",
   "mandatory": false,
   "notes": {
-    "de": "Neu: Kiez-Stories erscheinen jetzt auch geplant zur richtigen Uhrzeit – mit Benachrichtigung. Dazu Verbesserungen.",
-    "tr": "Yeni: Kiez hikâyeleri artık planlanan saatte yayınlanıyor – bildirimle birlikte. Ayrıca iyileştirmeler.",
-    "en": "New: Kiez stories now appear at their planned time – with a notification. Plus improvements."
+    "de": "Neu: Kiez-Stories mit Text auf Deutsch und Türkisch, bessere Benachrichtigungen und Verbesserungen.",
+    "tr": "Yeni: Almanca ve Türkçe metinli Kiez hikâyeleri, daha iyi bildirimler ve iyileştirmeler.",
+    "en": "New: Kiez stories with German and Turkish text, better notifications and improvements."
   }
 }
