@@ -1,11 +1,11 @@
 {
-  "versionCode": 17,
-  "versionName": "1.16",
+  "versionCode": 18,
+  "versionName": "1.17",
   "apkUrl": "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin.com.apk",
   "mandatory": false,
   "notes": {
-    "de": "Neu: „Fehler melden / Support“ im Menü und bei jedem Sponsor, Kontaktfenster für Sponsoren, Nacht-/Tagmodus im Menü und neue Pakete Kiez Basic / Plus / Premium.",
-    "tr": "Yeni: menüde ve her sponsorda „Hata bildir / Destek“, sponsorlar için iletişim penceresi, menüde gece/gündüz modu ve yeni paketler Kiez Basic / Plus / Premium.",
-    "en": "New: “Report a problem / Support” in the menu and for every sponsor, contact sheet for sponsors, night/day mode in the menu and new packages Kiez Basic / Plus / Premium."
+    "de": "Neu: mehr Sicherheit bei Links, Vorschau für Bilder und Videos, „Fehler melden / Support“ und Kontaktfenster für Sponsoren.",
+    "tr": "Yeni: linklerde daha fazla güvenlik, resim ve video önizlemesi, „Hata bildir / Destek“ ve sponsorlar için iletişim penceresi.",
+    "en": "New: safer links, previews for pictures and videos, “Report a problem / Support” and contact sheet for sponsors."
   }
 }
