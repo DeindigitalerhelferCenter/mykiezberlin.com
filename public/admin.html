@@ -149,7 +149,7 @@
       view.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
           <h2 style="font-size: 17px; font-weight: 800; color: #FFF;">Admin Hikaye & İlan Yönetimi</h2>
-          <button class="btn-b2b" style="background: var(--berlin-red); color: #FFF;" onclick="openAdminPostModal()">+ Yeni Story</button>
+          <button class="btn-b2b" style="background: var(--berlin-red); color: #FFF;" onclick="typeof mkGoPlanner === 'function' ? mkGoPlanner() : openAdminPostModal()">+ Yeni Story</button>
         </div>
 
         <div class="admin-card-dark" style="margin-bottom: 16px; background: #161b22;">
@@ -157,7 +157,13 @@
           <div style="font-size: 11.5px; color: #8b949e;">Admin olarak eklediğiniz tüm video, metin ve fotoğraflar için 5€/9.90€ kuralı aranmaz; doğrudan dilediğiniz süreyle anında yayına alınır.</div>
         </div>
 
-        <div>${storiesHtml}</div>
+        <!-- 2026-11-11: the old demo list (browser storage only) is no longer shown; real stories are below (server). -->
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;">
+          <a href="#admin-moderation" class="chip-btn" style="text-decoration: none;">📥 Gelen story'ler · Eingang</a>
+          <a href="#admin-planner" class="chip-btn" style="text-decoration: none;">📅 Planlayıcı</a>
+          <a href="#admin-support" class="chip-btn" style="text-decoration: none;">🛠 Destek</a>
+          <a href="#admin-account" class="chip-btn" style="text-decoration: none;">🔐 Hesap</a>
+        </div>
       `;
     }
 
@@ -210,9 +216,9 @@
       renderAdminDashboard();
     }
   </script>
-  <script src="admin-extended.js?v=2"></script>
+  <script src="admin-extended.js?v=3"></script>
   <script src="admin-werbung.js?v=2"></script>
-  <script src="admin-planner.js?v=2"></script>
-  <script src="admin-auth-ui.js?v=2"></script>
+  <script src="admin-planner.js?v=3"></script>
+  <script src="admin-auth-ui.js?v=3"></script>
 </body>
 </html>

@@ -2,6 +2,7 @@
 import { cleanText, db, isAdmin, json, noDb } from "../_lib/util.js";
 import { createCheckout, REQUEST_SIZES } from "../_lib/werbung.js";
 import { INFO, sendMail } from "../_lib/mail.js";
+import { lang as pickLang, werbenReply } from "../_lib/mail-templates.js";
 
 const SIZE_NAMES = { s: "Kiez Basic (29 €)", m: "Kiez Plus (49 €)", l: "Kiez Premium (89 €)", banner: "Banner", gp: "Gründungspartner" };
 
@@ -50,6 +51,11 @@ export async function onRequestPost({ request, env }) {
       `Paket: ${SIZE_NAMES[row.size] || row.size}`, "", row.message || "(keine Nachricht)", "", `Anfrage-ID: ${row.id}`,
     ].join("\n"),
   });
+  // Automatic welcome reply to the customer (DE/TR/EN), sender info@ (2026-11-11)
+  const l = pickLang(body.lang);
+  await database.prepare(`UPDATE ad_requests SET lang = ? WHERE id = ?`).bind(l, row.id).run().catch(() => {});
+  const reply = werbenReply(l, { name: row.person || row.company, company: row.company, package: SIZE_NAMES[row.size] || row.size, payable: Boolean(checkoutUrl) });
+  await sendMail(env, { to: row.email, from: INFO, subject: reply.subject, text: reply.text });
   return json({ ok: true, id: row.id, checkoutUrl, payable: Boolean(checkoutUrl) });
 }
 

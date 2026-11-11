@@ -345,7 +345,7 @@ private fun PlanRowCard(index: Int, row: PlanRow, onAi: () -> Unit, onRemove: ()
     val borderColor = when (row.status) { "ok" -> Color(0xFF2EA043); "error" -> Color(0xFFDA3633); else -> PlannerBorder }
     Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(PlannerDark).border(1.dp, borderColor, RoundedCornerShape(10.dp)).padding(8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            if (row.uri != null && !row.isVideo) AsyncImage(model = row.uri, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.size(64.dp, 96.dp).clip(RoundedCornerShape(8.dp)))
+            if (row.uri != null) com.example.ui.components.MediaPreview(row.uri, row.isVideo, Modifier.size(64.dp, 96.dp))
             else Box(Modifier.size(64.dp, 96.dp).clip(RoundedCornerShape(8.dp)).background(if (row.isVideo) Color(0xFF333333) else PlannerRed), contentAlignment = Alignment.Center) { Text(if (row.isVideo) "🎬" else "Aa", color = Color.White) }
             Text("#${index + 1}", color = Color.White, fontSize = 11.sp)
             Row { Text("↑", color = Color.White, modifier = Modifier.clickable { onMove(-1) }.padding(6.dp)); Text("↓", color = Color.White, modifier = Modifier.clickable { onMove(1) }.padding(6.dp)) }
@@ -402,7 +402,7 @@ private fun PlannedCard(s: PlannedStory, onReschedule: (Long, Long) -> Unit, onA
     var confirmDelete by remember { mutableStateOf(false) }
     val end = s.start + s.hours * HOUR
     Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(PlannerDark).border(1.dp, PlannerBorder, RoundedCornerShape(10.dp)).padding(8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (s.mediaKey.isNotBlank() && !s.isVideo) AsyncImage(model = "https://mykiezberlin.com/media/${s.mediaKey}", contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.size(44.dp, 64.dp).clip(RoundedCornerShape(6.dp)))
+        if (s.mediaKey.isNotBlank()) com.example.ui.components.MediaPreview("https://mykiezberlin.com/media/${s.mediaKey}", s.isVideo, Modifier.size(44.dp, 64.dp), cornerDp = 6)
         else Box(Modifier.size(44.dp, 64.dp).clip(RoundedCornerShape(6.dp)).background(if (s.isVideo) Color(0xFF333333) else PlannerRed), contentAlignment = Alignment.Center) { Text(if (s.isVideo) "🎬" else "Aa", color = Color.White) }
         Column(Modifier.weight(1f)) {
             Text("${fmt(s.start, "HH:mm")} · ${s.headline}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)

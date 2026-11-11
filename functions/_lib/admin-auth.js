@@ -41,6 +41,8 @@ export async function ensureAdminTables(database) {
     database.prepare(`CREATE TABLE IF NOT EXISTS admin_resets (token_hash TEXT PRIMARY KEY, admin_id TEXT, expires_at INTEGER)`),
     database.prepare(`CREATE TABLE IF NOT EXISTS admin_login_attempts (ip TEXT, created_at INTEGER)`),
     database.prepare(`CREATE TABLE IF NOT EXISTS admin_settings (key TEXT PRIMARY KEY, value TEXT, updated_at INTEGER)`),
+    // Security questions (2026-11-11): 3 questions per admin, answers only as salted hashes
+    database.prepare(`CREATE TABLE IF NOT EXISTS admin_questions (admin_id TEXT, pos INTEGER, question TEXT, salt TEXT, answer_hash TEXT, PRIMARY KEY (admin_id, pos))`),
   ]);
 }
 
@@ -150,4 +152,50 @@ export async function setSetting(database, key, value) {
   await ready(database);
   await database.prepare(`INSERT INTO admin_settings (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`)
     .bind(key, String(value), Date.now()).run();
+}
+
+// ---------- security questions (2026-11-11) ----------
+// Choice offered in app and web; the admin may also type an own question.
+export const QUESTION_CHOICES = [
+  "Geburtsort deiner Mutter? · Annenin doğum yeri?",
+  "Name deines ersten Haustiers? · İlk evcil hayvanının adı?",
+  "Name deines Lieblingslehrers? · En sevdiğin öğretmenin adı?",
+  "Straße deiner ersten Wohnung? · İlk evinin sokağı?",
+  "Lieblingsessen als Kind? · Çocukken en sevdiğin yemek?",
+  "Stadt, in der du geboren bist? · Doğduğun şehir?",
+];
+
+/** Answers are compared without case, spaces and punctuation (ı/i, ä/a … are kept as typed). */
+export function normAnswer(a) {
+  return String(a || "").toLocaleLowerCase("tr").replace(/[\s.,;:!?'"()-]+/g, "");
+}
+
+export async function saveQuestions(database, adminId, items) {
+  await ready(database);
+  const list = (items || []).slice(0, 3);
+  const stmts = [database.prepare(`DELETE FROM admin_questions WHERE admin_id = ?`).bind(adminId)];
+  for (let i = 0; i < list.length; i++) {
+    const salt = randomHex(16);
+    stmts.push(database.prepare(`INSERT INTO admin_questions (admin_id, pos, question, salt, answer_hash) VALUES (?, ?, ?, ?, ?)`)
+      .bind(adminId, i, String(list[i].question).slice(0, 160), salt, await hashPassword(normAnswer(list[i].answer), salt)));
+  }
+  await database.batch(stmts);
+}
+
+export async function questionsFor(database, adminId) {
+  await ready(database);
+  const { results } = await database.prepare(`SELECT pos, question FROM admin_questions WHERE admin_id = ? ORDER BY pos`).bind(adminId).all();
+  return results;
+}
+
+/** True when all stored answers match. */
+export async function checkAnswers(database, adminId, answers) {
+  await ready(database);
+  const { results } = await database.prepare(`SELECT pos, salt, answer_hash FROM admin_questions WHERE admin_id = ? ORDER BY pos`).bind(adminId).all();
+  if (results.length < 3) return false;
+  for (const r of results) {
+    const given = (answers || [])[r.pos];
+    if (!given || !same(await hashPassword(normAnswer(given), r.salt), r.answer_hash)) return false;
+  }
+  return true;
 }

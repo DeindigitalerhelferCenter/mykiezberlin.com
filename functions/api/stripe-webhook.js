@@ -8,6 +8,6 @@ export async function onRequestPost({ request, env }) {
   if (!event) return json({ error: "signature" }, 400);
   const database = await db(env);
   if (!database) return noDb();
-  await handleStripeEvent(event, database);
+  await handleStripeEvent(event, database, env);
   return json({ received: true });
 }

@@ -10,7 +10,8 @@
   function lang() { return typeof currentLanguage === "string" && currentLanguage.indexOf("tr") === 0 ? "tr" : typeof currentLanguage === "string" && currentLanguage.indexOf("en") === 0 ? "en" : "de"; }
   function L(de, tr, en) { var l = lang(); return l === "tr" ? tr : l === "en" ? en : de; }
   function e(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
-  function http(u) { return /^https?:\/\//.test(u || "") ? u : ""; }
+  var BLOCKED = /(^|[\/.])(jet-?gas\.de|[\w-]*\.?sexyflirt\.[a-z]+|[\w-]*\.?lovemeto\.[a-z]+)/i; // hijacked / adult domains
+  function http(u) { return /^https?:\/\//.test(u || "") && !BLOCKED.test(u) ? u : ""; }
   function digits(s) { return String(s || "").replace(/[^\d]/g, ""); }
   function telHref(s) { return "tel:" + String(s || "").replace(/[^\d+]/g, ""); }
   function txt(ad, key) { return ad[key + "_" + lang()] || ad[key + "_de"] || ""; }

@@ -1,5 +1,5 @@
 // Network first, so content stays current; the cache only serves offline visits.
-const CACHE = "mykiez-v2";
+const CACHE = "mykiez-v3"; // v3 (2026-11-11): drops old copies with outdated sponsor links
 const SHELL = ["/", "/styles.css", "/styles-extended.css", "/data.js", "/data-extended.js", "/app.js", "/app-extended.js", "/app-parity.js", "/assets/images/mykiez_logo.png"];
 
 self.addEventListener("install", (event) => {

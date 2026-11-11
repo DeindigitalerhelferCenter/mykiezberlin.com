@@ -84,18 +84,43 @@
   };
 
   // ---------- first setup ----------
+  // ---------- security questions (2026-11-11) ----------
+  var CHOICES = [];
+  fetch("/api/admin-auth").then(function (r) { return r.json(); }).then(function (j) { CHOICES = j.questionChoices || []; }).catch(function () {});
+  function questionFields(current) {
+    var dl = '<datalist id="aa-qchoices">' + CHOICES.map(function (c) { return '<option value="' + esc(c) + '">'; }).join("") + "</datalist>";
+    var out = '<p style="font-size:12px;color:#8b949e;text-align:left;margin:4px 0 8px">🔐 3 Sicherheitsfragen – für „Passwort vergessen“. Frage wählen oder selbst schreiben. · 3 güvenlik sorusu – soruyu seç veya kendin yaz.</p>' + dl;
+    for (var i = 0; i < 3; i++) {
+      out += textField("aa-q" + i, "Frage " + (i + 1) + " · Soru " + (i + 1), "text", (current && current[i]) || CHOICES[i] || "").replace("<input ", '<input list="aa-qchoices" ') +
+        pwField("aa-a" + i, "Antwort " + (i + 1) + " · Cevap " + (i + 1));
+    }
+    return out;
+  }
+  function readQuestions() {
+    var list = [];
+    for (var i = 0; i < 3; i++) list.push({ question: (document.getElementById("aa-q" + i) || {}).value || "", answer: (document.getElementById("aa-a" + i) || {}).value || "" });
+    return list;
+  }
+  function questionsOk(list) { return list.every(function (q) { return q.question.trim() && q.answer.trim().length >= 2; }); }
+  ERR.wrong_answers = "Antworten falsch · Cevaplar yanlış";
+  ERR.no_questions = "Für diese E-Mail sind keine Fragen gespeichert · Bu e-posta için soru kayıtlı değil";
+  ERR.questions_incomplete = "Bitte alle 3 Fragen und Antworten ausfüllen · Lütfen 3 soru ve cevabı doldurun";
+
   function renderSetup(r) {
     view().innerHTML = card(
       '<h2 style="font-size:19px;font-weight:800;margin-bottom:6px">Eigenes Passwort festlegen</h2>' +
       '<p style="font-size:12px;color:#8b949e;margin-bottom:16px">Kendi şifreni belirle. Danach gilt das alte Test-Passwort nicht mehr. · Sonra eski test şifresi çalışmaz.</p>' +
       textField("aa-name", "Name", "text", r.name || "Ersen Bakıcı") + textField("aa-mail", "E-Mail", "email", r.email || "bakiciersen@gmail.com") +
       pwField("aa-new", "Neues Passwort (min. 8) · Yeni şifre") + pwField("aa-new2", "Wiederholen · Tekrar") +
+      questionFields() +
       '<button class="btn-primary" style="background:#238636" onclick="mkAdminSetup()">Speichern · Kaydet</button><p id="aa-msg" style="font-size:12px;margin-top:10px"></p>');
   }
   window.mkAdminSetup = async function () {
     var p1 = document.getElementById("aa-new").value, p2 = document.getElementById("aa-new2").value;
     if (p1 !== p2) { msg("aa-msg", "Passwörter sind verschieden · Şifreler farklı"); return; }
-    var r = await api("setup", { name: document.getElementById("aa-name").value, email: document.getElementById("aa-mail").value, password: p1 });
+    var qs = readQuestions();
+    if (!questionsOk(qs)) { msg("aa-msg", ERR.questions_incomplete); return; }
+    var r = await api("setup", { name: document.getElementById("aa-name").value, email: document.getElementById("aa-mail").value, password: p1, questions: qs });
     if (!r.ok) { msg("aa-msg", err(r)); return; }
     store(r.token);
     showRecovery(r.recoveryCode, function () { renderAdminDashboard(); });
@@ -115,7 +140,11 @@
     var status = await fetch("/api/admin-auth").then(function (r) { return r.json(); }).catch(function () { return {}; });
     view().innerHTML = card(
       '<h2 style="font-size:19px;font-weight:800;margin-bottom:12px">Passwort vergessen · Şifremi unuttum</h2>' +
-      '<p style="font-size:12px;color:#8b949e;text-align:left">1) Mit Notfall-Code · Acil durum koduyla:</p>' +
+      '<p style="font-size:12px;color:#8b949e;text-align:left">1) Mit Sicherheitsfragen · Güvenlik sorularıyla:</p>' +
+      textField("aa-qmail", "E-Mail", "email", "") +
+      '<button class="chip-btn active" onclick="mkAdminLoadQuestions()">Fragen anzeigen · Soruları göster</button><div id="aa-qbox" style="margin-top:10px"></div>' +
+      '<hr style="border-color:#30363d;margin:16px 0">' +
+      '<p style="font-size:12px;color:#8b949e;text-align:left">2) Mit Notfall-Code · Acil durum koduyla:</p>' +
       textField("aa-mail", "E-Mail", "email", "") + textField("aa-code", "Notfall-Code (XXXX-XXXX-XXXX-XXXX)") +
       pwField("aa-new", "Neues Passwort (min. 8) · Yeni şifre") +
       '<button class="btn-primary" style="background:#238636" onclick="mkAdminRecover()">Zurücksetzen · Sıfırla</button>' +
@@ -123,6 +152,22 @@
         ? '<p style="font-size:12px;color:#8b949e;text-align:left;margin-top:18px">2) Link per E-Mail · E-postayla link:</p><button class="btn-primary" style="background:#1f6feb" onclick="mkAdminMail()">Link senden · Link gönder</button>'
         : '<p style="font-size:11px;color:#8b949e;margin-top:14px">E-Mail-Versand ist noch nicht eingerichtet. · E-posta gönderimi henüz kurulmadı.</p>') +
       '<p id="aa-msg" style="font-size:12px;margin-top:10px"></p><a href="#" onclick="renderLoginForm();return false" style="font-size:12px;color:#58a6ff">← Zurück · Geri</a>');
+  };
+  window.mkAdminLoadQuestions = async function () {
+    var mail = document.getElementById("aa-qmail").value;
+    var r = await api("questions", { email: mail });
+    var box = document.getElementById("aa-qbox");
+    if (!r.ok) { box.innerHTML = '<p style="font-size:12px;color:#f85149">' + err(r) + "</p>"; return; }
+    box.innerHTML = r.questions.map(function (q, i) { return '<p style="font-size:13px;text-align:left;margin:6px 0 4px">' + esc(q) + "</p>" + pwField("aa-ra" + i, "Antwort · Cevap"); }).join("") +
+      pwField("aa-qnew", "Neues Passwort (min. 8) · Yeni şifre") +
+      '<button class="btn-primary" style="background:#238636" onclick="mkAdminRecoverQuestions()">Zurücksetzen · Sıfırla</button>';
+  };
+  window.mkAdminRecoverQuestions = async function () {
+    var answers = [0, 1, 2].map(function (i) { return (document.getElementById("aa-ra" + i) || {}).value || ""; });
+    var r = await api("recoverQuestions", { email: document.getElementById("aa-qmail").value, answers: answers, newPassword: document.getElementById("aa-qnew").value });
+    if (!r.ok) { msg("aa-msg", err(r)); return; }
+    store(r.token);
+    renderAdminDashboard();
   };
   window.mkAdminRecover = async function () {
     var r = await api("recover", { email: document.getElementById("aa-mail").value, code: document.getElementById("aa-code").value, newPassword: document.getElementById("aa-new").value });
@@ -170,6 +215,9 @@
       '<details style="margin-bottom:10px"><summary style="cursor:pointer;font-weight:700">Passwort ändern · Şifre değiştir</summary><div style="margin-top:10px">' +
       pwField("aa-old", "Altes Passwort · Eski şifre") + pwField("aa-new", "Neues Passwort (min. 8) · Yeni şifre") + pwField("aa-new2", "Wiederholen · Tekrar") +
       '<button class="chip-btn active" onclick="mkAdminChange()">Speichern · Kaydet</button></div></details>' +
+      '<details style="margin-bottom:10px"' + (me.hasQuestions ? "" : " open") + '><summary style="cursor:pointer;font-weight:700">Sicherheitsfragen · Güvenlik soruları ' + (me.hasQuestions ? "✓" : "⚠️ fehlen · eksik") + '</summary><div style="margin-top:10px">' +
+      questionFields(me.questions) + pwField("aa-qpw", "Aktuelles Passwort · Mevcut şifre") +
+      '<button class="chip-btn active" onclick="mkAdminSaveQuestions()">Speichern · Kaydet</button></div></details>' +
       '<details style="margin-bottom:10px"><summary style="cursor:pointer;font-weight:700">Neuer Notfall-Code · Yeni acil durum kodu</summary><div style="margin-top:10px;font-size:12px;color:#8b949e">Der alte Code gilt danach nicht mehr. · Eski kod geçersiz olur.<br>' +
       '<button class="chip-btn active" style="margin-top:8px" onclick="mkAdminNewCode()">Code erzeugen · Kod oluştur</button></div></details>' +
       '<details><summary style="cursor:pointer;font-weight:700">Admins (' + (list.admins || []).length + ")</summary><div style=\"margin-top:8px\">" + admins +
@@ -182,6 +230,12 @@
     if (p1 !== document.getElementById("aa-new2").value) { msg("aa-acc-msg", "Passwörter sind verschieden · Şifreler farklı"); return; }
     var r = await api("change", { oldPassword: document.getElementById("aa-old").value, newPassword: p1 });
     msg("aa-acc-msg", r.ok ? "Passwort geändert ✓ · Şifre değişti ✓" : err(r), r.ok);
+  };
+  window.mkAdminSaveQuestions = async function () {
+    var qs = readQuestions();
+    if (!questionsOk(qs)) { msg("aa-acc-msg", ERR.questions_incomplete); return; }
+    var r = await api("setQuestions", { questions: qs, password: document.getElementById("aa-qpw").value });
+    msg("aa-acc-msg", r.ok ? "Sicherheitsfragen gespeichert ✓ · Kaydedildi ✓" : err(r), r.ok);
   };
   window.mkAdminNewCode = async function () {
     var r = await api("recovery");
@@ -229,6 +283,12 @@
   window.mkSupportDone = async function (id, status) {
     await fetch("/api/support", { method: "PATCH", headers: { "content-type": "application/json", "x-admin-token": token() }, body: JSON.stringify({ id: id, status: status }) }).catch(function () {});
     supportSection();
+  };
+
+  // "+ Yeni Story" in the header: jump to the story planner (pictures / videos with preview)
+  window.mkGoPlanner = function () {
+    var n = document.getElementById("admin-planner");
+    if (n) n.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   var baseDashboard = window.renderAdminDashboard;

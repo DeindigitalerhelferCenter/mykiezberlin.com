@@ -18,7 +18,8 @@
   function e(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function txt(ad, key) { return ad[key + "_" + lang()] || ad[key + "_de"] || ""; }
   function cat(ad) { return ad.category ? ad.category[lang()] || ad.category.de || "" : ""; }
-  function url(u) { return /^(https?:\/\/|tel:|\/)/.test(u || "") ? u : ""; }
+  var BLOCKED = /(jet-?gas\.de|sexyflirt\.|lovemeto\.)/i; // hijacked / adult domains, never open them
+  function url(u) { return /^(https?:\/\/|tel:|\/)/.test(u || "") && !BLOCKED.test(u) ? u : ""; }
   function wa(ad) { return ad.link_wa ? "https://wa.me/" + ad.link_wa.replace(/[^\d]/g, "") : ""; }
   function tel(ad) { return ad.link_tel ? "tel:" + ad.link_tel.replace(/[^\d+]/g, "") : ""; }
   function main(ad) { return url(ad.link_web) || url(ad.link_ig) || wa(ad) || tel(ad) || "/werben"; }

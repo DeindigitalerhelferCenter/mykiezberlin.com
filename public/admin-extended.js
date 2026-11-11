@@ -35,7 +35,14 @@ function moderationCard(type, item) {
   const payload = item.payload || {};
   const title = item.headline || item.title || payload.name || payload.title || payload.packageName || item.text;
   const text = item.subtext || item.description || payload.description || payload.email || "";
-  const image = item.media_key ? `<img src="/media/${adminEsc(item.media_key)}" alt="" style="width: 56px; height: 56px; object-fit: cover; border-radius: 8px;">` : "";
+  // Preview (2026-11-11): bigger picture, real video player; a tap opens it full size (mkAdminMedia)
+  const mediaUrl = item.media_key ? `/media/${adminEsc(item.media_key)}` : "";
+  const isVideo = item.media_type === "video" || /\.(mp4|webm|mov|m4v)$/i.test(item.media_key || "");
+  const image = mediaUrl
+    ? (isVideo
+      ? `<div style="position: relative; width: 96px; height: 128px; flex: none; cursor: pointer;" onclick="mkAdminMedia('${mediaUrl}', true)"><video src="${mediaUrl}#t=0.5" preload="metadata" muted playsinline style="width: 96px; height: 128px; object-fit: cover; border-radius: 8px; background: #000;"></video><span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 30px;">▶️</span></div>`
+      : `<img src="${mediaUrl}" alt="" onclick="mkAdminMedia('${mediaUrl}', false)" style="width: 96px; height: 128px; flex: none; object-fit: cover; border-radius: 8px; cursor: zoom-in;">`)
+    : "";
   const id = adminEsc(item.id);
   return `
     <div style="padding: 12px; margin-bottom: 10px; border: 1px solid #30363d; border-radius: 10px; background: #161b22; color: #fff;">
@@ -162,4 +169,19 @@ async function createServerStory() {
   const durationHours = Number(prompt("Süre (saat):", "48")) || 48;
   await adminRequest("POST", { action: "createStory", headline, subtext, kiez, kind, link, durationHours });
   loadModerationQueue();
+}
+
+
+/* Full-size preview for pictures and videos of stories (2026-11-11). Tap outside or ✕ to close. */
+function mkAdminMedia(url, isVideo) {
+  document.getElementById("mk-admin-media")?.remove();
+  const box = document.createElement("div");
+  box.id = "mk-admin-media";
+  box.style.cssText = "position:fixed;inset:0;z-index:10080;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:16px";
+  box.innerHTML = (isVideo
+    ? `<video src="${url}" controls autoplay playsinline style="max-width:100%;max-height:100%;border-radius:10px;background:#000"></video>`
+    : `<img src="${url}" alt="" style="max-width:100%;max-height:100%;border-radius:10px">`) +
+    `<button style="position:absolute;top:14px;right:14px;width:40px;height:40px;border-radius:50%;border:0;background:#fff;font-size:18px;cursor:pointer">✕</button>`;
+  box.addEventListener("click", (e) => { if (e.target === box || e.target.tagName === "BUTTON") box.remove(); });
+  document.body.appendChild(box);
 }

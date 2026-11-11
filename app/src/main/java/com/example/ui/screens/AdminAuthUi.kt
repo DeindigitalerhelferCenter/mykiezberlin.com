@@ -87,6 +87,23 @@ private fun RecoveryCodeBox(code: String) {
     )
 }
 
+/** 3 security questions: the question can be typed or picked with "Vorschlag" (cycles through the choices). */
+@Composable
+private fun QuestionEditor(questions: androidx.compose.runtime.snapshots.SnapshotStateList<String>, answers: androidx.compose.runtime.snapshots.SnapshotStateList<String>) {
+    Text("🔐 3 Sicherheitsfragen – für Passwort vergessen · 3 güvenlik sorusu", color = Muted, fontSize = 12.sp)
+    for (i in 0 until 3) {
+        DarkField(questions[i], { questions[i] = it }, "Frage ${i + 1} · Soru ${i + 1}")
+        Text("↻ Vorschlag · Öneri", color = Color(0xFF58A6FF), fontSize = 12.sp, modifier = Modifier.clickable {
+            val list = AdminAuthClient.QUESTION_CHOICES
+            val idx = list.indexOf(questions[i])
+            questions[i] = list[(idx + 1).mod(list.size)]
+        })
+        DarkField(answers[i], { answers[i] = it }, "Antwort ${i + 1} · Cevap ${i + 1}", password = true)
+    }
+}
+
+private fun questionsOk(q: List<String>, a: List<String>) = q.all { it.isNotBlank() } && a.all { it.trim().length >= 2 }
+
 /**
  * Admin login (2026-11-11): e-mail (optional) + password with eye icon, checked on the server.
  * First start: the old test password opens the setup once, then an own password is required.
@@ -106,6 +123,9 @@ fun AdminLoginPanel(onLoggedIn: (String) -> Unit) {
     var message by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
     var emailReset by remember { mutableStateOf(false) }
+    val questions = remember { mutableStateListOf(*AdminAuthClient.QUESTION_CHOICES.take(3).toTypedArray()) }
+    val answers = remember { mutableStateListOf("", "", "") }
+    var loadedQuestions by remember { mutableStateOf<List<String>>(emptyList()) }
 
     Card(
         modifier = Modifier.fillMaxWidth().padding(20.dp),
@@ -156,12 +176,16 @@ fun AdminLoginPanel(onLoggedIn: (String) -> Unit) {
                     DarkField(email, { email = it }, "E-Mail", email = true)
                     DarkField(password, { password = it; message = "" }, "Neues Passwort (min. 8) · Yeni şifre", password = true)
                     DarkField(password2, { password2 = it; message = "" }, "Wiederholen · Tekrar", password = true)
+                    QuestionEditor(questions, answers)
                     Button(
                         onClick = {
                             if (password != password2) { message = "Passwörter sind verschieden · Şifreler farklı"; return@Button }
+                            if (!questionsOk(questions, answers)) { message = AdminAuthClient.message("questions_incomplete"); return@Button }
                             busy = true
                             scope.launch {
-                                val r = AdminAuthClient.call("setup", token, mapOf("name" to name, "email" to email.trim(), "password" to password))
+                                val r = AdminAuthClient.call("setup", token, mapOf("name" to name, "email" to email.trim(), "password" to password)) {
+                                    it.put("questions", AdminAuthClient.questionsJson(questions, answers))
+                                }
                                 busy = false
                                 if (!r.ok) { message = AdminAuthClient.message(r.error); return@launch }
                                 token = r.token; shownCode = r.recoveryCode; mode = "code"
@@ -172,8 +196,42 @@ fun AdminLoginPanel(onLoggedIn: (String) -> Unit) {
                 }
                 "forgot" -> {
                     Text("Passwort vergessen · Şifremi unuttum", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                    Text("Mit deinem Notfall-Code ein neues Passwort setzen. · Acil durum kodunla yeni şifre belirle.", color = Muted, fontSize = 12.sp, textAlign = TextAlign.Center)
-                    DarkField(email, { email = it }, "E-Mail", email = true)
+                    DarkField(email, { email = it; loadedQuestions = emptyList() }, "E-Mail", email = true)
+                    // 1) security questions
+                    Text("1) Mit Sicherheitsfragen · Güvenlik sorularıyla", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    if (loadedQuestions.isEmpty()) {
+                        OutlinedButton(onClick = {
+                            scope.launch {
+                                val r = AdminAuthClient.call("questions", fields = mapOf("email" to email.trim()))
+                                if (r.ok) {
+                                    val arr = r.json.optJSONArray("questions")
+                                    loadedQuestions = (0 until (arr?.length() ?: 0)).map { arr!!.getString(it) }
+                                    answers.clear(); answers.addAll(listOf("", "", ""))
+                                } else message = AdminAuthClient.message(r.error)
+                            }
+                        }, modifier = Modifier.fillMaxWidth()) { Text("Fragen anzeigen · Soruları göster", color = Color.White) }
+                    } else {
+                        loadedQuestions.forEachIndexed { i, q ->
+                            Text(q, color = Color.White, fontSize = 13.sp, modifier = Modifier.fillMaxWidth())
+                            DarkField(answers[i], { answers[i] = it; message = "" }, "Antwort · Cevap", password = true)
+                        }
+                        DarkField(password2, { password2 = it; message = "" }, "Neues Passwort (min. 8) · Yeni şifre", password = true)
+                        Button(onClick = {
+                            busy = true
+                            scope.launch {
+                                val r = AdminAuthClient.call("recoverQuestions", fields = mapOf("email" to email.trim(), "newPassword" to password2)) {
+                                    it.put("answers", org.json.JSONArray(answers.toList()))
+                                }
+                                busy = false
+                                if (r.ok) onLoggedIn(r.token) else message = AdminAuthClient.message(r.error)
+                            }
+                        }, enabled = !busy, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = Green)) {
+                            Text("Zurücksetzen · Sıfırla", fontWeight = FontWeight.Bold, color = Color.White)
+                        }
+                    }
+                    HorizontalDivider(color = Color(0xFF30363D))
+                    // 2) recovery code
+                    Text("2) Mit Notfall-Code · Acil durum koduyla", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     DarkField(code, { code = it; message = "" }, "Notfall-Code (XXXX-XXXX-XXXX-XXXX)")
                     DarkField(password, { password = it; message = "" }, "Neues Passwort (min. 8) · Yeni şifre", password = true)
                     Button(
@@ -227,9 +285,15 @@ fun AdminAccountDialog(onDismiss: () -> Unit) {
     var watchOn by remember { mutableStateOf(AdminStoryWatchService.isEnabled(context)) }
     var soundOn by remember { mutableStateOf(AdminStoryWatchService.isSoundOn(context)) }
     var remind by remember { mutableStateOf(AdminStoryWatchService.remindMinutes(context)) }
+    val qList = remember { mutableStateListOf(*AdminAuthClient.QUESTION_CHOICES.take(3).toTypedArray()) }
+    val aList = remember { mutableStateListOf("", "", "") }
+    var qPw by remember { mutableStateOf("") }
+    var hasQuestions by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         val r = AdminAuthClient.call("me", token)
         me = if (r.ok) "${r.name} · ${r.email}" else AdminAuthClient.message(r.error)
+        hasQuestions = r.json.optBoolean("hasQuestions")
+        r.json.optJSONArray("questions")?.let { arr -> for (i in 0 until minOf(3, arr.length())) qList[i] = arr.getString(i) }
     }
 
     Dialog(onDismissRequest = onDismiss) {
@@ -265,6 +329,20 @@ fun AdminAccountDialog(onDismiss: () -> Unit) {
                         )
                     }
                 }
+
+                // ---- security questions ----
+                HorizontalDivider(color = Color(0xFF30363D))
+                Text("Sicherheitsfragen · Güvenlik soruları " + if (hasQuestions) "✓" else "⚠️", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                QuestionEditor(qList, aList)
+                DarkField(qPw, { qPw = it; message = "" }, "Aktuelles Passwort · Mevcut şifre", password = true)
+                Button(onClick = {
+                    if (!questionsOk(qList, aList)) { message = AdminAuthClient.message("questions_incomplete"); return@Button }
+                    scope.launch {
+                        val r = AdminAuthClient.call("setQuestions", token, mapOf("password" to qPw)) { it.put("questions", AdminAuthClient.questionsJson(qList, aList)) }
+                        message = if (r.ok) "Sicherheitsfragen gespeichert ✓ · Kaydedildi ✓" else AdminAuthClient.message(r.error)
+                        if (r.ok) { hasQuestions = true; qPw = ""; aList.clear(); aList.addAll(listOf("", "", "")) }
+                    }
+                }, colors = ButtonDefaults.buttonColors(containerColor = Green)) { Text("Fragen speichern · Kaydet", color = Color.White) }
 
                 // ---- password ----
                 HorizontalDivider(color = Color(0xFF30363D))

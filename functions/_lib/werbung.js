@@ -2,6 +2,9 @@
 // Same packages as Berliner Kiez-Check /werben: 29 / 49 / 89 € per month,
 // the first 3 months 19 € per month, cancel monthly.
 
+import { INFO, sendMail } from "./mail.js";
+import { PACKAGE_NAMES, paidReply } from "./mail-templates.js";
+
 export const PACKAGES = {
   s: { amount: 2900, label: "My Kiez Berlin Kiez Basic" },
   m: { amount: 4900, label: "My Kiez Berlin Kiez Plus" },
@@ -103,7 +106,7 @@ async function extendAds(database, requestId, until) {
     .run();
 }
 
-export async function handleStripeEvent(event, database) {
+export async function handleStripeEvent(event, database, env = {}) {
   const o = event.data?.object || {};
   const already = (id) => database.prepare(`SELECT id FROM payments WHERE id = ?`).bind(id).first();
 
@@ -115,6 +118,12 @@ export async function handleStripeEvent(event, database) {
       database.prepare(`INSERT INTO payments (id, request_id, kind, amount, created_at) VALUES (?, ?, ?, ?, ?)`).bind(o.id, o.metadata.request_id, `sub_${o.metadata.size || ""}`, o.amount_total || 0, Date.now()),
     ]);
     await extendAds(database, o.metadata.request_id, until);
+    // Automatic "payment received" mail in the customer's language (2026-11-11)
+    const req = await database.prepare(`SELECT company, person, email, size, lang FROM ad_requests WHERE id = ?`).bind(o.metadata.request_id).first().catch(() => null);
+    if (req?.email) {
+      const reply = paidReply(req.lang, { name: req.person || req.company, company: req.company, package: PACKAGE_NAMES[req.size] || req.size });
+      await sendMail(env, { to: req.email, from: INFO, subject: reply.subject, text: reply.text });
+    }
     return;
   }
   if (event.type === "invoice.paid") {

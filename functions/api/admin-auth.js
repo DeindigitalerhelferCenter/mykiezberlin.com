@@ -17,6 +17,7 @@ import { mailReady, sendMail } from "../_lib/mail.js";
 import {
   DEFAULT_ADMIN_EMAIL, DEFAULT_ADMIN_NAME, adminCount, checkAdminToken, createSession, findByPassword, newRecoveryCode, noteFailedAttempt,
   normRecovery, randomHex, saveAccount, sessionAdmin, setPassword, sha256, tooManyAttempts,
+  QUESTION_CHOICES, checkAnswers, questionsFor, saveQuestions,
 } from "../_lib/admin-auth.js";
 
 const MIN_LEN = 8;
@@ -25,7 +26,7 @@ const okEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 export async function onRequestGet({ env }) {
   const database = await db(env);
   if (!database) return noDb();
-  return json({ setup: (await adminCount(database)) > 0, emailReset: mailReady(env) }, 200, { "cache-control": "no-store" });
+  return json({ setup: (await adminCount(database)) > 0, emailReset: mailReady(env), questionChoices: QUESTION_CHOICES }, 200, { "cache-control": "no-store" });
 }
 
 export async function onRequestPost({ request, env }) {
@@ -71,6 +72,28 @@ export async function onRequestPost({ request, env }) {
     return json({ ok: true, token: await createSession(database, row.id), name: row.name, email: row.email, recoveryCode: code });
   }
 
+  // Security questions (2026-11-11): show the questions of an admin, then check all 3 answers
+  if (action === "questions") {
+    if (await tooManyAttempts(database, ip)) return json({ error: "too_many_attempts" }, 429);
+    const row = await database.prepare(`SELECT id FROM admin_accounts WHERE lower(email) = lower(?)`).bind(email).first();
+    const list = row ? await questionsFor(database, row.id) : [];
+    if (list.length < 3) return json({ error: "no_questions" }, 404);
+    return json({ ok: true, questions: list.map((q) => q.question) });
+  }
+
+  if (action === "recoverQuestions") {
+    if (await tooManyAttempts(database, ip)) return json({ error: "too_many_attempts" }, 429);
+    const newPassword = String(body.newPassword || "");
+    if (newPassword.length < MIN_LEN) return json({ error: "password_too_short", min: MIN_LEN }, 400);
+    const row = await database.prepare(`SELECT * FROM admin_accounts WHERE lower(email) = lower(?)`).bind(email).first();
+    if (!row || !(await checkAnswers(database, row.id, Array.isArray(body.answers) ? body.answers.map(String) : []))) {
+      await noteFailedAttempt(database, ip);
+      return json({ error: "wrong_answers" }, 401);
+    }
+    await setPassword(database, row.id, newPassword);
+    return json({ ok: true, token: await createSession(database, row.id), name: row.name, email: row.email });
+  }
+
   if (action === "forgot") {
     // Same answer whether or not the address exists.
     if (!mailReady(env)) return json({ ok: false, emailReset: false });
@@ -101,7 +124,18 @@ export async function onRequestPost({ request, env }) {
   const me = await sessionAdmin(database, token); // null for master key / first-start session
 
   if (action === "me") {
-    return json({ ok: true, name: me?.name || DEFAULT_ADMIN_NAME, email: me?.email || DEFAULT_ADMIN_EMAIL, setupRequired: count === 0 });
+    const qs = me ? await questionsFor(database, me.id) : [];
+    return json({ ok: true, name: me?.name || DEFAULT_ADMIN_NAME, email: me?.email || DEFAULT_ADMIN_EMAIL, setupRequired: count === 0, hasQuestions: qs.length >= 3, questions: qs.map((q) => q.question) });
+  }
+
+  if (action === "setQuestions") {
+    if (!me) return json({ error: "login_with_account" }, 400);
+    const items = Array.isArray(body.questions) ? body.questions : [];
+    if (items.length !== 3 || items.some((q) => !String(q.question || "").trim() || String(q.answer || "").trim().length < 2)) return json({ error: "questions_incomplete" }, 400);
+    const check = await findByPassword(database, me.email, String(body.password || ""));
+    if (!check || check.id !== me.id) return json({ error: "wrong_password" }, 401);
+    await saveQuestions(database, me.id, items);
+    return json({ ok: true });
   }
 
   if (action === "setup") {
@@ -111,6 +145,7 @@ export async function onRequestPost({ request, env }) {
     const name = cleanText(body.name, 80) || DEFAULT_ADMIN_NAME;
     const mail = okEmail(email) ? email : DEFAULT_ADMIN_EMAIL;
     const code = await saveAccount(database, { id: "admin1", name, email: mail, password });
+    if (Array.isArray(body.questions) && body.questions.length === 3) await saveQuestions(database, "admin1", body.questions);
     await database.prepare(`DELETE FROM admin_sessions WHERE admin_id = 'bootstrap'`).run();
     return json({ ok: true, token: await createSession(database, "admin1"), name, email: mail, recoveryCode: code });
   }

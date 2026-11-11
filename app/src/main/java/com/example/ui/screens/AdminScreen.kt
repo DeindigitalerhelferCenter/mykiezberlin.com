@@ -806,7 +806,10 @@ fun AdminStoryCard(
                             .clickable { onPreview() },
                         contentAlignment = Alignment.Center
                     ) {
-                        if (story.mediaUri != null) {
+                        if (story.mediaUri != null && story.isVideo) {
+                            // Video: real frame as preview, tap plays it (2026-11-11)
+                            com.example.ui.components.MediaPreview(story.mediaUri, true, Modifier.fillMaxSize(), cornerDp = 0)
+                        } else if (story.mediaUri != null) {
                             AsyncImage(
                                 model = story.mediaUri,
                                 contentDescription = story.headline,
@@ -1204,6 +1207,8 @@ fun AdminCreateStoryModal(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            // Preview of the chosen picture / video (tap = full size / play), 2026-11-11
+                            com.example.ui.components.MediaPreview(selectedMediaUri?.let { android.net.Uri.parse(it.toString()) }, isVideoMedia, Modifier.size(72.dp, 104.dp))
                             Text(
                                 text = if (isVideoMedia) "Video ausgewählt" else "Bild ausgewählt",
                                 color = Color(0xFF4ADE80),

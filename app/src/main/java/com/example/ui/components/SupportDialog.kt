@@ -42,9 +42,9 @@ object SupportState {
 
 private val client = OkHttpClient.Builder().connectTimeout(10, TimeUnit.SECONDS).readTimeout(20, TimeUnit.SECONDS).build()
 
-private suspend fun sendSupport(topic: String, sponsor: String, message: String, email: String): Int = withContext(Dispatchers.IO) {
+private suspend fun sendSupport(topic: String, sponsor: String, message: String, email: String, lang: String): Int = withContext(Dispatchers.IO) {
     try {
-        val body = JSONObject().put("topic", topic).put("sponsor", sponsor).put("message", message).put("email", email).put("page", "app")
+        val body = JSONObject().put("topic", topic).put("sponsor", sponsor).put("message", message).put("email", email).put("page", "app").put("lang", lang)
         val req = Request.Builder().url("https://mykiezberlin.com/api/support")
             .post(body.toString().toRequestBody("application/json".toMediaType())).build()
         client.newCall(req).execute().use { it.code }
@@ -97,7 +97,7 @@ fun SupportHost(language: AppLanguage) {
                         if (message.trim().length < 5) { info = L("Bitte kurz beschreiben, was passiert ist.", "Lütfen ne olduğunu kısaca yaz.", "Please describe briefly what happened."); return@Button }
                         busy = true
                         scope.launch {
-                            val code = sendSupport(topic, sponsor.trim(), message.trim(), email.trim())
+                            val code = sendSupport(topic, sponsor.trim(), message.trim(), email.trim(), when (language) { AppLanguage.TURKISH -> "tr"; AppLanguage.ENGLISH -> "en"; else -> "de" })
                             busy = false
                             when (code) {
                                 200 -> sent = true

@@ -5,6 +5,7 @@
 // GET  /api/support (admin) -> newest messages;  PATCH /api/support { id, status: "done"|"new" } (admin)
 import { cleanText, db, ipHash, isAdmin, json, noDb, rateLimited } from "../_lib/util.js";
 import { SUPPORT, sendMail } from "../_lib/mail.js";
+import { supportReply } from "../_lib/mail-templates.js";
 
 const TOPICS = ["app", "sponsor", "other"];
 let ready = false;
@@ -49,6 +50,11 @@ export async function onRequestPost({ request, env }) {
       row.page ? `Seite: ${row.page}` : "", "", row.message, "", `Meldungs-ID: ${row.id}`,
     ].filter((l, i, a) => l !== "" || a[i - 1] !== "").join("\n"),
   });
+  // Automatic thank-you reply (only when the user gave an e-mail), sender support@ (2026-11-11)
+  if (row.email) {
+    const reply = supportReply(body.lang, row.topic, { message: row.message, sponsor: row.sponsor || "-" });
+    await sendMail(env, { to: row.email, from: SUPPORT, subject: reply.subject, text: reply.text });
+  }
   return json({ ok: true, id: row.id });
 }
 

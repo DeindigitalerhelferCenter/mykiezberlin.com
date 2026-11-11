@@ -1,4 +1,5 @@
 // Shared Kiez stories: public list and moderated submissions.
+import { safeLink } from "../_lib/blocklist.js";
 import { cleanText, cleanupExpiredStories, db, ipHash, isAdmin, json, noDb, rateLimited } from "../_lib/util.js";
 
 const HOUR_MS = 3600000;
@@ -37,7 +38,7 @@ export async function onRequestGet({ env, waitUntil }) {
     .prepare(`SELECT id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, approved_at, link FROM stories WHERE status = 'approved' AND approved_at <= ? AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT 60`)
     .bind(now, now)
     .all();
-  return json({ stories: results });
+  return json({ stories: results.map((r) => ({ ...r, link: safeLink(r.link) })) });
 }
 
 export async function onRequestPost({ request, env }) {

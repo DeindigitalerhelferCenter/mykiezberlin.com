@@ -5,6 +5,7 @@
 import { cleanText, db, json, noDb } from "../_lib/util.js";
 import { effectivePlaces, parseExtra, planRule } from "../_lib/plans.js";
 import { seedSponsors } from "../_lib/sponsor-seed.js";
+import { safeLink } from "../_lib/blocklist.js";
 
 const MAX_ADS = 12;
 const MAX_PAGE_ADS = 40;
@@ -36,7 +37,7 @@ export async function onRequestGet({ request, env }) {
         id: ad.id, name: ad.name, image: ad.image,
         headline_de: ad.headline_de, headline_tr: ad.headline_tr, headline_en: ad.headline_en,
         cta_de: ad.cta_de, cta_tr: ad.cta_tr, cta_en: ad.cta_en,
-        link_web: ad.link_web, link_wa: ad.link_wa, link_tel: ad.link_tel, link_ig: ad.link_ig,
+        link_web: safeLink(ad.link_web), link_wa: ad.link_wa, link_tel: ad.link_tel, link_ig: safeLink(ad.link_ig),
         kieze: ad.kieze || "", plan: ad.plan || "", size: rule.size, weight: rule.weight,
         logo: extra.logo || "", category: extra.category || null, address: extra.address || "", hours: extra.hours || "", coupon: extra.coupon || null,
         // Contact sheet (2026-11-11): shown when the card is tapped; primary = "tel" | "wa" | "" (web/info)

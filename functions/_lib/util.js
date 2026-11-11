@@ -77,6 +77,7 @@ const SCHEMA = [
 
 // Columns added after launch. SQLite has no ADD COLUMN IF NOT EXISTS, so a repeat simply fails.
 const MIGRATIONS = [
+  `ALTER TABLE ad_requests ADD COLUMN lang TEXT DEFAULT 'de'`,
   `ALTER TABLE reporter_comments ADD COLUMN target TEXT DEFAULT 'post'`,
   `ALTER TABLE reporter_comments ADD COLUMN parent_id TEXT DEFAULT ''`,
   `ALTER TABLE reporter_comments ADD COLUMN user_id TEXT DEFAULT ''`,

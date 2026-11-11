@@ -22,10 +22,24 @@ object AdminAuthClient {
         val email: String get() = json.optString("email")
     }
 
-    suspend fun call(action: String, token: String = "", fields: Map<String, String> = emptyMap()): Result = withContext(Dispatchers.IO) {
+    /** Security questions offered in app and web (same list as functions/_lib/admin-auth.js). */
+    val QUESTION_CHOICES = listOf(
+        "Geburtsort deiner Mutter? · Annenin doğum yeri?",
+        "Name deines ersten Haustiers? · İlk evcil hayvanının adı?",
+        "Name deines Lieblingslehrers? · En sevdiğin öğretmenin adı?",
+        "Straße deiner ersten Wohnung? · İlk evinin sokağı?",
+        "Lieblingsessen als Kind? · Çocukken en sevdiğin yemek?",
+        "Stadt, in der du geboren bist? · Doğduğun şehir?"
+    )
+
+    fun questionsJson(questions: List<String>, answers: List<String>): org.json.JSONArray =
+        org.json.JSONArray().apply { questions.indices.forEach { i -> put(JSONObject().put("question", questions[i]).put("answer", answers.getOrElse(i) { "" })) } }
+
+    suspend fun call(action: String, token: String = "", fields: Map<String, String> = emptyMap(), extra: (JSONObject) -> Unit = {}): Result = withContext(Dispatchers.IO) {
         try {
             val body = JSONObject().put("action", action)
             fields.forEach { (k, v) -> body.put(k, v) }
+            extra(body)
             val request = Request.Builder().url(URL)
                 .header("x-admin-token", token)
                 .post(body.toString().toRequestBody("application/json".toMediaType()))
@@ -58,6 +72,9 @@ object AdminAuthClient {
         "unauthorized" -> "Bitte neu anmelden · Lütfen yeniden giriş yapın"
         "login_with_account" -> "Bitte mit E-Mail und Passwort anmelden · Lütfen e-posta ve şifreyle girin"
         "offline" -> "Keine Verbindung · Bağlantı yok"
+        "wrong_answers" -> "Antworten falsch · Cevaplar yanlış"
+        "no_questions" -> "Für diese E-Mail sind keine Fragen gespeichert · Bu e-posta için soru kayıtlı değil"
+        "questions_incomplete" -> "Bitte alle 3 Fragen und Antworten ausfüllen · Lütfen 3 soru ve cevabı doldurun"
         else -> "Fehler · Hata ($error)"
     }
 }

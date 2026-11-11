@@ -1,4 +1,5 @@
 // Server-side moderation for all shared content.
+import { isBlockedUrl } from "../_lib/blocklist.js";
 import { cleanText, db, instagramUrl, isAdmin, json, noDb } from "../_lib/util.js";
 import { AD_PLACE_KEYS, planRule } from "../_lib/plans.js";
 
@@ -37,6 +38,7 @@ function storyLink(value) {
   const text = cleanText(value, 500);
   try {
     const url = new URL(text);
+    if (isBlockedUrl(url.toString())) return "";
     return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : "";
   } catch {
     return "";
@@ -76,6 +78,7 @@ async function createInstagramStory(database, body) {
 const AD_TEXT_FIELDS = ["name", "headline_de", "headline_tr", "headline_en", "cta_de", "cta_tr", "cta_en", "kieze", "plan", "request_id"];
 function adUrl(value) {
   const v = String(value ?? "").trim();
+  if (isBlockedUrl(v)) return ""; // never store hijacked / adult domains (blocklist.js)
   return /^(https:\/\/|http:\/\/|\/media\/ads\/|assets\/)/.test(v) ? v.slice(0, 400) : "";
 }
 async function saveAd(database, ad) {

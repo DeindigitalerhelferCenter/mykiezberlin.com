@@ -42,7 +42,7 @@
       var msg = box.querySelector(".mk-sup-msg");
       if (g("message").length < 5) { msg.textContent = L("Bitte kurz beschreiben, was passiert ist.", "Lütfen ne olduğunu kısaca yaz.", "Please describe briefly what happened."); return; }
       var btn = form.querySelector(".mk-sup-send"); btn.disabled = true;
-      fetch("/api/support", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ topic: g("topic"), sponsor: g("sponsor"), message: g("message"), email: g("email"), hp: g("hp"), page: location.pathname + location.hash }) })
+      fetch("/api/support", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ topic: g("topic"), sponsor: g("sponsor"), message: g("message"), email: g("email"), hp: g("hp"), page: location.pathname + location.hash, lang: lang() }) })
         .then(function (r) { return r.json().then(function (j) { return { s: r.status, j: j }; }); })
         .then(function (r) {
           if (r.j.ok) { form.innerHTML = '<h3>✅ ' + e(L("Danke! Deine Meldung ist angekommen.", "Teşekkürler! Bildirimin bize ulaştı.", "Thank you! We received your report.")) + '</h3><button type="button" class="mk-sup-send">' + e(L("Schließen", "Kapat", "Close")) + "</button>"; form.querySelector("button").onclick = close; return; }

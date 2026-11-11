@@ -239,7 +239,7 @@ function renderPlannerRows() {
   list.innerHTML = plannerRows.map((row, i) => `
     <div style="display: flex; gap: 10px; background: #161b22; border: 1px solid ${row.status === "ok" ? "#2ea043" : row.status === "error" ? "#da3633" : "#30363d"}; border-radius: 10px; padding: 10px; margin-bottom: 8px; font-size: 12px;">
       <div style="width: 84px; flex: none; text-align: center;">
-        ${row.preview ? (row.isVideo ? `<video src="${row.preview}" muted style="width: 84px; height: 120px; object-fit: cover; border-radius: 8px;"></video>` : `<img src="${row.preview}" alt="" style="width: 84px; height: 120px; object-fit: cover; border-radius: 8px;">`) : `<div style="width: 84px; height: 120px; border-radius: 8px; background: #E30613; display: flex; align-items: center; justify-content: center; font-weight: 800;">Aa</div>`}
+        ${row.preview ? (row.isVideo ? `<div style="position: relative; width: 84px; height: 120px; flex: none; cursor: pointer;" onclick="mkAdminMedia('${row.preview}', true)"><video src="${row.preview}#t=0.5" preload="metadata" muted playsinline style="width: 84px; height: 120px; object-fit: cover; border-radius: 8px; background: #000;"></video><span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 26px;">▶️</span></div>` : `<img src="${row.preview}" alt="" onclick="mkAdminMedia('${row.preview}', false)" style="width: 84px; height: 120px; object-fit: cover; border-radius: 8px; cursor: zoom-in;">`) : `<div style="width: 84px; height: 120px; border-radius: 8px; background: #E30613; display: flex; align-items: center; justify-content: center; font-weight: 800;">Aa</div>`}
         <div style="margin-top: 4px;">#${i + 1}</div>
         <div style="display: flex; gap: 4px; justify-content: center;"><button class="chip-btn" onclick="plannerMove(${row.key}, -1)">↑</button><button class="chip-btn" onclick="plannerMove(${row.key}, 1)">↓</button></div>
       </div>
@@ -339,7 +339,7 @@ function renderPlannedList() {
       <div style="color: #F2B705; font-weight: 800; margin-bottom: 4px;">${adminEsc(day)} · ${items.length} story</div>
       ${items.map((s) => `
         <div style="display: flex; gap: 8px; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 8px; margin-bottom: 6px; color: #fff;">
-          ${s.media_key ? (s.media_type === "video" ? `<div style="width: 44px; height: 60px; border-radius: 6px; background: #333; display: flex; align-items: center; justify-content: center;">🎬</div>` : `<img src="/media/${adminEsc(s.media_key)}" alt="" style="width: 44px; height: 60px; object-fit: cover; border-radius: 6px;">`) : `<div style="width: 44px; height: 60px; border-radius: 6px; background: #E30613; display: flex; align-items: center; justify-content: center;">Aa</div>`}
+          ${s.media_key ? (s.media_type === "video" ? `<div style="position: relative; width: 60px; height: 84px; flex: none; cursor: pointer;" onclick="mkAdminMedia('/media/${adminEsc(s.media_key)}', true)"><video src="/media/${adminEsc(s.media_key)}#t=0.5" preload="metadata" muted playsinline style="width: 60px; height: 84px; object-fit: cover; border-radius: 6px; background: #000;"></video><span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">▶️</span></div>` : `<img src="/media/${adminEsc(s.media_key)}" alt="" onclick="mkAdminMedia('/media/${adminEsc(s.media_key)}', false)" style="width: 60px; height: 84px; object-fit: cover; border-radius: 6px; cursor: zoom-in;">`) : `<div style="width: 44px; height: 60px; border-radius: 6px; background: #E30613; display: flex; align-items: center; justify-content: center;">Aa</div>`}
           <div style="flex: 1; min-width: 0;">
             <b>${new Date(s.approved_at).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}</b> · ${adminEsc(s.headline)}
             <div style="color: #8b949e;">📍 ${adminEsc(s.kiez)} · ${adminEsc(s.kind)} · bitiş ${plannerDate(s.approved_at + s.duration_hours * 3600000)}</div>
@@ -367,6 +367,8 @@ async function plannerReschedule(id) {
 async function plannerAction(id, action) {
   if (action === "delete" && !confirm("Bu planlanmış story silinsin mi?")) return;
   const res = await adminRequest("POST", { type: "story", id, action });
-  if (!res.ok) alert("İşlem başarısız");
+  if (res.status === 401) alert("Oturum süresi doldu – lütfen yeniden giriş yapın · Bitte neu anmelden");
+  else if (!res.ok) alert("İşlem başarısız (" + res.status + ")");
+  else if (action === "publishNow") alert("✅ Story şimdi yayında · jetzt online");
   loadPlannedList();
 }
