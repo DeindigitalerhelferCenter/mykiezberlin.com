@@ -149,6 +149,8 @@
     ]).then(function (res) {
       pageAds = res[0].ads || [];
       listAds = res[1].ads || [];
+      window.mkAdRegistry = window.mkAdRegistry || {};
+      pageAds.concat(listAds).forEach(function (a) { window.mkAdRegistry[a.id] = a; }); // contact sheet (sponsor-info.js)
       sequence = buildSequence(pageAds);
       hook();
       decorate();
@@ -167,7 +169,7 @@
     ".mk-sp-btn{flex:1;min-width:88px;text-align:center;padding:8px 10px;border-radius:10px;background:rgba(0,0,0,.06);font-weight:700;font-size:12.5px;color:inherit;text-decoration:none}.mk-sp-btn.main{background:#E30613;color:#fff}" +
     ".mk-sp-coupon{margin:6px 12px 0;padding:6px 10px;border:1.5px dashed #F2B705;border-radius:10px;font-size:12.5px;background:rgba(242,183,5,.12)}.mk-sp-body .mk-sp-coupon{margin:6px 0 0}" +
     ".mk-sp-small{display:flex;align-items:center;gap:10px;padding:8px 10px;border-left:4px solid #F2B705;background:rgba(242,183,5,.10)}.mk-sp-small img{width:36px;height:36px;border-radius:8px;object-fit:cover}.mk-sp-small .mk-sp-label{position:static}.mk-sp-small .mk-sp-t b{padding-right:0}" +
-    "body.dark-mode .mk-sp,[data-theme=dark] .mk-sp{background:#1e2329;border-color:#30363d}";
+    ".ext-dark .mk-sp,body.dark-mode .mk-sp,[data-theme=dark] .mk-sp{background:#1e2329;border-color:#30363d}";
   document.head.appendChild(css);
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", load); else load();

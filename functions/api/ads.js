@@ -39,6 +39,8 @@ export async function onRequestGet({ request, env }) {
         link_web: ad.link_web, link_wa: ad.link_wa, link_tel: ad.link_tel, link_ig: ad.link_ig,
         kieze: ad.kieze || "", plan: ad.plan || "", size: rule.size, weight: rule.weight,
         logo: extra.logo || "", category: extra.category || null, address: extra.address || "", hours: extra.hours || "", coupon: extra.coupon || null,
+        // Contact sheet (2026-11-11): shown when the card is tapped; primary = "tel" | "wa" | "" (web/info)
+        email: extra.email || "", contact: extra.contact || "", fax: extra.fax || "", primary: extra.primary || "",
       };
     });
   return json({ ads }, 200, { "cache-control": "no-store" });

@@ -12,6 +12,10 @@ const AD_PACKAGES = [
 ];
 
 let homeAds = [];
+
+// Paused sponsors (2026-11-11): hidden for now, data kept – "Dein Finanzen Helfer" comes back in December 2026.
+const PAUSED_SPONSOR_IDS = ["deinfinanzenhelfer"];
+for (let i = SPONSORS.length - 1; i >= 0; i--) if (PAUSED_SPONSOR_IDS.includes(SPONSORS[i].id)) SPONSORS.splice(i, 1);
 let homeAdsLoaded = false;
 const trackedAds = new Set();
 
@@ -63,6 +67,8 @@ async function loadHomeAds() {
       fetch("/api/ads?place=slider").then((r) => (r.ok ? r.json() : { ads: [] })),
     ]);
     homeAds = home.ads || [];
+    window.mkAdRegistry = window.mkAdRegistry || {};
+    homeAds.concat(slider.ads || []).forEach((a) => { window.mkAdRegistry[a.id] = a; }); // contact sheet (sponsor-info.js)
     // Server sponsors come first in the sponsor strip; the built-in ones stay behind them.
     (slider.ads || []).slice().reverse().forEach((ad) => {
       if (SPONSORS.some((s) => s.id === ad.id)) return;
@@ -78,7 +84,7 @@ async function loadHomeAds() {
 function adCardHtml(ad) {
   const link = ad.link_web || ad.link_ig || (ad.link_wa ? `https://wa.me/${ad.link_wa.replace(/[^\d]/g, "")}` : "") || (ad.link_tel ? `tel:${ad.link_tel}` : "");
   return `
-    <a class="card-item ext-sponsor mkb-ad" href="${safeUrl(link || werbenUrl())}" target="_blank" rel="noopener sponsored" onclick="adClick(${jsArg(ad.id)})">
+    <a class="card-item ext-sponsor mkb-ad" data-ad="${esc(ad.id)}" href="${safeUrl(link || werbenUrl())}" target="_blank" rel="noopener sponsored" onclick="adClick(${jsArg(ad.id)})">
       <span class="ext-ad-label">Anzeige</span>
       ${ad.image ? `<img src="${safeUrl(ad.image)}" alt="${esc(ad.name)}" class="ext-sponsor-img">` : ""}
       <div class="card-body">
