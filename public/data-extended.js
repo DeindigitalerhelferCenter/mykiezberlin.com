@@ -2782,8 +2782,8 @@ const PRICING_PACKAGES = [
  {
   "id": "basic",
   "name": "Kiez Basic",
-  "priceMonthly": "19,90 €",
-  "priceYearlyMonthly": "16,50 €",
+  "priceMonthly": "29 €",
+  "priceYearlyMonthly": "29 €",
   "isPopular": false,
   "isMaxVisibility": false,
   "features": [
@@ -2799,8 +2799,8 @@ const PRICING_PACKAGES = [
  {
   "id": "plus",
   "name": "Kiez Plus",
-  "priceMonthly": "49,90 €",
-  "priceYearlyMonthly": "41,50 €",
+  "priceMonthly": "49 €",
+  "priceYearlyMonthly": "49 €",
   "isPopular": true,
   "isMaxVisibility": false,
   "features": [
@@ -2817,8 +2817,8 @@ const PRICING_PACKAGES = [
  {
   "id": "premium",
   "name": "Kiez Premium",
-  "priceMonthly": "99,90 €",
-  "priceYearlyMonthly": "82,50 €",
+  "priceMonthly": "89 €",
+  "priceYearlyMonthly": "89 €",
   "isPopular": false,
   "isMaxVisibility": true,
   "features": [
