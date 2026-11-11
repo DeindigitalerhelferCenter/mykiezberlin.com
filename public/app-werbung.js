@@ -6,9 +6,9 @@
  */
 
 const AD_PACKAGES = [
-  { size: "s", name: ["Klein", "Küçük"], price: 29, tag: ["Sichtbar in deinem Kiez", "Mahallende görün"], points: [["Ganz oben in deinem Kiez und deiner Kategorie", "Mahallende ve kategorinde en üstte"], ["Gelb markiert, als Anzeige gekennzeichnet", "Sarı işaretli, reklam olarak etiketli"], ["Eigener Gutschein im Bereich „Gutscheine“", "„Kuponlar“ bölümünde kendi kuponun"]] },
-  { size: "m", name: ["Mittel", "Orta"], price: 49, tag: ["Mehr Kunden aus ganz Berlin", "Tüm Berlin'den müşteri"], points: [["Alles aus Klein", "Küçük paketteki her şey"], ["Zusätzlich oben in der Berlin-weiten Liste", "Ek olarak tüm Berlin listesinde üstte"]], recommended: true },
-  { size: "l", name: ["Groß", "Büyük"], price: 89, tag: ["Maximale Sichtbarkeit", "En yüksek görünürlük"], points: [["Alles aus Mittel", "Orta paketteki her şey"], ["Zusätzlich als Sponsor-Karte auf der Startseite und im Listenfluss", "Ek olarak ana sayfada ve liste arasında sponsor kartı"]] },
+  { size: "s", name: ["Kiez Basic", "Kiez Basic", "Kiez Basic"], price: 29, tag: ["Sichtbar in deinem Kiez", "Mahallende görün"], points: [["Ganz oben in deinem Kiez und deiner Kategorie", "Mahallende ve kategorinde en üstte"], ["Gelb markiert, als Anzeige gekennzeichnet", "Sarı işaretli, reklam olarak etiketli"], ["Eigener Gutschein im Bereich „Gutscheine“", "„Kuponlar“ bölümünde kendi kuponun"]] },
+  { size: "m", name: ["Kiez Plus", "Kiez Plus", "Kiez Plus"], price: 49, tag: ["Mehr Kunden aus ganz Berlin", "Tüm Berlin'den müşteri"], points: [["Alles aus Kiez Basic", "Kiez Basic paketindeki her şey", "Everything in Kiez Basic"], ["Zusätzlich oben in der Berlin-weiten Liste", "Ek olarak tüm Berlin listesinde üstte"]], recommended: true },
+  { size: "l", name: ["Kiez Premium", "Kiez Premium", "Kiez Premium"], price: 89, tag: ["Maximale Sichtbarkeit", "En yüksek görünürlük"], points: [["Alles aus Kiez Plus", "Kiez Plus paketindeki her şey", "Everything in Kiez Plus"], ["Zusätzlich als Sponsor-Karte auf der Startseite und im Listenfluss", "Ek olarak ana sayfada ve liste arasında sponsor kartı"]] },
 ];
 
 let homeAds = [];
@@ -97,7 +97,7 @@ function adCardHtml(ad) {
 
 function exampleAdHtml(index) {
   const examples = [
-    [tr("Dein Betrieb hier", "İşletmen burada"), tr("Sponsor-Karte auf der Startseite – im Paket Groß enthalten.", "Ana sayfada sponsor kartı – Büyük pakete dahil."), "l"],
+    [tr("Dein Betrieb hier", "İşletmen burada"), tr("Sponsor-Karte auf der Startseite – im Paket Kiez Premium enthalten.", "Ana sayfada sponsor kartı – Kiez Premium paketine dahil."), "l"],
     [tr("Deine Anzeige im Kiez", "Mahallende reklamın"), tr("Banner mit Link, WhatsApp- oder Anruf-Button.", "Link, WhatsApp veya arama butonlu banner."), "banner"],
   ][index];
   return `
@@ -141,7 +141,8 @@ function homeAdsSectionHtml() {
     ${ads}
     <h3 class="ext-subheading" style="margin-top: 16px;">${esc(tr("Pakete für Betriebe", "İşletme paketleri"))}</h3>
     ${packagesHtml()}
-    <a class="btn-primary ext-cta" href="${werbenUrl()}"><i class="bi bi-send-fill" aria-hidden="true"></i> ${esc(tr("Jetzt werben – Anfrage senden", "Şimdi reklam ver – talep gönder"))}</a>`;
+    <a class="btn-primary ext-cta" href="${werbenUrl()}"><i class="bi bi-send-fill" aria-hidden="true"></i> ${esc(tr("Jetzt werben – Anfrage senden", "Şimdi reklam ver – talep gönder"))}</a>
+    <p style="text-align:center;font-size:13px;margin-top:8px">✉️ <a href="mailto:info@mykiezberlin.com">info@mykiezberlin.com</a></p>`;
 }
 
 // Home: everything as before, but the business list is replaced by sponsors and packages.

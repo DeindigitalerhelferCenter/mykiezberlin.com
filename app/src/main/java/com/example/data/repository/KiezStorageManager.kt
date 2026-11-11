@@ -206,7 +206,8 @@ object KiezStorageManager {
 
     // Token typed at admin login; sent as x-admin-token so moderation reaches the server.
     fun getAdminToken(context: Context): String {
-        return getPrefs(context).getString("saved_admin_token", null) ?: "admin123"
+        // Since v1.15 this is a session token from /api/admin-auth (no shared default password any more).
+        return getPrefs(context).getString("saved_admin_token", null) ?: ""
     }
 
     fun setAdminToken(context: Context, token: String) {

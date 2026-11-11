@@ -14,7 +14,7 @@ import urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "tools/kiez_overrides.json")
-UA = {"User-Agent": "MyKiezBerlinDataCheck/1.0 (https://mykiezberlin.com; info@deindigitalerhelfer.com)"}
+UA = {"User-Agent": "MyKiezBerlinDataCheck/1.0 (https://mykiezberlin.com; info@mykiezberlin.com)"}
 BA_URL = "https://service.berlin.de/standorte/buergeraemter/"
 POLICE_URL = "https://www.berlin.de/polizei/dienststellen/landespolizeidirektion/"
 

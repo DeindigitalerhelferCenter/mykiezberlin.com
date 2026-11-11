@@ -1,3 +1,4 @@
+import { checkAdminToken } from "./admin-auth.js";
 // Shared helpers for My Kiez Berlin Pages Functions.
 
 export const UA = "MyKiezBerlin/1.0 (+https://mykiezberlin.com)";
@@ -146,7 +147,11 @@ export async function rateLimited(database, table, ip, limit = 5) {
   return (row?.n ?? 0) >= limit;
 }
 
-export function isAdmin(request, env) {
-  // Default stays open during testing; set the ADMIN_TOKEN secret before real users start.
-  return request.headers.get("x-admin-token") === (env.ADMIN_TOKEN || "admin123");
+// Admin check (2026-11-11): master secret ADMIN_TOKEN, an admin session from /api/admin-auth,
+// or – only until the first admin account is created – the old test password (see _lib/admin-auth.js).
+export async function isAdmin(request, env) {
+  const token = request.headers.get("x-admin-token") || "";
+  if (!token) return false;
+  const database = await db(env).catch(() => null);
+  return checkAdminToken(env, database, token);
 }

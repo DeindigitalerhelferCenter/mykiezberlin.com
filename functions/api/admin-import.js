@@ -4,7 +4,7 @@ import { cleanText, db, isAdmin, json, noDb } from "../_lib/util.js";
 const MEDIA_TYPES = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "video/mp4": "mp4", "video/webm": "webm" };
 
 export async function onRequestPost({ request, env }) {
-  if (!isAdmin(request, env)) return json({ error: "unauthorized" }, 401);
+  if (!(await isAdmin(request, env))) return json({ error: "unauthorized" }, 401);
   const database = await db(env);
   if (!database) return noDb();
 

@@ -1,8 +1,8 @@
 // Advertising packages: what each paid plan gets. Web and app read the result from /api/ads,
 // so a booked package is placed the same way everywhere, without manual work.
-//   l (Groß 89 €)   – large card: home page, every page change, inside lists; shown 3× as often
-//   m (Mittel 49 €) – medium banner: every page change, sponsor strip, inside lists; 2× as often
-//   s (Klein 29 €)  – small strip: every page change, top of its own Kiez; 1×
+//   l (Kiez Premium 89 €) – large card: home page, every page change, inside lists; shown 3× as often
+//   m (Kiez Plus 49 €)    – medium banner: every page change, sponsor strip, inside lists; 2× as often
+//   s (Kiez Basic 29 €)   – small strip: every page change, top of its own Kiez; 1×
 //   banner          – banner: sponsor strip and page changes; 2×
 //   gp (Gründungspartner) – like Mittel during the free months
 export const PLAN_RULES = {

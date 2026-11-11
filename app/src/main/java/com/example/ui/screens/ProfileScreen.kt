@@ -403,8 +403,6 @@ Surface(
                     Divider(color = MaterialTheme.colorScheme.surfaceVariant)
                     ProfileMenuItem(Icons.Default.Business, if (language == AppLanguage.TURKISH) "İşletmeler İçin Reklam (B2B Werbepakete)" else "Für Unternehmen (B2B Werbepakete)") { onNavigate(AppScreen.BUSINESS_PORTAL) }
                     Divider(color = MaterialTheme.colorScheme.surfaceVariant)
-                    ProfileMenuItem(Icons.Default.AdminPanelSettings, if (language == AppLanguage.TURKISH) "Yönetici Paneli (Admin)" else "Admin-Bereich (Moderation & Prüfung)") { onNavigate(AppScreen.ADMIN) }
-                    Divider(color = MaterialTheme.colorScheme.surfaceVariant)
                     ProfileMenuItem(Icons.Default.Gavel, "Impressum (mykiezberlin.com/impressum)") {
                         val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://mykiezberlin.com/impressum"))
                         context.startActivity(browserIntent)
@@ -429,7 +427,30 @@ Surface(
                         val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://mykiezberlin.com"))
                         context.startActivity(browserIntent)
                     }
+                    Divider(color = MaterialTheme.colorScheme.surfaceVariant)
+                    // Contact for users, customers and advertisers (2026-11-11)
+                    ProfileMenuItem(Icons.Default.Email, when (language) {
+                        AppLanguage.TURKISH -> "İletişim & reklam: info@mykiezberlin.com"
+                        AppLanguage.ENGLISH -> "Contact & advertising: info@mykiezberlin.com"
+                        else -> "Kontakt & Werbung: info@mykiezberlin.com"
+                    }) {
+                        try {
+                            context.startActivity(Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:info@mykiezberlin.com")))
+                        } catch (_: Exception) {}
+                    }
                 }
+            }
+        }
+
+        // Small grey lock at the very bottom: the only way to the admin login (2026-11-11), no text on purpose.
+        item {
+            Box(modifier = Modifier.fillMaxWidth().padding(top = 18.dp, bottom = 10.dp), contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = Icons.Default.Lock,
+                    contentDescription = null,
+                    tint = Color.Gray.copy(alpha = 0.35f),
+                    modifier = Modifier.size(16.dp).clickable { onNavigate(AppScreen.ADMIN) }
+                )
             }
         }
     }
@@ -489,24 +510,24 @@ Surface(
                                     text = "Angaben gemäß § 5 DDG\n\n" +
                                             "Anbieter:\n" +
                                             "Deindigitalerhelfer.Center\n" +
-                                            "Sarah Strehlke\n" +
+                                            "Ersen Bakıcı\n" +
                                             "Behaimstraße 3\n" +
                                             "10585 Berlin, Deutschland\n\n" +
                                             "My Kiez Berlin ist ein Angebot von Deindigitalerhelfer.Center.\n\n" +
                                             "Kontakt:\n" +
                                             "Telefon: +49 163 9527817\n" +
-                                            "E-Mail: info@deindigitalerhelfer.com\n" +
+                                            "E-Mail: info@mykiezberlin.com\n" +
                                             "Webseite: https://mykiezberlin.com\n\n" +
                                             "Rechtsform:\n" +
                                             "Einzelunternehmen (Kleinunternehmer)\n\n" +
                                             "Umsatzsteuer:\n" +
                                             "Gemäß § 19 UStG (Kleinunternehmerregelung) wird keine Umsatzsteuer berechnet und ausgewiesen.\n\n" +
                                             "Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV:\n" +
-                                            "Sarah Strehlke, Behaimstraße 3, 10585 Berlin\n\n" +
+                                            "Ersen Bakıcı, Behaimstraße 3, 10585 Berlin\n\n" +
                                             "Einträge von Betrieben:\n" +
                                             "Die Einträge (Namen, Beschreibungen, Fotos, Gutscheine, Stellenanzeigen) werden von den jeweiligen Betrieben selbst eingestellt und vor der Veröffentlichung geprüft. Für diese Inhalte sind die Betriebe verantwortlich. Bezahlte Platzierungen sind als „Anzeige“ gekennzeichnet.\n\n" +
                                             "Kontaktstelle nach Art. 11 und 12 DSA / Meldung rechtswidriger Inhalte:\n" +
-                                            "Behörden und Nutzer erreichen uns unter info@deindigitalerhelfer.com (Deutsch, Türkisch, Englisch). Rechtswidrige Einträge können mit Link und Begründung gemeldet werden. Wir prüfen jede Meldung unverzüglich.",
+                                            "Behörden und Nutzer erreichen uns unter info@mykiezberlin.com (Deutsch, Türkisch, Englisch). Rechtswidrige Einträge können mit Link und Begründung gemeldet werden. Wir prüfen jede Meldung unverzüglich.",
                                     fontSize = 13.sp,
                                     lineHeight = 19.sp,
                                     color = MaterialTheme.colorScheme.onSurface
@@ -519,7 +540,7 @@ Surface(
                                             "Kurz gesagt:\n" +
                                             "Wir verwenden keine Cookies und kein Tracking. Wir speichern nur, was für Einträge, Anfragen und Zahlungen nötig ist. Einstellungen wie Sprache oder Merkliste bleiben in Ihrem Gerät.\n\n" +
                                             "1. Verantwortlicher:\n" +
-                                            "Deindigitalerhelfer.Center, Sarah Strehlke, Behaimstraße 3, 10585 Berlin, Deutschland. E-Mail: info@deindigitalerhelfer.com.\n\n" +
+                                            "Deindigitalerhelfer.Center, Ersen Bakıcı, Behaimstraße 3, 10585 Berlin, Deutschland. E-Mail: info@mykiezberlin.com.\n\n" +
                                             "2. Hosting und Bereitstellung:\n" +
                                             "Die Plattform, Datenbank und Fotos werden bei Cloudflare (Cloudflare Workers, D1-Datenbank, R2-Speicher) gehostet. Fotos werden in der EU gespeichert. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO.\n\n" +
                                             "3. Schutz vor Missbrauch:\n" +
@@ -527,7 +548,7 @@ Surface(
                                             "4. Kiez-Stories & Kiez-Reporter:\n" +
                                             "Hochgeladene Fotos, Texte und Namen werden erst nach Prüfung freigeschaltet. Jeder Beitrag kann jederzeit gelöscht werden.\n\n" +
                                             "5. Ihre Rechte:\n" +
-                                            "Sie haben jederzeit das Recht auf Auskunft (Art. 15), Berichtigung (Art. 16), Löschung (Art. 17) und Widerspruch (Art. 21 DSGVO). Schreiben Sie uns an info@deindigitalerhelfer.com.",
+                                            "Sie haben jederzeit das Recht auf Auskunft (Art. 15), Berichtigung (Art. 16), Löschung (Art. 17) und Widerspruch (Art. 21 DSGVO). Schreiben Sie uns an info@mykiezberlin.com.",
                                     fontSize = 13.sp,
                                     lineHeight = 19.sp,
                                     color = MaterialTheme.colorScheme.onSurface
@@ -539,7 +560,7 @@ Surface(
                                     text = "Allgemeine Geschäftsbedingungen (AGB)\n\n" +
                                             "Stand: September / Oktober 2026\n\n" +
                                             "§ 1 Geltungsbereich und Anbieter:\n" +
-                                            "Diese AGB gelten für alle Leistungen der Plattform My Kiez Berlin (mykiezberlin.com). Anbieter ist Deindigitalerhelfer.Center, Sarah Strehlke, Behaimstraße 3, 10585 Berlin.\n\n" +
+                                            "Diese AGB gelten für alle Leistungen der Plattform My Kiez Berlin (mykiezberlin.com). Anbieter ist Deindigitalerhelfer.Center, Ersen Bakıcı, Behaimstraße 3, 10585 Berlin.\n\n" +
                                             "§ 2 Leistungen & Pakete:\n" +
                                             "• Grundeintrag: Kostenlos für Betriebe in Berlin.\n" +
                                             "• Startangebot: Alle B2B-Pakete die ersten 3 Monate für nur 19 €/Monat, danach 29 €, 49 € oder 89 €/Monat – monatlich kündbar.\n" +
@@ -548,7 +569,7 @@ Surface(
                                             "§ 3 Inhalte der Betriebe & Story-Regeln:\n" +
                                             "Betriebe und Nutzer sind für ihre Texte und Fotos selbst verantwortlich. Unzulässig sind falsche Angaben, fremde Marken ohne Erlaubnis, Politik, Beleidigungen und 18+ Inhalte. Alle Einsendungen werden vor Freischaltung moderiert.\n\n" +
                                             "§ 4 Laufzeit und Kündigung:\n" +
-                                            "Monatliche Pakete verlängern sich jeweils um einen Monat und können jederzeit zum Monatsende per E-Mail an info@deindigitalerhelfer.com gekündigt werden.\n\n" +
+                                            "Monatliche Pakete verlängern sich jeweils um einen Monat und können jederzeit zum Monatsende per E-Mail an info@mykiezberlin.com gekündigt werden.\n\n" +
                                             "§ 5 Gerichtsstand:\n" +
                                             "Es gilt deutsches Recht. Gerichtsstand ist Berlin.",
                                     fontSize = 13.sp,

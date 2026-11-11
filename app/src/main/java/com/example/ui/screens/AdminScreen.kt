@@ -73,6 +73,8 @@ fun AdminScreen(
     val context = LocalContext.current
     var showStoryPlanner by remember { mutableStateOf(false) }
     if (showStoryPlanner) AdminStoryPlanner(onDismiss = { showStoryPlanner = false })
+    var showAccount by remember { mutableStateOf(false) }
+    if (showAccount) AdminAccountDialog(onDismiss = { showAccount = false })
     var tokenInput by remember { mutableStateOf("") }
     var loginError by remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) } // Eye icon toggle
@@ -162,98 +164,8 @@ fun AdminScreen(
                     .background(Color(0xFF141B22)),
                 contentAlignment = Alignment.Center
             ) {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1C252E)),
-                    elevation = CardDefaults.cardElevation(8.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(24.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Surface(
-                            shape = CircleShape,
-                            color = BerlinRed.copy(alpha = 0.15f),
-                            modifier = Modifier.size(56.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Default.Lock,
-                                    contentDescription = null,
-                                    tint = BerlinRed,
-                                    modifier = Modifier.size(28.dp)
-                                )
-                            }
-                        }
-
-                        Text(
-                            text = "My Kiez Berlin Admin",
-                            color = Color(0xFFE9ECE6),
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-
-                        Text(
-                            text = "Admin-Token eingeben (z. B. admin123 oder kiez2026)",
-                            color = Color(0xFFA9B3BC),
-                            fontSize = 13.sp
-                        )
-
-                        OutlinedTextField(
-                            value = tokenInput,
-                            onValueChange = {
-                                tokenInput = it
-                                loginError = false
-                            },
-                            label = { Text("Admin-Token", color = Color(0xFFA9B3BC)) },
-                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                            trailingIcon = {
-                                IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                    Icon(
-                                        imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                        contentDescription = if (passwordVisible) "Passwort verbergen" else "Passwort anzeigen",
-                                        tint = if (passwordVisible) BerlinRed else Color(0xFFA9B3BC)
-                                    )
-                                }
-                            },
-                            isError = loginError,
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                focusedBorderColor = BerlinRed,
-                                unfocusedBorderColor = Color(0xFF4A5866)
-                            )
-                        )
-
-                        if (loginError) {
-                            Text(
-                                text = "Ungültiger Token! (Standard: admin123)",
-                                color = BerlinRed,
-                                fontSize = 12.sp
-                            )
-                        }
-
-                        Button(
-                            onClick = {
-                                if (tokenInput.isNotBlank()) {
-                                    val ok = onLogin(tokenInput)
-                                    if (!ok) loginError = true
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1F9D55))
-                        ) {
-                            Text("Anmelden", fontWeight = FontWeight.Bold, color = Color.White)
-                        }
-                    }
-                }
+                // Login against the server (2026-11-11): own admin accounts, no password hints.
+                AdminLoginPanel(onLoggedIn = { token -> onLogin(token) })
             }
         }
         return
@@ -292,6 +204,10 @@ fun AdminScreen(
                     }
                 },
                 actions = {
+                    // Account & security: password, recovery code, story alarm (2026-11-11)
+                    IconButton(onClick = { showAccount = true }) {
+                        Text("🔐", fontSize = 18.sp)
+                    }
                     // Story planner: many stories with their own start / end time
                     FilledTonalButton(
                         onClick = { showStoryPlanner = true },
@@ -712,7 +628,7 @@ fun AdminScreen(
                         ) {
                             Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Text("ErsenBox (Banner-Werbung)", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
-                                Text("John Cloud · johncloud401@gmail.com · 0176 82015455", color = Color(0xFFA9B3BC), fontSize = 12.sp)
+                                Text("Ersen Bakıcı · bakiciersen@gmail.com", color = Color(0xFFA9B3BC), fontSize = 12.sp)
                                 Text("Status: Ausstehende Prüfung", color = BerlinYellow, fontSize = 11.sp)
                             }
                         }

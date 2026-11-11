@@ -89,6 +89,11 @@ class KiezNotificationWorker(context: Context, params: WorkerParameters) : Corou
     // Admin only: stories waiting for approval, so the admin does not have to check the list.
     private fun adminPendingStories(): List<Item> {
         if (!KiezStorageManager.isAdminAuthenticated(applicationContext)) return emptyList()
+        // The admin watcher (every minute, loud) already reports them; restart it if Android stopped it.
+        if (AdminStoryWatchService.shouldRun(applicationContext)) {
+            AdminStoryWatchService.sync(applicationContext)
+            return emptyList()
+        }
         return try {
             val request = Request.Builder().url(ADMIN_PENDING_URL)
                 .header("x-admin-token", KiezStorageManager.getAdminToken(applicationContext)).build()
@@ -118,7 +123,7 @@ class KiezNotificationWorker(context: Context, params: WorkerParameters) : Corou
                 (0 until list.length()).mapNotNull { i ->
                     val o = list.getJSONObject(i)
                     if (o.optString("status") != "new") return@mapNotNull null
-                    val size = mapOf("s" to "Klein 29 €", "m" to "Mittel 49 €", "l" to "Groß 89 €", "banner" to "Banner", "gp" to "Gründungspartner")[o.optString("size")] ?: o.optString("size")
+                    val size = mapOf("s" to "Kiez Basic 29 €", "m" to "Kiez Plus 49 €", "l" to "Kiez Premium 89 €", "banner" to "Banner", "gp" to "Gründungspartner")[o.optString("size")] ?: o.optString("size")
                     Item("req-" + o.optString("id"), "admin", "Neue Werbeanfrage", "${o.optString("company")} · $size", "ADMIN")
                 }
             }

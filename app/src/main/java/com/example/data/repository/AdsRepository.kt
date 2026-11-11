@@ -46,7 +46,12 @@ data class ServerAd(
     val couponCode: String = "",
     val couponDe: String = "",
     val couponTr: String = "",
-    val couponEn: String = ""
+    val couponEn: String = "",
+    // Contact sheet (2026-11-11): e-mail, contact person, fax and the main action ("tel" | "wa" | "")
+    val email: String = "",
+    val contact: String = "",
+    val fax: String = "",
+    val primary: String = ""
 ) {
     /** Best link for a tap: web, Instagram, WhatsApp, phone – in that order. */
     val primaryLink: String
@@ -172,7 +177,11 @@ object AdsRepository {
             couponCode = o.optJSONObject("coupon")?.optString("code").orEmpty(),
             couponDe = o.optJSONObject("coupon")?.optString("de").orEmpty(),
             couponTr = o.optJSONObject("coupon")?.optString("tr").orEmpty(),
-            couponEn = o.optJSONObject("coupon")?.optString("en").orEmpty()
+            couponEn = o.optJSONObject("coupon")?.optString("en").orEmpty(),
+            email = o.optString("email"),
+            contact = o.optString("contact"),
+            fax = o.optString("fax"),
+            primary = o.optString("primary")
         )
     }
 

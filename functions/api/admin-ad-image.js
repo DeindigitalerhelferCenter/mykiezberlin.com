@@ -5,7 +5,7 @@ const TYPES = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
 const MAX_BYTES = 3 * 1024 * 1024;
 
 export async function onRequestPost({ request, env }) {
-  if (!isAdmin(request, env)) return json({ error: "unauthorized" }, 401);
+  if (!(await isAdmin(request, env))) return json({ error: "unauthorized" }, 401);
   if (!env.BUCKET) return json({ error: "r2_unbound" }, 503);
   const form = await request.formData().catch(() => null);
   const file = form?.get("file");

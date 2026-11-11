@@ -784,8 +784,15 @@ EXTRA_TABS.profile = function (container) {
     ${settingRow(tr("Benachrichtigungen", "Bildirimler"), STORAGE_NOTIFY_KEY, "toggleNotifications()")}
     ${settingRow(tr("Standort", "Konum"), STORAGE_LOCATION_KEY, "toggleLocation()")}`);
   const links = [...container.querySelectorAll(".ext-quote")].pop();
-  links?.insertAdjacentHTML("beforebegin", `<a class="ext-quote" href="/agb"><span>AGB</span><i class="bi bi-chevron-right"></i></a><a class="ext-quote" href="/story-regeln"><span>Story-Regeln</span><i class="bi bi-chevron-right"></i></a>`);
+  links?.insertAdjacentHTML("beforebegin", `<a class="ext-quote" href="/agb"><span>AGB</span><i class="bi bi-chevron-right"></i></a><a class="ext-quote" href="/story-regeln"><span>Story-Regeln</span><i class="bi bi-chevron-right"></i></a><a class="ext-quote" href="mailto:info@mykiezberlin.com"><span>✉️ ${esc(tr("Kontakt & Werbung", "İletişim & reklam"))}: info@mykiezberlin.com</span><i class="bi bi-chevron-right"></i></a>`);
+  // Small grey lock at the very bottom (2026-11-11): the only way to the admin login, no text.
+  container.insertAdjacentHTML("beforeend", `<div style="text-align:center;margin:26px 0 8px"><a href="admin.html" aria-label="🔒" style="color:#9aa0a6;opacity:.45;font-size:13px;text-decoration:none"><i class="bi bi-lock-fill"></i></a></div>`);
 };
+
+// Night/day switch in the ☰ menu (2026-11-11), same setting as in the profile.
+function mkToggleDarkFromMenu() {
+  toggleSetting(STORAGE_DARK_KEY);
+}
 
 /* ---------- Notifications for new alerts ---------- */
 

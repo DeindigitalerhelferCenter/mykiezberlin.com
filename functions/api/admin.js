@@ -5,7 +5,7 @@ import { AD_PLACE_KEYS, planRule } from "../_lib/plans.js";
 const TABLES = { story: "stories", post: "reporter_posts", comment: "reporter_comments", submission: "submissions" };
 
 export async function onRequestGet({ request, env }) {
-  if (!isAdmin(request, env)) return json({ error: "unauthorized" }, 401);
+  if (!(await isAdmin(request, env))) return json({ error: "unauthorized" }, 401);
   const database = await db(env);
   if (!database) return noDb();
   const read = (sql) => database.prepare(sql).all().then((r) => r.results);
@@ -125,7 +125,7 @@ async function createEditorialComment(database, body) {
 }
 
 export async function onRequestPost({ request, env }) {
-  if (!isAdmin(request, env)) return json({ error: "unauthorized" }, 401);
+  if (!(await isAdmin(request, env))) return json({ error: "unauthorized" }, 401);
   const database = await db(env);
   if (!database) return noDb();
 

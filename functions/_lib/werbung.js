@@ -3,9 +3,9 @@
 // the first 3 months 19 € per month, cancel monthly.
 
 export const PACKAGES = {
-  s: { amount: 2900, label: "My Kiez Berlin Paket Klein" },
-  m: { amount: 4900, label: "My Kiez Berlin Paket Mittel" },
-  l: { amount: 8900, label: "My Kiez Berlin Paket Groß" },
+  s: { amount: 2900, label: "My Kiez Berlin Kiez Basic" },
+  m: { amount: 4900, label: "My Kiez Berlin Kiez Plus" },
+  l: { amount: 8900, label: "My Kiez Berlin Kiez Premium" },
 };
 export const INTRO = { amount: 1900, months: 3 };
 export const REQUEST_SIZES = ["s", "m", "l", "banner", "gp"];

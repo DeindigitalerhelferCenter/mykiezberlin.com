@@ -87,7 +87,7 @@ function webLink(value) {
 }
 
 export async function onRequestPost({ request, env }) {
-  if (!isAdmin(request, env)) return json({ error: "unauthorized" }, 401);
+  if (!(await isAdmin(request, env))) return json({ error: "unauthorized" }, 401);
   if (!env.AI) return json({ error: "ai_unbound" }, 503);
   const form = await request.formData().catch(() => null);
   const file = form && form.get("image");

@@ -43,15 +43,15 @@ private data class AdPackage(
 
 // Same packages as mykiezberlin.com/werben (and Berliner Kiez-Check).
 private val AD_PACKAGES = listOf(
-    AdPackage("s", "Klein", "Küçük", 29, "Sichtbar in deinem Kiez", "Mahallende görün", listOf(
+    AdPackage("s", "Kiez Basic", "Kiez Basic", 29, "Sichtbar in deinem Kiez", "Mahallende görün", listOf(
         "Ganz oben in deinem Kiez und deiner Kategorie" to "Mahallende ve kategorinde en üstte",
         "Gelb markiert, als Anzeige gekennzeichnet" to "Sarı işaretli, reklam olarak etiketli",
         "Eigener Gutschein im Bereich „Gutscheine“" to "„Kuponlar“ bölümünde kendi kuponun")),
-    AdPackage("m", "Mittel", "Orta", 49, "Mehr Kunden aus ganz Berlin", "Tüm Berlin'den müşteri", listOf(
-        "Alles aus Klein" to "Küçük paketteki her şey",
+    AdPackage("m", "Kiez Plus", "Kiez Plus", 49, "Mehr Kunden aus ganz Berlin", "Tüm Berlin'den müşteri", listOf(
+        "Alles aus Kiez Basic" to "Kiez Basic paketindeki her şey",
         "Zusätzlich oben in der Berlin-weiten Liste" to "Ek olarak tüm Berlin listesinde üstte"), recommended = true),
-    AdPackage("l", "Groß", "Büyük", 89, "Maximale Sichtbarkeit", "En yüksek görünürlük", listOf(
-        "Alles aus Mittel" to "Orta paketteki her şey",
+    AdPackage("l", "Kiez Premium", "Kiez Premium", 89, "Maximale Sichtbarkeit", "En yüksek görünürlük", listOf(
+        "Alles aus Kiez Plus" to "Kiez Plus paketindeki her şey",
         "Zusätzlich als Sponsor-Karte auf der Startseite und im Listenfluss" to "Ek olarak ana sayfada ve liste arasında sponsor kartı"))
 )
 
@@ -81,7 +81,7 @@ fun HomeAdsSection(
         if (ads.isEmpty()) {
             ExampleAdCard(
                 title = if (tr) "📣 İşletmen burada" else "📣 Dein Betrieb hier",
-                text = if (tr) "Ana sayfada sponsor kartı – Büyük pakete dahil." else "Sponsor-Karte auf der Startseite – im Paket Groß enthalten.",
+                text = if (tr) "Ana sayfada sponsor kartı – Kiez Premium paketine dahil." else "Sponsor-Karte auf der Startseite – im Paket Kiez Premium enthalten.",
                 label = if (tr) "Örnek" else "Beispiel",
                 button = if (tr) "Şimdi reklam ver →" else "Jetzt werben →",
                 onClick = { onOpenWerben("l") }
@@ -134,8 +134,8 @@ private fun ServerAdCard(ad: ServerAd, tr: Boolean, en: Boolean) {
         shape = RoundedCornerShape(16.dp),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         modifier = Modifier.fillMaxWidth().clickable {
-            AdsRepository.trackClick(ad.id)
-            try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(ad.primaryLink))) } catch (_: Exception) {}
+            // Contact sheet instead of jumping to a website (2026-11-11)
+            SponsorInfoState.show(ad)
         }
     ) {
         Column {

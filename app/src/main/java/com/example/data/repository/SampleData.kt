@@ -1346,14 +1346,14 @@ object SampleData {
         )
     )
 
-    // B2B Pricing Packages matching the user's explicit decision:
-    // Basic (19,90 €), Plus (49,90 €), Premium (99,90 €)
+    // B2B packages (2026-11-11): same names and prices everywhere – Kiez Basic 29 €, Kiez Plus 49 €, Kiez Premium 89 €
+    // (= /werben and Stripe). The B2B screen shows the translated details from BusinessPortalScreen.kt.
     val pricingPackages = listOf(
         PricingPackage(
             id = "basic",
             name = "Kiez Basic",
-            priceMonthly = "19,90 €",
-            priceYearlyMonthly = "16,50 €",
+            priceMonthly = "29 €",
+            priceYearlyMonthly = "29 €",
             isPopular = false,
             isMaxVisibility = false,
             features = listOf(
@@ -1369,8 +1369,8 @@ object SampleData {
         PricingPackage(
             id = "plus",
             name = "Kiez Plus",
-            priceMonthly = "49,90 €",
-            priceYearlyMonthly = "41,50 €",
+            priceMonthly = "49 €",
+            priceYearlyMonthly = "49 €",
             isPopular = true,
             isMaxVisibility = false,
             features = listOf(
@@ -1387,8 +1387,8 @@ object SampleData {
         PricingPackage(
             id = "premium",
             name = "Kiez Premium",
-            priceMonthly = "99,90 €",
-            priceYearlyMonthly = "82,50 €",
+            priceMonthly = "89 €",
+            priceYearlyMonthly = "89 €",
             isPopular = false,
             isMaxVisibility = true,
             features = listOf(
@@ -1479,6 +1479,12 @@ object SampleData {
     )
 
     // The 7 Real Sponsors from seed-sponsoren.sql
+    // Paused sponsors (2026-11-11): hidden in the app for one month, data kept. "Dein Finanzen Helfer" returns in December 2026.
+    val pausedSponsorIds = setOf("deinfinanzenhelfer")
+
+    /** Sponsors that are shown right now (without paused ones). */
+    val activeSponsors get() = sponsors.filter { it.id !in pausedSponsorIds }
+
     val sponsors = listOf(
         SponsorBanner(
             id = "deindigitalerhelfer",

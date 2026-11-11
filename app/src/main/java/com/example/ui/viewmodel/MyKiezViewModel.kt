@@ -991,8 +991,29 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
     // Admin Actions (Freigeben, Ablehnen, Löschen, Verlängern, Bearbeiten)
     fun setAdminAuthenticated(auth: Boolean) {
         KiezStorageManager.setAdminAuthenticated(app, auth)
+        if (!auth) {
+            // End the server session and forget the token on this phone.
+            val old = KiezStorageManager.getAdminToken(app)
+            if (old.length >= 32) viewModelScope.launch { com.example.data.repository.AdminAuthClient.call("logout", old) }
+            KiezStorageManager.setAdminToken(app, "")
+        }
         _uiState.update { it.copy(isAdminAuthenticated = auth) }
         if (auth) refreshAdminStories(showError = true)
+        com.example.data.repository.AdminStoryWatchService.sync(app)
+    }
+
+    /** On start: an old test password or an ended session no longer opens the admin area (since v1.15). */
+    fun verifyAdminSession() {
+        if (!_uiState.value.isAdminAuthenticated) return
+        viewModelScope.launch {
+            val r = com.example.data.repository.AdminAuthClient.call("me", KiezStorageManager.getAdminToken(app))
+            if (!r.ok && r.error != "offline") {
+                KiezStorageManager.setAdminAuthenticated(app, false)
+                KiezStorageManager.setAdminToken(app, "")
+                _uiState.update { it.copy(isAdminAuthenticated = false) }
+            }
+            com.example.data.repository.AdminStoryWatchService.sync(app)
+        }
     }
 
     fun setAdminStoriesTab(tab: String) {

@@ -727,7 +727,7 @@ function renderProfileTab(container) {
     <div class="card-item" style="padding: 8px 16px;">
       <a class="ext-quote" href="impressum.html"><span>Impressum</span><i class="bi bi-chevron-right"></i></a>
       <a class="ext-quote" href="datenschutz.html"><span>${esc(tr("Datenschutz", "Gizlilik"))}</span><i class="bi bi-chevron-right"></i></a>
-      <a class="ext-quote" href="admin.html"><span>Admin</span><i class="bi bi-chevron-right"></i></a>
+      <a class="ext-quote mk-admin-link" href="admin.html"><span>Admin</span><i class="bi bi-chevron-right"></i></a>
     </div>`;
 }
 

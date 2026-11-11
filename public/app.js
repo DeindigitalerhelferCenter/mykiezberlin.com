@@ -462,9 +462,12 @@ function openHamburgerHubModal() {
 
         <!-- 4. Alt Ayarlar ve Admin Linki -->
         <div class="hub-footer-actions">
-          <a href="admin.html" class="hub-footer-link">
-            <i class="bi bi-shield-lock-fill"></i> Yönetici Girişi (Admin)
+          <a href="admin.html" class="hub-footer-link mk-admin-link">
+            <i class="bi bi-shield-lock-fill"></i> Admin
           </a>
+          <button class="hub-footer-link" onclick="typeof mkToggleDarkFromMenu === 'function' && mkToggleDarkFromMenu()">
+            <i class="bi bi-moon-stars-fill"></i> <span class="mk-dark-label">${currentLanguage === "tr" ? "Gece / Gündüz" : currentLanguage === "en" ? "Night / Day" : "Nacht / Tag"}</span>
+          </button>
           <button class="hub-footer-link" onclick="toggleLanguageFromHub()">
             <i class="bi bi-translate"></i> Dil Değiştir: <strong>${currentLanguage.toUpperCase()}</strong>
           </button>

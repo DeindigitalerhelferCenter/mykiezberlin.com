@@ -2,7 +2,7 @@
 import { db, isAdmin, json, noDb } from "../_lib/util.js";
 
 export async function onRequestGet({ request, env }) {
-  if (!isAdmin(request, env)) return json({ error: "unauthorized" }, 401);
+  if (!(await isAdmin(request, env))) return json({ error: "unauthorized" }, 401);
   const database = await db(env);
   if (!database) return noDb();
   const since = Date.now() - 3 * 86400000;

@@ -62,6 +62,8 @@ class MainActivity : ComponentActivity() {
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
             val context = LocalContext.current
+            // Admin session check + instant story alarm on the admin phone (v1.15)
+            LaunchedEffect(Unit) { viewModel.verifyAdminSession() }
 
             val permissionLauncher = rememberLauncherForActivityResult(
                 ActivityResultContracts.RequestPermission()
@@ -88,6 +90,7 @@ class MainActivity : ComponentActivity() {
                 launchTarget?.let { target ->
                     when (target) {
                         "BUSINESS_PORTAL" -> viewModel.navigateTo(AppScreen.BUSINESS_PORTAL)
+                        "ADMIN" -> viewModel.navigateTo(AppScreen.ADMIN)
                         "LIVE_BULLETIN" -> viewModel.navigateTo(AppScreen.LIVE_BULLETIN)
                         "NOTRUF" -> viewModel.navigateTo(AppScreen.NOTRUF)
                         "SPORTS_AND_MARKETS" -> viewModel.navigateTo(AppScreen.SPORTS_AND_MARKETS)
@@ -510,7 +513,8 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     onSelectPackage = { viewModel.selectPricingPackage(it) },
                     onCloseBooking = { viewModel.closeBookingDialog() },
                     onSubmitBooking = { c, e, k -> viewModel.submitBooking(c, e, k) },
-                    bookingSuccessMessage = uiState.bookingSuccessMessage
+                    bookingSuccessMessage = uiState.bookingSuccessMessage,
+                    onOpenWerben = { size -> viewModel.openWerben(size) }
                 )
 
                 AppScreen.ADMIN -> AdminScreen(
@@ -519,10 +523,10 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     currentTab = uiState.adminStoriesTab,
                     stories = uiState.allStories,
                     onLogin = { token ->
-                        val success = token == "admin123" || token == "kiez2026" || token == "admin"
-                        if (success) viewModel.setAdminToken(token)
-                        viewModel.setAdminAuthenticated(success)
-                        success
+                        // token = session from /api/admin-auth (checked on the server, no passwords in the app)
+                        viewModel.setAdminToken(token)
+                        viewModel.setAdminAuthenticated(true)
+                        true
                     },
                     onTabChange = { viewModel.setAdminStoriesTab(it) },
                     onApproveStory = { id, h -> viewModel.approveStory(id, h) },
@@ -567,6 +571,9 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
     }
 }
 
+    // Sponsor contact sheet (opens when a sponsor card is tapped)
+    com.example.ui.components.SponsorInfoHost(language = uiState.language)
+
     // Global Hamburger Hub Modal (Header Sağ Köşe - Menü, Filtreler & Klasörler)
     if (showHamburgerMenu) {
         HamburgerHubModal(
@@ -580,7 +587,9 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
             onNavigateToScreen = { viewModel.navigateTo(it) },
             onOpenAddBusiness = { viewModel.openAddBusinessDialog() },
             onResetFilters = { viewModel.resetFilters() },
-            onDismiss = { showHamburgerMenu = false }
+            onDismiss = { showHamburgerMenu = false },
+            isDarkMode = uiState.isDarkMode,
+            onToggleDarkMode = { viewModel.toggleDarkMode() }
         )
     }
 
@@ -875,16 +884,31 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     }
                 }
 
-                // Row 5: Admin Panel Direktzugriff
-                Row(modifier = Modifier.fillMaxWidth()) {
+                // Row 5: Night / day mode right in the menu (2026-11-11). The admin entry is only visible
+                // to a logged-in admin; everyone else reaches the login through the small grey lock in the profile.
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     SheetGridItem(
-                        icon = Icons.Default.AdminPanelSettings,
-                        label = if (uiState.language == AppLanguage.TURKISH) "Yönetici Paneli (Admin)" else "Admin-Bereich (Stories & Prüfung)",
-                        color = Color(0xFF1F9D55),
-                        modifier = Modifier.fillMaxWidth()
+                        icon = if (uiState.isDarkMode) Icons.Default.LightMode else Icons.Default.DarkMode,
+                        label = when (uiState.language) {
+                            AppLanguage.TURKISH -> if (uiState.isDarkMode) "Gündüz modu ☀️" else "Gece modu 🌙"
+                            AppLanguage.ENGLISH -> if (uiState.isDarkMode) "Day mode ☀️" else "Night mode 🌙"
+                            else -> if (uiState.isDarkMode) "Tagmodus ☀️" else "Nachtmodus 🌙"
+                        },
+                        color = Color(0xFF6366F1),
+                        modifier = Modifier.weight(1f)
                     ) {
-                        viewModel.navigateTo(AppScreen.ADMIN)
-                        showMoreBottomSheet = false
+                        viewModel.toggleDarkMode()
+                    }
+                    if (uiState.isAdminAuthenticated) {
+                        SheetGridItem(
+                            icon = Icons.Default.AdminPanelSettings,
+                            label = "Admin",
+                            color = Color(0xFF1F9D55),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            viewModel.navigateTo(AppScreen.ADMIN)
+                            showMoreBottomSheet = false
+                        }
                     }
                 }
 

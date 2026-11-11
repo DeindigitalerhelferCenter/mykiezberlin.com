@@ -45,7 +45,9 @@ fun HamburgerHubModal(
     onNavigateToScreen: (AppScreen) -> Unit,
     onOpenAddBusiness: () -> Unit,
     onResetFilters: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    isDarkMode: Boolean = false,
+    onToggleDarkMode: (() -> Unit)? = null
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -120,6 +122,36 @@ fun HamburgerHubModal(
                         contentDescription = "Schließen",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
+            }
+
+            // Night / day mode directly in the menu (2026-11-11), same setting as in "Einstellungen"
+            if (onToggleDarkMode != null) {
+                Surface(
+                    onClick = onToggleDarkMode,
+                    shape = RoundedCornerShape(14.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(if (isDarkMode) "🌙" else "☀️", fontSize = 20.sp)
+                        Spacer(Modifier.width(10.dp))
+                        Text(
+                            text = when (language) {
+                                AppLanguage.TURKISH -> "Gece / Gündüz modu"
+                                AppLanguage.ENGLISH -> "Night / day mode"
+                                else -> "Nacht- / Tagmodus"
+                            },
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Switch(checked = isDarkMode, onCheckedChange = { onToggleDarkMode() })
+                    }
                 }
             }
 

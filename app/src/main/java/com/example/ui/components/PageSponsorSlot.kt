@@ -84,7 +84,7 @@ private fun SponsorView(ad: ServerAd, size: String, language: AppLanguage, onHid
     if (size == "small") {
         Row(
             modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
-                .background(SponsorGold.copy(alpha = 0.14f)).clickable { open(ad.primaryLink) }
+                .background(SponsorGold.copy(alpha = 0.14f)).clickable { SponsorInfoState.show(ad) }
                 .padding(horizontal = 10.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -112,7 +112,7 @@ private fun SponsorView(ad: ServerAd, size: String, language: AppLanguage, onHid
                 Box {
                     AsyncImage(
                         model = ad.image, contentDescription = ad.name, contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxWidth().aspectRatio(1200f / 630f).clickable { open(ad.primaryLink) }
+                        modifier = Modifier.fillMaxWidth().aspectRatio(1200f / 630f).clickable { SponsorInfoState.show(ad) }
                     )
                     Row(Modifier.align(Alignment.TopEnd).padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
                         SponsorLabel(label)
@@ -124,7 +124,7 @@ private fun SponsorView(ad: ServerAd, size: String, language: AppLanguage, onHid
                 if (size != "large" || ad.image.isBlank()) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         val logo = ad.logo.ifBlank { ad.image }
-                        if (logo.isNotBlank()) AsyncImage(model = logo, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.size(48.dp).clip(RoundedCornerShape(10.dp)).clickable { open(ad.primaryLink) })
+                        if (logo.isNotBlank()) AsyncImage(model = logo, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.size(48.dp).clip(RoundedCornerShape(10.dp)).clickable { SponsorInfoState.show(ad) })
                         Column(Modifier.weight(1f)) {
                             Text(ad.name, fontWeight = FontWeight.ExtraBold, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             if (category.isNotBlank()) Text(category, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)

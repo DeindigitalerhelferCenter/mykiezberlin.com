@@ -55,7 +55,7 @@ export async function onRequestPost({ request, env }) {
   if (!headline || !kiez) return json({ error: "missing_fields" }, 400);
 
   // Admin (story planner): no hourly limit, published directly at the planned time
-  const admin = isAdmin(request, env);
+  const admin = await isAdmin(request, env);
   const ip = await ipHash(request, env);
   if (!admin && (await rateLimited(database, "stories", ip))) return json({ error: "rate_limited" }, 429);
 

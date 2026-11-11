@@ -56,7 +56,7 @@ fun SponsorBannerComponent(
                 linkWeb = ad.linkWeb.ifBlank { ad.linkIg }, linkWa = if (ad.linkWa.isNotBlank()) "https://wa.me/" + ad.linkWa.filter { it.isDigit() } else "", linkTel = ad.linkTel,
                 category = "Anzeige", priority = 10, imageUrl = ad.image, serverAdId = ad.id
             )
-        } + SampleData.sponsors
+        } + SampleData.activeSponsors
     }
     LaunchedEffect(serverAds) { com.example.data.repository.AdsRepository.trackImpressions(serverAds.map { it.id }) }
     if (sponsors.isEmpty()) return
@@ -157,6 +157,8 @@ fun SponsorBannerComponent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
+                            // Server sponsors open the contact sheet (it counts the click itself)
+                            if (sponsor.serverAdId.isNotBlank() && SponsorInfoState.showById(sponsor.serverAdId)) return@clickable
                             if (sponsor.serverAdId.isNotBlank()) com.example.data.repository.AdsRepository.trackClick(sponsor.serverAdId)
                             openSponsorAction(context, sponsor)
                         },
@@ -316,6 +318,7 @@ fun SponsorBannerComponent(
 }
 
 private fun openSponsorAction(context: android.content.Context, sponsor: SponsorBanner) {
+    if (sponsor.serverAdId.isNotBlank() && SponsorInfoState.showById(sponsor.serverAdId)) return
     try {
         val uri = when {
             sponsor.linkWa.isNotEmpty() -> Uri.parse(sponsor.linkWa)

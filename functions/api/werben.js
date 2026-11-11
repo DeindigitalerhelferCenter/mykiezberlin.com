@@ -41,7 +41,7 @@ export async function onRequestPost({ request, env }) {
 
 // Admin: newest requests (also used by the app to notify the admin).
 export async function onRequestGet({ request, env }) {
-  if (!isAdmin(request, env)) return json({ error: "unauthorized" }, 401);
+  if (!(await isAdmin(request, env))) return json({ error: "unauthorized" }, 401);
   const database = await db(env);
   if (!database) return noDb();
   const { results } = await database
