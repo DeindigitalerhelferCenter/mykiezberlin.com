@@ -13,6 +13,7 @@
 //   admins / removeAdmin { id }               -> list / remove other admins
 //   logout                                    -> ends this session
 import { cleanText, db, ipHash, json, noDb } from "../_lib/util.js";
+import { mailReady, sendMail } from "../_lib/mail.js";
 import {
   DEFAULT_ADMIN_EMAIL, DEFAULT_ADMIN_NAME, adminCount, checkAdminToken, createSession, findByPassword, newRecoveryCode, noteFailedAttempt,
   normRecovery, randomHex, saveAccount, sessionAdmin, setPassword, sha256, tooManyAttempts,
@@ -24,7 +25,7 @@ const okEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 export async function onRequestGet({ env }) {
   const database = await db(env);
   if (!database) return noDb();
-  return json({ setup: (await adminCount(database)) > 0, emailReset: Boolean(env.EMAIL) }, 200, { "cache-control": "no-store" });
+  return json({ setup: (await adminCount(database)) > 0, emailReset: mailReady(env) }, 200, { "cache-control": "no-store" });
 }
 
 export async function onRequestPost({ request, env }) {
@@ -72,7 +73,7 @@ export async function onRequestPost({ request, env }) {
 
   if (action === "forgot") {
     // Same answer whether or not the address exists.
-    if (!env.EMAIL) return json({ ok: false, emailReset: false });
+    if (!mailReady(env)) return json({ ok: false, emailReset: false });
     if (await tooManyAttempts(database, ip)) return json({ error: "too_many_attempts" }, 429);
     await noteFailedAttempt(database, ip); // counts as an attempt, limits mail flooding
     const row = okEmail(email) ? await database.prepare(`SELECT * FROM admin_accounts WHERE lower(email) = lower(?)`).bind(email).first() : null;
@@ -182,10 +183,5 @@ async function sendResetMail(env, admin, link) {
     "",
     "Merhaba, admin şifren için sıfırlama istendi. Link 1 saat geçerli (yukarıda).",
   ].join("\n");
-  await env.EMAIL.send({
-    from: { email: "info@mykiezberlin.com", name: "My Kiez Berlin" },
-    to: admin.email,
-    subject: "My Kiez Berlin – Admin-Passwort zurücksetzen",
-    text,
-  });
+  await sendMail(env, { to: admin.email, subject: "My Kiez Berlin – Admin-Passwort zurücksetzen", text });
 }

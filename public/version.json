@@ -1,11 +1,11 @@
 {
-  "versionCode": 15,
-  "versionName": "1.14",
+  "versionCode": 16,
+  "versionName": "1.15",
   "apkUrl": "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin.com.apk",
   "mandatory": false,
   "notes": {
-    "de": "Neu: übersichtlicher Startbildschirm, Live-Hinweis als kompakte Zeile, schnellere Story-Bilder und klarere Pakete.",
-    "tr": "Yeni: daha sade ana ekran, canlı uyarı tek satırda, daha hızlı hikâye görselleri ve daha net paketler.",
-    "en": "New: cleaner home screen, live alert as a compact line, faster story images and clearer packages."
+    "de": "Neu: Kontaktfenster für Sponsoren, Nacht-/Tagmodus im Menü, neue Pakete Kiez Basic / Plus / Premium und sicherer Admin-Bereich.",
+    "tr": "Yeni: sponsorlar için iletişim penceresi, menüde gece/gündüz modu, yeni paketler Kiez Basic / Plus / Premium ve güvenli admin bölümü.",
+    "en": "New: contact sheet for sponsors, night/day mode in the menu, new packages Kiez Basic / Plus / Premium and a secure admin area."
   }
 }

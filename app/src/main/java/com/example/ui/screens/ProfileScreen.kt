@@ -438,6 +438,15 @@ Surface(
                             context.startActivity(Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:info@mykiezberlin.com")))
                         } catch (_: Exception) {}
                     }
+                    Divider(color = MaterialTheme.colorScheme.surfaceVariant)
+                    // Problems with the app or a sponsor -> support@mykiezberlin.com via /api/support (2026-11-11)
+                    ProfileMenuItem(Icons.Default.Build, when (language) {
+                        AppLanguage.TURKISH -> "Hata bildir / Destek"
+                        AppLanguage.ENGLISH -> "Report a problem / Support"
+                        else -> "Fehler melden / Support"
+                    }) {
+                        com.example.ui.components.SupportState.show("app")
+                    }
                 }
             }
         }
@@ -448,8 +457,8 @@ Surface(
                 Icon(
                     imageVector = Icons.Default.Lock,
                     contentDescription = null,
-                    tint = Color.Gray.copy(alpha = 0.35f),
-                    modifier = Modifier.size(16.dp).clickable { onNavigate(AppScreen.ADMIN) }
+                    tint = Color.Gray.copy(alpha = 0.55f),
+                    modifier = Modifier.size(22.dp).clickable { onNavigate(AppScreen.ADMIN) }
                 )
             }
         }

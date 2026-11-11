@@ -200,10 +200,42 @@
     accountSection();
   };
 
+  // ---------- support messages (/api/support) ----------
+  async function supportSection() {
+    document.getElementById("admin-support")?.remove();
+    var host = document.querySelector("main") || document.body;
+    var box = document.createElement("section");
+    box.id = "admin-support";
+    box.className = "admin-card-dark";
+    box.style.marginTop = "22px";
+    host.appendChild(box);
+    var res = await fetch("/api/support", { headers: { "x-admin-token": token() } }).catch(function () { return null; });
+    var data = res && res.ok ? await res.json().catch(function () { return {}; }) : {};
+    var list = data.messages || [];
+    var open = list.filter(function (m) { return m.status !== "done"; }).length;
+    var topic = { app: "App/Web", sponsor: "Sponsor", other: "Sonstiges" };
+    box.innerHTML = '<h3 style="font-size:16px;font-weight:800;margin-bottom:8px">🛠 Support-Meldungen (' + open + " offen · açık)</h3>" +
+      (list.length ? list.map(function (m) {
+        return '<div style="padding:10px;margin-bottom:8px;border:1px solid #30363d;border-radius:10px;background:#161b22;opacity:' + (m.status === "done" ? ".55" : "1") + '">' +
+          '<div style="font-size:11px;color:#8b949e">' + esc(new Date(m.created_at).toLocaleString("de-DE")) + " · " + esc(topic[m.topic] || m.topic) + (m.sponsor ? " · " + esc(m.sponsor) : "") + (m.page ? " · " + esc(m.page) : "") + "</div>" +
+          '<div style="font-size:13px;white-space:pre-wrap;margin:6px 0">' + esc(m.message) + "</div>" +
+          (m.email ? '<div style="font-size:12px">✉️ <a style="color:#58a6ff" href="mailto:' + esc(m.email) + '">' + esc(m.email) + "</a></div>" : "") +
+          '<button class="chip-btn" style="margin-top:6px" data-sup="' + esc(m.id) + '" data-next="' + (m.status === "done" ? "new" : "done") + '">' + (m.status === "done" ? "Wieder öffnen · Tekrar aç" : "Erledigt ✓ · Tamamlandı") + "</button></div>";
+      }).join("") : '<p style="font-size:12px;color:#8b949e">Keine Meldungen · Bildirim yok</p>');
+    box.querySelectorAll("[data-sup]").forEach(function (b) {
+      b.onclick = function () { window.mkSupportDone(b.getAttribute("data-sup"), b.getAttribute("data-next")); };
+    });
+  }
+  window.mkSupportDone = async function (id, status) {
+    await fetch("/api/support", { method: "PATCH", headers: { "content-type": "application/json", "x-admin-token": token() }, body: JSON.stringify({ id: id, status: status }) }).catch(function () {});
+    supportSection();
+  };
+
   var baseDashboard = window.renderAdminDashboard;
   window.renderAdminDashboard = function () {
     try { var t = token(); if (t) sessionStorage.setItem(TOKEN_KEY, t); } catch (e) {}
     baseDashboard();
+    supportSection();
     accountSection();
   };
 

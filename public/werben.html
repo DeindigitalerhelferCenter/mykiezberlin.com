@@ -332,6 +332,38 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.se
 })();
 /* Gründungspartner-Button: Formular mit passender Auswahl öffnen */
 document.querySelectorAll('.gpbtn').forEach(function (b) { b.addEventListener('click', function () { var f = document.getElementById('f'); if (f && f.elements.size) f.elements.size.value = 'gp'; }); });
+/* 2026-11-11: coming from the B2B screen (?size=s|m|l) the package is already chosen –
+   show it above the form and jump straight to the form, so the packages are not shown twice. */
+(function () {
+  var q = new URLSearchParams(location.search), size = q.get('size'), f = document.getElementById('f');
+  var P = { s: ['Kiez Basic', 29], m: ['Kiez Plus', 49], l: ['Kiez Premium', 89] };
+  if (!f || !P[size] || q.get('claim') || q.get('paid') || q.get('canceled')) return;
+  var L = { de: ['Gewähltes Paket', '/Monat · die ersten 3 Monate 19 €/Monat', 'Paket ändern'],
+            tr: ['Seçilen paket', '/ay · ilk 3 ay 19 €/ay', 'Paketi değiştir'],
+            en: ['Chosen package', '/month · first 3 months €19/month', 'Change package'] }[lang] || [];
+  var box = document.createElement('div');
+  box.className = 'chosenpk';
+  box.style.cssText = 'border:2px solid var(--line);border-radius:14px;padding:12px 14px;margin:0 0 14px;background:var(--sv);display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center';
+  box.innerHTML = '<span style="font-size:13px;color:var(--muted)">' + esc(L[0]) + '</span><b style="font-size:18px">' + esc(P[size][0]) + '</b>' +
+    '<span style="font-weight:700">' + P[size][1] + ' €' + esc(L[1]) + '</span>' +
+    '<a href="#pakete" id="changePk" style="margin-left:auto;font-weight:700">' + esc(L[2]) + '</a>';
+  f.parentNode.insertBefore(box, f);
+  var grid = document.querySelector('.grid');
+  if (grid && !grid.id) grid.id = 'pakete';
+  document.getElementById('changePk').addEventListener('click', function (e) {
+    e.preventDefault();
+    if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  function sync(v) {
+    if (!P[v]) { box.style.display = 'none'; return; }
+    box.style.display = 'flex';
+    box.querySelector('b').textContent = P[v][0];
+    box.querySelector('span:nth-of-type(2)').textContent = P[v][1] + ' €' + L[1];
+  }
+  f.elements.size.addEventListener('change', function () { sync(f.elements.size.value); });
+  document.querySelectorAll('a[href="#f"]').forEach(function (b) { b.addEventListener('click', function () { setTimeout(function () { sync(f.elements.size.value); }, 0); }); });
+  setTimeout(function () { box.scrollIntoView({ behavior: 'auto', block: 'start' }); }, 150);
+})();
 /* #1 / #2: every "choose" button preselects its package, scrolls to the form and focuses the first field */
 document.querySelectorAll('a[href="#f"]').forEach(function (b) {
   b.addEventListener('click', function (e) {

@@ -71,6 +71,7 @@ export async function checkAdminToken(env, database, token) {
   if (!token) return false;
   if (env.ADMIN_TOKEN && same(token, env.ADMIN_TOKEN)) return true;
   if (!database) return !env.ADMIN_TOKEN && token === "admin123";
+  await ready(database);
   if (await sessionAdmin(database, token)) return true;
   // Bootstrap sessions (created before any account exists) have admin_id "bootstrap".
   const boot = await database.prepare(`SELECT 1 FROM admin_sessions WHERE token_hash = ? AND admin_id = 'bootstrap' AND expires_at > ?`).bind(await sha256(token), Date.now()).first();

@@ -573,6 +573,8 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
 
     // Sponsor contact sheet (opens when a sponsor card is tapped)
     com.example.ui.components.SponsorInfoHost(language = uiState.language)
+    // "Fehler melden / Support" form (2026-11-11)
+    com.example.ui.components.SupportHost(language = uiState.language)
 
     // Global Hamburger Hub Modal (Header Sağ Köşe - Menü, Filtreler & Klasörler)
     if (showHamburgerMenu) {
@@ -899,7 +901,22 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     ) {
                         viewModel.toggleDarkMode()
                     }
-                    if (uiState.isAdminAuthenticated) {
+                    SheetGridItem(
+                        icon = Icons.Default.Build,
+                        label = when (uiState.language) {
+                            AppLanguage.TURKISH -> "Hata bildir"
+                            AppLanguage.ENGLISH -> "Report a problem"
+                            else -> "Fehler melden"
+                        },
+                        color = Color(0xFFF59E0B),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        showMoreBottomSheet = false
+                        com.example.ui.components.SupportState.show("app")
+                    }
+                }
+                if (uiState.isAdminAuthenticated) Row(modifier = Modifier.fillMaxWidth()) {
+                    run {
                         SheetGridItem(
                             icon = Icons.Default.AdminPanelSettings,
                             label = "Admin",

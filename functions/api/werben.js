@@ -1,6 +1,9 @@
 // Advertising requests from /werben. Packages S/M/L can be paid right away by card (Stripe).
 import { cleanText, db, isAdmin, json, noDb } from "../_lib/util.js";
 import { createCheckout, REQUEST_SIZES } from "../_lib/werbung.js";
+import { INFO, sendMail } from "../_lib/mail.js";
+
+const SIZE_NAMES = { s: "Kiez Basic (29 €)", m: "Kiez Plus (49 €)", l: "Kiez Premium (89 €)", banner: "Banner", gp: "Gründungspartner" };
 
 const MAX_REQUESTS_PER_DAY = 3;
 
@@ -36,6 +39,17 @@ export async function onRequestPost({ request, env }) {
     checkoutUrl = checkout.url;
     await database.prepare(`UPDATE ad_requests SET stripe_session = ? WHERE id = ?`).bind(checkout.id, row.id).run();
   }
+  // Copy of the request to info@mykiezberlin.com (only if the EMAIL binding exists; the admin panel always has it).
+  // From = info@, Reply-To = the customer, so an answer never shows a private address.
+  await sendMail(env, {
+    to: INFO,
+    replyTo: row.email,
+    subject: `Neue Werbeanfrage: ${row.company} – ${SIZE_NAMES[row.size] || row.size}`,
+    text: [
+      `Firma: ${row.company}`, `Ansprechpartner: ${row.person || "-"}`, `E-Mail: ${row.email}`, `Telefon: ${row.phone || "-"}`,
+      `Paket: ${SIZE_NAMES[row.size] || row.size}`, "", row.message || "(keine Nachricht)", "", `Anfrage-ID: ${row.id}`,
+    ].join("\n"),
+  });
   return json({ ok: true, id: row.id, checkoutUrl, payable: Boolean(checkoutUrl) });
 }
 

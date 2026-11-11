@@ -465,6 +465,9 @@ function openHamburgerHubModal() {
           <a href="admin.html" class="hub-footer-link mk-admin-link">
             <i class="bi bi-shield-lock-fill"></i> Admin
           </a>
+          <button class="hub-footer-link" onclick="closeHamburgerHubModal(); typeof mkOpenSupport === 'function' && mkOpenSupport({ topic: 'app' })">
+            <i class="bi bi-tools"></i> ${currentLanguage === "tr" ? "Hata bildir / Destek" : currentLanguage === "en" ? "Report a problem" : "Fehler melden / Support"}
+          </button>
           <button class="hub-footer-link" onclick="typeof mkToggleDarkFromMenu === 'function' && mkToggleDarkFromMenu()">
             <i class="bi bi-moon-stars-fill"></i> <span class="mk-dark-label">${currentLanguage === "tr" ? "Gece / Gündüz" : currentLanguage === "en" ? "Night / Day" : "Nacht / Tag"}</span>
           </button>

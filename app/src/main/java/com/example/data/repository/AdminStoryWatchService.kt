@@ -108,6 +108,13 @@ class AdminStoryWatchService : Service() {
                     }
                     prefs.edit().putStringSet(KEY_KNOWN, ids).apply()
                 }
+                // New support messages (wrong number, broken link …): one alert each (2026-11-11)
+                lastSupport?.let { list ->
+                    val knownSup = prefs.getStringSet(KEY_KNOWN_SUPPORT, emptySet()).orEmpty()
+                    val freshSup = list.filter { it.first !in knownSup }
+                    if (freshSup.isNotEmpty()) alertSupport(freshSup.first().second, list.size)
+                    prefs.edit().putStringSet(KEY_KNOWN_SUPPORT, list.map { it.first }.toSet()).apply()
+                }
             } catch (_: Exception) {
             }
             delay(POLL_MS)
@@ -115,6 +122,8 @@ class AdminStoryWatchService : Service() {
     }
 
     /** List of (id, "headline – author (kiez)") or null when the server could not be asked. */
+    private var lastSupport: List<Pair<String, String>>? = null
+
     private fun fetchPending(): List<Pair<String, String>>? {
         val token = KiezStorageManager.getAdminToken(this)
         if (token.isBlank()) return null
@@ -122,7 +131,15 @@ class AdminStoryWatchService : Service() {
         client.newCall(request).execute().use { response ->
             if (response.code == 401) return null
             if (!response.isSuccessful) return null
-            val arr = JSONObject(response.body?.string().orEmpty()).optJSONArray("stories") ?: return emptyList()
+            val root = JSONObject(response.body?.string().orEmpty())
+            lastSupport = root.optJSONArray("support")?.let { sup ->
+                (0 until sup.length()).map { i ->
+                    val o = sup.getJSONObject(i)
+                    val who = o.optString("sponsor").ifBlank { if (o.optString("topic") == "app") "App" else "Support" }
+                    o.optString("id") to "$who: ${o.optString("message").take(140)}"
+                }
+            }
+            val arr = root.optJSONArray("stories") ?: return emptyList()
             return (0 until arr.length()).map { i ->
                 val o = arr.getJSONObject(i)
                 val author = o.optString("author").ifBlank { "Kiez Community" }
@@ -157,7 +174,23 @@ class AdminStoryWatchService : Service() {
         }
     }
 
+    private fun alertSupport(text: String, count: Int) {
+        val manager = NotificationManagerCompat.from(this)
+        if (!manager.areNotificationsEnabled()) return
+        val builder = NotificationCompat.Builder(this, if (isSoundOn(this)) CHANNEL_ALERT else CHANNEL_SILENT)
+            .setSmallIcon(R.drawable.ic_mykiez_logo)
+            .setContentTitle("🛠 Support-Meldung ($count offen) · Destek bildirimi")
+            .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .setContentIntent(openAdmin(this, 3))
+        try { manager.notify(SUPPORT_ID, builder.build()) } catch (_: SecurityException) {}
+    }
+
     companion object {
+        private const val KEY_KNOWN_SUPPORT = "known_support"
+        private const val SUPPORT_ID = 4713
         private const val PENDING_URL = "https://mykiezberlin.com/api/admin-pending"
         private const val PREFS = "admin_watch"
         private const val KEY_KNOWN = "known"

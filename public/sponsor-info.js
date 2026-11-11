@@ -71,10 +71,17 @@
       '<div><span class="mk-si-label">' + e(L("Anzeige", "Reklam", "Ad")) + "</span><b>" + e(ad.name) + "</b>" + (cat(ad) ? "<small>" + e(cat(ad)) + "</small>" : "") + "</div></div>" +
       (txt(ad, "headline") ? '<p class="mk-si-hl">' + e(txt(ad, "headline")) + "</p>" : "") + coupon +
       (main.length ? '<div class="mk-si-btns">' + main.join("") + "</div>" : "") +
-      '<div class="mk-si-rows">' + rows.join("") + "</div></div>";
+      '<div class="mk-si-rows">' + rows.join("") + "</div>" +
+      '<a href="#" class="mk-si-report">⚠️ ' + e(L("Fehler melden (falsche Nummer, Link …)", "Hata bildir (yanlış numara, link …)", "Report a problem (wrong number, link …)")) + "</a></div>";
     document.body.appendChild(box);
     box.querySelector(".mk-si-bg").onclick = close;
     box.querySelector(".mk-si-x").onclick = close;
+    box.querySelector(".mk-si-report").onclick = function (ev) {
+      ev.preventDefault();
+      close();
+      if (typeof window.mkOpenSupport === "function") window.mkOpenSupport({ topic: "sponsor", sponsor: ad.name });
+      else location.href = "mailto:support@mykiezberlin.com?subject=" + encodeURIComponent("Fehler: " + ad.name);
+    };
     document.addEventListener("keydown", onKey);
     return true;
   };
@@ -117,6 +124,7 @@
     ".mk-si-row{display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid rgba(0,0,0,.08);color:inherit;text-decoration:none}" +
     ".mk-si-ic{width:24px;text-align:center;font-size:17px;flex:none}.mk-si-tx{flex:1;min-width:0}.mk-si-tx small{display:block;opacity:.65;font-size:11.5px}.mk-si-tx b{display:block;font-size:14px;font-weight:600;word-break:break-word}" +
     ".mk-si-go{opacity:.5;font-size:20px}" +
+    ".mk-si-report{display:block;margin-top:14px;font-size:12.5px;opacity:.7;color:inherit;text-align:center}" +
     ".ext-dark .mk-si-sheet,body.dark-mode .mk-si-sheet,[data-theme=dark] .mk-si-sheet{background:#1e2329;color:#e6edf3}" +
     ".ext-dark .mk-si-row,.ext-dark .mk-si-rows,body.dark-mode .mk-si-row,body.dark-mode .mk-si-rows,[data-theme=dark] .mk-si-row{border-color:#30363d}" +
     ".ext-dark .mk-si-btn:not(.main),.ext-dark .mk-si-x,body.dark-mode .mk-si-btn:not(.main),body.dark-mode .mk-si-x{background:rgba(255,255,255,.1)}";

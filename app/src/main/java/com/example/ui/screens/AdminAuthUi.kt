@@ -291,6 +291,9 @@ fun AdminAccountDialog(onDismiss: () -> Unit) {
                 OutlinedButton(onClick = {
                     try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://mykiezberlin.com/admin.html")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } catch (_: Exception) {}
                 }) { Text("👥 Admins verwalten (Web) · Adminleri yönet", color = Color.White, fontSize = 12.sp) }
+                OutlinedButton(onClick = {
+                    try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://mykiezberlin.com/admin.html#admin-support")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } catch (_: Exception) {}
+                }) { Text("🛠 Support-Meldungen (Web) · Destek bildirimleri", color = Color.White, fontSize = 12.sp) }
 
                 if (message.isNotBlank()) Text(message, color = if (message.contains("✓")) Color(0xFF3FB950) else Color(0xFFF85149), fontSize = 12.sp)
                 TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) { Text("Schließen · Kapat", color = Muted) }

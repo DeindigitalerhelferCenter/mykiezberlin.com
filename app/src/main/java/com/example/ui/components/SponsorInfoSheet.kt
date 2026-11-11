@@ -104,6 +104,13 @@ fun SponsorInfoHost(language: AppLanguage) {
             if (ad.email.isNotBlank()) InfoRow("✉️", L("E-Mail", "E-posta", "E-mail"), ad.email) { open("mailto:" + ad.email) }
             if (ig.isNotBlank()) InfoRow("📸", "Instagram", "@" + ig.trimEnd('/').substringAfterLast('/')) { open(ig) }
             if (web.isNotBlank()) InfoRow("🌐", L("Webseite", "Web sitesi", "Website"), web.removePrefix("https://").removePrefix("http://").removePrefix("www.").trimEnd('/')) { open(web) }
+            // Wrong number, broken link … -> support form (2026-11-11)
+            TextButton(onClick = {
+                SponsorInfoState.current.value = null
+                SupportState.show("sponsor", ad.name)
+            }, modifier = Modifier.fillMaxWidth()) {
+                Text("⚠️ " + L("Fehler melden (falsche Nummer, Link …)", "Hata bildir (yanlış numara, link …)", "Report a problem (wrong number, link …)"), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
     }
 }

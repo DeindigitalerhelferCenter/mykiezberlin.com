@@ -10,5 +10,12 @@ export async function onRequestGet({ request, env }) {
     .prepare(`SELECT id, headline, author, kiez, created_at FROM stories WHERE status = 'pending' AND created_at > ? ORDER BY created_at DESC LIMIT 20`)
     .bind(since)
     .all();
-  return json({ stories: results });
+  // New support messages (2026-11-11) – the admin phone reports them too.
+  let support = [];
+  try {
+    support = (await database.prepare(`SELECT id, topic, sponsor, message, created_at FROM support_messages WHERE status = 'new' AND created_at > ? ORDER BY created_at DESC LIMIT 20`).bind(since).all()).results;
+  } catch (e) {
+    support = []; // table is created with the first message
+  }
+  return json({ stories: results, support });
 }
