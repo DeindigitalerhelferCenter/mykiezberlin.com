@@ -4,7 +4,7 @@
 //      (sender support@, Reply-To = the user – the private forwarding address is never shown).
 // GET  /api/support (admin) -> newest messages;  PATCH /api/support { id, status: "done"|"new" } (admin)
 import { cleanText, db, ipHash, isAdmin, json, noDb, rateLimited } from "../_lib/util.js";
-import { SUPPORT, sendMail } from "../_lib/mail.js";
+import { SUPPORT, lastError, sendMail } from "../_lib/mail.js";
 import { supportReply } from "../_lib/mail-templates.js";
 
 const TOPICS = ["app", "sponsor", "other"];
@@ -51,11 +51,13 @@ export async function onRequestPost({ request, env }) {
     ].filter((l, i, a) => l !== "" || a[i - 1] !== "").join("\n"),
   });
   // Automatic thank-you reply (only when the user gave an e-mail), sender support@ (2026-11-11)
+  let mailed = false;
   if (row.email) {
     const reply = supportReply(body.lang, row.topic, { message: row.message, sponsor: row.sponsor || "-" });
-    await sendMail(env, { to: row.email, from: SUPPORT, subject: reply.subject, text: reply.text });
+    mailed = await sendMail(env, { to: row.email, from: SUPPORT, subject: reply.subject, text: reply.text });
   }
-  return json({ ok: true, id: row.id });
+  // "mailed" only tells whether the reply was accepted for sending (no addresses are returned)
+  return json({ ok: true, id: row.id, mailed, mailError: mailed || !row.email ? "" : lastError.replace(/[\w.+-]+@[\w.-]+/g, "…") });
 }
 
 export async function onRequestGet({ request, env }) {

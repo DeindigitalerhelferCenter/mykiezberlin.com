@@ -23,6 +23,9 @@ function toHtml(text) {
 <p style="font-size:12px;color:#888">mykiezberlin.com · info@mykiezberlin.com</p></div>`;
 }
 
+/** Last provider error (for the admin mail test), e.g. "brevo 401: …". */
+export let lastError = "";
+
 /** Sends a mail. Returns true when the provider accepted it. */
 export async function sendMail(env, { to, subject, text, from = INFO, replyTo = "" }) {
   if (!to || !mailReady(env)) return false;
@@ -41,6 +44,7 @@ export async function sendMail(env, { to, subject, text, from = INFO, replyTo = 
         headers: { "api-key": env.BREVO_API_KEY, "content-type": "application/json", accept: "application/json" },
         body: JSON.stringify(msg),
       });
+      if (!res.ok) lastError = `brevo ${res.status}: ${(await res.text().catch(() => "")).slice(0, 200)}`;
       return res.ok;
     }
     const msg = { from: { email: from, name: "My Kiez Berlin" }, to, subject, text };
@@ -48,6 +52,7 @@ export async function sendMail(env, { to, subject, text, from = INFO, replyTo = 
     await env.EMAIL.send(msg);
     return true;
   } catch (e) {
+    lastError = String(e && e.message || e).slice(0, 200);
     return false;
   }
 }
