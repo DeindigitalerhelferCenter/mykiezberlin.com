@@ -95,7 +95,7 @@ fun SponsorInfoHost(language: AppLanguage) {
                 ) { Text("💬 WhatsApp", fontWeight = FontWeight.Bold) }
             }
             HorizontalDivider()
-            if (ad.address.isNotBlank()) InfoRow("📍", L("Adresse", "Adres", "Address"), ad.address) { if (maps.isNotBlank()) open(maps) }
+            if (ad.address.isNotBlank()) InfoRow("📍", L("Adresse", "Adres", "Address"), ad.address, if (maps.isNotBlank()) ({ open(maps) }) else null)
             if (ad.hours.isNotBlank()) InfoRow("🕒", L("Öffnungszeiten", "Çalışma saatleri", "Opening hours"), ad.hours, null)
             if (ad.contact.isNotBlank()) InfoRow("👤", L("Ansprechpartner", "İletişim kişisi", "Contact person"), ad.contact, null)
             if (tel.isNotBlank()) InfoRow("📞", L("Telefon", "Telefon", "Phone"), ad.linkTel) { open(tel) }

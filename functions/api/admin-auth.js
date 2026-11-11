@@ -167,11 +167,10 @@ export async function onRequestPost({ request, env }) {
   return json({ error: "unknown_action" }, 400);
 }
 
-// Reset mail through a Cloudflare send_email binding named EMAIL (Email Routing must be active for mykiezberlin.com
-// and the admin address must be a verified destination). Without the binding the recovery code is the way back in.
+// Reset mail through a Cloudflare e-mail binding named EMAIL (Cloudflare Email Service "send_email").
+// Not set up yet (2026-11-11): without the binding the recovery code is the way back in.
+// The object form { from, to, subject, text } is used, so no extra module import is needed.
 async function sendResetMail(env, admin, link) {
-  const { EmailMessage } = await import("cloudflare:email");
-  const from = "info@mykiezberlin.com";
   const text = [
     `Hallo ${admin.name},`,
     "",
@@ -181,19 +180,12 @@ async function sendResetMail(env, admin, link) {
     "",
     "Wenn du das nicht warst, ignoriere diese E-Mail.",
     "",
-    "— Merhaba, admin şifren için sıfırlama istendi. Link 1 saat geçerli (yukarıda).",
-  ].join("\r\n");
-  const raw = [
-    `From: My Kiez Berlin <${from}>`,
-    `To: ${admin.email}`,
-    "Subject: =?UTF-8?B?" + btoa(unescape(encodeURIComponent("My Kiez Berlin – Admin-Passwort zurücksetzen"))) + "?=",
-    `Message-ID: <${randomHex(12)}@mykiezberlin.com>`,
-    `Date: ${new Date().toUTCString()}`,
-    "MIME-Version: 1.0",
-    "Content-Type: text/plain; charset=UTF-8",
-    "Content-Transfer-Encoding: 8bit",
-    "",
+    "Merhaba, admin şifren için sıfırlama istendi. Link 1 saat geçerli (yukarıda).",
+  ].join("\n");
+  await env.EMAIL.send({
+    from: { email: "info@mykiezberlin.com", name: "My Kiez Berlin" },
+    to: admin.email,
+    subject: "My Kiez Berlin – Admin-Passwort zurücksetzen",
     text,
-  ].join("\r\n");
-  await env.EMAIL.send(new EmailMessage(from, admin.email, raw));
+  });
 }
