@@ -1,7 +1,7 @@
 // Server-side moderation for all shared content.
 import { isBlockedUrl } from "../_lib/blocklist.js";
 import { cleanText, db, instagramUrl, isAdmin, json, noDb } from "../_lib/util.js";
-import { AD_PLACE_KEYS, planRule } from "../_lib/plans.js";
+import { AD_PLACE_KEYS, parseExtra, planRule } from "../_lib/plans.js";
 import { cleanupOldRequests, KEEP_DAYS, REPLY_KINDS, REQUEST_COLUMNS, replyTemplate, resendWelcome, sendReply, shapeRequest } from "../_lib/ad-requests.js";
 import { mailReady } from "../_lib/mail.js";
 
@@ -112,7 +112,12 @@ async function saveAd(database, ad) {
       logo: adUrl(e.logo), category: pick(e.category), address: cleanText(e.address, 120), hours: cleanText(e.hours, 80),
       coupon: e.coupon && cleanText(e.coupon.code, 30) ? { code: cleanText(e.coupon.code, 30), ...pick(e.coupon) } : undefined,
     };
-    await database.prepare(`UPDATE ads SET extra = ? WHERE id = ?`).bind(JSON.stringify(extra), id).run();
+    // 2026-11-13: keep fields the admin form does not send (contact data, sponsor-panel text, media period)
+    const old = await database.prepare(`SELECT extra FROM ads WHERE id = ?`).bind(id).first();
+    const merged = { ...parseExtra(old?.extra) };
+    for (const [k, v] of Object.entries(extra)) if (v !== undefined) merged[k] = v;
+    if (!extra.coupon && e.coupon !== undefined) delete merged.coupon;   // coupon removed in the form
+    await database.prepare(`UPDATE ads SET extra = ? WHERE id = ?`).bind(JSON.stringify(merged), id).run();
   }
   return json({ ok: true, id });
 }

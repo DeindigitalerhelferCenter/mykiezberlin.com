@@ -493,6 +493,52 @@ object LiveAlertsRepository {
         }
     }
 
+    /**
+     * 2026-11-13: like postStoryMultipartForId, but also returns the HTTP status, so the app can show
+     * "already uploaded" (409) or "name missing" (400). code = 0 means no connection.
+     */
+    data class StoryUploadResult(val id: String?, val code: Int)
+
+    suspend fun postStoryMultipartResult(
+        headline: String,
+        subtext: String,
+        kiez: String,
+        kind: String,
+        durationHours: Int,
+        fileBytes: ByteArray? = null,
+        fileName: String? = null,
+        mimeType: String? = null,
+        author: String = ""
+    ): StoryUploadResult = withContext(Dispatchers.IO) {
+        try {
+            val validDuration = if (durationHours == 48) 48 else 24
+            val builder = MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("headline", headline)
+                .addFormDataPart("subtext", subtext)
+                .addFormDataPart("kiez", kiez)
+                .addFormDataPart("kind", kind)
+                .addFormDataPart("durationHours", validDuration.toString())
+            if (author.isNotBlank()) builder.addFormDataPart("author", author.trim().take(40))
+            if (fileBytes != null && fileBytes.isNotEmpty()) {
+                val requestFile = fileBytes.toRequestBody((mimeType ?: "image/jpeg").toMediaType())
+                builder.addFormDataPart("file", fileName ?: "story_${System.currentTimeMillis()}.jpg", requestFile)
+            }
+            val req = Request.Builder()
+                .url(API_STORIES_URL)
+                .header("User-Agent", "MyKiezBerlin-Android/2.0")
+                .post(builder.build())
+                .build()
+            httpClient.newCall(req).execute().use { resp ->
+                val id = if (resp.isSuccessful) JSONObject(resp.body?.string() ?: "{}").optString("id").ifBlank { null } else null
+                StoryUploadResult(id, resp.code)
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "postStoryMultipartResult notice: ${e.message}")
+            StoryUploadResult(null, 0)
+        }
+    }
+
     /** Same upload as postStoryMultipart, but returns the server story id (or null). */
     suspend fun postStoryMultipartForId(
         headline: String,

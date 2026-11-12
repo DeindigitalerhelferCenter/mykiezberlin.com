@@ -170,6 +170,29 @@ async function loadServerStories() {
   } catch (e) {}
 }
 
+// 2026-11-13: notice window (opens on top of the story form, closes with OK / Esc / click outside)
+function mkStoryNotice(title, text) {
+  document.getElementById("mk-story-notice")?.remove();
+  const box = document.createElement("div");
+  box.id = "mk-story-notice";
+  box.setAttribute("role", "alertdialog");
+  box.setAttribute("aria-modal", "true");
+  box.style.cssText = "position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);padding:16px";
+  box.innerHTML =
+    '<div style="background:var(--surface-color,#fff);color:var(--text-main,#0F172A);max-width:380px;width:100%;border-radius:16px;padding:20px;box-shadow:0 12px 40px rgba(0,0,0,.35)">' +
+    '<div style="font-size:30px;line-height:1">⚠️</div>' +
+    '<h3 style="margin:8px 0 6px;font-size:17px;font-weight:800"></h3><p style="margin:0 0 16px;font-size:14px;line-height:1.45"></p>' +
+    '<button type="button" class="chip-btn active" style="width:100%;padding:10px">OK</button></div>';
+  box.querySelector("h3").textContent = title;
+  box.querySelector("p").textContent = text;
+  const close = () => box.remove();
+  box.querySelector("button").onclick = close;
+  box.addEventListener("click", (e) => { if (e.target === box) close(); });
+  document.addEventListener("keydown", function esc(e) { if (e.key === "Escape") { close(); document.removeEventListener("keydown", esc); } });
+  document.body.appendChild(box);
+  box.querySelector("button").focus();
+}
+
 async function submitUserStory() {
   const headline = document.getElementById("new-story-headline").value.trim();
   const subtext = document.getElementById("new-story-subtext").value.trim();
@@ -183,6 +206,15 @@ async function submitUserStory() {
   const authorField = document.getElementById("new-story-author");
   if (authorField && !authorField.value.trim()) {
     showToast(tr("Bitte gib deinen Namen ein.", "Lütfen adını yaz."));
+    authorField.focus();
+    return;
+  }
+  // 2026-11-13: name or nickname with at least 2 letters/digits (only emoji is not enough)
+  if (authorField && (authorField.value.match(/[\p{L}\p{N}]/gu) || []).length < 2) {
+    mkStoryNotice(
+      tr("Name fehlt", "İsim eksik"),
+      tr("Bitte gib deinen Namen oder Spitznamen ein (mindestens 2 Buchstaben, nicht nur Emojis).", "Lütfen adını veya takma adını yaz (en az 2 harf, sadece emoji olmaz).")
+    );
     authorField.focus();
     return;
   }
@@ -201,6 +233,19 @@ async function submitUserStory() {
       showToast(tr("Danke! Deine Story wird geprüft und dann veröffentlicht.", "Teşekkürler! Hikâyeniz onaylandıktan sonra yayınlanacak."));
     } else if (res.status === 429) {
       showToast(tr("Zu viele Beiträge. Bitte versuche es später.", "Çok fazla gönderi. Lütfen sonra deneyin."));
+      return;
+    } else if (res.status === 409) {
+      // 2026-11-13: same picture/video or same text was already uploaded
+      mkStoryNotice(
+        tr("Schon hochgeladen", "Zaten yüklendi"),
+        tr("Der gleiche Inhalt und das gleiche Bild können nicht zweimal hochgeladen werden.", "Aynı içerik ve aynı resim iki kere yüklenemez.")
+      );
+      return;
+    } else if (res.status === 400) {
+      mkStoryNotice(
+        tr("Name fehlt", "İsim eksik"),
+        tr("Bitte gib deinen Namen oder Spitznamen ein (mindestens 2 Buchstaben, nicht nur Emojis).", "Lütfen adını veya takma adını yaz (en az 2 harf, sadece emoji olmaz).")
+      );
       return;
     } else if (res.status === 413 || res.status === 415) {
       showToast(tr("Bitte ein Bild bis 5 MB oder ein Video bis 50 MB wählen.", "Lütfen 5 MB'a kadar görsel veya 50 MB'a kadar video seçin."));

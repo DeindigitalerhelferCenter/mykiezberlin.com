@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -93,6 +94,25 @@ fun SponsorInfoHost(language: AppLanguage) {
                     colors = ButtonDefaults.buttonColors(containerColor = if (ad.primary == "wa") Color(0xFF1FA855) else MaterialTheme.colorScheme.surfaceVariant,
                         contentColor = if (ad.primary == "wa") Color.White else MaterialTheme.colorScheme.onSurface)
                 ) { Text("💬 WhatsApp", fontWeight = FontWeight.Bold) }
+            }
+            // 2026-11-13: Google Maps directions for customers (only for a real street address)
+            val hasPlace = ad.address.any { it.isDigit() } && !ad.address.contains("Umgebung", true) && !ad.address.contains("Ganz Berlin", true)
+            if (hasPlace) Button(
+                onClick = { open("https://www.google.com/maps/dir/?api=1&destination=" + Uri.encode(ad.name + ", " + ad.address)) },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A73E8), contentColor = Color.White)
+            ) { Text("🗺️ " + L("Route", "Yol tarifi", "Directions"), fontWeight = FontWeight.Bold) }
+            if (ad.description.isNotBlank()) Text(ad.description, fontSize = 14.sp)
+            // Own pictures/videos of the sponsor (sponsor panel)
+            var media by remember(ad.id) { mutableStateOf<List<Pair<String, Boolean>>>(emptyList()) }
+            LaunchedEffect(ad.id) { media = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { AdsRepository.fetchSponsorMedia(ad.id) } }
+            if (media.isNotEmpty()) Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                media.forEach { (url, isVideo) ->
+                    Box(Modifier.size(130.dp).clip(RoundedCornerShape(12.dp)).background(Color.Black).clickable { open(url) }, contentAlignment = Alignment.Center) {
+                        if (isVideo) Text("▶", fontSize = 34.sp, color = Color.White)
+                        else AsyncImage(model = url, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                    }
+                }
             }
             HorizontalDivider()
             if (ad.address.isNotBlank()) InfoRow("📍", L("Adresse", "Adres", "Address"), ad.address, if (maps.isNotBlank()) ({ open(maps) }) else null)

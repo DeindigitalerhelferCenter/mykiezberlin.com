@@ -1564,11 +1564,13 @@ fun StoryCreateDialog(
                     label = { Text(if (language == AppLanguage.TURKISH) "Adın / kullanıcı adın (zorunlu) *" else if (language == AppLanguage.ENGLISH) "Your name / user name (required) *" else "Dein Name / Nutzername (Pflicht) *") },
                     supportingText = {
                         Text(
-                            if (language == AppLanguage.TURKISH) "🏆 Haftanın Kiez Yıldızları bu isimle sayılır" else if (language == AppLanguage.ENGLISH) "🏆 Counts for the Kiez Stars of the week" else "🏆 Zählt für die Kiez-Stars der Woche",
+                            if (author.isNotBlank() && !isValidStoryAuthor(author)) {
+                                if (language == AppLanguage.TURKISH) "⚠️ En az 2 harf – sadece emoji olmaz" else if (language == AppLanguage.ENGLISH) "⚠️ At least 2 letters – emoji only is not enough" else "⚠️ Mindestens 2 Buchstaben – nur Emojis reichen nicht"
+                            } else if (language == AppLanguage.TURKISH) "🏆 Haftanın Kiez Yıldızları bu isimle sayılır" else if (language == AppLanguage.ENGLISH) "🏆 Counts for the Kiez Stars of the week" else "🏆 Zählt für die Kiez-Stars der Woche",
                             fontSize = 11.sp
                         )
                     },
-                    isError = author.isBlank(),
+                    isError = !isValidStoryAuthor(author),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -1784,7 +1786,7 @@ fun StoryCreateDialog(
                             )
                         }
                     },
-                    enabled = headline.isNotBlank() && rulesAccepted && author.isNotBlank(),
+                    enabled = headline.isNotBlank() && rulesAccepted && isValidStoryAuthor(author),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = BerlinRed)
@@ -1874,3 +1876,6 @@ private fun StoryRingImage(url: String, description: String, placeholderRes: Int
         onError = { if (!useFull) { StoryThumbs.resizeAvailable = false; useFull = true } }
     )
 }
+
+/** 2026-11-13: a story author needs a name or nickname with at least 2 letters or digits (not only emoji). */
+fun isValidStoryAuthor(name: String): Boolean = name.count { it.isLetterOrDigit() } >= 2

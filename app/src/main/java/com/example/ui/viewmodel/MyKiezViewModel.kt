@@ -238,6 +238,8 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     init {
+        // 2026-11-13: anonymous visitor counter (/api/visit) – once per app start
+        com.example.data.repository.AdsRepository.trackAppVisit()
         val initialLang = KiezStorageManager.loadLanguage(application)
         val userStories = KiezStorageManager.loadStories(application).map { st ->
             if (st.status == "approved" && st.modNote == "KI: Geprüft & Freigegeben")
@@ -855,6 +857,20 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
         pricePaid: Double = 0.0,
         link: String = ""
     ) {
+        // 2026-11-13: name/nickname required, and the same text cannot be shared twice.
+        val adminNow = _uiState.value.isAdminAuthenticated
+        if (!adminNow && !com.example.ui.components.isValidStoryAuthor(author)) {
+            _uiState.update { it.copy(storySubmissionFeedback = "AUTHOR") }
+            return
+        }
+        if (!adminNow) {
+            val key = storyTextKey(headline, subtext)
+            val already = _uiState.value.allStories.any { !it.id.startsWith("story_") && it.status != "rejected" && storyTextKey(it.headline, it.subtext) == key }
+            if (already) {
+                _uiState.update { it.copy(storySubmissionFeedback = "DUPLICATE") }
+                return
+            }
+        }
         val lowerText = "$headline $subtext $author".lowercase()
         // Moderation filter: Politic, bad words / swearing, 18+ adult content prohibited
         val prohibitedWords = listOf(
@@ -946,7 +962,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                     fileName = "story_${System.currentTimeMillis()}.${if (mimeType.contains("png")) "png" else "jpg"}"
                 } catch (_: Exception) {}
             }
-            val serverId = LiveAlertsRepository.postStoryMultipartForId(
+            val upload = LiveAlertsRepository.postStoryMultipartResult(
                 headline = headline,
                 subtext = subtext,
                 kiez = kiez.ifBlank { "Ganz Berlin" },
@@ -957,6 +973,20 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                 mimeType = mimeType,
                 author = author.ifBlank { "Kiez-User" }
             )
+            val serverId = upload.id
+            if (upload.code == 409 || upload.code == 400) {
+                // Server refused: same picture/text already uploaded (409) or name missing (400).
+                _uiState.update { state ->
+                    val newAll = state.allStories.filterNot { it.id == newStory.id }
+                    KiezStorageManager.saveStories(app, newAll)
+                    state.copy(
+                        allStories = newAll,
+                        customStories = state.customStories.filterNot { it.id == newStory.id },
+                        storySubmissionFeedback = if (upload.code == 409) "DUPLICATE" else "AUTHOR"
+                    )
+                }
+                return@launch
+            }
             if (serverId == null) {
                 android.widget.Toast.makeText(app, "Server-Upload fehlgeschlagen – Story nur auf diesem Handy", android.widget.Toast.LENGTH_LONG).show()
                 return@launch
@@ -1354,3 +1384,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 }
+
+/** 2026-11-13: same rule as storyTextKey on the server (case, spaces and punctuation ignored). */
+fun storyTextKey(headline: String, subtext: String): String =
+    "$headline|$subtext".lowercase().filter { it.isLetterOrDigit() || it == '|' }

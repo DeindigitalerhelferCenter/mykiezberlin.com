@@ -68,6 +68,8 @@
   var LABEL = function () { return '<span class="mk-sp-label">' + L("Anzeige", "Reklam", "Ad") + "</span>"; };
 
   function html(ad, forced) {
+    // 2026-11-13: one card design per package size for the whole site (sponsor-sizes.js), incl. Google Maps route
+    if (typeof window.mkSponsorCardHtml === "function") return window.mkSponsorCardHtml(ad, forced || ad.size);
     var size = forced || ad.size;
     if (size === "large") {
       return '<div class="mk-sp mk-sp-large" data-ad="' + e(ad.id) + '">' + LABEL() +
@@ -114,7 +116,7 @@
         var ad = listAds[(listIndex + Math.floor(i / 6)) % listAds.length];
         var slot = document.createElement("div");
         slot.className = "mk-sp-slot";
-        slot.innerHTML = html(ad, "medium");
+        slot.innerHTML = html(ad);   // 2026-11-13: size from the package (was always "medium")
         cards[i].insertAdjacentElement("afterend", slot);
         track("imp", ad.id);
       }
@@ -125,7 +127,7 @@
       if (withCoupon.length) {
         var box = document.createElement("div");
         box.className = "mk-sp-slot";
-        box.innerHTML = '<h3 class="ext-subheading">🎟️ ' + L("Gutscheine unserer Partner", "Partnerlerimizin kuponları", "Coupons from our partners") + "</h3>" + withCoupon.map(function (a) { return html(a, "medium"); }).join("");
+        box.innerHTML = '<h3 class="ext-subheading">🎟️ ' + L("Gutscheine unserer Partner", "Partnerlerimizin kuponları", "Coupons from our partners") + "</h3>" + withCoupon.map(function (a) { return html(a); }).join("");
         var heading = content.querySelector(".ext-heading");
         if (heading) heading.insertAdjacentElement("afterend", box); else content.appendChild(box);
       }

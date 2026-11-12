@@ -1,0 +1,25 @@
+/* My Kiez Berlin – wide layout for PC and laptop (2026-11-13).
+   Before: the page stopped at 680px / 980px with large empty areas left and right.
+   Now: up to 1440px wide; the bottom navigation has exactly the width of the page;
+   sponsor pictures fill their card (no white bars). Phones are unchanged. */
+:root { --mk-page-w: 100%; }
+@media (min-width: 640px) { :root { --mk-page-w: 680px; } }
+@media (min-width: 1024px) {
+  :root { --mk-page-w: min(1440px, calc(100vw - 48px)); }
+  #app-container { max-width: var(--mk-page-w); }
+}
+/* bottom navigation = page width, centred like the page */
+@media (min-width: 640px) {
+  .bottom-nav { max-width: var(--mk-page-w); border-radius: 0 0 20px 20px; }
+}
+@media (min-width: 1024px) {
+  .bottom-nav { border-radius: 0 0 24px 24px; }
+  .bottom-nav .nav-item { flex: 0 1 160px; }
+  .bottom-nav { justify-content: center; }
+}
+/* wide screens: content a bit more airy */
+@media (min-width: 1280px) {
+  .main-content { padding-left: 28px; padding-right: 28px; gap: 20px; }
+}
+/* sponsor picture cards fill the card */
+.ext-sponsor-img { aspect-ratio: 1200 / 630; height: auto; max-height: none; object-fit: cover; background: #111; }

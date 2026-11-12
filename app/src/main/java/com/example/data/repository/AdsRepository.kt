@@ -51,7 +51,9 @@ data class ServerAd(
     val email: String = "",
     val contact: String = "",
     val fax: String = "",
-    val primary: String = ""
+    val primary: String = "",
+    // 2026-11-13: long text from the sponsor panel (/sponsor)
+    val description: String = ""
 ) {
     /** Best link for a tap: web, Instagram, WhatsApp, phone – in that order. */
     val primaryLink: String
@@ -181,7 +183,8 @@ object AdsRepository {
             email = o.optString("email"),
             contact = o.optString("contact"),
             fax = o.optString("fax"),
-            primary = o.optString("primary")
+            primary = o.optString("primary"),
+            description = o.optString("description")
         )
     }
 
@@ -192,6 +195,32 @@ object AdsRepository {
     }
 
     fun trackClick(id: String) = send("click", listOf(id))
+
+    /** 2026-11-13: anonymous visitor counter (/api/visit, no cookies) – once per app start. */
+    fun trackAppVisit() {
+        scope.launch {
+            try {
+                val body = JSONObject().put("src", "app").toString().toRequestBody("application/json; charset=utf-8".toMediaType())
+                client.newCall(Request.Builder().url("https://mykiezberlin.com/api/visit").header("User-Agent", "MyKiezBerlin-Android/2.0").post(body).build()).execute().close()
+            } catch (_: Exception) {
+            }
+        }
+    }
+
+    /** 2026-11-13: own pictures/videos of a sponsor (uploaded in the sponsor panel). Pair(url, isVideo). */
+    fun fetchSponsorMedia(adId: String): List<Pair<String, Boolean>> = try {
+        client.newCall(Request.Builder().url("https://mykiezberlin.com/api/sponsor-media?ad=" + android.net.Uri.encode(adId)).build()).execute().use { resp ->
+            if (!resp.isSuccessful) emptyList() else {
+                val arr = JSONObject(resp.body?.string() ?: "{}").optJSONArray("media") ?: JSONArray()
+                (0 until minOf(arr.length(), 12)).map { i ->
+                    val m = arr.getJSONObject(i)
+                    Pair("https://mykiezberlin.com" + m.optString("url"), m.optString("media_type") == "video")
+                }
+            }
+        }
+    } catch (_: Exception) {
+        emptyList()
+    }
 
     private fun send(kind: String, ids: List<String>) {
         scope.launch {

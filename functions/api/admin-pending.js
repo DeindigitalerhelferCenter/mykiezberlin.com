@@ -17,5 +17,12 @@ export async function onRequestGet({ request, env }) {
   } catch (e) {
     support = []; // table is created with the first message
   }
-  return json({ stories: results, support });
+  // New sponsor pictures/videos (2026-11-13) – online at once, the admin checks them afterwards.
+  let sponsorMedia = [];
+  try {
+    sponsorMedia = (await database.prepare(`SELECT m.id, m.ad_id, m.media_type, m.created_at, a.name FROM sponsor_media m LEFT JOIN ads a ON a.id = m.ad_id WHERE m.by_admin = 0 AND m.created_at > ? ORDER BY m.created_at DESC LIMIT 20`).bind(since).all()).results;
+  } catch (e) {
+    sponsorMedia = []; // table is created with the first sponsor panel call
+  }
+  return json({ stories: results, support, sponsorMedia });
 }

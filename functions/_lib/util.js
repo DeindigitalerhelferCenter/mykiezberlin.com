@@ -93,6 +93,11 @@ const MIGRATIONS = [
   `ALTER TABLE ad_requests ADD COLUMN note TEXT DEFAULT ''`,
   `ALTER TABLE ad_requests ADD COLUMN mail_log TEXT DEFAULT '[]'`,
   `ALTER TABLE ad_requests ADD COLUMN done_at INTEGER DEFAULT 0`,
+  // 2026-11-13: duplicate stories are refused (same picture/video or same text)
+  `ALTER TABLE stories ADD COLUMN media_hash TEXT DEFAULT ''`,
+  `ALTER TABLE stories ADD COLUMN text_hash TEXT DEFAULT ''`,
+  `CREATE INDEX IF NOT EXISTS idx_stories_media_hash ON stories(media_hash)`,
+  `CREATE INDEX IF NOT EXISTS idx_stories_text_hash ON stories(text_hash)`,
 ];
 
 // Accepts only Instagram post/reel links and returns them in one canonical form.
@@ -160,4 +165,21 @@ export async function isAdmin(request, env) {
   if (!token) return false;
   const database = await db(env).catch(() => null);
   return checkAdminToken(env, database, token);
+}
+
+// 2026-11-13: a story author needs a real name or nickname (at least 2 letters or digits, not only emoji).
+export function validAuthor(name) {
+  const letters = String(name ?? "").match(/[\p{L}\p{N}]/gu);
+  return !!letters && letters.length >= 2;
+}
+
+export async function sha256Hex(data) {
+  const bytes = typeof data === "string" ? new TextEncoder().encode(data) : data;
+  const hash = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+// Same headline + text, ignoring case, spaces and punctuation.
+export function storyTextKey(headline, subtext) {
+  return `${headline}|${subtext}`.toLowerCase().normalize("NFKC").replace(/[^\p{L}\p{N}|]+/gu, "");
 }

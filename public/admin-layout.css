@@ -1,0 +1,43 @@
+/* My Kiez Berlin – admin layout fix (2026-11-13).
+   Problem: styles.css turns .main-content into a 2-column grid from 768px. On the admin page every
+   block landed in a half-wide cell and the grid stretched the quick-link row to the height of the
+   neighbour section, so the buttons became very tall with the text at the top.
+   Fix: the admin page uses one full-width column; the quick links form a compact sticky bar. */
+
+/* Admin uses the whole screen width (up to 1400px) on PC and laptop */
+@media (min-width: 640px) {
+  #app-container { max-width: min(1400px, calc(100vw - 32px)); }
+}
+
+/* One column, blocks keep their own height */
+#admin-main-view {
+  display: block !important;
+  padding: 16px clamp(12px, 3vw, 32px) 40px !important;
+}
+#admin-main-view > * { margin-bottom: 16px; max-width: 100%; }
+
+/* Quick links (Gelen story'ler / Planlayıcı / Destek / Hesap): compact bar that stays on top */
+#admin-main-view .mk-admin-quicknav {
+  position: sticky; top: 58px; z-index: 30;
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  padding: 8px; margin: 0 0 16px; border-radius: 14px;
+  background: #161b22; border: 1px solid #30363d;
+}
+#admin-main-view .mk-admin-quicknav .chip-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: auto; min-height: 40px; padding: 8px 14px; line-height: 1.2;
+  white-space: normal; text-align: center;
+  background: #21262d; border-color: #30363d; color: #e6edf3;
+}
+#admin-main-view .mk-admin-quicknav .chip-btn:hover { border-color: #58a6ff; }
+
+/* Long names, links and tables never push the page wider than the screen */
+#admin-main-view, #admin-main-view * { overflow-wrap: anywhere; }
+#admin-main-view img, #admin-main-view video { max-width: 100%; height: auto; }
+#admin-main-view table { display: block; overflow-x: auto; max-width: 100%; }
+
+/* Phone: quick links in two columns */
+@media (max-width: 520px) {
+  #admin-main-view .mk-admin-quicknav { top: 54px; }
+  #admin-main-view .mk-admin-quicknav .chip-btn { flex: 1 1 calc(50% - 8px); }
+}

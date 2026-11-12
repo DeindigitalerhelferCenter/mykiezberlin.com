@@ -637,7 +637,11 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
             onDismissRequest = { viewModel.clearStoryFeedback() },
             title = {
                 Text(
-                    text = if (feedback == "REJECTED")
+                    text = if (feedback == "DUPLICATE")
+                        (if (uiState.language == AppLanguage.TURKISH) "⚠️ Zaten yüklendi" else if (uiState.language == AppLanguage.ENGLISH) "⚠️ Already uploaded" else "⚠️ Schon hochgeladen")
+                    else if (feedback == "AUTHOR")
+                        (if (uiState.language == AppLanguage.TURKISH) "⚠️ İsim eksik" else if (uiState.language == AppLanguage.ENGLISH) "⚠️ Name missing" else "⚠️ Name fehlt")
+                    else if (feedback == "REJECTED")
                         (if (uiState.language == AppLanguage.TURKISH) "İçerik Reddedildi" else "Beitrag abgelehnt")
                     else
                         if (feedback == "Veröffentlicht") (if (uiState.language == AppLanguage.TURKISH) "Hikâye Yayında! 🎉" else "Story ist online! 🎉")
@@ -647,7 +651,15 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
             },
             text = {
                 Text(
-                    text = if (feedback == "REJECTED") {
+                    text = if (feedback == "DUPLICATE") {
+                        if (uiState.language == AppLanguage.TURKISH) "Aynı içerik ve aynı resim iki kere yüklenemez."
+                        else if (uiState.language == AppLanguage.ENGLISH) "The same content and the same picture cannot be uploaded twice."
+                        else "Der gleiche Inhalt und das gleiche Bild können nicht zweimal hochgeladen werden."
+                    } else if (feedback == "AUTHOR") {
+                        if (uiState.language == AppLanguage.TURKISH) "Lütfen adını veya takma adını yaz (en az 2 harf, sadece emoji olmaz)."
+                        else if (uiState.language == AppLanguage.ENGLISH) "Please enter your name or nickname (at least 2 letters, not only emoji)."
+                        else "Bitte gib deinen Namen oder Spitznamen ein (mindestens 2 Buchstaben, nicht nur Emojis)."
+                    } else if (feedback == "REJECTED") {
                         if (uiState.language == AppLanguage.TURKISH)
                             "Gönderiniz politik, küfür veya 18+ içerik kurallarımıza aykırı olduğu için reddedilmiştir."
                         else

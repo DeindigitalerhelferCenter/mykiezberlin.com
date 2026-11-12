@@ -53,7 +53,7 @@ fun PageSponsorSlot(screenKey: String, language: AppLanguage, activeKiez: String
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         local.forEach { SponsorView(it, "small", language) { hidden = true } }
-        if (coupons.isNotEmpty()) coupons.forEach { SponsorView(it, "medium", language) { hidden = true } }
+        if (coupons.isNotEmpty()) coupons.forEach { SponsorView(it, it.size, language) { hidden = true } }
         else if (ad != null) SponsorView(ad, ad.size, language) { hidden = true }
     }
 }

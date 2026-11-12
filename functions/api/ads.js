@@ -42,6 +42,8 @@ export async function onRequestGet({ request, env }) {
         logo: extra.logo || "", category: extra.category || null, address: extra.address || "", hours: extra.hours || "", coupon: extra.coupon || null,
         // Contact sheet (2026-11-11): shown when the card is tapped; primary = "tel" | "wa" | "" (web/info)
         email: extra.email || "", contact: extra.contact || "", fax: extra.fax || "", primary: extra.primary || "",
+        // 2026-11-13: long text from the sponsor panel
+        description: extra.description || "",
       };
     });
   return json({ ads }, 200, { "cache-control": "no-store" });

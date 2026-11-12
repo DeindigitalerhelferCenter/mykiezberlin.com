@@ -34,3 +34,19 @@ export function parseExtra(value) {
     return {};
   }
 }
+
+// 2026-11-13: own pictures/videos of a sponsor (sponsor panel). The sponsor chooses the period
+// ("day" = last 24 hours, "week" = last 7 days). Values: [pictures, videos]. Keep in sync with public/package-info.js.
+export const MEDIA_QUOTA = {
+  s: { day: [3, 1], week: [15, 5] },
+  m: { day: [5, 2], week: [25, 8] },
+  gp: { day: [5, 2], week: [25, 8] },
+  banner: { day: [5, 2], week: [25, 8] },
+  l: { day: [10, 3], week: [50, 15] },
+};
+
+export function mediaQuota(plan, period) {
+  const q = MEDIA_QUOTA[String(plan || "").toLowerCase()] || MEDIA_QUOTA.s;
+  const p = period === "day" ? "day" : "week";
+  return { period: p, images: q[p][0], videos: q[p][1], windowMs: p === "day" ? 86400000 : 7 * 86400000 };
+}

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Sponsor-Panel · My Kiez Berlin</title>
+<link rel="icon" type="image/png" href="assets/images/mykiez_logo.png">
+<style>
+:root{--red:#E30613;--yellow:#F2B705;--ink:#0F172A;--muted:#475569;--bg:#F6F7F9;--card:#fff;--line:#E2E8F0;--blue:#1A73E8}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45}
+header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.top{max-width:980px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:10px}
+.top img{height:34px}.top b{font-size:16px}.top .sp{flex:1}
+.langs button,.btn2{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-weight:700;cursor:pointer;color:inherit}
+.langs button[aria-pressed=true]{background:var(--ink);color:#fff}
+main{max-width:980px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+h1{font-size:24px;margin:0 0 4px}h2{font-size:18px;margin:0 0 12px}
+.muted{color:var(--muted);font-size:14px}
+label{display:block;font-weight:700;font-size:13.5px;margin:12px 0 4px}
+input[type=text],input[type=email],input[type=tel],input[type=url],textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;background:#fff;color:inherit}
+textarea{min-height:140px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}@media(max-width:640px){.grid2{grid-template-columns:1fr}}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:12px;padding:12px 18px;font-weight:800;font-size:15px;cursor:pointer;background:var(--red);color:#fff;text-decoration:none}
+.btn.blue{background:var(--blue)}.btn:disabled{opacity:.5;cursor:default}
+.msg{margin-top:10px;font-weight:700;font-size:14px}.ok{color:#15803D}.err{color:#B91C1C}
+.stats{display:flex;gap:12px;flex-wrap:wrap}.stat{flex:1;min-width:140px;background:var(--bg);border-radius:12px;padding:12px}.stat b{display:block;font-size:26px}
+.plan{display:inline-block;background:var(--yellow);color:#000;border-radius:8px;padding:2px 10px;font-weight:800;font-size:13px}
+.period{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}.period label{display:flex;align-items:center;gap:8px;margin:0;padding:10px 14px;border:2px solid var(--line);border-radius:12px;cursor:pointer;font-weight:600}
+.period input:checked+span{font-weight:800}.period label:has(input:checked){border-color:var(--red)}
+.media{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:12px}
+.media figure{margin:0;background:var(--bg);border-radius:12px;overflow:hidden;position:relative}
+.media img,.media video{display:block;width:100%;aspect-ratio:1;object-fit:cover;background:#000}
+.media figcaption{font-size:12px;padding:6px 8px;color:var(--muted)}.media .x{position:absolute;top:6px;right:6px;border:0;border-radius:50%;width:30px;height:30px;background:rgba(0,0,0,.65);color:#fff;cursor:pointer}
+.media .hid{position:absolute;left:6px;top:6px;background:#B91C1C;color:#fff;font-size:11px;border-radius:6px;padding:1px 6px}
+.map iframe{width:100%;height:220px;border:0;border-radius:12px;margin-top:10px;background:#e5e3df}
+.hidden{display:none!important}
+progress{width:100%;margin-top:8px}
+</style>
+</head>
+<body>
+<header><div class="top"><img src="assets/images/mykiez_logo.png" alt=""><b>Sponsor-Panel</b><span class="sp"></span>
+<span class="langs"><button data-l="de">DE</button> <button data-l="tr">TR</button></span>
+<button id="logout" class="btn2 hidden" type="button"></button></div></header>
+<main>
+  <!-- Login -->
+  <section id="login" class="card hidden">
+    <h1 data-i="login_h"></h1>
+    <p class="muted" data-i="login_txt"></p>
+    <label for="lmail" data-i="email"></label><input id="lmail" type="email" autocomplete="email">
+    <p><button id="lbtn" class="btn" type="button" data-i="login_btn"></button></p>
+    <p id="lmsg" class="msg"></p>
+    <p class="muted"><span data-i="no_mail"></span> <a href="mailto:info@mykiezberlin.com">info@mykiezberlin.com</a></p>
+  </section>
+
+  <!-- Panel -->
+  <section id="panel" class="hidden">
+    <div class="card">
+      <h1 id="pname"></h1>
+      <p><span class="plan" id="pplan"></span> <span class="muted" id="pend"></span></p>
+      <div class="stats">
+        <div class="stat"><b id="sviews">0</b><span class="muted" data-i="views"></span></div>
+        <div class="stat"><b id="sclicks">0</b><span class="muted" data-i="clicks"></span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📸 <span data-i="media_h"></span></h2>
+      <p class="muted" data-i="period_txt"></p>
+      <div class="period">
+        <label><input type="radio" name="period" value="day"><span data-i="daily"></span></label>
+        <label><input type="radio" name="period" value="week"><span data-i="weekly"></span></label>
+      </div>
+      <p class="muted" id="quota"></p>
+      <label for="mfile" data-i="file"></label><input id="mfile" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm">
+      <label for="mcap" data-i="caption"></label><input id="mcap" type="text" maxlength="300">
+      <p><button id="mbtn" class="btn" type="button" data-i="upload"></button></p>
+      <progress id="mprog" class="hidden" max="100" value="0"></progress>
+      <p id="mmsg" class="msg"></p>
+      <div id="mlist" class="media"></div>
+    </div>
+
+    <div class="card">
+      <h2>✏️ <span data-i="data_h"></span></h2>
+      <div class="grid2">
+        <div><label for="f_headline_de" data-i="hl_de"></label><input id="f_headline_de" type="text" maxlength="200"></div>
+        <div><label for="f_headline_tr" data-i="hl_tr"></label><input id="f_headline_tr" type="text" maxlength="200"></div>
+      </div>
+      <label for="f_headline_en" data-i="hl_en"></label><input id="f_headline_en" type="text" maxlength="200">
+      <label for="f_description" data-i="desc"></label><textarea id="f_description" maxlength="5000"></textarea>
+      <div class="grid2">
+        <div><label for="f_address" data-i="address"></label><input id="f_address" type="text" maxlength="120"></div>
+        <div><label for="f_hours" data-i="hours"></label><input id="f_hours" type="text" maxlength="80"></div>
+        <div><label for="f_link_tel" data-i="tel"></label><input id="f_link_tel" type="tel" maxlength="40"></div>
+        <div><label for="f_link_wa" data-i="wa"></label><input id="f_link_wa" type="tel" maxlength="40"></div>
+        <div><label for="f_link_web" data-i="web"></label><input id="f_link_web" type="url" maxlength="300"></div>
+        <div><label for="f_link_ig" data-i="ig"></label><input id="f_link_ig" type="url" maxlength="300"></div>
+        <div><label for="f_email" data-i="pmail"></label><input id="f_email" type="email" maxlength="120"></div>
+      </div>
+      <div class="map" id="map"></div>
+      <p><button id="sbtn" class="btn" type="button" data-i="save"></button> <a id="route" class="btn blue hidden" target="_blank" rel="noopener">🗺️ <span data-i="route"></span></a></p>
+      <p id="smsg" class="msg"></p>
+    </div>
+    <p class="muted" data-i="rules"></p>
+  </section>
+</main>
+<script>
+(function () {
+  "use strict";
+  var T = {
+    de: { login_h: "Sponsor-Panel", login_txt: "Gib die E-Mail-Adresse ein, die du uns als Sponsor genannt hast. Wir schicken dir einen Link zum Panel.", email: "E-Mail", login_btn: "Link senden", sent: "Wenn die Adresse bei uns hinterlegt ist, kommt der Link gleich per E-Mail.", no_mail: "Keine E-Mail bekommen? Schreib uns:", logout: "Abmelden", views: "Mal gesehen (30 Tage)", clicks: "Klicks (30 Tage)", media_h: "Eigene Bilder & Videos", period_txt: "Du entscheidest, ob dein Limit pro Tag oder pro Woche gilt.", daily: "Täglich", weekly: "Wöchentlich", file: "Bild (bis 5 MB) oder Video (bis 50 MB)", caption: "Text zum Bild (optional)", upload: "Hochladen", data_h: "Deine Angaben", hl_de: "Kurztext Deutsch", hl_tr: "Kurztext Türkisch", hl_en: "Kurztext Englisch", desc: "Beschreibung (Text ohne Limit)", address: "Adresse (für Google Maps)", hours: "Öffnungszeiten", tel: "Telefon", wa: "WhatsApp-Nummer", web: "Webseite", ig: "Instagram", pmail: "Öffentliche E-Mail", save: "Speichern", route: "Route testen", saved: "Gespeichert ✓", until: "läuft bis", unlimited: "ohne Enddatum", quota: function (q) { return "Noch frei " + (q.period === "day" ? "heute" : "diese Woche") + ": " + Math.max(0, q.images - q.usedImages) + " von " + q.images + " Bildern, " + Math.max(0, q.videos - q.usedVideos) + " von " + q.videos + " Videos."; }, uploaded: "Hochgeladen ✓ – ist jetzt online.", del_q: "Wirklich löschen?", hidden: "vom Admin ausgeblendet", rules: "Bitte nur eigene Bilder/Videos ohne Rechte Dritter, keine Politik, keine Beleidigungen, keine 18+-Inhalte. Der Admin kann Inhalte jederzeit ausblenden oder löschen.", errors: { quota_reached: "Limit erreicht – bitte später wieder oder auf „Wöchentlich“/„Täglich“ wechseln.", file_too_large: "Datei zu groß.", unsupported_file: "Nur JPG, PNG, WebP, MP4 oder WebM.", link_blocked: "Dieser Link ist gesperrt.", email_invalid: "E-Mail ungültig.", unauthorized: "Link abgelaufen – bitte neu anmelden.", too_many_attempts: "Zu viele Versuche – bitte 1 Stunde warten.", missing_file: "Bitte eine Datei wählen.", offline: "Keine Verbindung." } },
+    tr: { login_h: "Sponsor paneli", login_txt: "Sponsor olarak bize verdiğin e-posta adresini yaz. Panele giriş linkini sana göndereceğiz.", email: "E-posta", login_btn: "Link gönder", sent: "Adres bizde kayıtlıysa link birazdan e-postayla gelir.", no_mail: "E-posta gelmedi mi? Bize yaz:", logout: "Çıkış", views: "Görüntülenme (30 gün)", clicks: "Tıklama (30 gün)", media_h: "Kendi resim & videoların", period_txt: "Limitin günlük mü haftalık mı geçerli olacağına sen karar ver.", daily: "Günlük", weekly: "Haftalık", file: "Resim (5 MB'a kadar) veya video (50 MB'a kadar)", caption: "Resim metni (isteğe bağlı)", upload: "Yükle", data_h: "Bilgilerin", hl_de: "Kısa metin Almanca", hl_tr: "Kısa metin Türkçe", hl_en: "Kısa metin İngilizce", desc: "Açıklama (sınırsız metin)", address: "Adres (Google Maps için)", hours: "Çalışma saatleri", tel: "Telefon", wa: "WhatsApp numarası", web: "Web sitesi", ig: "Instagram", pmail: "Herkese açık e-posta", save: "Kaydet", route: "Yol tarifini dene", saved: "Kaydedildi ✓", until: "bitiş", unlimited: "bitiş tarihi yok", quota: function (q) { return (q.period === "day" ? "Bugün" : "Bu hafta") + " kalan: " + Math.max(0, q.images - q.usedImages) + "/" + q.images + " resim, " + Math.max(0, q.videos - q.usedVideos) + "/" + q.videos + " video."; }, uploaded: "Yüklendi ✓ – şimdi yayında.", del_q: "Gerçekten silinsin mi?", hidden: "admin tarafından gizlendi", rules: "Lütfen sadece kendi resim/videolarını yükle; başkalarının hakları, politika, küfür ve 18+ içerik yasak. Admin içerikleri her zaman gizleyebilir veya silebilir.", errors: { quota_reached: "Limit doldu – sonra tekrar dene veya „Haftalık“/„Günlük“ seç.", file_too_large: "Dosya çok büyük.", unsupported_file: "Sadece JPG, PNG, WebP, MP4 veya WebM.", link_blocked: "Bu link engelli.", email_invalid: "E-posta geçersiz.", unauthorized: "Linkin süresi doldu – lütfen tekrar giriş yap.", too_many_attempts: "Çok fazla deneme – lütfen 1 saat bekle.", missing_file: "Lütfen bir dosya seç.", offline: "Bağlantı yok." } },
+  };
+  var lang = (function () { var l = new URLSearchParams(location.search).get("lang"); try { l = l || localStorage.getItem("mkb_lang"); } catch (e) {} l = l || (navigator.language || "de").slice(0, 2); return T[l] ? l : "de"; })();
+  var KEY = "mk_sponsor_token";
+  var token = "";
+  try { token = new URLSearchParams(location.search).get("t") || localStorage.getItem(KEY) || ""; if (token) localStorage.setItem(KEY, token); } catch (e) {}
+  if (new URLSearchParams(location.search).get("t")) history.replaceState(null, "", "/sponsor");
+  var $ = function (id) { return document.getElementById(id); };
+  var state = null;
+  var FIELDS = ["headline_de", "headline_tr", "headline_en", "description", "address", "hours", "link_tel", "link_wa", "link_web", "link_ig", "email"];
+
+  function t(k) { return T[lang][k]; }
+  function errText(j) { return (T[lang].errors[j && j.error] || "Fehler · Hata (" + ((j && (j.error || j.status)) || "?") + ")"); }
+  function msg(id, text, ok) { var n = $(id); n.className = "msg " + (ok ? "ok" : "err"); n.textContent = text; }
+  function apply() {
+    document.documentElement.lang = lang;
+    document.querySelectorAll("[data-i]").forEach(function (el) { var v = T[lang][el.getAttribute("data-i")]; if (typeof v === "string") el.textContent = v; });
+    document.querySelectorAll(".langs button").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.l === lang); });
+    $("logout").textContent = t("logout");
+    if (state) render();
+  }
+  document.querySelectorAll(".langs button").forEach(function (b) { b.onclick = function () { lang = b.dataset.l; try { localStorage.setItem("mkb_lang", lang); } catch (e) {} apply(); }; });
+
+  function api(action, data) {
+    return fetch("/api/sponsor-panel", { method: "POST", headers: { "content-type": "application/json", "x-sponsor-token": token }, body: JSON.stringify(Object.assign({ action: action }, data || {})) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { j.status = r.status; return j; }); })
+      .catch(function () { return { error: "offline" }; });
+  }
+
+  function showLogin() { $("login").classList.remove("hidden"); $("panel").classList.add("hidden"); $("logout").classList.add("hidden"); }
+  $("lbtn").onclick = function () {
+    $("lbtn").disabled = true;
+    api("requestLink", { email: $("lmail").value }).then(function (j) { $("lbtn").disabled = false; if (j.ok) msg("lmsg", t("sent"), true); else msg("lmsg", errText(j), false); });
+  };
+  $("logout").onclick = function () { try { localStorage.removeItem(KEY); } catch (e) {} token = ""; state = null; showLogin(); };
+
+  function maps(ad) {
+    var q = encodeURIComponent((ad.name || "") + ", " + (ad.address || ""));
+    if (ad.address && /\d/.test(ad.address)) {
+      $("map").innerHTML = '<iframe loading="lazy" src="https://maps.google.com/maps?q=' + q + '&z=16&output=embed" title="Map"></iframe>';
+      $("route").href = "https://www.google.com/maps/dir/?api=1&destination=" + q;
+      $("route").classList.remove("hidden");
+    } else { $("map").innerHTML = ""; $("route").classList.add("hidden"); }
+  }
+
+  function render() {
+    var ad = state.ad;
+    $("pname").textContent = ad.name;
+    $("pplan").textContent = { s: "Kiez Basic", m: "Kiez Plus", l: "Kiez Premium", gp: "Gründungspartner", banner: "Banner" }[ad.plan] || ad.plan || "Sponsor";
+    $("pend").textContent = ad.end_at ? t("until") + " " + new Date(ad.end_at).toLocaleDateString(lang) : t("unlimited");
+    $("sviews").textContent = state.stats.views; $("sclicks").textContent = state.stats.clicks;
+    document.querySelectorAll("input[name=period]").forEach(function (r) { r.checked = r.value === ad.media_period; });
+    $("quota").textContent = t("quota")(state.quota);
+    var list = $("mlist"); list.innerHTML = "";
+    state.media.forEach(function (m) {
+      var fig = document.createElement("figure");
+      var src = "/media/" + m.media_key;
+      fig.innerHTML = (m.media_type === "video" ? '<video src="' + src + '" controls preload="metadata"></video>' : '<img src="' + src + '" alt="" loading="lazy">') +
+        (m.status === "hidden" ? '<span class="hid"></span>' : "") + '<button class="x" type="button" aria-label="Delete">✕</button><figcaption></figcaption>';
+      fig.querySelector("figcaption").textContent = m.caption || new Date(m.created_at).toLocaleString(lang);
+      if (m.status === "hidden") fig.querySelector(".hid").textContent = t("hidden");
+      fig.querySelector(".x").onclick = function () { if (!confirm(t("del_q"))) return; api("deleteMedia", { id: m.id }).then(load); };
+      list.appendChild(fig);
+    });
+  }
+  function fill() { FIELDS.forEach(function (k) { $("f_" + k).value = state.ad[k] || ""; }); maps(state.ad); }
+
+  function load() {
+    return api("me").then(function (j) {
+      if (j.status === 401 || !j.ad) { showLogin(); if (token) msg("lmsg", errText({ error: "unauthorized" }), false); return; }
+      var first = !state; state = j;
+      $("login").classList.add("hidden"); $("panel").classList.remove("hidden"); $("logout").classList.remove("hidden");
+      if (first) fill();
+      render();
+    });
+  }
+
+  document.querySelectorAll("input[name=period]").forEach(function (r) {
+    r.onchange = function () { api("update", { fields: { media_period: r.value } }).then(load); };
+  });
+  $("sbtn").onclick = function () {
+    var fields = {}; FIELDS.forEach(function (k) { fields[k] = $("f_" + k).value; });
+    $("sbtn").disabled = true;
+    api("update", { fields: fields }).then(function (j) {
+      $("sbtn").disabled = false;
+      if (j.ok) { msg("smsg", t("saved"), true); state.ad = Object.assign(state.ad, fields); maps(state.ad); } else msg("smsg", errText(j), false);
+    });
+  };
+  $("mbtn").onclick = function () {
+    var file = $("mfile").files[0];
+    if (!file) { msg("mmsg", errText({ error: "missing_file" }), false); return; }
+    var fd = new FormData(); fd.append("file", file); fd.append("caption", $("mcap").value);
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/sponsor-media"); xhr.setRequestHeader("x-sponsor-token", token);
+    $("mprog").classList.remove("hidden"); $("mbtn").disabled = true;
+    xhr.upload.onprogress = function (ev) { if (ev.lengthComputable) $("mprog").value = Math.round(ev.loaded / ev.total * 100); };
+    xhr.onloadend = function () {
+      $("mprog").classList.add("hidden"); $("mbtn").disabled = false;
+      var j = {}; try { j = JSON.parse(xhr.responseText); } catch (e) {} j.status = xhr.status;
+      if (xhr.status === 201) { msg("mmsg", t("uploaded"), true); $("mfile").value = ""; $("mcap").value = ""; load(); }
+      else msg("mmsg", errText(xhr.status === 0 ? { error: "offline" } : j), false);
+    };
+    xhr.send(fd);
+  };
+
+  apply();
+  if (token) load(); else showLogin();
+})();
+</script>
+</body>
+</html>

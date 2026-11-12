@@ -7,6 +7,7 @@
   <link rel="icon" type="image/png" href="assets/images/mykiez_logo.png">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="admin-layout.css?v=1">
 </head>
 <body style="background-color: #0d1117;">
 
@@ -158,7 +159,7 @@
         </div>
 
         <!-- 2026-11-11: the old demo list (browser storage only) is no longer shown; real stories are below (server). -->
-        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;">
+        <div class="mk-admin-quicknav" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;">
           <a href="#admin-moderation" class="chip-btn" style="text-decoration: none;">📥 Gelen story'ler · Eingang</a>
           <a href="#admin-planner" class="chip-btn" style="text-decoration: none;">📅 Planlayıcı</a>
           <a href="#admin-support" class="chip-btn" style="text-decoration: none;">🛠 Destek</a>
@@ -221,5 +222,6 @@
   <script src="admin-requests.js?v=1"></script>
   <script src="admin-planner.js?v=3"></script>
   <script src="admin-auth-ui.js?v=3"></script>
+  <script src="admin-sponsors.js?v=1"></script>
 </body>
 </html>
