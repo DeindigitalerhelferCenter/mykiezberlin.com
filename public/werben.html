@@ -192,6 +192,7 @@ footer a{color:var(--muted)}
         <label><span><span data-i="l_email"></span> <span class="req" aria-hidden="true">*</span></span><input name="email" type="email" required maxlength="120" autocomplete="email"></label>
         <label><span data-i="l_phone"></span><input name="phone" type="tel" maxlength="40" autocomplete="tel"></label>
       </div>
+      <label><span data-i="l_address"></span><input name="address" maxlength="200" autocomplete="street-address"></label>
       <label><span><span data-i="l_interest"></span> <span class="req" aria-hidden="true">*</span></span><select name="size" required>
         <option value="" data-i="o_pick" disabled selected></option>
         <option value="s" data-i="o_s"></option><option value="m" data-i="o_m"></option><option value="l" data-i="o_l"></option><option value="banner" data-i="o_b"></option><option value="gp" data-i="o_gp"></option></select></label>
@@ -223,7 +224,7 @@ de:{pay_btn:"Jetzt per Karte buchen – 3 Monate 19 €/Monat",pay_txt:"Danke! D
  b_where:"Wo erscheint dein Banner?",b1:"Sponsor-Leiste auf der Startseite",b2:"Zwischen den Einträgen",b3:"Gezielt in passenden Kiezen und Kategorien",b4:"Im Kiez-Quiz und in der App",
  b_report:"Monatlicher Bericht",b_report_txt:"Du bekommst jeden Monat, wie oft dein Banner gesehen und angeklickt wurde. Wir zählen anonym, ohne Cookies.",
  b_jobs:"Job „Dringend“",b_jobs_txt:"Job-Anzeigen sind kostenlos. Für 29 € steht deine Anzeige 30 Tage ganz oben, markiert als „Dringend“.",
- h_form:"Anfrage senden",l_company:"Betrieb / Firma",l_person:"Ansprechperson",l_email:"E-Mail",l_phone:"Telefon",l_interest:"Interesse an",l_msg:"Nachricht (optional)",
+ h_form:"Anfrage senden",l_company:"Betrieb / Firma",l_person:"Ansprechperson",l_email:"E-Mail",l_phone:"Telefon",l_address:"Adresse des Betriebs (optional)",l_interest:"Interesse an",l_msg:"Nachricht (optional)",
  o_s:"Kiez Basic – 29 €/Monat",o_m:"Kiez Plus – 49 €/Monat",o_l:"Kiez Premium – 89 €/Monat",o_b:"Banner-Sponsoring",
  consent:"Ich bin einverstanden, dass meine Angaben zur Bearbeitung der Anfrage gespeichert werden ({ds}).",ds_word:"Datenschutzerklärung",send:"Anfrage senden",
  ok:"Danke! Wir melden uns innerhalb von zwei Werktagen.",err:"Bitte Firma und eine gültige E-Mail angeben.",err_rate:"Zu viele Anfragen. Bitte schreib uns per E-Mail.",err_net:"Keine Verbindung. Bitte schreib uns per E-Mail.",or_mail:"Oder per E-Mail:",imp:"Impressum",ds:"Datenschutz",
@@ -242,7 +243,7 @@ tr:{pay_btn:"Şimdi kartla satın al – ilk 3 ay 19 €/ay",pay_txt:"Teşekkür
  b_where:"Banner'ın nerede görünür?",b1:"Ana sayfadaki sponsor şeridi",b2:"Kayıtların arasında",b3:"Uygun mahalle ve kategorilerde hedefli",b4:"Kiez Quiz'de ve uygulamada",
  b_report:"Aylık rapor",b_report_txt:"Her ay banner'ının kaç kez görüldüğünü ve tıklandığını bildiririz. Anonim sayıyoruz, çerez kullanmadan.",
  b_jobs:"„Acil“ iş ilanı",b_jobs_txt:"İş ilanları ücretsizdir. 29 € ile ilanın 30 gün boyunca en üstte, „Acil“ işaretiyle görünür.",
- h_form:"Talep gönder",l_company:"İşletme / firma",l_person:"İletişim kişisi",l_email:"E-posta",l_phone:"Telefon",l_interest:"İlgilendiğin",l_msg:"Mesaj (isteğe bağlı)",
+ h_form:"Talep gönder",l_company:"İşletme / firma",l_person:"İletişim kişisi",l_email:"E-posta",l_phone:"Telefon",l_address:"İşletme adresi (isteğe bağlı)",l_interest:"İlgilendiğin",l_msg:"Mesaj (isteğe bağlı)",
  o_s:"Kiez Basic – 29 €/ay",o_m:"Kiez Plus – 49 €/ay",o_l:"Kiez Premium – 89 €/ay",o_b:"Banner sponsorluğu",
  consent:"Bilgilerimin talebin işlenmesi için saklanmasını kabul ediyorum ({ds}).",ds_word:"Gizlilik politikası",send:"Talebi gönder",
  ok:"Teşekkürler! İki iş günü içinde sana döneceğiz.",err:"Lütfen firma adı ve geçerli bir e-posta gir.",err_rate:"Çok fazla talep. Lütfen e-posta ile yaz.",err_net:"Bağlantı yok. Lütfen e-posta ile yaz.",or_mail:"Veya e-posta ile:",imp:"Künye",ds:"Gizlilik",
@@ -261,7 +262,7 @@ en:{pay_btn:"Book now by card – 3 months €19/month",pay_txt:"Thank you! Your
  b_where:"Where does your banner appear?",b1:"Sponsor strip on the home page",b2:"Between listings",b3:"Targeted to matching Kieze and categories",b4:"In the Kiez quiz and the app",
  b_report:"Monthly report",b_report_txt:"Every month you get how often your banner was seen and clicked. We count anonymously, without cookies.",
  b_jobs:"“Urgent” job ad",b_jobs_txt:"Job ads are free. For €29 your ad stays at the top for 30 days, marked “Urgent”.",
- h_form:"Send a request",l_company:"Business / company",l_person:"Contact person",l_email:"Email",l_phone:"Phone",l_interest:"Interested in",l_msg:"Message (optional)",
+ h_form:"Send a request",l_company:"Business / company",l_person:"Contact person",l_email:"Email",l_phone:"Phone",l_address:"Business address (optional)",l_interest:"Interested in",l_msg:"Message (optional)",
  o_s:"Kiez Basic – €29/month",o_m:"Kiez Plus – €49/month",o_l:"Kiez Premium – €89/month",o_b:"Banner sponsorship",
  consent:"I agree that my details are stored to handle this request ({ds}).",ds_word:"privacy policy",send:"Send request",
  ok:"Thank you! We'll get back to you within two working days.",err:"Please enter a company name and a valid email.",err_rate:"Too many requests. Please email us.",err_net:"No connection. Please email us.",or_mail:"Or by email:",imp:"Legal notice",ds:"Privacy",
@@ -289,7 +290,7 @@ document.getElementById('f').addEventListener('submit', function (e) {
   var f = e.target, g = function (k) { return f.elements[k].value.trim(); };
   if (!f.elements.consent.checked || !f.reportValidity()) return;
   var btn = f.querySelector('button'); btn.disabled = true;
-  fetch('/api/werben', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ company: g('company'), person: g('person'), email: g('email'), phone: g('phone'), size: g('size'), message: g('message'), hp: g('hp'), lang: lang }) })
+  fetch('/api/werben', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ company: g('company'), person: g('person'), email: g('email'), phone: g('phone'), address: g('address'), size: g('size'), message: g('message'), hp: g('hp'), lang: lang }) })
     .then(function (r) { return r.json(); })
     .then(function (j) {
       if (j.ok && j.checkoutUrl) document.getElementById('formBox').innerHTML = '<div class="ok paybox"><span>' + esc(T[lang].pay_txt) + '</span><a class="btn pay" href="' + esc(j.checkoutUrl) + '" rel="noopener">' + esc(T[lang].pay_btn) + '</a></div>';

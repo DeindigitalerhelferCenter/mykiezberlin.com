@@ -88,6 +88,11 @@ const MIGRATIONS = [
   `ALTER TABLE stories ADD COLUMN link TEXT DEFAULT ''`,
   `ALTER TABLE stories ADD COLUMN by_admin INTEGER DEFAULT 0`,
   `ALTER TABLE ads ADD COLUMN extra TEXT DEFAULT ''`,
+  // 2026-11-12: advertising requests – address, admin note, mail log, done date (90-day cleanup)
+  `ALTER TABLE ad_requests ADD COLUMN address TEXT DEFAULT ''`,
+  `ALTER TABLE ad_requests ADD COLUMN note TEXT DEFAULT ''`,
+  `ALTER TABLE ad_requests ADD COLUMN mail_log TEXT DEFAULT '[]'`,
+  `ALTER TABLE ad_requests ADD COLUMN done_at INTEGER DEFAULT 0`,
 ];
 
 // Accepts only Instagram post/reel links and returns them in one canonical form.

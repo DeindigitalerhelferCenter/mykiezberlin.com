@@ -3,6 +3,7 @@ import { cleanText, db, isAdmin, json, noDb } from "../_lib/util.js";
 import { createCheckout, REQUEST_SIZES } from "../_lib/werbung.js";
 import { INFO, sendMail } from "../_lib/mail.js";
 import { lang as pickLang, werbenReply } from "../_lib/mail-templates.js";
+import { cleanupOldRequests, REQUEST_COLUMNS, sendLogged, shapeRequest } from "../_lib/ad-requests.js";
 
 const SIZE_NAMES = { s: "Kiez Basic (29 €)", m: "Kiez Plus (49 €)", l: "Kiez Premium (89 €)", banner: "Banner", gp: "Gründungspartner" };
 
@@ -20,6 +21,7 @@ export async function onRequestPost({ request, env }) {
     person: cleanText(body.person, 80),
     email: cleanText(body.email, 120).toLowerCase(),
     phone: cleanText(body.phone, 40).replace(/[^\d+ ()/-]/g, ""),
+    address: cleanText(body.address, 200),
     size: REQUEST_SIZES.includes(body.size) ? body.size : "s",
     message: String(body.message ?? "").replace(/[<>]/g, "").trim().slice(0, 1000),
   };
@@ -33,6 +35,7 @@ export async function onRequestPost({ request, env }) {
     .prepare(`INSERT INTO ad_requests (id, company, person, email, phone, size, message, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'new', ?)`)
     .bind(row.id, row.company, row.person, row.email, row.phone, row.size, row.message, Date.now())
     .run();
+  if (row.address) await database.prepare(`UPDATE ad_requests SET address = ? WHERE id = ?`).bind(row.address, row.id).run().catch(() => {});
 
   let checkoutUrl = "";
   const checkout = await createCheckout(env, new URL(request.url).origin, row).catch(() => null);
@@ -42,12 +45,13 @@ export async function onRequestPost({ request, env }) {
   }
   // Copy of the request to info@mykiezberlin.com (only if the EMAIL binding exists; the admin panel always has it).
   // From = info@, Reply-To = the customer, so an answer never shows a private address.
-  await sendMail(env, {
+  // Every mail is written into the request's mail log, so the admin sees whether it went out (2026-11-12).
+  await sendLogged(env, database, row.id, "copy", {
     to: INFO,
     replyTo: row.email,
     subject: `Neue Werbeanfrage: ${row.company} – ${SIZE_NAMES[row.size] || row.size}`,
     text: [
-      `Firma: ${row.company}`, `Ansprechpartner: ${row.person || "-"}`, `E-Mail: ${row.email}`, `Telefon: ${row.phone || "-"}`,
+      `Firma: ${row.company}`, `Ansprechpartner: ${row.person || "-"}`, `E-Mail: ${row.email}`, `Telefon: ${row.phone || "-"}`, `Adresse: ${row.address || "-"}`,
       `Paket: ${SIZE_NAMES[row.size] || row.size}`, "", row.message || "(keine Nachricht)", "", `Anfrage-ID: ${row.id}`,
     ].join("\n"),
   });
@@ -55,8 +59,8 @@ export async function onRequestPost({ request, env }) {
   const l = pickLang(body.lang);
   await database.prepare(`UPDATE ad_requests SET lang = ? WHERE id = ?`).bind(l, row.id).run().catch(() => {});
   const reply = werbenReply(l, { name: row.person || row.company, company: row.company, package: SIZE_NAMES[row.size] || row.size, payable: Boolean(checkoutUrl) });
-  await sendMail(env, { to: row.email, from: INFO, subject: reply.subject, text: reply.text });
-  return json({ ok: true, id: row.id, checkoutUrl, payable: Boolean(checkoutUrl) });
+  const welcome = await sendLogged(env, database, row.id, "welcome", { to: row.email, from: INFO, subject: reply.subject, text: reply.text });
+  return json({ ok: true, id: row.id, checkoutUrl, payable: Boolean(checkoutUrl), mailSent: welcome.ok });
 }
 
 // Admin: newest requests (also used by the app to notify the admin).
@@ -64,8 +68,9 @@ export async function onRequestGet({ request, env }) {
   if (!(await isAdmin(request, env))) return json({ error: "unauthorized" }, 401);
   const database = await db(env);
   if (!database) return noDb();
+  await cleanupOldRequests(database);
   const { results } = await database
-    .prepare(`SELECT id, company, person, email, phone, size, message, status, paid_until, created_at FROM ad_requests ORDER BY created_at DESC LIMIT 100`)
+    .prepare(`SELECT ${REQUEST_COLUMNS} FROM ad_requests ORDER BY created_at DESC LIMIT 100`)
     .all();
-  return json({ requests: results, stripe: Boolean(env.STRIPE_SECRET_KEY), webhook: Boolean(env.STRIPE_WEBHOOK_SECRET) });
+  return json({ requests: results.map(shapeRequest), stripe: Boolean(env.STRIPE_SECRET_KEY), webhook: Boolean(env.STRIPE_WEBHOOK_SECRET) });
 }

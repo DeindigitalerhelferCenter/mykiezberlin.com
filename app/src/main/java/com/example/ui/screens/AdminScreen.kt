@@ -620,18 +620,9 @@ fun AdminScreen(
                 }
 
                 "requests" -> {
+                    // 2026-11-12: real requests from the server (was a fixed demo card "ErsenBox")
                     item {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1C252E))
-                        ) {
-                            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Text("ErsenBox (Banner-Werbung)", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
-                                Text("Ersen Bakıcı · bakiciersen@gmail.com", color = Color(0xFFA9B3BC), fontSize = 12.sp)
-                                Text("Status: Ausstehende Prüfung", color = BerlinYellow, fontSize = 11.sp)
-                            }
-                        }
+                        AdminAdRequestsPanel(turkish = language == AppLanguage.TURKISH)
                     }
                 }
 

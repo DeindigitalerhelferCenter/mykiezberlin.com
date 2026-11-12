@@ -24,6 +24,10 @@ const REQUEST_LABELS = { new: "Neu", contacted: "Kontaktiert", paid: "Bezahlt", 
 const SIZE_LABELS = { s: "Kiez Basic 29 €", m: "Kiez Plus 49 €", l: "Kiez Premium 89 €", banner: "Banner", gp: "Gründungspartner" };
 let adminAds = [];
 let adminAdRequests = [];
+// 2026-11-12: filter for the request list (open = new/contacted/paid, done = done/canceled)
+let adRequestFilter = "open";
+let adRequestKeepDays = 90;
+let adMailReady = true;
 
 const baseLoadModerationQueue = loadModerationQueue;
 loadModerationQueue = async function () {
@@ -49,11 +53,14 @@ async function loadWerbungSection() {
     const requests = data.adRequests || [];
     adminAds = data.ads || [];
     adminAdRequests = requests;
+    adRequestKeepDays = data.requestKeepDays || 90;
+    adMailReady = data.mailReady !== false;
     const fresh = requests.filter((r) => r.status === "new").length;
     box.innerHTML = `
       <h2 style="font-size: 17px; font-weight: 800; color: #fff; margin-bottom: 6px;">Werbeanfragen (${requests.length}${fresh ? `, ${fresh} neu` : ""})</h2>
       <p style="font-size: 12px; color: #8b949e; margin-bottom: 10px;">Stripe: ${data.stripe ? "verbunden" : "STRIPE_SECRET_KEY fehlt"} · Webhook: ${data.stripeWebhook ? "aktiv" : "STRIPE_WEBHOOK_SECRET fehlt"} · <a href="/werben" target="_blank" style="color: #58a6ff;">/werben öffnen</a></p>
-      ${requests.map(requestCard).join("") || `<p style="font-size: 12px; color: #8b949e;">Noch keine Anfragen.</p>`}
+      ${requestFilterBar(requests)}
+      ${filteredRequests(requests).map(requestCard).join("") ||`<p style="font-size: 12px; color: #8b949e;">Noch keine Anfragen.</p>`}
       <h2 style="font-size: 17px; font-weight: 800; color: #fff; margin: 20px 0 10px;">Sponsor-Anzeigen (${adminAds.length})</h2>
       <button class="chip-btn active" onclick="openAdForm()">+ Neue Anzeige</button>
       <div style="margin-top: 10px;">${adminAds.map(adCard).join("") || `<p style="font-size: 12px; color: #8b949e;">Noch keine Anzeigen. Web und App zeigen dann Beispiel-Plätze.</p>`}</div>`;
@@ -67,11 +74,18 @@ function requestCard(r) {
     <div style="background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 10px; margin-bottom: 8px; color: #fff; font-size: 12.5px;">
       <div style="display: flex; justify-content: space-between; gap: 8px;"><b>${adminEsc(r.company)}</b><span>${adminEsc(REQUEST_LABELS[r.status] || r.status)}</span></div>
       <div style="color: #8b949e;">${adminEsc(SIZE_LABELS[r.size] || r.size)} · ${adminEsc(r.person)} · <a style="color: #58a6ff;" href="mailto:${adminEsc(r.email)}">${adminEsc(r.email)}</a> · ${adminEsc(r.phone)} · ${adDate(r.created_at)}${r.paid_until ? ` · bezahlt bis ${adDate(r.paid_until)}` : ""}</div>
+      ${r.address ? `<div style="color: #8b949e;">📍 ${adminEsc(r.address)}</div>` : ""}
       ${r.message ? `<div style="margin-top: 4px;">${adminEsc(r.message)}</div>` : ""}
+      ${r.note ? `<div style="margin-top: 4px; color: #F2B705;">📝 ${adminEsc(r.note)}</div>` : ""}
+      ${requestMailLog(r)}
       <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
-        <button class="chip-btn" onclick="setRequestStatus('${adminEsc(r.id)}', 'contacted')">Kontaktiert</button>
+        <button class="chip-btn active" onclick="openRequestReply('${adminEsc(r.id)}')">✉️ Antworten</button>
+        <button class="chip-btn" onclick="openRequestReply('${adminEsc(r.id)}', true)">Kontaktiert</button>
         <button class="chip-btn" onclick="setRequestStatus('${adminEsc(r.id)}', 'done')">Erledigt</button>
         <button class="chip-btn" onclick="openAdForm(null, '${adminEsc(r.id)}')">Anzeige anlegen</button>
+        <button class="chip-btn" onclick="openRequestEdit('${adminEsc(r.id)}')">✏️ Bearbeiten</button>
+        <button class="chip-btn" onclick="resendRequestWelcome('${adminEsc(r.id)}')">🔁 Willkommens-Mail erneut</button>
+        <button class="chip-btn" onclick="deleteRequest('${adminEsc(r.id)}')">🗑 Löschen</button>
       </div>
     </div>`;
 }

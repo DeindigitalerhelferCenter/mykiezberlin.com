@@ -4,6 +4,7 @@
 
 import { INFO, sendMail } from "./mail.js";
 import { PACKAGE_NAMES, paidReply } from "./mail-templates.js";
+import { sendLogged } from "./ad-requests.js";
 
 export const PACKAGES = {
   s: { amount: 2900, label: "My Kiez Berlin Kiez Basic" },
@@ -122,7 +123,8 @@ export async function handleStripeEvent(event, database, env = {}) {
     const req = await database.prepare(`SELECT company, person, email, size, lang FROM ad_requests WHERE id = ?`).bind(o.metadata.request_id).first().catch(() => null);
     if (req?.email) {
       const reply = paidReply(req.lang, { name: req.person || req.company, company: req.company, package: PACKAGE_NAMES[req.size] || req.size });
-      await sendMail(env, { to: req.email, from: INFO, subject: reply.subject, text: reply.text });
+      // logged in the request's mail list (2026-11-12)
+      await sendLogged(env, database, o.metadata.request_id, "paid", { to: req.email, from: INFO, subject: reply.subject, text: reply.text });
     }
     return;
   }

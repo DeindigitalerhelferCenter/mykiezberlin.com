@@ -2,6 +2,8 @@
 import { isBlockedUrl } from "../_lib/blocklist.js";
 import { cleanText, db, instagramUrl, isAdmin, json, noDb } from "../_lib/util.js";
 import { AD_PLACE_KEYS, planRule } from "../_lib/plans.js";
+import { cleanupOldRequests, KEEP_DAYS, REPLY_KINDS, REQUEST_COLUMNS, replyTemplate, resendWelcome, sendReply, shapeRequest } from "../_lib/ad-requests.js";
+import { mailReady } from "../_lib/mail.js";
 
 const TABLES = { story: "stories", post: "reporter_posts", comment: "reporter_comments", submission: "submissions" };
 
@@ -10,6 +12,7 @@ export async function onRequestGet({ request, env }) {
   const database = await db(env);
   if (!database) return noDb();
   const read = (sql) => database.prepare(sql).all().then((r) => r.results);
+  await cleanupOldRequests(database);
   const statsFrom = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
   const [stories, posts, comments, submissions, users, ads, adRequests, adStats] = await Promise.all([
     read(`SELECT id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, created_at, approved_at, link FROM stories ORDER BY created_at DESC LIMIT 200`),
@@ -18,7 +21,7 @@ export async function onRequestGet({ request, env }) {
     read(`SELECT id, type, payload, status, created_at FROM submissions ORDER BY created_at DESC LIMIT 100`),
     read(`SELECT id, email, display_name, trusted, created_at FROM users ORDER BY created_at DESC LIMIT 200`),
     read(`SELECT * FROM ads ORDER BY active DESC, priority DESC, created_at DESC LIMIT 200`),
-    read(`SELECT id, company, person, email, phone, size, message, status, paid_until, created_at FROM ad_requests ORDER BY created_at DESC LIMIT 100`),
+    read(`SELECT ${REQUEST_COLUMNS} FROM ad_requests ORDER BY created_at DESC LIMIT 100`),
     database.prepare(`SELECT ad_id, SUM(imp) AS imp, SUM(clk) AS clk FROM ad_stats WHERE day >= ? GROUP BY ad_id`).bind(statsFrom).all().then((r) => r.results),
   ]);
   const statsById = Object.fromEntries(adStats.map((s) => [s.ad_id, s]));
@@ -28,7 +31,7 @@ export async function onRequestGet({ request, env }) {
     stories: marked, posts, comments, users,
     submissions: submissions.map((s) => ({ ...s, payload: JSON.parse(s.payload) })),
     ads: ads.map((a) => ({ ...a, imp30: statsById[a.id]?.imp || 0, clk30: statsById[a.id]?.clk || 0 })),
-    adRequests,
+    adRequests: adRequests.map(shapeRequest), requestKeepDays: KEEP_DAYS, mailReady: mailReady(env),
     stripe: Boolean(env.STRIPE_SECRET_KEY), stripeWebhook: Boolean(env.STRIPE_WEBHOOK_SECRET),
   });
 }
@@ -143,8 +146,13 @@ export async function onRequestPost({ request, env }) {
   }
   if (action === "requestStatus") {
     const status = ["new", "contacted", "done", "paid", "canceled"].includes(body.status) ? body.status : "done";
-    await database.prepare(`UPDATE ad_requests SET status = ? WHERE id = ?`).bind(status, cleanText(body.id, 40)).run();
+    // done_at starts the 90-day countdown for finished requests (see _lib/ad-requests.js)
+    const doneAt = status === "done" || status === "canceled" ? Date.now() : 0;
+    await database.prepare(`UPDATE ad_requests SET status = ?, done_at = ? WHERE id = ?`).bind(status, doneAt, cleanText(body.id, 40)).run();
     return json({ ok: true });
+  }
+  if (["requestTemplate", "requestReply", "requestResend", "requestEdit", "requestDelete"].includes(action)) {
+    return requestAction(database, env, request, body);
   }
   if (action === "editorialComment") return createEditorialComment(database, body);
   if (action === "trustUser") {
@@ -194,5 +202,56 @@ export async function onRequestPost({ request, env }) {
   } else {
     return json({ error: "bad_action" }, 400);
   }
+  return json({ ok: true });
+}
+
+// Advertising requests: reply by mail, resend welcome, edit, delete (2026-11-12).
+async function requestAction(database, env, request, body) {
+  const id = cleanText(body.id, 40);
+  const row = await database.prepare(`SELECT * FROM ad_requests WHERE id = ?`).bind(id).first();
+  if (!row) return json({ error: "not_found" }, 404);
+  const action = body.action;
+  if (action === "requestTemplate") {
+    const kind = REPLY_KINDS.includes(body.kind) ? body.kind : "free";
+    return json({ ok: true, ...replyTemplate(row, kind, body.lang), kinds: REPLY_KINDS });
+  }
+  if (action === "requestReply") {
+    if (!String(body.text || "").trim() || !String(body.subject || "").trim()) return json({ error: "empty" }, 400);
+    const result = await sendReply(env, database, new URL(request.url).origin, row, body.subject, body.text);
+    return json({ ok: result.ok, error: result.error }, result.ok ? 200 : 502);
+  }
+  if (action === "requestResend") {
+    const result = await resendWelcome(env, database, row);
+    return json({ ok: result.ok, error: result.error }, result.ok ? 200 : 502);
+  }
+  if (action === "requestEdit") {
+    const f = body.fields || {};
+    const email = cleanText(f.email ?? row.email, 120).toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return json({ error: "field", field: "email" }, 400);
+    const company = cleanText(f.company ?? row.company, 120);
+    if (company.length < 2) return json({ error: "field", field: "company" }, 400);
+    const size = ["s", "m", "l", "banner", "gp"].includes(f.size) ? f.size : row.size;
+    const lang = ["de", "tr", "en"].includes(f.lang) ? f.lang : row.lang || "de";
+    await database
+      .prepare(`UPDATE ad_requests SET company = ?, person = ?, email = ?, phone = ?, address = ?, size = ?, lang = ?, message = ?, note = ? WHERE id = ?`)
+      .bind(
+        company,
+        cleanText(f.person ?? row.person, 80),
+        email,
+        cleanText(f.phone ?? row.phone, 40).replace(/[^\d+ ()/-]/g, ""),
+        cleanText(f.address ?? row.address, 200),
+        size,
+        lang,
+        String(f.message ?? row.message ?? "").replace(/[<>]/g, "").trim().slice(0, 1000),
+        String(f.note ?? row.note ?? "").replace(/[<>]/g, "").trim().slice(0, 2000),
+        id,
+      )
+      .run();
+    return json({ ok: true });
+  }
+  // requestDelete: the request goes; linked ads only when withAds is set (otherwise they keep running, unlinked).
+  if (body.withAds) await database.prepare(`DELETE FROM ads WHERE request_id = ?`).bind(id).run();
+  else await database.prepare(`UPDATE ads SET request_id = '' WHERE request_id = ?`).bind(id).run();
+  await database.prepare(`DELETE FROM ad_requests WHERE id = ?`).bind(id).run();
   return json({ ok: true });
 }
