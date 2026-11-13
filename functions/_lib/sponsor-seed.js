@@ -166,6 +166,18 @@ export async function seedSponsors(database) {
   await applyFixes(database);
   await applyPlanFix(database);
   await applyTekLogoFix(database);
+  await applyTekRedFix(database);
+}
+
+// 2026-11-13 (owner): TEK banner background red like the TEK logo (was green), new file name because of the 4 h asset cache. Runs once.
+async function applyTekRedFix(database) {
+  const id = "fix:2026-11-13-tekred";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  const now = Date.now();
+  await database.batch([
+    database.prepare(`UPDATE ads SET image = ?, updated_at = ? WHERE id = 'terra-verde-tek'`).bind("/assets/sponsors/terra-verde-tek-3.webp", now),
+    database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now),
+  ]);
 }
 
 // 2026-11-13: real TEK logo (logo + banner) under new file names, so browsers and the app do not keep the old cached pictures. Runs once.
