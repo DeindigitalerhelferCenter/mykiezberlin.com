@@ -1,5 +1,6 @@
 // Shared Kiez stories: public list and moderated submissions.
 import { safeLink } from "../_lib/blocklist.js";
+import { aiCheck, cleanDevice, cleanupStoryMedia, dailyLimited, isTrusted, USER_DAILY_LIMIT } from "../_lib/story-guard.js";
 import { cleanText, cleanupExpiredStories, db, ipHash, isAdmin, json, noDb, rateLimited, sha256Hex, parseDeal, storyDeal, storyMediaList, storyTextKey, validAuthor } from "../_lib/util.js";
 
 const HOUR_MS = 3600000;
@@ -38,6 +39,7 @@ export async function onRequestGet({ env, waitUntil }) {
   const database = await db(env);
   if (!database) return noDb();
   waitUntil(cleanupExpiredStories(env));
+  waitUntil(cleanupStoryMedia(env, database).catch(() => {})); // 2026-11-14: rejected / long-waiting media
   const now = Date.now();
   const { results } = await database
     .prepare(`SELECT id, headline, subtext, kiez, kind, author, media_key, media_type, media_extra, deal, duration_hours, approved_at, link FROM stories WHERE status = 'approved' AND approved_at <= ? AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT 60`)
@@ -68,6 +70,9 @@ export async function onRequestPost({ request, env }) {
   // 2026-11-13: real name or nickname required (not only emoji), see validAuthor
   if (!admin && !validAuthor(form.get("author"))) return json({ error: "author_required" }, 400);
   if (!admin && (await rateLimited(database, "stories", ip))) return json({ error: "rate_limited" }, 429);
+  // 2026-11-14: at most USER_DAILY_LIMIT stories per user (IP or device) in 24 hours
+  const device = cleanDevice(form.get("device"));
+  if (!admin && (await dailyLimited(database, ip, device))) return json({ error: "daily_limit", limit: USER_DAILY_LIMIT }, 429);
 
   const id = crypto.randomUUID();
   let mediaKey = "";
@@ -124,9 +129,13 @@ export async function onRequestPost({ request, env }) {
     return json({ id, status: start > now ? "scheduled" : "approved", publishAt: start, durationHours: hours }, 201);
   }
 
+  // 2026-11-14: AI check first (users only). Trusted device + AI "ok" -> online at once, otherwise the admin decides.
+  const check = admin ? "" : await aiCheck(env, headline, subtext, mediaBytes, file && typeof file !== "string" ? file.type : "");
+  const direct = !admin && check === "ok" && (await isTrusted(database, device));
+  const created = Date.now();
   await database
-    .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, ip, created_at, media_hash, text_hash, deal) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?)`)
-    .bind(id, headline, subtext, kiez, kind, author, mediaKey, mediaType, durationHours, ip, Date.now(), mediaHash, textHash, deal)
+    .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, ip, created_at, media_hash, text_hash, deal, device, ai_check, approved_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    .bind(id, headline, subtext, kiez, kind, author, mediaKey, mediaType, durationHours, direct ? "approved" : "pending", ip, created, mediaHash, textHash, deal, device, check, direct ? created : 0)
     .run();
-  return json({ id, status: "pending" }, 201);
+  return json({ id, status: direct ? "approved" : "pending" }, 201);
 }

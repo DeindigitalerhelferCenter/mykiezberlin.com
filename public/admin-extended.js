@@ -52,6 +52,8 @@ function moderationCard(type, item) {
           <div style="font-weight: 800;">${adminEsc(title)}</div>
           <div style="font-size: 12px; color: #8b949e;">${adminEsc(text)}</div>
           <div style="font-size: 11px; color: #8b949e; margin-top: 4px;">${adminEsc(item.type || type)} · ${adminEsc(item.kiez || payload.kiezName || payload.kiez || "")} · ${adminEsc(item.status)}</div>
+          ${item.ai_check === "ok" ? `<div style="font-size: 11px; color: #3fb950; margin-top: 3px;">✅ KI-Prüfung ok · Yapay zeka kontrolü tamam</div>` : ""}
+          ${String(item.ai_check || "").startsWith("flag") ? `<div style="font-size: 11.5px; color: #f85149; font-weight: 700; margin-top: 3px;">⚠️ KI: ${adminEsc(String(item.ai_check).slice(5) || "bitte prüfen · kontrol et")}</div>` : ""}
         </div>
       </div>
       <div style="display: flex; gap: 8px; margin-top: 10px;">

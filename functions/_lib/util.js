@@ -104,6 +104,9 @@ const MIGRATIONS = [
   // 2026-11-14 (owner): a story can carry an offer (e.g. "Ayran 0,99 € statt 1,50 €") – it is also shown under
   // "Exklusive Kiez-Vorteile" as long as the story runs. JSON { what, price, old }
   `ALTER TABLE stories ADD COLUMN deal TEXT DEFAULT ''`,
+  // 2026-11-14 (owner): device id of the sender (daily limit, trusted devices) and the result of the AI check
+  `ALTER TABLE stories ADD COLUMN device TEXT DEFAULT ''`,
+  `ALTER TABLE stories ADD COLUMN ai_check TEXT DEFAULT ''`,
 ];
 
 /** Offer of a story from the form fields deal_what / deal_price / deal_old (empty when not filled). */

@@ -4,6 +4,7 @@ import { cleanText, db, instagramUrl, isAdmin, json, noDb, storyMediaList } from
 import { AD_PLACE_KEYS, parseExtra, planRule } from "../_lib/plans.js";
 import { cleanupOldRequests, KEEP_DAYS, REPLY_KINDS, REQUEST_COLUMNS, replyTemplate, resendWelcome, sendReply, shapeRequest } from "../_lib/ad-requests.js";
 import { mailReady } from "../_lib/mail.js";
+import { countTrust } from "../_lib/story-guard.js";
 
 const TABLES = { story: "stories", post: "reporter_posts", comment: "reporter_comments", submission: "submissions" };
 
@@ -15,7 +16,7 @@ export async function onRequestGet({ request, env }) {
   await cleanupOldRequests(database);
   const statsFrom = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
   const [stories, posts, comments, submissions, users, ads, adRequests, adStats] = await Promise.all([
-    read(`SELECT id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, created_at, approved_at, link, deal FROM stories ORDER BY created_at DESC LIMIT 200`),
+    read(`SELECT id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, created_at, approved_at, link, deal, device, ai_check FROM stories ORDER BY created_at DESC LIMIT 200`),
     read(`SELECT id, title, description, kiez, category, author, media_key, user_id, status, created_at FROM reporter_posts ORDER BY created_at DESC LIMIT 100`),
     read(`SELECT id, post_id, target, kind, user_id, author, text, status, created_at FROM reporter_comments ORDER BY created_at DESC LIMIT 100`),
     read(`SELECT id, type, payload, status, created_at FROM submissions ORDER BY created_at DESC LIMIT 100`),
@@ -176,8 +177,10 @@ export async function onRequestPost({ request, env }) {
       ? `UPDATE stories SET status = 'approved', approved_at = ? WHERE id = ?`
       : `UPDATE ${table} SET status = 'approved', created_at = ? WHERE id = ?`;
     await database.prepare(sql).bind(Date.now(), id).run();
+    if (type === "story") await countTrust(database, id, "approved").catch(() => {}); // 2026-11-14: trusted devices
   } else if (action === "reject") {
     await database.prepare(`UPDATE ${table} SET status = 'rejected' WHERE id = ?`).bind(id).run();
+    if (type === "story") await countTrust(database, id, "rejected").catch(() => {});
   } else if (action === "extend" && type === "story") {
     await database.prepare(`UPDATE stories SET duration_hours = duration_hours + ? WHERE id = ?`).bind(Math.min(Number(body.hours) || 48, 720), id).run();
   } else if (action === "edit" && type === "story") {

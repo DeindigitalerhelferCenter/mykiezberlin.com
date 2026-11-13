@@ -528,7 +528,8 @@ object LiveAlertsRepository {
      * 2026-11-13: like postStoryMultipartForId, but also returns the HTTP status, so the app can show
      * "already uploaded" (409) or "name missing" (400). code = 0 means no connection.
      */
-    data class StoryUploadResult(val id: String?, val code: Int)
+    // 2026-11-14: status "approved" = trusted device, online at once; error "daily_limit" = 3 stories per day reached
+    data class StoryUploadResult(val id: String?, val code: Int, val status: String = "", val error: String = "")
 
     suspend fun postStoryMultipartResult(
         headline: String,
@@ -539,7 +540,8 @@ object LiveAlertsRepository {
         fileBytes: ByteArray? = null,
         fileName: String? = null,
         mimeType: String? = null,
-        author: String = ""
+        author: String = "",
+        device: String = ""
     ): StoryUploadResult = withContext(Dispatchers.IO) {
         try {
             val validDuration = if (durationHours == 48) 48 else 24
@@ -551,6 +553,7 @@ object LiveAlertsRepository {
                 .addFormDataPart("kind", kind)
                 .addFormDataPart("durationHours", validDuration.toString())
             if (author.isNotBlank()) builder.addFormDataPart("author", author.trim().take(40))
+            if (device.isNotBlank()) builder.addFormDataPart("device", device)
             com.example.ui.components.StoryDealDraft.addTo(builder) // 2026-11-14: optional offer
             if (fileBytes != null && fileBytes.isNotEmpty()) {
                 val requestFile = fileBytes.toRequestBody((mimeType ?: "image/jpeg").toMediaType())
@@ -562,8 +565,9 @@ object LiveAlertsRepository {
                 .post(builder.build())
                 .build()
             httpClient.newCall(req).execute().use { resp ->
-                val id = if (resp.isSuccessful) JSONObject(resp.body?.string() ?: "{}").optString("id").ifBlank { null } else null
-                StoryUploadResult(id, resp.code)
+                val body = runCatching { JSONObject(resp.body?.string().orEmpty().ifBlank { "{}" }) }.getOrDefault(JSONObject())
+                val id = if (resp.isSuccessful) body.optString("id").ifBlank { null } else null
+                StoryUploadResult(id, resp.code, body.optString("status"), body.optString("error"))
             }
         } catch (e: Exception) {
             Log.w(TAG, "postStoryMultipartResult notice: ${e.message}")

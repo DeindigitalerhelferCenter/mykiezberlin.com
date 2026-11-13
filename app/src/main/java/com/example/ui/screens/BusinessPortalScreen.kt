@@ -62,7 +62,7 @@ private val B2B_PLANS = listOf(
         "Mehr Kunden aus ganz Berlin", "Tüm Berlin'den daha fazla müşteri", "More customers from all over Berlin",
         "Empfohlen", "Önerimiz", "Recommended",
         features = listOf(
-            Triple("Alles aus Kiez Basic", "Kiez Basic paketindeki her şey", "Everything in Kiez Basic"),
+            Triple("Alles aus Kiez Basic", "Mahalle Basic paketindeki her şey", "Everything in Neighbourhood Basic"),
             Triple("Mittleres Banner mit Logo, Text und Buttons (Anrufen / WhatsApp)", "Logo, metin ve butonlu orta boy banner (Ara / WhatsApp)", "Medium banner with logo, text and buttons (call / WhatsApp)"),
             Triple("Im Sponsor-Streifen auf der Startseite", "Ana sayfadaki sponsor şeridinde", "In the sponsor strip on the home page"),
             Triple("In langen Listen nach jedem 6. Eintrag", "Uzun listelerde her 6. kayıttan sonra", "In long lists after every 6th entry"),
@@ -74,10 +74,10 @@ private val B2B_PLANS = listOf(
         "Maximale Sichtbarkeit", "En yüksek görünürlük", "Maximum visibility",
         "Maximal", "En güçlü", "Maximum",
         features = listOf(
-            Triple("Alles aus Kiez Plus", "Kiez Plus paketindeki her şey", "Everything in Kiez Plus"),
+            Triple("Alles aus Kiez Plus", "Mahalle Plus paketindeki her şey", "Everything in Neighbourhood Plus"),
             Triple("Große Sponsor-Karte mit Bild auf der Startseite", "Ana sayfada resimli büyük sponsor kartı", "Large sponsor card with picture on the home page"),
             Triple("Große Karte auch bei Seitenwechseln", "Sayfa geçişlerinde de büyük kart", "Large card on page changes too"),
-            Triple("Dreimal so oft wie Kiez Basic (Rotation 3×)", "Kiez Basic'ten üç kat sık (rotasyon 3×)", "Three times as often as Kiez Basic (rotation 3×)"),
+            Triple("Dreimal so oft wie Kiez Basic (Rotation 3×)", "Mahalle Basic'ten üç kat sık (rotasyon 3×)", "Three times as often as Neighbourhood Basic (rotation 3×)"),
             Triple("Höchste Priorität: immer vorne in der Reihenfolge", "En yüksek öncelik: sıralamada hep önde", "Highest priority: always first in the order"),
             Triple("Persönliche Betreuung bei Bild und Text", "Resim ve metinde kişisel destek", "Personal help with picture and text")
         )
@@ -202,7 +202,7 @@ fun BusinessPortalScreen(
                 Column(Modifier.padding(18.dp)) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
-                            Text(plan.name, fontWeight = FontWeight.Black, fontSize = 19.sp)
+                            Text(t(plan.name, plan.name.replace("Kiez", "Mahalle"), plan.name.replace("Kiez", "Neighbourhood")), fontWeight = FontWeight.Black, fontSize = 19.sp) // 2026-11-14: package names translated
                             Text(t(plan.tagDe, plan.tagTr, plan.tagEn), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         if (plan.badgeDe.isNotBlank()) {
@@ -291,7 +291,7 @@ fun BusinessPortalScreen(
                 Column(Modifier.padding(16.dp)) {
                     Text(t("So einfach funktioniert es", "Bu kadar kolay", "It's that easy"), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     Spacer(Modifier.height(12.dp))
-                    StepRow("1", t("Paket wählen", "Paket seç", "Choose a package"), t("Kiez Basic, Kiez Plus oder Kiez Premium.", "Kiez Basic, Kiez Plus veya Kiez Premium.", "Kiez Basic, Kiez Plus or Kiez Premium."))
+                    StepRow("1", t("Paket wählen", "Paket seç", "Choose a package"), t("Kiez Basic, Kiez Plus oder Kiez Premium.", "Mahalle Basic, Mahalle Plus veya Mahalle Premium.", "Neighbourhood Basic, Neighbourhood Plus or Neighbourhood Premium."))
                     StepRow("2", t("Daten senden & bezahlen", "Bilgileri gönder & öde", "Send details & pay"), t("Firmendaten eintragen, sicher per Karte zahlen.", "Firma bilgilerini gir, kartla güvenle öde.", "Enter your details, pay securely by card."))
                     StepRow("3", t("Prüfung & Freigabe", "Kontrol & onay", "Check & approval"), t("Wir prüfen Bild und Text und schalten Ihre Anzeige online.", "Resim ve metni kontrol edip reklamınızı yayına alırız.", "We check picture and text and put your ad online."))
                     StepRow("4", t("Sichtbar werden", "Görünür ol", "Get seen"), t("Kunden im Kiez rufen Sie an oder schreiben Ihnen.", "Mahalledeki müşteriler sizi arar veya size yazar.", "Customers in the neighbourhood call or message you."))
@@ -326,7 +326,7 @@ fun BusinessPortalScreen(
             Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), elevation = CardDefaults.cardElevation(8.dp)) {
                 Column(Modifier.fillMaxWidth().padding(20.dp)) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text(t("Anfrage: ", "Talep: ", "Enquiry: ") + selectedPackage.name, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text(t("Anfrage: ", "Talep: ", "Enquiry: ") + t(selectedPackage.name, selectedPackage.name.replace("Kiez", "Mahalle"), selectedPackage.name.replace("Kiez", "Neighbourhood")), fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         IconButton(onClick = onCloseBooking) { Icon(Icons.Default.Close, contentDescription = t("Schließen", "Kapat", "Close")) }
                     }
                     if (bookingSuccessMessage != null) {

@@ -967,6 +967,13 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                     fileBytes = inputStream?.readBytes()
                     inputStream?.close()
                     fileName = "story_${System.currentTimeMillis()}.${if (mimeType.contains("png")) "png" else "jpg"}"
+                    // 2026-11-14 (storage for thousands of stories): pictures are made smaller before the upload
+                    val small = if (mimeType.startsWith("image/")) fileBytes?.let { b -> shrinkStoryImage(b) } else null
+                    if (small != null) {
+                        fileBytes = small
+                        mimeType = "image/jpeg"
+                        fileName = "story_${System.currentTimeMillis()}.jpg"
+                    }
                 } catch (_: Exception) {}
             }
             val upload = LiveAlertsRepository.postStoryMultipartResult(
@@ -978,9 +985,27 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                 fileBytes = fileBytes,
                 fileName = fileName,
                 mimeType = mimeType,
-                author = author.ifBlank { "Kiez-User" }
+                author = author.ifBlank { "Kiez-User" },
+                device = storyDeviceId()
             )
             val serverId = upload.id
+            val tr = _uiState.value.language == com.example.data.model.AppLanguage.TURKISH
+            if (upload.code == 429) {
+                // 2026-11-14: daily limit (3 per day) or too many in one hour – the local copy is removed again
+                _uiState.update { state ->
+                    val newAll = state.allStories.filterNot { it.id == newStory.id }
+                    KiezStorageManager.saveStories(app, newAll)
+                    state.copy(allStories = newAll, customStories = state.customStories.filterNot { it.id == newStory.id })
+                }
+                android.widget.Toast.makeText(app,
+                    if (upload.error == "daily_limit") (if (tr) "Günlük sınır doldu: günde 3 hikâye. Yarın devam!" else "Tageslimit erreicht: 3 Stories pro Tag. Morgen geht es weiter!")
+                    else (if (tr) "Çok fazla gönderi. Lütfen sonra dene." else "Zu viele Beiträge. Bitte später versuchen."),
+                    android.widget.Toast.LENGTH_LONG).show()
+                return@launch
+            }
+            if (upload.status == "approved" && !isAdminPost) {
+                android.widget.Toast.makeText(app, if (tr) "Hikâyen şimdi yayında ✅" else "Deine Story ist jetzt online ✅", android.widget.Toast.LENGTH_LONG).show()
+            }
             if (upload.code == 409 || upload.code == 400) {
                 // Server refused: same picture/text already uploaded (409) or name missing (400).
                 _uiState.update { state ->
@@ -1020,6 +1045,37 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
         }
         if (!isAdminPost) android.widget.Toast.makeText(app, "Wird vor der Veröffentlichung geprüft", android.widget.Toast.LENGTH_LONG).show()
     }
+
+    /** 2026-11-14: random id of this phone (no personal data) – server: daily limit and trusted devices. */
+    private fun storyDeviceId(): String {
+        val prefs = app.getSharedPreferences("mk_story", android.content.Context.MODE_PRIVATE)
+        return prefs.getString("device", null) ?: java.util.UUID.randomUUID().toString().also { prefs.edit().putString("device", it).apply() }
+    }
+
+    /** 2026-11-14: max 1280 px, JPEG 82 % (a phone photo of 4–8 MB becomes about 200–400 KB). */
+    private fun shrinkStoryImage(bytes: ByteArray): ByteArray? = try {
+        val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+        var sample = 1
+        while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= 1280) sample *= 2
+        val raw = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, android.graphics.BitmapFactory.Options().apply { inSampleSize = sample })
+        if (raw == null) null else {
+            val scale = minOf(1f, 1280f / maxOf(raw.width, raw.height))
+            val scaled = if (scale < 1f) android.graphics.Bitmap.createScaledBitmap(raw, (raw.width * scale).toInt(), (raw.height * scale).toInt(), true) else raw
+            // keep the photo upright (phones store the rotation only in EXIF, which is lost when re-encoding)
+            val degrees = runCatching {
+                when (android.media.ExifInterface(java.io.ByteArrayInputStream(bytes)).getAttributeInt(android.media.ExifInterface.TAG_ORIENTATION, 1)) {
+                    6 -> 90f; 3 -> 180f; 8 -> 270f; else -> 0f
+                }
+            }.getOrDefault(0f)
+            val bmp = if (degrees != 0f) android.graphics.Bitmap.createBitmap(scaled, 0, 0, scaled.width, scaled.height, android.graphics.Matrix().apply { postRotate(degrees) }, true) else scaled
+            val out = java.io.ByteArrayOutputStream()
+            bmp.compress(android.graphics.Bitmap.CompressFormat.JPEG, 82, out)
+            out.toByteArray().takeIf { it.size < bytes.size || mimeTypeIsNotJpeg(bytes) }
+        }
+    } catch (_: Throwable) { null }
+
+    private fun mimeTypeIsNotJpeg(bytes: ByteArray) = !(bytes.size > 2 && bytes[0] == 0xFF.toByte() && bytes[1] == 0xD8.toByte())
 
     fun dismissUpdateDialog() {
         _uiState.update { it.copy(appUpdateInfo = null) }

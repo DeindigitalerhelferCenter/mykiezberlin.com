@@ -868,7 +868,7 @@ async function prepareStoryFile(file, headline, subtext) {
     const photo = await loadImage(url).catch(() => null);
     URL.revokeObjectURL(url);
     if (!photo) return file;
-    const scale = Math.min(1, 1600 / Math.max(photo.width, photo.height));
+    const scale = Math.min(1, 1280 / Math.max(photo.width, photo.height)); // 2026-11-14: 1600 -> 1280 (storage)
     canvas.width = Math.round(photo.width * scale);
     canvas.height = Math.round(photo.height * scale);
     ctx.drawImage(photo, 0, 0, canvas.width, canvas.height);

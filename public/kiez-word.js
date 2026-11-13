@@ -1,16 +1,16 @@
 /*
  * 2026-11-14 (owner): the German word "Kiez" was never translated. In Turkish it becomes "Mahalle", in English
  * "neighbourhood" – everywhere on the page (texts, placeholders, titles). Not changed: the name "My Kiez Berlin",
- * the package names (Kiez Basic / Plus / Premium) and German sentences (e.g. news in German).
+ * and German sentences (e.g. news in German).
  * Works on the shown page only; switching back to German restores the original words.
  */
 (function () {
   "use strict";
-  var KEEP = /My\s?Kiez|MyKiez|mykiez|Kiez (?:Basic|Plus|Premium)/g;
+  var KEEP = /My\s?Kiez|MyKiez|mykiez/g; // 2026-11-14 (owner): package names are translated too (Mahalle Basic …)
   var GERMAN = /[äßÄ]|\b(?:der|die|das|und|im|mit|für|ein|eine|dein|deine|deinem|deinen|deiner|zum|zur|von|auf|ist|bei|aus|nicht|jetzt|werde|alle|neue|neuen|hier|wird|sind|oder)\b/;
   var touched = []; // [node, original, kind(attr name or "")]
 
-  function lang() { var l = typeof currentLanguage === "string" ? currentLanguage.toLowerCase() : "de"; return l.indexOf("tr") === 0 ? "tr" : l.indexOf("en") === 0 ? "en" : "de"; }
+  function lang() { var l = typeof currentLanguage === "string" ? currentLanguage.toLowerCase() : typeof window.lang === "string" ? window.lang.toLowerCase() : "de"; return l.indexOf("tr") === 0 ? "tr" : l.indexOf("en") === 0 ? "en" : "de"; }
   function cap(word, big) { return big ? word.charAt(0).toUpperCase() + word.slice(1) : word; }
   function isBig(text, start, end) {
     var before = text.slice(0, start).replace(/[\s"„“'(\[«#·•|–—-]+$/, "");

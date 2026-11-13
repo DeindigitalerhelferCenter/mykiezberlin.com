@@ -197,6 +197,20 @@ function mkStoryNotice(title, text) {
   box.querySelector("button").focus();
 }
 
+// 2026-11-14: random id of this browser (no personal data) – server: daily limit and trusted devices
+function mkStoryDevice() {
+  try {
+    let id = localStorage.getItem("mk_story_device");
+    if (!id) {
+      id = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + "-" + Math.random().toString(36).slice(2, 14)).replace(/[^A-Za-z0-9-]/g, "");
+      localStorage.setItem("mk_story_device", id);
+    }
+    return id;
+  } catch (e) {
+    return "";
+  }
+}
+
 async function submitUserStory() {
   const headline = document.getElementById("new-story-headline").value.trim();
   const subtext = document.getElementById("new-story-subtext").value.trim();
@@ -234,13 +248,22 @@ async function submitUserStory() {
   form.append("deal_price", document.getElementById("new-story-deal-price")?.value.trim() || "");
   form.append("deal_old", document.getElementById("new-story-deal-old")?.value.trim() || "");
   if (file) form.append("file", file);
+  form.append("device", mkStoryDevice()); // 2026-11-14: daily limit + trusted devices
 
   try {
     const res = await fetch("/api/stories", { method: "POST", body: form });
     if (res.status === 201) {
-      showToast(tr("Danke! Deine Story wird geprüft und dann veröffentlicht.", "Teşekkürler! Hikâyeniz onaylandıktan sonra yayınlanacak."));
+      const answer = await res.clone().json().catch(() => ({}));
+      if (answer.status === "approved") showToast(tr("Danke! Deine Story ist jetzt online.", "Teşekkürler! Hikâyen şimdi yayında."));
+      else showToast(tr("Danke! Deine Story wird geprüft und dann veröffentlicht.", "Teşekkürler! Hikâyeniz onaylandıktan sonra yayınlanacak."));
     } else if (res.status === 429) {
-      showToast(tr("Zu viele Beiträge. Bitte versuche es später.", "Çok fazla gönderi. Lütfen sonra deneyin."));
+      const answer = await res.clone().json().catch(() => ({}));
+      if (answer.error === "daily_limit") {
+        mkStoryNotice(
+          tr("Tageslimit erreicht", "Günlük sınır doldu"),
+          tr("Du kannst " + (answer.limit || 3) + " Stories pro Tag teilen. Morgen geht es weiter!", "Günde " + (answer.limit || 3) + " hikâye paylaşabilirsin. Yarın devam!")
+        );
+      } else showToast(tr("Zu viele Beiträge. Bitte versuche es später.", "Çok fazla gönderi. Lütfen sonra deneyin."));
       return;
     } else if (res.status === 409) {
       // 2026-11-13: same picture/video or same text was already uploaded
