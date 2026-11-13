@@ -60,6 +60,12 @@
       return teaser("🆓", "#0EA5E9", L("Kostenlose Kleinanzeigen", "Ücretsiz ilanlar"), L("3 Tage gratis inserieren – Nachbarn finden, verkaufen, verschenken.", "3 gün ücretsiz ilan ver – komşu bul, sat, hediye et."),
         L("Zur Community", "Topluluğa git"), "location.href='/community/'");
     },
+    // 2026-11-14: Berlin phone book (own tab "telefonbuch" from kiez-plus.js)
+    phonebook: function () {
+      if (typeof EXTRA_TABS !== "object" || !EXTRA_TABS || !EXTRA_TABS.telefonbuch) return "";
+      return teaser("📒", "#0F766E", L("Berliner Telefonbuch & Branchen", "Berlin telefon & iş rehberi"), L("Nummern von Firmen, Ärzten, Handwerkern – in Das Örtliche, Gelbe Seiten, 11880 suchen.", "Firma, doktor, usta numaraları – Das Örtliche, Gelbe Seiten, 11880'de ara."),
+        L("Nummer suchen", "Numara ara"), "switchTab('telefonbuch')");
+    },
     guide: function () {
       return teaser("🧭", "#0F766E", L("Kiez-Guide & Berlin-Tipps", "Mahalle rehberi & Berlin önerileri"), L("Ausflüge, Orte und Tipps für jeden Kiez.", "Her mahalle için gezi, yer ve öneriler."),
         L("Tipps ansehen", "Önerilere bak"), "switchTab('tips')");

@@ -575,6 +575,11 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     onTriggerAlert = { viewModel.triggerTestNotification() }
                 )
 
+                AppScreen.TELEFONBUCH -> com.example.ui.components.TelefonbuchScreen(
+                    language = uiState.language,
+                    onBack = { viewModel.navigateTo(AppScreen.HOME) }
+                )
+
                 AppScreen.BERLIN_TIPS -> BerlinTipsScreen(
                     language = uiState.language,
                     onBack = { viewModel.navigateTo(AppScreen.HOME) }
@@ -819,7 +824,7 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     }
                     SheetGridItem(
                         icon = Icons.Default.Campaign,
-                        label = if (uiState.language == AppLanguage.TURKISH) "Kiez Muhabiri" else "Kiez-Reporter",
+                        label = if (uiState.language == AppLanguage.TURKISH) "Mahalle Muhabiri" else "Kiez-Reporter",
                         color = Color(0xFF0284C7),
                         modifier = Modifier.weight(1f)
                     ) {
@@ -828,10 +833,21 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     }
                 }
 
+                // 2026-11-14: Berlin phone book (Das Örtliche, Gelbe Seiten, 11880 …) – easy to find
+                SheetGridItem(
+                    icon = Icons.Default.Phone,
+                    label = if (uiState.language == AppLanguage.TURKISH) "📒 Berlin Telefon & İş Rehberi" else "📒 Berliner Telefonbuch & Branchen",
+                    color = Color(0xFF0F766E),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    viewModel.navigateTo(AppScreen.TELEFONBUCH)
+                    showMoreBottomSheet = false
+                }
+
                 // Kiez match quiz
                 SheetGridItem(
                     icon = Icons.Default.Star,
-                    label = if (uiState.language == AppLanguage.TURKISH) "Sana Hangi Kiez Uyuyor? (Quiz)" else "Welcher Kiez passt zu dir? (Quiz)",
+                    label = if (uiState.language == AppLanguage.TURKISH) "Sana Hangi Mahalle Uyuyor? (Quiz)" else "Welcher Kiez passt zu dir? (Quiz)",
                     color = Color(0xFFE30613),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -854,7 +870,7 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     SheetGridItem(
                         icon = Icons.Default.LocationOn,
-                        label = if (uiState.language == AppLanguage.TURKISH) "23 Kiez Rehberi" else "Die 23 Kieze",
+                        label = if (uiState.language == AppLanguage.TURKISH) "23 Mahalle Rehberi" else "Die 23 Kieze",
                         color = BerlinRed,
                         modifier = Modifier.weight(1f)
                     ) {
@@ -885,7 +901,7 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     }
                     SheetGridItem(
                         icon = Icons.Default.Lightbulb,
-                        label = if (uiState.language == AppLanguage.TURKISH) "Kiez Rehberi" else "Kiez-Wissen",
+                        label = if (uiState.language == AppLanguage.TURKISH) "Mahalle Rehberi" else "Kiez-Wissen",
                         color = Color(0xFF06B6D4),
                         modifier = Modifier.weight(1f)
                     ) {

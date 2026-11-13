@@ -148,7 +148,7 @@ fun KiezStarsCard(language: AppLanguage, onShareStory: () -> Unit) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    if (tr) "🏆 Haftanın Kiez Yıldızları" else if (en) "🏆 Kiez Stars of the week" else "🏆 Kiez-Stars der Woche",
+                    if (tr) "🏆 Haftanın Mahalle Yıldızları" else if (en) "🏆 Neighbourhood Stars of the week" else "🏆 Kiez-Stars der Woche",
                     fontWeight = FontWeight.ExtraBold, fontSize = 17.sp, modifier = Modifier.weight(1f)
                 )
                 if (d != null && d.lastWeekTop.isNotEmpty()) {
@@ -267,7 +267,7 @@ fun TrophyOverlay(language: AppLanguage, winners: List<KiezStar>, onClose: () ->
             ) {
                 Text("🏆", fontSize = 96.sp)
                 Text(
-                    if (tr) "Geçen haftanın Kiez Yıldızı" else if (en) "Last week's Kiez Star" else "Kiez-Star der letzten Woche",
+                    if (tr) "Geçen haftanın Mahalle Yıldızı" else if (en) "Last week's Neighbourhood Star" else "Kiez-Star der letzten Woche",
                     color = Gold, fontSize = 26.sp, fontWeight = FontWeight.Black, textAlign = TextAlign.Center
                 )
                 winners.take(3).forEach { w ->

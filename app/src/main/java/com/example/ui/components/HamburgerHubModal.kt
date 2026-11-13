@@ -359,7 +359,7 @@ fun HamburgerHubModal(
 
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FolderNavTile(
-                            title = if (language == AppLanguage.TURKISH) "Kiez Fırsatları" else "Deals & Rabatte",
+                            title = if (language == AppLanguage.TURKISH) "Mahalle Fırsatları" else "Deals & Rabatte",
                             subtitle = if (language == AppLanguage.TURKISH) "İndirim Kuponları" else "Exklusive Coupons",
                             icon = Icons.Default.LocalOffer,
                             color = BerlinYellow,
@@ -383,7 +383,7 @@ fun HamburgerHubModal(
 
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FolderNavTile(
-                            title = if (language == AppLanguage.TURKISH) "22 Berlin Kiezi" else "22 Berliner Kieze",
+                            title = if (language == AppLanguage.TURKISH) "22 Berlin Mahallesi" else "22 Berliner Kieze",
                             subtitle = if (language == AppLanguage.TURKISH) "Mahalle Rehberi" else "Bezirk-Navigator",
                             icon = Icons.Default.Place,
                             color = BerlinGreen,
@@ -407,7 +407,7 @@ fun HamburgerHubModal(
 
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FolderNavTile(
-                            title = if (language == AppLanguage.TURKISH) "Kiez Muhabiri" else "Kiez-Reporter",
+                            title = if (language == AppLanguage.TURKISH) "Mahalle Muhabiri" else "Kiez-Reporter",
                             subtitle = if (language == AppLanguage.TURKISH) "Haberler & Sesler" else "Berichte & News",
                             icon = Icons.Default.Campaign,
                             color = Color(0xFFD81B60),
@@ -545,7 +545,7 @@ fun HamburgerHubModal(
                                     color = BerlinRed
                                 )
                                 Text(
-                                    text = if (language == AppLanguage.TURKISH) "Kiez Check'e katıl, müşterilere ulaş" else "Sichtbar werden für Nachbarn & Kunden",
+                                    text = if (language == AppLanguage.TURKISH) "Mahalle Check'e katıl, müşterilere ulaş" else "Sichtbar werden für Nachbarn & Kunden",
                                     fontSize = 11.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )

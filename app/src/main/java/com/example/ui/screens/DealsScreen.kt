@@ -73,7 +73,7 @@ fun DealsScreen(
                 )
                 Column {
                     Text(
-                        text = if (language == AppLanguage.TURKISH) "Özel Kiez İndirimleri" else "Exklusive Kiez-Vorteile",
+                        text = if (language == AppLanguage.TURKISH) "Özel Mahalle İndirimleri" else "Exklusive Kiez-Vorteile",
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp,
                         color = BerlinRed

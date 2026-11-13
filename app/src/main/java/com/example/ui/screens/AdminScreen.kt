@@ -1268,7 +1268,7 @@ fun AdminCreateStoryModal(
                             OutlinedTextField(
                                 value = customKiezInput,
                                 onValueChange = { customKiezInput = it },
-                                label = { Text("Mahalle / Kiez Adı") },
+                                label = { Text("Mahalle Adı") },
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth()
                             )

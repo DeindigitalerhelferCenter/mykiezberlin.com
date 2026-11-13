@@ -84,7 +84,7 @@ fun JobsScreen(
             ) {
                 Column {
                     Text(
-                        text = if (language == AppLanguage.TURKISH) "Kiez İş İlanları" else "Jobs in deinem Kiez",
+                        text = if (language == AppLanguage.TURKISH) "Mahalle İş İlanları" else "Jobs in deinem Kiez",
                         fontWeight = FontWeight.Bold,
                         fontSize = 17.sp
                     )

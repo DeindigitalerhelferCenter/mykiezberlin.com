@@ -150,7 +150,7 @@ data class KiezStory(
     val createdAtMillis: Long = System.currentTimeMillis(),
     // 2026-11-13: admin stories with several pictures/videos – everything after the first one (mediaUri)
     val extraMedia: List<StoryMedia> = emptyList(),
-    // 2026-11-14: offer of the story (also shown under "Özel Kiez İndirimleri")
+    // 2026-11-14: offer of the story (also shown under "Özel Mahalle İndirimleri")
     val deal: com.example.ui.components.StoryDeal? = null
 )
 

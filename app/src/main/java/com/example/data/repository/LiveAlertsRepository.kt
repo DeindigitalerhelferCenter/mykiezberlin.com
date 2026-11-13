@@ -1081,7 +1081,7 @@ object LiveAlertsRepository {
             )
             BulletinFolder.KULTUR_EVENTS -> Triple(
                 if (isTr) "Berlin Şehir Rehberi & Festivaller" else "Berlin.de Volksfeste & Kultur",
-                if (isTr) "Sokak festivalleri, Kiez panayırları ve açık hava konserleri." else "Offizielle Kiezfeste, Jahrmärkte und Kulturveranstaltungen in Berlin.",
+                if (isTr) "Sokak festivalleri, mahalle panayırları ve açık hava konserleri." else "Offizielle Kiezfeste, Jahrmärkte und Kulturveranstaltungen in Berlin.",
                 "https://www.berlin.de/events/volksfeste/"
             )
             else -> Triple(

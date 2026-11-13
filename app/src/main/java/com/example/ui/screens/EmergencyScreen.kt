@@ -290,7 +290,7 @@ fun EmergencyScreen(
                 }
                 // 2026-11-14 (owner): Berliner Feuerwehr "Ihre Sicherheit" + Berliner Telefonbuch
                 item { com.example.ui.components.FeuerwehrSection(language) }
-                item { com.example.ui.components.TelefonbuchSection(language) }
+                item { com.example.ui.components.TelefonbuchSection(language) } // also its own page: AppScreen.TELEFONBUCH
             }
         } else if (selectedTab == 1) {
             // 22 Mahalle Karakolu Listesi

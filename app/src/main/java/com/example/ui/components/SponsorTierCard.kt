@@ -159,6 +159,8 @@ fun SponsorTierCard(ad: ServerAd, language: AppLanguage, size: String = ad.size,
                         .background(LabelGold.copy(alpha = 0.18f)).padding(horizontal = 8.dp, vertical = 4.dp)
                 )
             }
+            // 2026-11-14 (owner): the sponsor's own pictures/videos like story tiles
+            if (!compact) SponsorReelRow(ad, language)
             // Buttons with text (user example: Ara · Website · WhatsApp · Yol tarifi)
             val buttons = buildList {
                 if (tel.isNotBlank()) add(Triple("📞 " + pickText(language, "Anrufen", "Ara", "Call"), false, tel))

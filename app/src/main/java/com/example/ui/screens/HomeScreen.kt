@@ -56,7 +56,7 @@ fun HomeScreen(
     onKiezClick: (String) -> Unit
 ) {
     val quickActions = listOf(
-        QuickActionItem("Kieze", "Kieze", "Kiezler", Icons.Default.LocationOn, BerlinRed, AppScreen.KIEZE),
+        QuickActionItem("Kieze", "Kieze", "Mahalleler", Icons.Default.LocationOn, BerlinRed, AppScreen.KIEZE),
         QuickActionItem("Quiz", "Quiz", "Bilgi Yarışması", Icons.Default.EmojiEvents, BerlinYellow, AppScreen.QUIZ),
         QuickActionItem("Essen & Trinken", "Food & Drinks", "Yeme & İçme", Icons.Default.Restaurant, Color(0xFFF97316), AppScreen.FOOD),
         QuickActionItem("Events", "Events", "Etkinlikler", Icons.Default.CalendarToday, BerlinBlue, AppScreen.EVENTS),
@@ -202,8 +202,8 @@ fun HomeScreen(
                     Column {
                         Text(
                             text = when (language) {
-                                AppLanguage.TURKISH -> "Berlin'i keşfet.\nKiez Kiez."
-                                AppLanguage.ENGLISH -> "Discover Berlin.\nKiez by Kiez."
+                                AppLanguage.TURKISH -> "Berlin'i keşfet.\nMahalle mahalle."
+                                AppLanguage.ENGLISH -> "Discover Berlin.\nNeighbourhood by neighbourhood."
                                 else -> "Entdecke Berlin.\nKiez für Kiez."
                             },
                             color = Color.White,
@@ -234,7 +234,7 @@ fun HomeScreen(
                     ) {
                         Text(
                             text = when (language) {
-                                AppLanguage.TURKISH -> "23 Kiezi Keşfet"
+                                AppLanguage.TURKISH -> "23 Mahalleyi Keşfet"
                                 AppLanguage.ENGLISH -> "Explore 23 Kieze"
                                 else -> "23 Kieze entdecken"
                             },
@@ -402,7 +402,7 @@ fun HomeScreen(
             Column(modifier = Modifier.padding(top = 10.dp, bottom = 4.dp)) {
                 Text(
                     text = when (language) {
-                        AppLanguage.TURKISH -> "22 Berlin Kiezi (Hızlı Seçim)"
+                        AppLanguage.TURKISH -> "22 Berlin Mahallesi (Hızlı Seçim)"
                         AppLanguage.ENGLISH -> "22 Berlin Kieze (Quick Select)"
                         else -> "Die 23 Berliner Kieze (Schnellauswahl)"
                     },
@@ -513,7 +513,7 @@ fun HomeScreen(
             ) {
                 Text(
                     text = when (language) {
-                        AppLanguage.TURKISH -> "Popüler Kiezler"
+                        AppLanguage.TURKISH -> "Popüler Mahalleler"
                         AppLanguage.ENGLISH -> "Popular Kieze"
                         else -> "Beliebte Kieze"
                     },
@@ -523,7 +523,7 @@ fun HomeScreen(
                 )
                 Text(
                     text = when (language) {
-                        AppLanguage.TURKISH -> "Tümünü gör (21 Kiez)"
+                        AppLanguage.TURKISH -> "Tümünü gör (21 Mahalle)"
                         AppLanguage.ENGLISH -> "View all (21 Kieze)"
                         else -> "Mehr anzeigen (21 Kieze)"
                     },
@@ -566,8 +566,8 @@ fun HomeScreen(
                     )
                     Text(
                         text = when (language) {
-                            AppLanguage.TURKISH -> "Kiez Fırsatları & İndirimler"
-                            AppLanguage.ENGLISH -> "Kiez Deals & Offers"
+                            AppLanguage.TURKISH -> "Mahalle Fırsatları & İndirimler"
+                            AppLanguage.ENGLISH -> "Neighbourhood Deals & Offers"
                             else -> "Kiez Deals & Angebote"
                         },
                         fontWeight = FontWeight.Bold,

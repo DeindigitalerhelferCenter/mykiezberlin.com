@@ -147,7 +147,7 @@ fun KiezQuizScreen(
                     }
 
                     Text(
-                        text = if (language == AppLanguage.TURKISH) "Kiez Bilgi Yarışması" else if (language == AppLanguage.ENGLISH) "Kiez Quiz" else "Kiez Quiz",
+                        text = if (language == AppLanguage.TURKISH) "Mahalle Bilgi Yarışması" else if (language == AppLanguage.ENGLISH) "Neighbourhood Quiz" else "Kiez Quiz",
                         fontWeight = FontWeight.Bold,
                         fontSize = 17.sp
                     )
@@ -256,7 +256,7 @@ fun KiezQuizScreen(
                                 5 -> if (language == AppLanguage.TURKISH) "Mükemmel! 5/5 Tam bir Berlin Uzmanısın!" else "Perfekt! 5/5 Du bist ein echter Berlin-Experte!"
                                 4 -> if (language == AppLanguage.TURKISH) "Harika! 4/5 Berlin'i çok iyi biliyorsun!" else "Großartig! 4/5 Fast alles richtig gewusst!"
                                 3 -> if (language == AppLanguage.TURKISH) "Güzel Sonuç! 3/5 Berlin hakkında iyi bilgin var." else "Guter Erfolg! 3/5 Solides Berlin-Wissen."
-                                2 -> if (language == AppLanguage.TURKISH) "Fena Değil! 2/5 Kiezleri keşfetmeye devam et!" else "Nicht schlecht! 2/5 Erkunde noch mehr Kieze!"
+                                2 -> if (language == AppLanguage.TURKISH) "Fena Değil! 2/5 Mahalleleri keşfetmeye devam et!" else "Nicht schlecht! 2/5 Erkunde noch mehr Kieze!"
                                 else -> if (language == AppLanguage.TURKISH) "$score/5 Berlin'de öğrenecek daha çok kiez var!" else "$score/5 Es gibt noch viel in Berlin zu entdecken!"
                             }
 
@@ -321,7 +321,7 @@ fun KiezQuizScreen(
                                 Icon(imageVector = Icons.Default.LocationOn, contentDescription = null, tint = BerlinBlue)
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
-                                    text = if (language == AppLanguage.TURKISH) "Berlin Kiezlerini Keşfet" else if (language == AppLanguage.ENGLISH) "Explore Kieze" else "Berliner Kieze entdecken",
+                                    text = if (language == AppLanguage.TURKISH) "Berlin Mahallelerini Keşfet" else if (language == AppLanguage.ENGLISH) "Explore Kieze" else "Berliner Kieze entdecken",
                                     color = BerlinBlue,
                                     fontWeight = FontWeight.SemiBold
                                 )

@@ -432,7 +432,7 @@ fun HamburgerMenuModal(
                             }
                         )
                         FolderNavButton(
-                            title = if (language == AppLanguage.TURKISH) "Kiez-Haber" else "Reporter",
+                            title = if (language == AppLanguage.TURKISH) "Mahalle Haberleri" else "Reporter",
                             icon = Icons.Default.Campaign,
                             tint = Color(0xFF8B5CF6),
                             modifier = Modifier.weight(1f),
@@ -475,7 +475,7 @@ fun HamburgerMenuModal(
                 // 4. BERLİN MAHALLELERİ (Kiez Seçimi)
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
-                        text = if (language == AppLanguage.TURKISH) "Berlin Mahalleleri (Kiez Seçimi)" else "Berliner Kieze",
+                        text = if (language == AppLanguage.TURKISH) "Berlin Mahalleleri (Mahalle Seçimi)" else "Berliner Kieze",
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
                         color = BerlinRed

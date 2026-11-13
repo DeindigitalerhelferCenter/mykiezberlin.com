@@ -87,7 +87,7 @@ fun KiezReporterScreen(
             ) {
                 Column {
                     Text(
-                        text = if (language == AppLanguage.TURKISH) "Kiez Muhabiri" else if (language == AppLanguage.ENGLISH) "Neighborhood Reporter" else "Kiez-Reporter",
+                        text = if (language == AppLanguage.TURKISH) "Mahalle Muhabiri" else if (language == AppLanguage.ENGLISH) "Neighborhood Reporter" else "Kiez-Reporter",
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
                     )
@@ -528,7 +528,7 @@ private fun CreateReporterPostDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if (language == AppLanguage.TURKISH) "Kiez Haberi Bildir" else if (language == AppLanguage.ENGLISH) "Submit Neighborhood Report" else "Kiez-Meldung einsenden",
+                        text = if (language == AppLanguage.TURKISH) "Mahalle Haberi Bildir" else if (language == AppLanguage.ENGLISH) "Submit Neighborhood Report" else "Kiez-Meldung einsenden",
                         fontWeight = FontWeight.Bold,
                         fontSize = 17.sp
                     )

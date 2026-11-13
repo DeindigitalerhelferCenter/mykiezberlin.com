@@ -183,7 +183,7 @@ fun MyKiezTopBar(
                         },
                         title = {
                             Text(
-                                text = if (currentLanguage == AppLanguage.TURKISH) "Kiez Bildirimleri & Canlı Uyarılar" else "Kiez-Mitteilungen & Live-Alerts",
+                                text = if (currentLanguage == AppLanguage.TURKISH) "Mahalle Bildirimleri & Canlı Uyarılar" else "Kiez-Mitteilungen & Live-Alerts",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp
                             )
@@ -252,7 +252,7 @@ fun MyKiezTopBar(
                                         Spacer(modifier = Modifier.height(2.dp))
                                         Text(
                                             text = if (currentLanguage == AppLanguage.TURKISH)
-                                                "Kiez Rehberine işletmenizi kaydedin, mahallenizdeki müşterilere tek tıkla ulaşın. Şimdi inceleyin ↗"
+                                                "Mahalle Rehberine işletmenizi kaydedin, mahallenizdeki müşterilere tek tıkla ulaşın. Şimdi inceleyin ↗"
                                             else
                                                 "Tragen Sie Ihr Geschäft jetzt im Kiez-Guide ein & erreichen Sie neue Kunden. Jetzt eintragen ↗",
                                             fontSize = 11.sp,
@@ -384,7 +384,7 @@ OutlinedButton(
                 placeholder = {
                     Text(
                         text = when (currentLanguage) {
-                            AppLanguage.TURKISH -> "Kiez, mekân veya konu ara..."
+                            AppLanguage.TURKISH -> "Mahalle, mekân veya konu ara..."
                             AppLanguage.ENGLISH -> "Search kiez, place or topic..."
                             else -> "Kiez, Ort oder Thema suchen..."
                         },

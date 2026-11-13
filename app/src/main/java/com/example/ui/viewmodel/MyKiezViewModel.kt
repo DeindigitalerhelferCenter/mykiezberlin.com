@@ -41,7 +41,8 @@ enum class AppScreen {
     KIEZ_MATCH,
     COMMUNITY,
     WERBEN,
-    KIEZ_BETRIEBE
+    KIEZ_BETRIEBE,
+    TELEFONBUCH // 2026-11-14: own page for the Berlin phone book (before only at the end of "Notruf")
 }
 
 data class UiState(

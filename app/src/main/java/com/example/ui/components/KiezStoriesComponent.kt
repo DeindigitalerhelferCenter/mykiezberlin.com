@@ -73,8 +73,8 @@ fun KiezStoriesBar(
         ) {
             Text(
                 text = when (language) {
-                    AppLanguage.TURKISH -> "Kiez Hikâyeleri"
-                    AppLanguage.ENGLISH -> "Kiez Stories"
+                    AppLanguage.TURKISH -> "Mahalle Hikâyeleri"
+                    AppLanguage.ENGLISH -> "Neighbourhood Stories"
                     else -> "Kiez-Stories"
                 },
                 fontSize = 13.sp,
@@ -1582,7 +1582,7 @@ fun StoryCreateDialog(
                         Text(
                             if (author.isNotBlank() && !isValidStoryAuthor(author)) {
                                 if (language == AppLanguage.TURKISH) "⚠️ En az 2 harf – sadece emoji olmaz" else if (language == AppLanguage.ENGLISH) "⚠️ At least 2 letters – emoji only is not enough" else "⚠️ Mindestens 2 Buchstaben – nur Emojis reichen nicht"
-                            } else if (language == AppLanguage.TURKISH) "🏆 Haftanın Kiez Yıldızları bu isimle sayılır" else if (language == AppLanguage.ENGLISH) "🏆 Counts for the Kiez Stars of the week" else "🏆 Zählt für die Kiez-Stars der Woche",
+                            } else if (language == AppLanguage.TURKISH) "🏆 Haftanın Mahalle Yıldızları bu isimle sayılır" else if (language == AppLanguage.ENGLISH) "🏆 Counts for the Neighbourhood Stars of the week" else "🏆 Zählt für die Kiez-Stars der Woche",
                             fontSize = 11.sp
                         )
                     },
@@ -1602,7 +1602,7 @@ fun StoryCreateDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // 2026-11-14 (owner): optional offer – also shown under "Özel Kiez İndirimleri"
+                // 2026-11-14 (owner): optional offer – also shown under "Özel Mahalle İndirimleri"
                 com.example.ui.components.StoryDealFields(language)
 
                 // Commercial Toggle with 3 months free

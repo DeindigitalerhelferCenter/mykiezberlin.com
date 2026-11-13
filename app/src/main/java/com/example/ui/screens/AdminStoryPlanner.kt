@@ -64,7 +64,7 @@ private class PlanRow(val key: Int, val uri: Uri?, val isVideo: Boolean) {
     var kiez by mutableStateOf("Ganz Berlin")
     var kind by mutableStateOf("news")
     var link by mutableStateOf("")
-    // 2026-11-14: offer of the story (shown in "Özel Kiez İndirimleri" / Kuponlar), same as the web planner
+    // 2026-11-14: offer of the story (shown in "Özel Mahalle İndirimleri" / Kuponlar), same as the web planner
     var dealWhat by mutableStateOf("")
     var dealPrice by mutableStateOf("")
     var dealOld by mutableStateOf("")
@@ -285,7 +285,7 @@ fun AdminStoryPlanner(onDismiss: () -> Unit) {
                                 PlannerField(times, { times = it }, "Saatler (09:00, 12:30, …)")
                                 Button(onClick = { distribute() }, enabled = rows.isNotEmpty(), colors = ButtonDefaults.buttonColors(containerColor = PlannerGold, contentColor = Color.Black, disabledContainerColor = PlannerGold.copy(alpha = 0.3f), disabledContentColor = Color.White.copy(alpha = 0.6f))) { Text(if (rows.isEmpty()) "Dağıt (önce story ekle)" else "Dağıt") }
                                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    PlannerField(allKiez, { allKiez = it }, "Hepsi: Kiez", Modifier.weight(1f))
+                                    PlannerField(allKiez, { allKiez = it }, "Hepsi: Mahalle", Modifier.weight(1f))
                                     PlannerField(allKind, { allKind = it }, "Hepsi: kategori", Modifier.weight(1f))
                                 }
                                 OutlinedButton(onClick = { rows.forEach { r -> if (allKiez.isNotBlank()) r.kiez = allKiez; if (allKind.isNotBlank()) r.kind = allKind } }) { Text("Hepsine uygula", color = Color.White) }

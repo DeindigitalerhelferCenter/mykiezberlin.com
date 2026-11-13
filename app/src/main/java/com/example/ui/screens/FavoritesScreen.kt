@@ -81,7 +81,7 @@ fun FavoritesScreen(
                                 language == AppLanguage.TURKISH && filter == "Alle" -> "Tümü"
                                 language == AppLanguage.TURKISH && filter == "Gastronomie" -> "Yeme-İçme"
                                 language == AppLanguage.TURKISH && filter == "Events" -> "Etkinlikler"
-                                language == AppLanguage.TURKISH && filter == "Kieze" -> "Kiezler"
+                                language == AppLanguage.TURKISH && filter == "Kieze" -> "Mahalleler"
                                 language == AppLanguage.TURKISH && filter == "Unternehmen" -> "İşletmeler"
                                 else -> filter
                             },

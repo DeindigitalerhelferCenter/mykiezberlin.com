@@ -102,7 +102,7 @@ fun ProfileScreen(
                         )
                         Text(
                             text = if (language == AppLanguage.TURKISH)
-                                "Gizlilik Dostu Kiez Rehberi · DSGVO / GDPR Konform"
+                                "Gizlilik Dostu Mahalle Rehberi · DSGVO / GDPR Konform"
                             else
                                 "Datenschutzfreundlicher Kiez-Führer · Ohne Cookies & Tracking",
                             fontSize = 11.sp,

@@ -47,9 +47,9 @@ private data class B2bPlan(
 private val B2B_PLANS = listOf(
     B2bPlan(
         "s", "basic", "Kiez Basic", 29,
-        "Sichtbar in deinem Kiez", "Mahallende görün", "Visible in your Kiez",
+        "Sichtbar in deinem Kiez", "Mahallende görün", "Visible in your neighbourhood",
         features = listOf(
-            Triple("Ganz oben in deinem Kiez, wenn Nutzer deinen Kiez wählen", "Kullanıcı mahalleni seçince en üstte", "Top of your Kiez when users choose it"),
+            Triple("Ganz oben in deinem Kiez, wenn Nutzer deinen Kiez wählen", "Kullanıcı mahalleni seçince en üstte", "Top of your neighbourhood when users choose it"),
             Triple("Kleiner Sponsor-Streifen mit Logo bei Seitenwechseln (Rotation 1×)", "Sayfa geçişlerinde logolu küçük sponsor şeridi (rotasyon 1×)", "Small sponsor strip with logo on page changes (rotation 1×)"),
             Triple("Gelb markiert und als Anzeige gekennzeichnet", "Sarı işaretli, reklam olarak etiketli", "Highlighted in yellow, labelled as an ad"),
             Triple("Kontaktfenster: Adresse, Öffnungszeiten, Anrufen, WhatsApp, E-Mail", "İletişim penceresi: adres, saatler, arama, WhatsApp, e-posta", "Contact sheet: address, hours, call, WhatsApp, e-mail"),
@@ -131,13 +131,13 @@ fun BusinessPortalScreen(
                         text = t(
                             "Mit My Kiez Berlin erreichen Sie gezielt Menschen in Ihrem Kiez – in der App und auf mykiezberlin.com. Lokal, einfach und monatlich kündbar.",
                             "My Kiez Berlin ile mahallenizdeki insanlara doğrudan ulaşırsınız – uygulamada ve mykiezberlin.com'da. Yerel, kolay ve aylık iptal edilebilir.",
-                            "With My Kiez Berlin you reach people in your Kiez directly – in the app and on mykiezberlin.com. Local, simple and cancellable monthly."
+                            "With My Kiez Berlin you reach people in your neighbourhood directly – in the app and on mykiezberlin.com. Local, simple and cancellable monthly."
                         ),
                         color = Color.White.copy(alpha = 0.9f), fontSize = 13.sp, lineHeight = 18.sp
                     )
                     Spacer(Modifier.height(12.dp))
                     Text(
-                        text = t("Dein Kiez. Deine Kunden. Dein Erfolg.", "Senin mahallen. Senin müşterilerin. Senin başarın.", "Your Kiez. Your customers. Your success."),
+                        text = t("Dein Kiez. Deine Kunden. Dein Erfolg.", "Senin mahallen. Senin müşterilerin. Senin başarın.", "Your neighbourhood. Your customers. Your success."),
                         color = BerlinYellow, fontWeight = FontWeight.Bold, fontSize = 15.sp
                     )
                 }
@@ -154,7 +154,7 @@ fun BusinessPortalScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     UspRow(Icons.Default.Adjust, t("Gezielte lokale Reichweite", "Hedefli yerel erişim", "Targeted local reach"), t("Direkt in Ihrem Stadtteil sichtbar sein", "Doğrudan semtinizde görünür olun", "Be visible right in your district"))
-                    UspRow(Icons.Default.People, t("Passende Kunden aus Ihrem Kiez", "Mahallenizden doğru müşteriler", "The right customers from your Kiez"), t("Anwohner und Kiez-Besucher ansprechen", "Mahalle sakinlerine ve ziyaretçilere ulaşın", "Reach residents and visitors"))
+                    UspRow(Icons.Default.People, t("Passende Kunden aus Ihrem Kiez", "Mahallenizden doğru müşteriler", "The right customers from your neighbourhood"), t("Anwohner und Kiez-Besucher ansprechen", "Mahalle sakinlerine ve ziyaretçilere ulaşın", "Reach residents and visitors"))
                     UspRow(Icons.Default.Phone, t("Direkter Kontakt", "Doğrudan iletişim", "Direct contact"), t("Kunden rufen an oder schreiben per WhatsApp – mit einem Tipp", "Müşteriler tek dokunuşla arar veya WhatsApp'tan yazar", "Customers call or message on WhatsApp with one tap"))
                     UspRow(Icons.Default.TouchApp, t("Einfache Online-Buchung", "Kolay online rezervasyon", "Easy online booking"), t("Sicher per Karte (Stripe), Rechnung per E-Mail", "Kartla güvenli ödeme (Stripe), fatura e-postayla", "Secure card payment (Stripe), invoice by e-mail"))
                 }
@@ -254,9 +254,9 @@ fun BusinessPortalScreen(
                 Text(t("Zusätzliche Werbemöglichkeiten (auf Anfrage)", "Ek reklam seçenekleri (talep üzerine)", "Additional advertising options (on request)"), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 Spacer(Modifier.height(10.dp))
                 val extras = listOf(
-                    listOf(t("Kiez Deal", "Kiez fırsatı", "Kiez deal"), t("Ihr Angebot prominent in der Deals-Übersicht", "Teklifiniz fırsatlar listesinde öne çıkar", "Your offer featured in the deals overview"), t("14,90 € / Woche", "14,90 € / hafta", "€14.90 / week")),
+                    listOf(t("Kiez Deal", "Mahalle fırsatı", "Neighbourhood deal"), t("Ihr Angebot prominent in der Deals-Übersicht", "Teklifiniz fırsatlar listesinde öne çıkar", "Your offer featured in the deals overview"), t("14,90 € / Woche", "14,90 € / hafta", "€14.90 / week")),
                     listOf(t("Event hervorheben", "Etkinliği öne çıkar", "Highlight an event"), t("Ihre Veranstaltung ganz oben in den Events", "Etkinliğiniz etkinlikler listesinde en üstte", "Your event at the top of the events"), t("19,90 € / Woche", "19,90 € / hafta", "€19.90 / week")),
-                    listOf(t("Top-Platzierung im Kiez", "Mahallede en üst sıra", "Top spot in your Kiez"), t("Ihr Unternehmen an erster Stelle in der Kategorie", "İşletmeniz kategoride ilk sırada", "Your business first in its category"), t("29,90 € / Woche", "29,90 € / hafta", "€29.90 / week")),
+                    listOf(t("Top-Platzierung im Kiez", "Mahallede en üst sıra", "Top spot in your neighbourhood"), t("Ihr Unternehmen an erster Stelle in der Kategorie", "İşletmeniz kategoride ilk sırada", "Your business first in its category"), t("29,90 € / Woche", "29,90 € / hafta", "€29.90 / week")),
                     listOf(t("Startseiten-Banner", "Ana sayfa banner'ı", "Home page banner"), t("Exklusive Präsentation auf der Startseite", "Ana sayfada özel tanıtım", "Exclusive presentation on the home page"), t("49,90 € / Woche", "49,90 € / hafta", "€49.90 / week"))
                 )
                 extras.forEach { (title, desc, price) ->
@@ -294,7 +294,7 @@ fun BusinessPortalScreen(
                     StepRow("1", t("Paket wählen", "Paket seç", "Choose a package"), t("Kiez Basic, Kiez Plus oder Kiez Premium.", "Kiez Basic, Kiez Plus veya Kiez Premium.", "Kiez Basic, Kiez Plus or Kiez Premium."))
                     StepRow("2", t("Daten senden & bezahlen", "Bilgileri gönder & öde", "Send details & pay"), t("Firmendaten eintragen, sicher per Karte zahlen.", "Firma bilgilerini gir, kartla güvenle öde.", "Enter your details, pay securely by card."))
                     StepRow("3", t("Prüfung & Freigabe", "Kontrol & onay", "Check & approval"), t("Wir prüfen Bild und Text und schalten Ihre Anzeige online.", "Resim ve metni kontrol edip reklamınızı yayına alırız.", "We check picture and text and put your ad online."))
-                    StepRow("4", t("Sichtbar werden", "Görünür ol", "Get seen"), t("Kunden im Kiez rufen Sie an oder schreiben Ihnen.", "Mahalledeki müşteriler sizi arar veya size yazar.", "Customers in the Kiez call or message you."))
+                    StepRow("4", t("Sichtbar werden", "Görünür ol", "Get seen"), t("Kunden im Kiez rufen Sie an oder schreiben Ihnen.", "Mahalledeki müşteriler sizi arar veya size yazar.", "Customers in the neighbourhood call or message you."))
                 }
             }
         }
@@ -346,7 +346,7 @@ fun BusinessPortalScreen(
                         Spacer(Modifier.height(8.dp))
                         OutlinedTextField(emailInput, { emailInput = it }, label = { Text(t("E-Mail-Adresse", "E-posta adresi", "E-mail address")) }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                         Spacer(Modifier.height(8.dp))
-                        OutlinedTextField(kiezInput, { kiezInput = it }, label = { Text(t("Kiez / Stadtteil", "Mahalle / semt", "Kiez / district")) }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                        OutlinedTextField(kiezInput, { kiezInput = it }, label = { Text(t("Kiez / Stadtteil", "Mahalle / semt", "Neighbourhood / district")) }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                         Spacer(Modifier.height(18.dp))
                         Button(
                             onClick = { if (companyNameInput.isNotBlank() && emailInput.isNotBlank()) onSubmitBooking(companyNameInput, emailInput, kiezInput) },

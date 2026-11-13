@@ -44,8 +44,9 @@ private val DECK = listOf(
     DeckBox("sport", "⚽", Color(0xFF2EA043), "Sport in Berlin", "Berlin'de spor", "Hertha, Union, Alba, Eisbären – News & Spiele.", "Hertha, Union, Alba, Eisbären – haberler ve maçlar.", "Zum Sport", "Spora git", AppScreen.SPORTS_AND_MARKETS),
     DeckBox("notruf", "📞", Color(0xFFE30613), "Notruf & wichtige Nummern", "Acil ve önemli numaralar", "110 Polizei · 112 Feuerwehr · 116 117 Arzt", "110 Polis · 112 İtfaiye · 116 117 Doktor", "Alle Nummern", "Tüm numaralar", AppScreen.NOTRUF),
     DeckBox("reporter", "📣", Color(0xFFF2B705), "Werde Kiez-Reporter", "Mahalle muhabiri ol", "Was passiert in deinem Kiez? Schreib es – die Nachbarn lesen mit.", "Mahallende ne oluyor? Yaz – komşuların okusun.", "Zum Kiez-Reporter", "Muhabir bölümüne", AppScreen.REPORTER),
-    DeckBox("quiz", "🎯", Color(0xFF7B61FF), "Welcher Kiez passt zu dir?", "Sana hangi Kiez uyuyor?", "Kurze Fragen – dein Berliner Lieblingskiez.", "Kısa sorular – Berlin'deki favori mahallen.", "Quiz starten", "Teste başla", AppScreen.KIEZ_MATCH),
+    DeckBox("quiz", "🎯", Color(0xFF7B61FF), "Welcher Kiez passt zu dir?", "Sana hangi mahalle uyuyor?", "Kurze Fragen – dein Berliner Lieblingskiez.", "Kısa sorular – Berlin'deki favori mahallen.", "Quiz starten", "Teste başla", AppScreen.KIEZ_MATCH),
     DeckBox("community", "🆓", Color(0xFF0EA5E9), "Kostenlose Kleinanzeigen", "Ücretsiz ilanlar", "3 Tage gratis inserieren – verkaufen, verschenken, finden.", "3 gün ücretsiz ilan ver – sat, hediye et, bul.", "Zur Community", "Topluluğa git", AppScreen.COMMUNITY),
+    DeckBox("telefonbuch", "📒", Color(0xFF0F766E), "Berliner Telefonbuch & Branchen", "Berlin telefon & iş rehberi", "Nummern von Firmen, Ärzten, Handwerkern – in Das Örtliche, Gelbe Seiten, 11880 suchen.", "Firma, doktor, usta numaraları – Das Örtliche, Gelbe Seiten, 11880'de ara.", "Nummer suchen", "Numara ara", AppScreen.TELEFONBUCH),
     DeckBox("tips", "🧭", Color(0xFF0F766E), "Kiez-Guide & Berlin-Tipps", "Mahalle rehberi & Berlin önerileri", "Ausflüge, Orte und Tipps für jeden Kiez.", "Her mahalle için gezi, yer ve öneriler.", "Tipps ansehen", "Önerilere bak", AppScreen.BERLIN_TIPS),
     DeckBox("events", "📅", Color(0xFFC026D3), "Events in Berlin", "Berlin'de etkinlikler", "Was ist los diese Woche?", "Bu hafta neler var?", "Zu den Events", "Etkinliklere git", AppScreen.EVENTS),
     DeckBox("jobs", "💼", Color(0xFF475569), "Kiez-Jobs", "Mahalle iş ilanları", "Jobs in deiner Nähe.", "Yakınındaki işler.", "Jobs ansehen", "İlanlara bak", AppScreen.JOBS),
@@ -150,7 +151,7 @@ fun HomeKiezStarsSmall(language: AppLanguage, onShareStory: () -> Unit) {
             .border(2.dp, Color(0xFFF2B705), RoundedCornerShape(16.dp)).background(Color(0xFFF2B705).copy(alpha = 0.10f))
     ) {
         Row(Modifier.fillMaxWidth().clickable { open = !open }.padding(horizontal = 14.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("🏆 " + (if (tr) "Haftanın Kiez Yıldızları" else "Kiez-Stars der Woche"), fontWeight = FontWeight.ExtraBold, fontSize = 15.sp, modifier = Modifier.weight(1f))
+            Text("🏆 " + (if (tr) "Haftanın Mahalle Yıldızları" else "Kiez-Stars der Woche"), fontWeight = FontWeight.ExtraBold, fontSize = 15.sp, modifier = Modifier.weight(1f))
             Text(if (open) "▴" else "▾", fontSize = 16.sp)
         }
         if (open) KiezStarsCard(language = language, onShareStory = onShareStory)
@@ -196,7 +197,7 @@ private fun AllSponsorsDialog(ads: List<ServerAd>, language: AppLanguage, onClos
                     TextButton(onClick = onClose) { Text("✕", fontSize = 18.sp) }
                 }
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    FilterChip(selected = kiez.isBlank(), onClick = { kiez = "" }, label = { Text(if (tr) "Tüm Kiezler" else "Alle Kieze") })
+                    FilterChip(selected = kiez.isBlank(), onClick = { kiez = "" }, label = { Text(if (tr) "Tüm Mahalleler" else "Alle Kieze") })
                     kieze.forEach { k -> FilterChip(selected = kiez == k, onClick = { kiez = k }, label = { Text(k) }) }
                 }
                 LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {

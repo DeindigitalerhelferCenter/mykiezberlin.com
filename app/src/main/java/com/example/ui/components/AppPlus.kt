@@ -35,7 +35,7 @@ import okhttp3.MultipartBody
  *  - Notruf: more real numbers + "Ihre Sicherheit" / "Saisonale Informationen" of the Berliner Feuerwehr
  *  - Berlin Telefonbuch / İş rehberi: search in the real directories (opens their pages, nothing is stored)
  *  - Berlin-Tipps: detail window instead of opening Google Maps directly
- *  - Story offers ("Ayran 0,99 € statt 1,50 €"): written in the story form, shown under "Özel Kiez İndirimleri"
+ *  - Story offers ("Ayran 0,99 € statt 1,50 €"): written in the story form, shown under "Özel Mahalle İndirimleri"
  */
 
 private val PlusRed = Color(0xFFE30613)
@@ -83,7 +83,7 @@ fun StoryDealFields(language: AppLanguage) {
             Text(if (open) "▲" else "▼", fontSize = 12.sp)
         }
         if (open) {
-            Text(t(language, "Wird zusätzlich unter „Exklusive Kiez-Vorteile“ gezeigt, solange die Story läuft.", "Story yayında olduğu sürece „Özel Kiez İndirimleri“ bölümünde de görünür."), fontSize = 11.sp)
+            Text(t(language, "Wird zusätzlich unter „Exklusive Kiez-Vorteile“ gezeigt, solange die Story läuft.", "Story yayında olduğu sürece „Özel Mahalle İndirimleri“ bölümünde de görünür."), fontSize = 11.sp)
             OutlinedTextField(StoryDealDraft.what, { StoryDealDraft.what = it.take(80) }, label = { Text(t(language, "Was? z. B. Ayran 1 L", "Ne? örn. Ayran 1 L")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 OutlinedTextField(StoryDealDraft.price, { StoryDealDraft.price = it.take(30) }, label = { Text(t(language, "Neuer Preis", "Yeni fiyat")) }, placeholder = { Text("0,99 €") }, singleLine = true, modifier = Modifier.weight(1f))
@@ -93,13 +93,13 @@ fun StoryDealFields(language: AppLanguage) {
     }
 }
 
-/** Offers of the running stories, for the "Özel Kiez İndirimleri" screen. */
+/** Offers of the running stories, for the "Özel Mahalle İndirimleri" screen. */
 @Composable
 fun StoryDealsSection(language: AppLanguage, stories: List<KiezStory>, onOpen: (KiezStory) -> Unit) {
     val now = System.currentTimeMillis()
     val deals = stories.filter { it.deal != null && it.status == "approved" && it.createdAtMillis + it.durationHours * 3_600_000L > now }
     Column(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text("🏷️ " + t(language, "Aktuelle Angebote aus den Kiez-Stories", "Kiez hikâyelerindeki güncel indirimler"), fontWeight = FontWeight.Bold, fontSize = 14.sp, color = PlusRed)
+        Text("🏷️ " + t(language, "Aktuelle Angebote aus den Kiez-Stories", "Mahalle hikâyelerindeki güncel indirimler"), fontWeight = FontWeight.Bold, fontSize = 14.sp, color = PlusRed)
         if (deals.isEmpty()) {
             Text(t(language, "Gerade keine Story-Angebote. Teile selbst eins über „Story teilen“ → „Angebot / Rabatt“.", "Şu an hikâye indirimi yok. „Hikâye paylaş“ → „İndirim / kampanya“ ile sen de paylaş."), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         } else {
@@ -225,7 +225,70 @@ fun TelefonbuchSection(language: AppLanguage) {
     }
 }
 
+/** 2026-11-14: own page "Berliner Telefonbuch" (menu, home box, businesses page) – search + official numbers. */
+@Composable
+fun TelefonbuchScreen(language: AppLanguage, onBack: () -> Unit) {
+    val context = LocalContext.current
+    val official = listOf(
+        Triple("115", t(language, "Behördennummer Berlin (Bürgeramt, Ämter)", "Berlin resmi daireler hattı (Bürgeramt)"), "tel:115"),
+        Triple("030 4664 4664", t(language, "Polizei Bürgertelefon (kein Notfall)", "Polis vatandaş hattı (acil değil)"), "tel:03046644664"),
+        Triple("116 117", t(language, "Ärztlicher Bereitschaftsdienst", "Nöbetçi doktor"), "tel:116117"),
+        Triple("0800 00 22833", t(language, "Apotheken-Notdienst", "Nöbetçi eczane"), "tel:08000022833"),
+        Triple("service.berlin.de", t(language, "Alle Berliner Ämter & Termine", "Tüm Berlin daireleri & randevular"), "https://service.berlin.de/"),
+    )
+    androidx.compose.foundation.lazy.LazyColumn(
+        Modifier.fillMaxSize(), contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        item {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                TextButton(onClick = onBack) { Text("←", fontSize = 20.sp) }
+                Column {
+                    Text(t(language, "Berliner Telefonbuch", "Berlin telefon rehberi"), fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text(t(language, "Firmen, Ärzte, Handwerker, Ämter – echte Verzeichnisse", "Firma, doktor, usta, daire – gerçek rehberler"), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+        item {
+            Text(
+                t(language,
+                    "So geht's: Oben eintippen, was du suchst (z. B. „Zahnarzt“ oder einen Namen), unten den Kiez – dann auf ein Verzeichnis tippen. Es öffnet sich die Trefferliste mit Telefonnummern.",
+                    "Nasıl çalışır: Üste aradığını yaz (örn. „Diş hekimi“ veya bir isim), alta mahalleyi – sonra bir rehbere dokun. Telefon numaralarıyla sonuç listesi açılır."),
+                fontSize = 12.5.sp, lineHeight = 17.sp,
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0xFF0F766E).copy(alpha = 0.10f)).padding(10.dp)
+            )
+        }
+        item { TelefonbuchSection(language) }
+        item { Text(t(language, "Wichtige Nummern der Stadt", "Şehrin önemli numaraları"), fontWeight = FontWeight.Bold, fontSize = 15.sp) }
+        official.forEach { (num, label, link) ->
+            item {
+                Row(
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surfaceVariant)
+                        .clickable { runCatching { context.startActivity(Intent(if (link.startsWith("tel:")) Intent.ACTION_DIAL else Intent.ACTION_VIEW, Uri.parse(link))) } }
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(num, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Text(label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Text(if (link.startsWith("tel:")) "📞" else "🌐", fontSize = 18.sp)
+                }
+            }
+        }
+    }
+}
+
 // ---------------- Berlin-Tipps detail ----------------
+
+// 2026-11-14: the tip categories are stored as English keys – shown in the user's language
+fun tipCategoryName(key: String, language: AppLanguage): String = when (key) {
+    "culture" -> t(language, "Kultur", "Kültür")
+    "view" -> t(language, "Aussicht", "Manzara")
+    "park" -> t(language, "Park & Natur", "Park & Doğa")
+    "kids" -> t(language, "Für Kinder", "Çocuklar için")
+    "museum" -> t(language, "Museum", "Müze")
+    else -> key
+}
 
 @Composable
 fun TipDetailDialog(tip: BerlinTip, language: AppLanguage, onMap: () -> Unit, onRoute: () -> Unit, onDismiss: () -> Unit) {
@@ -239,7 +302,7 @@ fun TipDetailDialog(tip: BerlinTip, language: AppLanguage, onMap: () -> Unit, on
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(tip.kiezId.replace("-", " ").replaceFirstChar { it.uppercase() }, fontSize = 11.sp, modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(PlusRed.copy(alpha = 0.1f)).padding(horizontal = 6.dp, vertical = 2.dp))
                     if (tip.isFree) Text(t(language, "Gratis", "Ücretsiz"), fontSize = 11.sp, modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(Color(0xFF2EA043).copy(alpha = 0.15f)).padding(horizontal = 6.dp, vertical = 2.dp))
-                    tip.categories.take(3).forEach { c -> Text(c, fontSize = 11.sp, modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(MaterialTheme.colorScheme.surfaceVariant).padding(horizontal = 6.dp, vertical = 2.dp)) }
+                    tip.categories.take(3).forEach { c -> Text(tipCategoryName(c, language), fontSize = 11.sp, modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(MaterialTheme.colorScheme.surfaceVariant).padding(horizontal = 6.dp, vertical = 2.dp)) }
                 }
                 Text(tip.localizedDesc(language), fontSize = 14.sp, lineHeight = 20.sp)
                 TextButton(onClick = { runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com/search?q=" + Uri.encode(tip.name + " Berlin")))) } }) {

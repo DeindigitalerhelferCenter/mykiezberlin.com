@@ -60,6 +60,8 @@
   }
 
   // ---------- 2. Berlin-Tipps detail window ----------
+  // 2026-11-14: categories are English keys – shown in German / Turkish
+  var TIP_CAT = { culture: ["Kultur", "Kültür"], view: ["Aussicht", "Manzara"], park: ["Park & Natur", "Park & Doğa"], kids: ["Für Kinder", "Çocuklar için"], museum: ["Museum", "Müze"] };
   window.mkOpenTip = function (id) {
     var t = (typeof BERLIN_TIPS === "object" ? BERLIN_TIPS : []).find(function (x) { return x.id === id; });
     if (!t || typeof openDetailModal !== "function") return;
@@ -75,7 +77,7 @@
       '<h3 class="modal-title" style="padding-right:36px;margin-top:6px">' + E(t.name) + "</h3>" +
       '<div class="card-subtitle" style="margin-top:4px">📍 ' + E(t.address || "") + (kiez ? " · " + E(kiez.name) : "") + "</div>" +
       '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">' + (t.isFree ? '<span class="card-tag">' + E(T("Gratis", "Ücretsiz")) + "</span>" : "") +
-      (t.categories || []).map(function (c) { return '<span class="card-tag" style="background:rgba(0,0,0,.06);color:inherit">' + E(c) + "</span>"; }).join("") + "</div>" +
+      (t.categories || []).map(function (c) { var n = TIP_CAT[c]; return '<span class="card-tag" style="background:rgba(0,0,0,.06);color:inherit">' + E(n ? T(n[0], n[1]) : c) + "</span>"; }).join("") + "</div>" +
       '<p class="card-desc" style="margin-top:10px;font-size:14.5px">' + E(desc || "") + "</p>" + map +
       '<div class="ext-actions" style="margin-top:12px"><a class="chip-btn active" href="' + route + '" target="_blank" rel="noopener"><i class="bi bi-geo-alt-fill"></i> ' + E(T("Route", "Yol tarifi")) + "</a>" +
       '<a class="chip-btn" href="' + more + '" target="_blank" rel="noopener"><i class="bi bi-search"></i> ' + E(T("Mehr erfahren", "Daha fazla bilgi")) + "</a></div>");

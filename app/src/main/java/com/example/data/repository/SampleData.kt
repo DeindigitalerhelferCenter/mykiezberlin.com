@@ -786,7 +786,7 @@ object SampleData {
         ),
         KiezEvent(
             id = "weihnachtszauber_berlin",
-            title = "Berliner Weihnachtszauber & Kiez Pazarları",
+            title = "Berliner Weihnachtszauber & Mahalle Pazarları",
             dayLabel = "MO",
             dateNum = "23",
             monthLabel = "NOV",
