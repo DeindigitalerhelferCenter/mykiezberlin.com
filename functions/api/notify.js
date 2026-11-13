@@ -55,10 +55,11 @@ function matchEvents(match, now) {
   return events;
 }
 
-// Hourly reminder 08:00–21:00 Berlin time: a current Berlin headline or an invitation to use the app.
+// Reminder every 2 hours 08:00–20:00 Berlin time (2026-11-13: was every hour = 14 a day, now 7):
+// 08, 12, 16, 20 h a current Berlin headline, 10, 14, 18 h an invitation to use the app.
 // The app shows kind "hourly" with its own daily quota, so urgent alerts are never crowded out.
 const HOURLY_FIRST = 8;
-const HOURLY_LAST = 21;
+const HOURLY_LAST = 20;
 const NEWS_FEEDS = [
   ["rbb24", "https://www.rbb24.de/aktuell/index.xml/feed=rss.xml"],
   ...RSS,
@@ -97,10 +98,11 @@ async function latestHeadline() {
 async function hourlyItem(now) {
   const { day, hour } = berlinClock(now);
   if (hour < HOURLY_FIRST || hour > HOURLY_LAST) return [];
+  if (hour % 2 !== 0) return []; // 2026-11-13: only every second hour
   const id = `hourly-${day}-${hour}`;
   const dayNumber = Math.floor(now / 86400000);
-  // Even hours: Berlin news (if a feed answers), odd hours: invitation. Order shifts every day.
-  if (hour % 2 === 0) {
+  // 08/12/16/20 h: Berlin news (if a feed answers), 10/14/18 h: invitation. Order shifts every day.
+  if (hour % 4 === 0) {
     const news = await latestHeadline().catch(() => null);
     if (news) {
       const title = `📰 ${news.source}`;

@@ -427,6 +427,12 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                 val remoteVer = LiveAlertsRepository.fetchAppVersion()
                 if (remoteVer != null && remoteVer.versionCode > com.example.BuildConfig.VERSION_CODE) {
                     _uiState.update { it.copy(appUpdateInfo = remoteVer) }
+                } else if (KiezStorageManager.isAdminAuthenticated(app)) {
+                    // 2026-11-13: test channel only for the admin phone (version.json "beta")
+                    val beta = LiveAlertsRepository.fetchBetaVersion()
+                    if (beta != null && beta.versionCode > com.example.BuildConfig.VERSION_CODE) {
+                        _uiState.update { it.copy(appUpdateInfo = beta) }
+                    }
                 }
             } catch (_: Exception) {}
         }

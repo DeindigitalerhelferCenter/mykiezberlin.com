@@ -277,6 +277,33 @@ object LiveAlertsRepository {
         }
     }
 
+    /**
+     * 2026-11-13: test channel – version.json may carry a "beta" block (same fields as the top level).
+     * Only the admin phone reads it, so new builds can be tested before all users get an update.
+     */
+    suspend fun fetchBetaVersion(): AppUpdateInfo? = withContext(Dispatchers.IO) {
+        try {
+            val req = Request.Builder().url("https://mykiezberlin.com/version.json").header("User-Agent", "MyKiezBerlin-Android/2.0").build()
+            httpClient.newCall(req).execute().use { resp ->
+                if (!resp.isSuccessful) return@withContext null
+                val beta = JSONObject(resp.body?.string() ?: "{}").optJSONObject("beta") ?: return@withContext null
+                val notes = beta.optJSONObject("notes")
+                AppUpdateInfo(
+                    versionCode = beta.optInt("versionCode", 0),
+                    versionName = beta.optString("versionName", "") + " (Test)",
+                    apkUrl = beta.optString("apkUrl", ""),
+                    mandatory = false,
+                    notesDe = notes?.optString("de", "") ?: "",
+                    notesTr = notes?.optString("tr", "") ?: "",
+                    notesEn = notes?.optString("en", "") ?: ""
+                ).takeIf { it.versionCode > 0 && it.apkUrl.startsWith("https://") }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "fetchBetaVersion error: ${e.message}")
+            null
+        }
+    }
+
     suspend fun fetchAppVersion(): AppUpdateInfo? = withContext(Dispatchers.IO) {
         try {
             val req = Request.Builder()
