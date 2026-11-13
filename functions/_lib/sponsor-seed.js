@@ -1,5 +1,7 @@
 // Customer register (My Kiez BERLIN_Kundenregister, Nov 2026): partner businesses as sponsor ads.
 // Inserted once (table "seeds"); afterwards the admin panel is the place to change or stop them.
+import { ensureSponsorTables } from "./sponsor-panel.js";
+
 const IG = (h) => (h ? `https://www.instagram.com/${h.replace(/^@/, "")}/` : "");
 
 export const SPONSOR_SEED = [
@@ -118,6 +120,87 @@ export const SPONSOR_SEED = [
     link_web: "", link_wa: "", link_tel: "030 45809915", link_ig: IG("@istanbulreisen49"),
     extra: { category: { de: "Reisebüro", tr: "Seyahat acentesi", en: "Travel agency" }, address: "Reinickendorfer Str. 71, 13347 Berlin", hours: "ab 10:00 Uhr", fax: "030 45809917", primary: "tel" },
   },
+  // ---- Kiez Plus (added 2026-11-13, Kundenregister_updated rows 13–20) ----
+  {
+    id: "schah-hairdesign", plan: "m", name: "Schah Hairdesign", kieze: "Charlottenburg",
+    headline_de: "Exklusiver Friseursalon: Haarverlängerung, Balayage & Haarschnitt – Haarverlängerung Special ab 549 €",
+    headline_tr: "Özel kuaför salonu: saç uzatma, balyaj ve saç kesimi – saç uzatma kampanyası 549 €'dan",
+    headline_en: "Exclusive hair salon: hair extensions, balayage & haircuts – extensions special from €549",
+    cta_de: "Termin anfragen", cta_tr: "Randevu al", cta_en: "Book an appointment",
+    link_web: "https://www.schahhairdesign.de", link_wa: "", link_tel: "0163 8114764", link_ig: IG("@schahhairdesign"),
+    extra: { category: { de: "Friseursalon · Haarverlängerung", tr: "Kuaför · Saç uzatma", en: "Hair salon · Extensions" }, address: "Krumme Str. 50, 10627 Berlin", hours: "Mo–Fr 10:00–18:00, Sa 10:00–16:00", email: "info@schahhairdesign.de",
+      description: "Exklusiver Friseursalon in Berlin-Charlottenburg. Spezialist für Haarverlängerung, Balayage und Haarschnitt. Haarverlängerung Special ab 549 €.\nTelefon Salon: 030 235905170" },
+  },
+  {
+    id: "dr-turan-karkin", plan: "m", name: "Dr. Turan Karkin – Gemeinschaftspraxis", kieze: "Charlottenburg-Wilmersdorf",
+    headline_de: "Hausarzt in Charlottenburg – Gemeinschaftspraxis Dr. Turan Karkin & Dr. Hasan Sari. Kasse, Privat & Selbstzahler",
+    headline_tr: "Charlottenburg'da aile hekimi – Dr. Turan Karkin & Dr. Hasan Sari ortak muayenehanesi. Kasa, özel sigorta ve kendi ödeyen",
+    headline_en: "Family doctor in Charlottenburg – joint practice Dr. Turan Karkin & Dr. Hasan Sari. Public, private & self-pay",
+    cta_de: "Praxis anrufen", cta_tr: "Muayenehaneyi ara", cta_en: "Call the practice",
+    link_web: "", link_wa: "", link_tel: "030 301116688", link_ig: "",
+    extra: { category: { de: "Hausarzt · Allgemeinmedizin", tr: "Aile hekimi · Genel tıp", en: "Family doctor · General medicine" }, address: "Reichsstraße 105, 14052 Berlin", hours: "Mo–Do 08:30–19:00, Fr 08:30–14:00", email: "drhasan@web.de", fax: "030 301116689", primary: "tel",
+      description: "Gemeinschaftspraxis Dr. Turan Karkin & Dr. Hasan Sari. Hausarzt / Facharzt für Allgemeinmedizin in Berlin-Charlottenburg. Kasse, Privat und Selbstzahler.\nFax: 030 301116689" },
+  },
+  {
+    id: "zahnarzt-bundesplatz", plan: "m", name: "Zahnarztpraxis am Bundesplatz – Dr. Ozan Cinar", kieze: "Charlottenburg-Wilmersdorf",
+    headline_de: "Zahnarzt in Wilmersdorf: Endodontie, Implantologie & Parodontologie – Kasse & Privat",
+    headline_tr: "Wilmersdorf'ta diş hekimi: kanal tedavisi, implant ve diş eti tedavisi – kasa ve özel sigorta",
+    headline_en: "Dentist in Wilmersdorf: endodontics, implants & periodontics – public & private",
+    cta_de: "Termin vereinbaren", cta_tr: "Randevu al", cta_en: "Make an appointment",
+    link_web: "https://www.zahnarztpraxis-am-bundesplatz.de", link_wa: "", link_tel: "030 91145657", link_ig: "",
+    extra: { category: { de: "Zahnarzt · Implantologie", tr: "Diş hekimi · İmplant", en: "Dentist · Implants" }, address: "Bundesplatz 12a, 10715 Berlin", hours: "ab 10:00 Uhr", email: "kontakt@zahnarztpraxis-am-bundesplatz.de", fax: "030-85071879",
+      description: "Zahnarzt und Zahntechniker in Berlin-Wilmersdorf. Spezialist für Endodontie, Implantologie und Parodontologie. Kasse & Privat.\nFax: 030-85071879" },
+  },
+  {
+    id: "richys-car-service", plan: "m", name: "Richy's Car-Service", kieze: "Charlottenburg-Nord",
+    headline_de: "Autowerkstatt in Charlottenburg – Kfz-Reparatur und Wartung aus einer Hand",
+    headline_tr: "Charlottenburg'da oto tamirhanesi – araç tamiri ve bakımı tek elden",
+    headline_en: "Car workshop in Charlottenburg – repairs and servicing in one place",
+    cta_de: "Jetzt anrufen", cta_tr: "Hemen ara", cta_en: "Call now",
+    link_web: "", link_wa: "", link_tel: "030 34710425", link_ig: "",
+    extra: { category: { de: "Autowerkstatt · Kfz-Service", tr: "Oto tamir · Araç servisi", en: "Car workshop · Car service" }, address: "Sophie-Charlotten-Straße 31–32, 14059 Berlin", hours: "Mo–Fr 08:00–19:00, Sa 08:00–16:00", primary: "tel",
+      description: "Autowerkstatt in Berlin-Charlottenburg. Umfassende Kfz-Reparatur und Wartungsservice." },
+  },
+  {
+    id: "mmb-beratung", plan: "m", name: "MMB Unternehmensberatung GmbH", kieze: "Charlottenburg",
+    headline_de: "Unternehmensberatung, Vermietung und Verpachtung in Charlottenburg",
+    headline_tr: "Charlottenburg'da işletme danışmanlığı, kiralama ve işletme devri",
+    headline_en: "Business consulting, renting and leasing in Charlottenburg",
+    cta_de: "Jetzt anrufen", cta_tr: "Hemen ara", cta_en: "Call now",
+    link_web: "", link_wa: "", link_tel: "030 25093730", link_ig: "",
+    extra: { category: { de: "Unternehmensberatung · Vermietung", tr: "Danışmanlık · Kiralama", en: "Consulting · Renting" }, address: "Behaimstraße 3, 10585 Berlin", hours: "", email: "karaarslan@mmbgmbh.com", fax: "030 39493724", primary: "tel",
+      description: "Unternehmensberatung, Vermietung und Verpachtung. Geschäftsführer: Dursun Karaarslan. HRB 177958 B, AG Berlin-Charlottenburg.\nFax: 030 39493724" },
+  },
+  {
+    id: "pc-doctor", plan: "m", name: "PC Doctor – Computer Reparatur", kieze: "Spandau",
+    headline_de: "PC- & Laptop-Reparatur in Spandau: Datenrettung, SSD-Einbau, Virenschutz, Netzwerk & Mac – schnell und zuverlässig",
+    headline_tr: "Spandau'da PC ve laptop tamiri: veri kurtarma, SSD takma, virüs temizliği, ağ ve Mac – hızlı ve güvenilir",
+    headline_en: "PC & laptop repair in Spandau: data recovery, SSD upgrades, virus removal, networks & Mac – fast and reliable",
+    cta_de: "Jetzt anrufen", cta_tr: "Hemen ara", cta_en: "Call now",
+    link_web: "https://www.pcdoctor-24.de", link_wa: "+493065707585", link_tel: "030 65707585", link_ig: "",
+    extra: { category: { de: "Computer-Reparatur · IT-Service", tr: "Bilgisayar tamiri · IT servisi", en: "Computer repair · IT service" }, address: "Pichelsdorfer Str. 126, 13595 Berlin", hours: "Mo–Fr 10:00–18:00, Sa 10:00–14:00", email: "info@pcdoctor-24.de", fax: "030 65707587",
+      description: "PC & Laptop Reparatur, Hardware-Aufrüstung, SSD-Einbau & Datenrettung, Virenschutz & Systempflege, Netzwerk & Internet, Mac-Reparatur. Vor-Ort- und Werkstattservice, Windows-11-Umstieg, An- und Verkauf gebrauchter Notebooks, PCs und Handys. Schnell, zuverlässig, kompetent.\nFax: 030 65707587" },
+  },
+  {
+    id: "aqua-marinn", plan: "m", name: "Aqua Marinn Hotel – Aqua Park, Spa & Wellness", kieze: "",
+    headline_de: "4★ Hotel in Altınova / Yalova (Türkei) mit Aqua Park, Spa & Wellness, offenen und geschlossenen Pools",
+    headline_tr: "Altınova / Yalova'da aqua park, spa & wellness, açık ve kapalı havuzlu 4★ otel",
+    headline_en: "4★ hotel in Altınova / Yalova (Turkey) with aqua park, spa & wellness, outdoor and indoor pools",
+    cta_de: "Hotel ansehen", cta_tr: "Oteli gör", cta_en: "View hotel",
+    link_web: "https://www.aquamarinn.com", link_wa: "+905526200077", link_tel: "+90 226 420 00 77", link_ig: IG("@aquamarinnotel"),
+    extra: { category: { de: "Hotel · Aqua Park · Spa", tr: "Otel · Aqua park · Spa", en: "Hotel · Aqua park · Spa" }, address: "Köy Altı Mevkii, Devlet Yolu Altı Cad. No:16/1, Tokmak, Altınova / Yalova, Türkiye", hours: "", email: "info@aquamarinn.com",
+      description: "4★ Hotel mit Aqua Park, Spa & Wellness, offenen und geschlossenen Pools. Turizm Belgesi Nr. 21806.\nTelefon: +90 226 420 00 77 / +90 226 420 00 78" },
+  },
+  {
+    id: "dr-adnan-guercan", plan: "m", name: "Dr. Adnan Gürcan – Medikal Estetik", kieze: "",
+    headline_de: "Medizinische Ästhetik in İstanbul seit 2004: Botox, Filler, Mesotherapie, PRP & Haarausfall",
+    headline_tr: "2004'ten beri İstanbul'da medikal estetik: botoks, dolgu, mezoterapi, PRP ve saç dökülmesi",
+    headline_en: "Medical aesthetics in İstanbul since 2004: Botox, fillers, mesotherapy, PRP & hair loss",
+    cta_de: "Beratung anfragen", cta_tr: "Danışmanlık al", cta_en: "Ask for advice",
+    link_web: "https://www.dradnangurcan.com", link_wa: "+905324516928", link_tel: "+90 212 280 80 30", link_ig: "",
+    extra: { category: { de: "Medizinische Ästhetik", tr: "Medikal estetik", en: "Medical aesthetics" }, address: "Nisbetiye Mah., Aytar Cad. Burç Apt. No:36/6, 34340 Beşiktaş / İstanbul, Türkiye", hours: "Mo–Fr 09:30–18:30", email: "iletisim@dradnangurcan.com", primary: "wa",
+      description: "Medizinische Ästhetik seit 2004 (vom Gesundheitsministerium zertifiziert). Botox, Filler, Mesotherapie, PRP und Behandlung von Haarausfall. Gast bei CNN Türk „Uzmanı Anlatıyor“." },
+  },
 ];
 
 // One-time corrections for sponsors that are already in the live database (seeds are only inserted once).
@@ -167,6 +250,36 @@ export async function seedSponsors(database) {
   await applyPlanFix(database);
   await applyTekLogoFix(database);
   await applyTekRedFix(database);
+  await applyNewSponsorsFix(database);
+}
+
+// 2026-11-13 (owner): pictures from "YENI SPONSORLAR.zip" in the sponsors' own gallery (contact sheet).
+// They live in /assets (no R2 access from here); by_admin = 1, so they do not count against the sponsor's daily/weekly limit.
+// The admin can hide or delete them in "📸 Sponsor-Medien" like every other picture.
+const GALLERY_SEED = [
+  ["g-schah-1", "schah-hairdesign", "/assets/sponsors/gallery/schah-hairdesign-1.webp", "Haarverlängerung Special – nur 549 €"],
+  ["g-pcdoctor-1", "pc-doctor", "/assets/sponsors/gallery/pc-doctor-1.webp", "Unsere Leistungen"],
+  ["g-pcdoctor-2", "pc-doctor", "/assets/sponsors/gallery/pc-doctor-2.webp", "Ihr PC in besten Händen"],
+  ["g-adnan-1", "dr-adnan-guercan", "/assets/sponsors/gallery/dr-adnan-guercan-1.webp", "CNN Türk – Uzmanı Anlatıyor"],
+  ["g-exakt-1", "exakt-sicherheit", "/assets/sponsors/gallery/exakt-sicherheit-1.webp", "Neueröffnung im Märkischen Zentrum"],
+  ["g-tek-1", "terra-verde-tek", "/assets/sponsors/gallery/terra-verde-tek-g1.webp", "Folgen Sie uns!"],
+];
+
+// One-time: gallery pictures, new Exakt phone number (from the owner's picture), test story from 2026-11-13 rejected. Runs once.
+async function applyNewSponsorsFix(database) {
+  const id = "fix:2026-11-13-newsponsors";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  await ensureSponsorTables(database);
+  const now = Date.now();
+  await database.batch([
+    ...GALLERY_SEED.map(([mid, adId, key, caption], i) =>
+      database.prepare(`INSERT OR IGNORE INTO sponsor_media (id, ad_id, media_key, media_type, caption, status, bytes, created_at, by_admin) VALUES (?, ?, ?, 'image', ?, 'live', 0, ?, 1)`)
+        .bind(mid, adId, key, caption, now - i)),
+    database.prepare(`UPDATE ads SET link_tel = ?, updated_at = ? WHERE id = 'exakt-sicherheit'`).bind("+49 173 2379395", now),
+    // own test story (author "☝💯"), created by mistake on the live site – only this one id
+    database.prepare(`UPDATE stories SET status = 'rejected' WHERE id = '4944a6e9-76f5-48fc-9559-1b99e3208558' AND status = 'pending'`),
+    database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now),
+  ]);
 }
 
 // 2026-11-13 (owner): TEK banner background red like the TEK logo (was green), new file name because of the 4 h asset cache. Runs once.

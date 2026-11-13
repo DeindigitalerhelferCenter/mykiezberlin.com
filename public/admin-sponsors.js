@@ -124,7 +124,7 @@
       if (!j.media) { body.textContent = "Fehler · Hata: " + (j.error || "?"); return; }
       if (!j.media.length) { body.innerHTML = '<span style="color:#8b949e">Noch nichts hochgeladen · Henüz yükleme yok</span>'; return; }
       body.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px">' + j.media.map(function (m) {
-        var src = "/media/" + m.media_key;
+        var src = m.media_key.charAt(0) === "/" ? m.media_key : "/media/" + m.media_key; // 2026-11-13: seeded pictures live in /assets
         return '<figure data-id="' + e(m.id) + '" style="margin:0;background:#0d1117;border-radius:12px;overflow:hidden;' + (m.status === "hidden" ? "opacity:.45" : "") + '">' +
           (m.media_type === "video" ? '<video src="' + e(src) + '" controls preload="metadata" style="width:100%;aspect-ratio:1;object-fit:cover;background:#000"></video>' : '<img src="' + e(src) + '" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover">') +
           '<figcaption style="padding:6px 8px;font-size:11.5px"><b>' + e(m.name || m.ad_id) + "</b><br>" + e(m.caption || "") + '<br><span style="color:#8b949e">' + new Date(m.created_at).toLocaleString("de-DE") + (m.status === "hidden" ? " · ausgeblendet" : "") + "</span>" +
