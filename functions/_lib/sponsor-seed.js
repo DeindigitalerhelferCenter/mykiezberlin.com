@@ -63,7 +63,7 @@ export const SPONSOR_SEED = [
     extra: { category: { de: "Schlüsseldienst & Schuhreparatur", tr: "Çilingir & ayakkabı tamiri", en: "Locksmith & shoe repair" }, address: "Breite Straße 20, 13187 Berlin", hours: "24/7 Notdienst", email: "info@berlin-schuh-schluesseldienst.de" },
   },
   {
-    id: "grz-haustechnik", plan: "m", name: "GRZ Haustechnik", kieze: "Reinickendorf",
+    id: "grz-haustechnik", plan: "s", name: "GRZ Haustechnik", kieze: "Reinickendorf",
     headline_de: "Sanitär, Heizung, Lüftung & Klima – moderne, effiziente Lösungen, 24 Stunden erreichbar",
     headline_tr: "Sıhhi tesisat, ısıtma, havalandırma ve klima – modern çözümler, 24 saat ulaşılabilir",
     headline_en: "Plumbing, heating, ventilation & air conditioning – available 24 hours",
@@ -100,7 +100,7 @@ export const SPONSOR_SEED = [
     extra: { category: { de: "Beratung · Buchhaltung · Immobilien", tr: "Danışmanlık · Muhasebe · Emlak", en: "Consulting · Bookkeeping · Real estate" }, address: "", hours: "", email: "trojaconsulting@email.de", primary: "wa" },
   },
   {
-    id: "terra-verde-tek", plan: "s", name: "Terra Verde TEK Getränke", kieze: "Spandau",
+    id: "terra-verde-tek", plan: "l", name: "Terra Verde TEK Getränke", kieze: "Spandau",
     headline_de: "Großhandel für Getränke, Verpackungen, Hygiene & Lebensmittel – für Privat & Gewerbe",
     headline_tr: "İçecek, ambalaj, hijyen ve gıda toptancısı – bireysel ve kurumsal müşterilere",
     headline_en: "Wholesale drinks, packaging, hygiene & food – for private and business customers",
@@ -164,4 +164,17 @@ export async function seedSponsors(database) {
     database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(`ad:${s.id}`, now),
   ]));
   await applyFixes(database);
+  await applyPlanFix(database);
+}
+
+// 2026-11-13 (owner): Terra Verde TEK is Kiez Premium, GRZ Haustechnik is Kiez Basic. Runs once.
+async function applyPlanFix(database) {
+  const id = "fix:2026-11-13-plans";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  const now = Date.now();
+  await database.batch([
+    database.prepare(`UPDATE ads SET plan = 'l', priority = 30, updated_at = ? WHERE id = 'terra-verde-tek'`).bind(now),
+    database.prepare(`UPDATE ads SET plan = 's', priority = 10, updated_at = ? WHERE id = 'grz-haustechnik'`).bind(now),
+    database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now),
+  ]);
 }

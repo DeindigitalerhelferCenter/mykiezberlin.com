@@ -153,13 +153,43 @@ function openAdForm(id, requestId = "") {
       ${field("link_web", "Webseite (https://…)")}${field("link_wa", "WhatsApp-Nummer")}${field("link_tel", "Telefon")}${field("link_ig", "Instagram (https://…)")}
       <div style="font-size: 12px;">Platzierung: ${Object.entries(AD_PLACES).map(([k, v]) => `<label style="margin-right: 10px;"><input type="checkbox" class="ad-place" value="${k}" ${places.includes(k) ? "checked" : ""}> ${v}</label>`).join("")}</div>
       <label style="display: grid; gap: 3px; font-size: 12px;">Paket (legt Größe, Plätze und Häufigkeit automatisch fest)<select id="ad-plan" class="form-control"><option value="">– kein Paket (nur gewählte Plätze) –</option>${Object.entries(PLAN_INFO).map(([k, v]) => `<option value="${k}" ${ad.plan === k ? "selected" : ""}>${v.label} – ${v.size}, ${v.weight}×</option>`).join("")}</select></label>
-      ${field("kieze", "Kiez des Betriebs (Kiez Basic: dort ganz oben)")}${field("priority", "Priorität 0–100", ad.priority ?? 0)}
+      ${field("kieze", "Kiez des Betriebs (Kiez Basic: dort ganz oben)")}
+      ${adExtraFields(ad)}${field("priority", "Priorität 0–100", ad.priority ?? 0)}
       <label style="display: grid; gap: 3px; font-size: 12px;">Start<input id="ad-start" type="date" class="form-control" value="${toDateInput(ad.start_at)}"></label>
       <label style="display: grid; gap: 3px; font-size: 12px;">Ende (leer = unbegrenzt; bei Stripe-Zahlung automatisch)<input id="ad-end" type="date" class="form-control" value="${toDateInput(ad.end_at)}"></label>
       <div style="display: flex; gap: 8px;"><button class="btn-primary" onclick="saveAdForm('${adminEsc(id || "")}')">Speichern</button><button class="chip-btn" onclick="document.getElementById('ad-form-modal').remove()">Abbrechen</button></div>
       <input id="ad-request_id" type="hidden" value="${adminEsc(ad.request_id || "")}">
     </div>`;
   document.body.appendChild(modal);
+}
+
+// 2026-11-13: extra details in the "Neue Anzeige" form (map/route need the address)
+function adExtraOf(ad) {
+  if (!ad || !ad.extra) return {};
+  if (typeof ad.extra === "object") return ad.extra;
+  try { return JSON.parse(ad.extra) || {}; } catch (e) { return {}; }
+}
+function adExtraFields(ad) {
+  const x = adExtraOf(ad);
+  const f = (key, label, value) => `<label style="display: grid; gap: 3px; font-size: 12px;">${label}<input id="ad-x-${key}" class="form-control" value="${adminEsc(value || "")}"></label>`;
+  const isNew = !adminAds.find((a) => a.id === ad.id);
+  return `
+      ${f("address", "Adresse (für Karte + Route, z. B. Musterstraße 1, 10115 Berlin)", x.address)}
+      ${f("hours", "Öffnungszeiten", x.hours)}
+      ${f("email", "E-Mail des Sponsors (für Sponsor-Panel)", x.email)}
+      ${f("logo", "Logo-URL (leer = Bild)", x.logo)}
+      ${f("category", "Kategorie (z. B. Bäckerei)", x.category ? x.category.de : "")}
+      <label style="display: grid; gap: 3px; font-size: 12px;">Beschreibung (lang, für das Kontakt-Fenster)<textarea id="ad-x-description" class="form-control" rows="4">${adminEsc(x.description || "")}</textarea></label>
+      <label style="font-size: 12px;"><input id="ad-active" type="checkbox" ${isNew ? "checked" : ad.active ? "checked" : ""}> aktiv (sichtbar in Web + App) · aktif</label>`;
+}
+function adExtraValues(old) {
+  const x = adExtraOf(old);
+  const v = (key) => document.getElementById(`ad-x-${key}`)?.value.trim() || "";
+  const out = { address: v("address"), hours: v("hours"), email: v("email"), logo: v("logo"), description: document.getElementById("ad-x-description")?.value || "" };
+  if (x.coupon) out.coupon = x.coupon;   // keep the coupon (the form has no coupon fields)
+  const c = v("category");
+  if (c) out.category = x.category && x.category.de === c ? x.category : { de: c, tr: c, en: c };
+  return out;
 }
 
 async function saveAdForm(id) {
@@ -187,6 +217,9 @@ async function saveAdForm(id) {
     request_id: value("request_id"), plan: value("plan"),
     active: (adminAds.find((a) => a.id === id) || { active: 1 }).active,
   };
+  // 2026-11-13: address, hours, e-mail, logo, category, description + active switch
+  if (document.getElementById("ad-active")) ad.active = document.getElementById("ad-active").checked ? 1 : 0;
+  ad.extra = adExtraValues(adminAds.find((a) => a.id === id));
   if (!ad.name) { alert("Name fehlt."); return; }
   const res = await adminRequest("POST", { action: "adSave", ad });
   if (!res.ok) { alert("Speichern fehlgeschlagen."); return; }

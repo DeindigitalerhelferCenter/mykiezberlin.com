@@ -112,6 +112,9 @@ async function saveAd(database, ad) {
       logo: adUrl(e.logo), category: pick(e.category), address: cleanText(e.address, 120), hours: cleanText(e.hours, 80),
       coupon: e.coupon && cleanText(e.coupon.code, 30) ? { code: cleanText(e.coupon.code, 30), ...pick(e.coupon) } : undefined,
     };
+    // 2026-11-13: e-mail (sponsor panel) and long description from the admin form
+    if (e.email !== undefined) { const m = cleanText(e.email, 120); extra.email = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m) ? m : ""; }
+    if (e.description !== undefined) extra.description = String(e.description ?? "").replace(/[<>]/g, "").replace(/\r/g, "").slice(0, 5000).trim();
     // 2026-11-13: keep fields the admin form does not send (contact data, sponsor-panel text, media period)
     const old = await database.prepare(`SELECT extra FROM ads WHERE id = ?`).bind(id).first();
     const merged = { ...parseExtra(old?.extra) };

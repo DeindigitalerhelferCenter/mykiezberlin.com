@@ -35,7 +35,7 @@
   function click(ad) { return " onclick=\"typeof mkSponsorClick==='function'&&mkSponsorClick('" + e(ad.id) + "')\""; }
   function buttons(ad, size) {
     var b = [];
-    var short = size === "small";
+    var short = false; // 2026-11-13: Basic also shows the button texts (user example)
     if (ad.link_tel) b.push('<a class="mk-sp-btn" href="tel:' + e(String(ad.link_tel).replace(/[^\d+]/g, "")) + '"' + click(ad) + ">📞" + (short ? "" : " " + L("Anrufen", "Ara", "Call")) + "</a>");
     if (ad.link_wa) b.push('<a class="mk-sp-btn" href="https://wa.me/' + e(digits(ad.link_wa)) + '" target="_blank" rel="noopener sponsored"' + click(ad) + ">💬" + (short ? "" : " WhatsApp") + "</a>");
     var web = http(ad.link_web) || http(ad.link_ig);
@@ -55,7 +55,24 @@
   var LABEL = function () { return '<span class="mk-sz-label">' + L("Anzeige", "Reklam", "Ad") + "</span>"; };
 
   // ---------- card by size ----------
+  // 2026-11-13 (user): every package shows a picture – Basic small (like a story tile), Plus medium,
+  // Premium big – a small package badge bottom right and a glowing frame: Basic blue, Plus green, Premium red.
+  var TIER = { large: ["l", "Premium"], banner: ["l", "Premium"], medium: ["m", "Plus"], small: ["s", "Basic"] };
+  window.mkShowTierBadge = true; // set false to hide the "Basic / Plus / Premium" badge later
   window.mkSponsorCardHtml = function (ad, size) {
+    size = size || ad.size || "medium";
+    var tier = TIER[size] || TIER.medium;
+    var picUrl = img(ad.image) || img(ad.logo);
+    var logo2 = img(ad.logo) || img(ad.image);
+    var head2 = '<div class="mk-sz-head">' + (logo2 ? '<img class="mk-sz-logo" src="' + e(logo2) + '" alt="" loading="lazy">' : "") +
+      '<div class="mk-sz-name"><b>' + e(ad.name) + "</b>" + (cat(ad) ? "<small>" + e(cat(ad)) + "</small>" : "") + "</div></div>";
+    var badge = window.mkShowTierBadge ? '<span class="mk-sz-tier mk-sz-tier-' + tier[0] + '">' + tier[1] + "</span>" : "";
+    var hl = txt(ad, "headline") ? '<p class="mk-sz-hl">' + e(txt(ad, "headline")) + "</p>" : "";
+    var picHtml = picUrl ? '<div class="mk-sz-pic"><img src="' + e(picUrl) + '" alt="' + e(ad.name) + '" loading="lazy"></div>' : "";
+    return '<div class="mk-sp mk-sz mk-sz-' + tier[0] + ' mk-glow mk-glow-' + tier[0] + '" data-ad="' + e(ad.id) + '">' + LABEL() + picHtml +
+      '<div class="mk-sz-body">' + head2 + hl + meta(ad, true) + (tier[0] === "s" ? "" : coupon(ad)) + buttons(ad, size) + "</div>" + badge + "</div>";
+  };
+  window.mkSponsorCardHtmlOld = function (ad, size) {
     size = size || ad.size || "medium";
     var logo = img(ad.logo) || img(ad.image);
     var head = '<div class="mk-sz-head">' + (logo ? '<img class="mk-sz-logo" src="' + e(logo) + '" alt="" loading="lazy">' : "") +
@@ -194,6 +211,32 @@
     /* Basic: small */
     ".mk-sp.mk-sz-s{padding:10px 12px;gap:6px}.mk-sz-s .mk-sz-logo{width:40px;height:40px;border-radius:10px}.mk-sz-s .mk-sz-name b{font-size:14px}.mk-sz-s .mk-sz-head{padding-right:48px}" +
     ".mk-sz-s .mk-sz-meta{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mk-sz-s .mk-sp-btn{padding:7px 8px}" +
+    /* 2026-11-13: picture in every package + badge + glowing frame (Basic blue, Plus green, Premium red) */
+    ".mk-sp.mk-sz{position:relative;padding:0;gap:0;overflow:hidden;border:2px solid transparent}" +
+    ".mk-sz .mk-sz-body{flex:1;display:flex;flex-direction:column;gap:7px;padding:14px 16px 34px;min-width:0}" +
+    ".mk-sz .mk-sz-pic{background:#111;overflow:hidden}.mk-sz .mk-sz-pic img{display:block;width:100%;height:100%;object-fit:cover}" +
+    ".mk-sz-tier{position:absolute;right:10px;bottom:8px;font-size:10.5px;font-weight:800;letter-spacing:.3px;color:#fff;border-radius:999px;padding:2px 9px;z-index:1}" +
+    ".mk-sz-tier-s{background:#1A73E8}.mk-sz-tier-m{background:#2EA043}.mk-sz-tier-l{background:#E30613}" +
+    ".mk-glow-s{border-color:#1A73E8;animation:mkGlowS 2.6s ease-in-out infinite}" +
+    ".mk-glow-m{border-color:#2EA043;animation:mkGlowM 2.6s ease-in-out infinite}" +
+    ".mk-sp.mk-sz-l.mk-glow-l{border-color:#E30613;animation:mkGlowL 2.6s ease-in-out infinite}" +
+    "@keyframes mkGlowS{0%,100%{box-shadow:0 0 0 0 rgba(26,115,232,0),0 2px 10px rgba(0,0,0,.06)}50%{box-shadow:0 0 0 3px rgba(26,115,232,.35),0 0 22px rgba(26,115,232,.55)}}" +
+    "@keyframes mkGlowM{0%,100%{box-shadow:0 0 0 0 rgba(46,160,67,0),0 2px 10px rgba(0,0,0,.06)}50%{box-shadow:0 0 0 3px rgba(46,160,67,.35),0 0 22px rgba(46,160,67,.55)}}" +
+    "@keyframes mkGlowL{0%,100%{box-shadow:0 0 0 0 rgba(227,6,19,0),0 2px 10px rgba(0,0,0,.06)}50%{box-shadow:0 0 0 3px rgba(227,6,19,.35),0 0 26px rgba(227,6,19,.6)}}" +
+    "@media(prefers-reduced-motion:reduce){.mk-glow{animation:none!important}}" +
+    /* Premium: big picture */
+    ".mk-sp.mk-sz-l{flex-direction:row;min-height:260px}.mk-sz-l .mk-sz-pic{flex:0 0 min(50%,640px)}.mk-sz-l .mk-sz-pic img{aspect-ratio:1200/630}" +
+    "@media(max-width:700px){.mk-sp.mk-sz-l{flex-direction:column}.mk-sz-l .mk-sz-pic{flex:none}}" +
+    /* Plus: medium picture on top */
+    ".mk-sp.mk-sz-m{flex-direction:column}.mk-sz-m .mk-sz-pic{flex:none}.mk-sz-m .mk-sz-pic img{aspect-ratio:1200/630}.mk-sz-m .mk-sz-logo{width:52px;height:52px;border-radius:12px}" +
+    /* Basic: small square picture left, like a story tile */
+    ".mk-sp.mk-sz-s{flex-direction:row;align-items:stretch}.mk-sz-s .mk-sz-pic{flex:0 0 150px;margin:12px 0 0 12px;border-radius:10px;align-self:flex-start}.mk-sz-s .mk-sz-pic img{aspect-ratio:1200/630}"
+    + "@media(max-width:400px){.mk-sz-s .mk-sz-pic{flex-basis:110px}}" +
+    ".mk-sz-s .mk-sz-body{padding:12px 12px 32px}.mk-sz-s .mk-sz-logo{display:none}.mk-sz-s .mk-sz-head{padding-right:52px}" +
+    ".mk-sz-s .mk-sz-hl{font-size:12.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}" +
+    ".mk-sz-s .mk-sz-meta{white-space:normal}.mk-sz-s .mk-sz-btns .mk-sp-btn{font-size:11.5px;padding:7px 8px}" +
+    ".mk-sz-grid .mk-sz-s{grid-column:span 2}.mk-sz-grid{align-items:start}" +
+    "@media(max-width:900px){.mk-sz-grid .mk-sz-s{grid-column:1/-1}}" +
     /* contact sheet: map + route */
     ".mk-si-btn.route{background:#1A73E8;color:#fff}" +
     ".mk-si-desc{font-size:14px;line-height:1.5;margin:12px 0 0;white-space:pre-line}" +

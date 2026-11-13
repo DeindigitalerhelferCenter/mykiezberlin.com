@@ -159,6 +159,17 @@ export async function onRequestPost({ request, env }) {
       else await database.prepare(`UPDATE sponsor_media SET status = ? WHERE id = ?`).bind(body.status === "hidden" ? "hidden" : "live", row.id).run();
       return json({ ok: true });
     }
+    // 2026-11-13: all sponsors incl. paused ones, and a quick package change (Basic/Plus/Premium)
+    if (action === "adminAds") {
+      const { results } = await database.prepare(`SELECT * FROM ads ORDER BY active DESC, name`).all();
+      return json({ ads: results.map((a) => ({ ...shape(a), link_wa: a.link_wa, active: a.active ? 1 : 0 })) });
+    }
+    if (action === "adminPlan") {
+      const plan = ["s", "m", "l"].includes(body.plan) ? body.plan : "";
+      if (!plan) return json({ error: "bad_request" }, 400);
+      const r = await database.prepare(`UPDATE ads SET plan = ?, priority = ?, updated_at = ? WHERE id = ?`).bind(plan, { l: 30, m: 20, s: 10 }[plan], Date.now(), cleanText(body.adId, 40)).run();
+      return r.meta && r.meta.changes === 0 ? json({ error: "not_found" }, 404) : json({ ok: true });
+    }
     if (action === "adminUpdate") {
       const ad = await database.prepare(`SELECT * FROM ads WHERE id = ?`).bind(cleanText(body.adId, 40)).first();
       if (!ad) return json({ error: "not_found" }, 404);

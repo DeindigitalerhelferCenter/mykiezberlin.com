@@ -59,17 +59,29 @@
   function sponsors() {
     var body = section("admin-sponsor-panel", "🤝 Sponsor-Panel · Sponsor paneli");
     if (!body) return;
-    fetch("/api/ads?place=page").then(function (r) { return r.json(); }).then(function (d) {
+    // 2026-11-13: all sponsors incl. paused ones (admin API), public list only as fallback
+    panel("adminAds").then(function (j) { return j && j.ads ? j : fetch("/api/ads?place=page").then(function (r) { return r.json(); }); }).then(function (d) {
       var ads = d.ads || [];
       body.style.color = "#e6edf3";
       body.innerHTML = '<p style="color:#8b949e;margin:0 0 10px">Link erstellen → per WhatsApp/E-Mail an den Sponsor schicken (30 Tage gültig). Sponsor ändert Texte, Adresse, Bilder & Videos selbst. · Link oluştur → sponsora WhatsApp/e-posta ile gönder (30 gün geçerli).</p>' +
         ads.map(function (a) {
           return '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #30363d" data-id="' + e(a.id) + '">' +
-            '<b style="flex:1;min-width:160px">' + e(a.name) + ' <small style="color:#8b949e">' + e(PLAN[a.plan] || a.plan || "") + "</small></b>" +
+            '<b style="flex:1;min-width:160px">' + e(a.name) + (a.active === 0 ? ' <small style="background:#6e7681;color:#fff;border-radius:6px;padding:1px 6px">pasif · pausiert</small>' : "") + "</b>" +
+            '<select data-plan style="' + BTN + '">' + ["s", "m", "l"].map(function (p) { return '<option value="' + p + '"' + (a.plan === p ? " selected" : "") + ">" + { s: "🔵 Basic", m: "🟢 Plus", l: "🔴 Premium" }[p] + "</option>"; }).join("") +
+            (["s", "m", "l"].indexOf(a.plan) < 0 ? '<option value="" selected>' + e(PLAN[a.plan] || a.plan || "–") + "</option>" : "") + "</select>" +
             '<button type="button" data-act="link" style="' + BTN + '">🔗 Panel-Link</button>' +
             '<button type="button" data-act="edit" style="' + BTN + '">✏️ Bearbeiten · Düzenle</button>' +
             '<div class="out" style="flex-basis:100%"></div></div>';
         }).join("");
+      body.querySelectorAll("select[data-plan]").forEach(function (s) {
+        s.onchange = function () {
+          var row = s.closest("[data-id]");
+          if (!s.value) return;
+          panel("adminPlan", { adId: row.getAttribute("data-id"), plan: s.value }).then(function (j) {
+            row.querySelector(".out").innerHTML = j.ok ? '<span style="color:#3fb950">✓ Paket gespeichert · paket kaydedildi</span>' : "Fehler · Hata: " + e(j.error || "?");
+          });
+        };
+      });
       body.querySelectorAll("button[data-act]").forEach(function (b) {
         var row = b.closest("[data-id]"), id = row.getAttribute("data-id"), out = row.querySelector(".out");
         var ad = ads.find(function (x) { return x.id === id; });
@@ -131,6 +143,8 @@
     var nav = document.querySelector("#admin-main-view .mk-admin-quicknav");
     if (!nav || nav.querySelector("[href='#admin-stats']")) return;
     nav.insertAdjacentHTML("beforeend",
+      '<a href="#admin-werbung" class="chip-btn" style="text-decoration:none">📢 Sponsor-Anzeigen</a>' +
+      '<button type="button" class="chip-btn active" onclick="window.openAdForm&&openAdForm()">➕ Neue Anzeige · Yeni sponsor</button>' +
       '<a href="#admin-stats" class="chip-btn" style="text-decoration:none">📊 Statistik</a>' +
       '<a href="#admin-sponsor-panel" class="chip-btn" style="text-decoration:none">🤝 Sponsoren</a>' +
       '<a href="#admin-sponsor-media" class="chip-btn" style="text-decoration:none">📸 Sponsor-Medien</a>');
