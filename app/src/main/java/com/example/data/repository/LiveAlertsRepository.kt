@@ -479,7 +479,8 @@ object LiveAlertsRepository {
                             isVideo = o.optString("media_type", "") == "video",
                             durationHours = o.optInt("duration_hours", 24),
                             status = o.optString("status", "pending"),
-                            modNote = "Server",
+                            // 2026-11-14: result of the AI check (ok -> green "KI OK", flag -> red with the reason)
+                            modNote = o.optString("ai_check", "").let { c -> when { c == "ok" -> "✅ KI OK"; c.startsWith("flag") -> "⚠️ KI: " + c.removePrefix("flag:").ifBlank { "prüfen" }; else -> "Server" } },
                             createdAtMillis = approvedAt,
                             extraMedia = com.example.data.model.parseExtraStoryMedia(o.optJSONArray("media")),
                             deal = com.example.ui.components.parseStoryDeal(o.optJSONObject("deal"))
