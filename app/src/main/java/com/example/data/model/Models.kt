@@ -147,8 +147,26 @@ data class KiezStory(
     val modNote: String = "OK",
     val isSponsored: Boolean = false,
     val views: Int = 1,
-    val createdAtMillis: Long = System.currentTimeMillis()
+    val createdAtMillis: Long = System.currentTimeMillis(),
+    // 2026-11-13: admin stories with several pictures/videos – everything after the first one (mediaUri)
+    val extraMedia: List<StoryMedia> = emptyList()
 )
+
+/** One further picture/video of a story (admin stories can have many, e.g. a sponsor ad with 4 pictures + 2 videos). */
+data class StoryMedia(val uri: String, val isVideo: Boolean, val caption: String = "")
+
+/** Reads the "media" list of /api/stories (first entry = media_key, the rest are the extra pictures/videos). */
+fun parseExtraStoryMedia(arr: org.json.JSONArray?): List<StoryMedia> {
+    if (arr == null || arr.length() < 2) return emptyList()
+    val out = mutableListOf<StoryMedia>()
+    for (i in 1 until arr.length()) {
+        val m = arr.optJSONObject(i) ?: continue
+        val key = m.optString("key", "")
+        if (key.isBlank()) continue
+        out.add(StoryMedia("https://mykiezberlin.com/media/$key", m.optString("type", "") == "video", m.optString("caption", "")))
+    }
+    return out
+}
 
 data class KiezJob(
     val id: String,

@@ -68,7 +68,7 @@ fun HomeAdsSection(
     val pageAds by AdsRepository.pageAds.collectAsState()
     val ads = remember(homeAds, pageAds) { (pageAds.ifEmpty { homeAds }).sortedWith(compareBy({ tierRank(it) }, { it.name.lowercase() })) }
     LaunchedEffect(Unit) { AdsRepository.refresh(); AdsRepository.refreshPageAds() }
-    LaunchedEffect(ads) { AdsRepository.trackImpressions(ads.map { it.id }) }
+    // 2026-11-13: counting happens in SponsorTierCard (only cards that were really shown)
 
     Column(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),

@@ -299,15 +299,21 @@ fun StoryViewerDialog(
     var currentIndex by remember(initialIndex, stories) {
         mutableIntStateOf(initialIndex.coerceIn(0, (stories.size - 1).coerceAtLeast(0)))
     }
-    val story = stories.getOrElse(currentIndex) { stories.first() }
+    val baseStory = stories.getOrElse(currentIndex) { stories.first() }
+    // 2026-11-13: admin stories with several pictures/videos – shown one after another inside the same story
+    var mediaIndex by remember(currentIndex) { mutableIntStateOf(0) }
+    val mediaCount = if (baseStory.mediaUri != null) 1 + baseStory.extraMedia.size else 1
+    val currentExtra = if (mediaIndex > 0) baseStory.extraMedia.getOrNull(mediaIndex - 1) else null
+    val story = if (currentExtra != null) baseStory.copy(mediaUri = currentExtra.uri, isVideo = currentExtra.isVideo) else baseStory
+    val mediaCaption = currentExtra?.caption.orEmpty()
     val context = LocalContext.current
     val downloadScope = androidx.compose.runtime.rememberCoroutineScope()
-    var progress by remember(currentIndex) { mutableFloatStateOf(0f) }
+    var progress by remember(currentIndex, mediaIndex) { mutableFloatStateOf(0f) }
     var showFullTextDialog by remember { mutableStateOf(false) }
     var isImageZoomed by remember { mutableStateOf(false) }
 
     // Auto advancement timer
-    LaunchedEffect(currentIndex, showFullTextDialog, isImageZoomed) {
+    LaunchedEffect(currentIndex, mediaIndex, showFullTextDialog, isImageZoomed) {
         if (!showFullTextDialog && !isImageZoomed) {
             val totalMs = if (story.isVideo) 25000L else 7500L
             val intervalMs = 50L
@@ -317,7 +323,10 @@ fun StoryViewerDialog(
                 progress += step
             }
             if (!showFullTextDialog && !isImageZoomed && progress >= 1f) {
-                if (currentIndex < stories.size - 1) {
+                if (mediaIndex < mediaCount - 1) {
+                    mediaIndex++
+                    progress = 0f
+                } else if (currentIndex < stories.size - 1) {
                     currentIndex++
                     progress = 0f
                 } else {
@@ -328,7 +337,10 @@ fun StoryViewerDialog(
     }
 
     val onNextStory = {
-        if (currentIndex < stories.size - 1) {
+        if (mediaIndex < mediaCount - 1) {
+            mediaIndex++
+            progress = 0f
+        } else if (currentIndex < stories.size - 1) {
             currentIndex++
             progress = 0f
         } else {
@@ -337,7 +349,10 @@ fun StoryViewerDialog(
     }
 
     val onPrevStory = {
-        if (currentIndex > 0) {
+        if (mediaIndex > 0) {
+            mediaIndex--
+            progress = 0f
+        } else if (currentIndex > 0) {
             currentIndex--
             progress = 0f
         } else {
@@ -434,7 +449,7 @@ fun StoryViewerDialog(
                                     }
                                 }
                                 Text(
-                                    text = "${story.timeAgo} · ${story.durationHours}h · ${currentIndex + 1}/${stories.size}",
+                                    text = "${story.timeAgo} · ${story.durationHours}h · ${currentIndex + 1}/${stories.size}" + (if (mediaCount > 1) " · 🖼 ${mediaIndex + 1}/$mediaCount" else "") + (if (mediaCaption.isNotBlank()) "\n$mediaCaption" else ""),
                                     color = Color.White.copy(alpha = 0.75f),
                                     fontSize = 11.sp
                                 )
@@ -465,7 +480,7 @@ fun StoryViewerDialog(
                         .background(Color.Black),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (story.isVideo && story.mediaUri != null) {
+                    if (story.isVideo && story.mediaUri != null) key(story.mediaUri) {
                         // Real video playback with VideoView
                         AndroidView(
                             factory = { ctx ->

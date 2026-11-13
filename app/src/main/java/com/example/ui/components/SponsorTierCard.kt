@@ -72,6 +72,12 @@ private fun hasPlace(address: String) =
 fun SponsorTierCard(ad: ServerAd, language: AppLanguage, size: String = ad.size, onHide: (() -> Unit)? = null) {
     val context = LocalContext.current
     val tier = tierOf(size)
+    // 2026-11-13 (owner: honest numbers): counted when the card is shown for 1 second (cards far below the screen are
+    // not composed by the list yet); the admin phone does not count
+    LaunchedEffect(ad.id) {
+        kotlinx.coroutines.delay(1000)
+        if (!com.example.data.repository.KiezStorageManager.isAdminAuthenticated(context)) AdsRepository.trackImpressions(listOf(ad.id))
+    }
     fun open(link: String) {
         AdsRepository.trackClick(ad.id)
         try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } catch (_: Exception) {}

@@ -225,7 +225,8 @@ object LiveAlertsRepository {
                             isVideo = o.optString("media_type", "") == "video",
                             durationHours = o.optInt("duration_hours", 24),
                             status = "approved",
-                            createdAtMillis = approvedAt
+                            createdAtMillis = approvedAt,
+                            extraMedia = com.example.data.model.parseExtraStoryMedia(o.optJSONArray("media"))
                         )
                     )
                 }
@@ -478,7 +479,8 @@ object LiveAlertsRepository {
                             durationHours = o.optInt("duration_hours", 24),
                             status = o.optString("status", "pending"),
                             modNote = "Server",
-                            createdAtMillis = approvedAt
+                            createdAtMillis = approvedAt,
+                            extraMedia = com.example.data.model.parseExtraStoryMedia(o.optJSONArray("media"))
                         )
                     )
                 }

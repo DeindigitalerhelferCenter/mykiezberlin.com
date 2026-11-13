@@ -121,9 +121,9 @@ fun BusinessesScreen(
                             )
                         }
                         if (showHomeExtras) item(key = "kiez_stars") {
-                            com.example.ui.components.KiezStarsCard(language = language, onShareStory = onAddStoryClick)
+                            com.example.ui.components.HomeKiezStarsSmall(language = language, onShareStory = onAddStoryClick) // 2026-11-13: small window, comes and goes
                         }
-                        if (showHomeExtras) item(key = "sponsors") {
+                        if (showHomeExtras && showBusinessList) item(key = "sponsors") { // 2026-11-13: on the home page the sponsor places of HomeDeckSection replace the strip
                             SponsorBannerComponent(
                                 language = language,
                                 modifier = Modifier.padding(vertical = 2.dp)
@@ -175,9 +175,9 @@ fun BusinessesScreen(
                             )
                         }
                         if (showHomeExtras) item(key = "kiez_stars") {
-                            com.example.ui.components.KiezStarsCard(language = language, onShareStory = onAddStoryClick)
+                            com.example.ui.components.HomeKiezStarsSmall(language = language, onShareStory = onAddStoryClick) // 2026-11-13: small window, comes and goes
                         }
-                        if (showHomeExtras) item(key = "sponsors") {
+                        if (showHomeExtras && showBusinessList) item(key = "sponsors") { // 2026-11-13: on the home page the sponsor places of HomeDeckSection replace the strip
                             SponsorBannerComponent(
                                 language = language,
                                 modifier = Modifier.padding(vertical = 2.dp)
@@ -209,7 +209,7 @@ fun BusinessesScreen(
 
                         if (!showBusinessList) {
                             item(key = "home_ads") {
-                                HomeAdsSection(language = language, onOpenWerben = { size -> onOpenWerben(size, "") })
+                                com.example.ui.components.HomeDeckSection(language = language, onNavigateToScreen = onNavigateToScreen, onOpenWerben = { onOpenWerben("", "") }) // 2026-11-13 (HomeAdsSection stays for later use)
                             }
                         } else if (allBusinesses.isEmpty()) {
                             item(key = "empty") {
@@ -258,9 +258,9 @@ fun BusinessesScreen(
                             )
                         }
                         if (showHomeExtras) item(key = "kiez_stars") {
-                            com.example.ui.components.KiezStarsCard(language = language, onShareStory = onAddStoryClick)
+                            com.example.ui.components.HomeKiezStarsSmall(language = language, onShareStory = onAddStoryClick) // 2026-11-13: small window, comes and goes
                         }
-                        if (showHomeExtras) item(key = "sponsors") {
+                        if (showHomeExtras && showBusinessList) item(key = "sponsors") { // 2026-11-13: on the home page the sponsor places of HomeDeckSection replace the strip
                             SponsorBannerComponent(
                                 language = language,
                                 modifier = Modifier.padding(vertical = 2.dp)
@@ -292,7 +292,7 @@ fun BusinessesScreen(
 
                         if (!showBusinessList) {
                             item(key = "home_ads") {
-                                HomeAdsSection(language = language, onOpenWerben = { size -> onOpenWerben(size, "") })
+                                com.example.ui.components.HomeDeckSection(language = language, onNavigateToScreen = onNavigateToScreen, onOpenWerben = { onOpenWerben("", "") }) // 2026-11-13 (HomeAdsSection stays for later use)
                             }
                         } else if (allBusinesses.isEmpty()) {
                             item(key = "empty") {
