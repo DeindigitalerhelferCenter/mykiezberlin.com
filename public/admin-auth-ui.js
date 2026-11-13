@@ -255,6 +255,51 @@
   };
 
   // ---------- support messages (/api/support) ----------
+  // 2026-11-14 (owner): suggested answers for support messages – always shown, German / Turkish / both,
+  // inserted into the answer field; the admin can change or add text before sending. Own texts can be saved
+  // as extra suggestions (only in this browser).
+  var SUP_TPL = [
+    ["thanks", "👋 Eingang / Alındı",
+      "Hallo{name},\n\nvielen Dank für deine Nachricht an My Kiez Berlin. Wir haben sie erhalten und kümmern uns darum. Du hörst bald von uns.",
+      "Merhaba{name},\n\nMy Kiez Berlin'e yazdığın için teşekkürler. Mesajını aldık ve ilgileniyoruz. Yakında bizden haber alacaksın."],
+    ["fixed", "✅ Fehler behoben / Hata düzeltildi",
+      "Hallo{name},\n\ndanke für deinen Hinweis! Der Fehler ist jetzt behoben. Bitte lade die Seite neu (oder aktualisiere die App) und probiere es noch einmal.",
+      "Merhaba{name},\n\nbildirimin için teşekkürler! Hata düzeltildi. Lütfen sayfayı yenile (veya uygulamayı güncelle) ve tekrar dene."],
+    ["progress", "⏳ In Arbeit / İşlemde",
+      "Hallo{name},\n\nwir arbeiten gerade an deinem Anliegen. Sobald es fertig ist, melden wir uns wieder.",
+      "Merhaba{name},\n\nkonun üzerinde çalışıyoruz. Biter bitmez sana tekrar yazacağız."],
+    ["question", "❓ Rückfrage / Soru",
+      "Hallo{name},\n\ndanke für deine Nachricht. Damit wir helfen können, brauchen wir noch ein paar Angaben: Auf welcher Seite ist es passiert, und nutzt du die Webseite oder die App (welches Handy)? Ein Bildschirmfoto hilft uns sehr.",
+      "Merhaba{name},\n\nmesajın için teşekkürler. Yardımcı olabilmemiz için birkaç bilgi lazım: Hangi sayfada oldu, web sitesini mi yoksa uygulamayı mı (hangi telefon) kullanıyorsun? Bir ekran görüntüsü çok yardımcı olur."],
+    ["sponsor", "🤝 Sponsor / Reklam",
+      "Hallo{name},\n\nschön, dass du bei My Kiez Berlin werben möchtest! Alle Pakete (Basic 29 €, Plus 49 €, Premium 89 € im Monat) findest du unter https://mykiezberlin.com/werben. Gerne beraten wir dich auch persönlich.",
+      "Merhaba{name},\n\nMy Kiez Berlin'de reklam vermek istemene sevindik! Tüm paketleri (aylık Basic 29 €, Plus 49 €, Premium 89 €) https://mykiezberlin.com/werben adresinde bulabilirsin. İstersen kişisel olarak da bilgi veririz."],
+    ["done", "🙏 Erledigt / Tamamlandı",
+      "Hallo{name},\n\ndein Anliegen ist erledigt. Danke, dass du My Kiez Berlin besser machst! Bei weiteren Fragen antworte einfach auf diese E-Mail.",
+      "Merhaba{name},\n\nkonun tamamlandı. My Kiez Berlin'i daha iyi yaptığın için teşekkürler! Başka bir sorunda bu e-postaya cevap vermen yeterli."],
+  ];
+  var SUP_SIGN = { de: "\n\nViele Grüße\nDein My Kiez Berlin Team", tr: "\n\nSelamlar\nMy Kiez Berlin ekibi" };
+  function supOwnTpl() { try { return JSON.parse(localStorage.getItem("mk_support_own_tpl") || "[]") || []; } catch (e) { return []; } }
+  function supTplText(key, lang, name) {
+    var own = supOwnTpl().find(function (x) { return "own" + x.id === key; });
+    if (own) return own.text;
+    var t = SUP_TPL.find(function (x) { return x[0] === key; });
+    if (!t) return "";
+    var n = name ? " " + name : "";
+    var de = t[2].replace("{name}", n) + SUP_SIGN.de, tr = t[3].replace("{name}", n) + SUP_SIGN.tr;
+    return lang === "tr" ? tr : lang === "de" ? de : de + "\n\n———\n\n" + tr;
+  }
+  function supTplHtml(IN) {
+    var own = supOwnTpl();
+    return '<div data-tplbox style="display:grid;gap:6px;padding:8px;border:1px dashed #30363d;border-radius:8px">' +
+      '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12px"><b>💡 Vorgeschlagene Texte · Önerilen metinler</b>' +
+      '<select data-tpllang style="' + IN + ';width:auto"><option value="both">DE + TR</option><option value="de">Deutsch</option><option value="tr">Türkçe</option></select></div>' +
+      '<div style="display:flex;gap:5px;flex-wrap:wrap">' + SUP_TPL.map(function (t) { return '<button type="button" class="chip-btn" data-tpl="' + t[0] + '" style="font-size:12px">' + t[1] + "</button>"; }).join("") +
+      own.map(function (x) { return '<span style="display:inline-flex;gap:2px"><button type="button" class="chip-btn" data-tpl="own' + esc(x.id) + '" style="font-size:12px">⭐ ' + esc(x.title) + '</button><button type="button" class="chip-btn" data-tpldel="' + esc(x.id) + '" title="Vorlage löschen · Şablonu sil" style="font-size:11px;padding:2px 6px">✕</button></span>'; }).join("") + "</div>" +
+      '<div style="font-size:11px;color:#8b949e">Klick = Text kommt ins Antwortfeld, du kannst ihn ändern und ergänzen · Tıkla = metin cevap alanına gelir, değiştirip ekleme yapabilirsin. ' +
+      '<button type="button" class="chip-btn" data-tplsave style="font-size:11px;padding:2px 8px">⭐ Aktuellen Text als Vorlage speichern · Bu metni şablon olarak kaydet</button></div></div>';
+  }
+
   async function supportSection() {
     document.getElementById("admin-support")?.remove();
     var host = document.querySelector("main") || document.body;
@@ -292,7 +337,7 @@
           '<div style="display:grid;gap:6px;margin-top:8px">' +
           '<label style="font-size:12px">Status · Durum <select data-status style="' + IN + ';width:auto">' + Object.keys(STATUS).map(function (k) { return '<option value="' + k + '"' + (m.status === k ? " selected" : "") + ">" + STATUS[k] + "</option>"; }).join("") + "</select></label>" +
           '<textarea data-note rows="2" placeholder="Interne Notiz (nur Admin) · Dahili not (sadece admin)" style="' + IN + '">' + esc(m.note || "") + "</textarea>" +
-          (m.email ? '<textarea data-reply rows="3" placeholder="Antwort an den Nutzer (wird per E-Mail von support@ gesendet) · Kullanıcıya cevap (support@ adresinden e-posta ile gider)" style="' + IN + '"></textarea>' : "") +
+          (m.email ? '<textarea data-reply rows="3" placeholder="Antwort an den Nutzer (wird per E-Mail von support@ gesendet) · Kullanıcıya cevap (support@ adresinden e-posta ile gider)" style="' + IN + '"></textarea>' + supTplHtml(IN) : "") +
           '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
           '<button class="chip-btn active" data-act="save">💾 Speichern · Kaydet</button>' +
           (m.email ? '<button class="chip-btn" data-act="reply">✉️ Antwort senden · Cevap gönder</button>' : "") +
@@ -306,6 +351,51 @@
     box.querySelectorAll("[data-supbox]").forEach(function (card) {
       var id = card.getAttribute("data-supbox");
       var out = card.querySelector("[data-out]");
+      // suggested texts (2026-11-14)
+      var msg = list.find(function (x) { return x.id === id; }) || {};
+      var replyField = card.querySelector("[data-reply]");
+      var langSel = card.querySelector("[data-tpllang]");
+      if (langSel) {
+        try { langSel.value = localStorage.getItem("mk_support_tpl_lang") || "both"; } catch (e) {}
+        langSel.onchange = function () { try { localStorage.setItem("mk_support_tpl_lang", langSel.value); } catch (e) {} };
+      }
+      var firstName = String(msg.name || "").trim().split(/\s+/)[0] || "";
+      function putTpl(key) {
+        if (!replyField) return;
+        var text = supTplText(key, langSel ? langSel.value : "both", firstName);
+        var cur = replyField.value.trim();
+        // empty field: the text goes in; otherwise the admin chooses replace or add below
+        if (!cur) replyField.value = text;
+        else if (confirm("Vorhandenen Text ersetzen? (Abbrechen = unten anhängen) · Mevcut metin değiştirilsin mi? (İptal = alta ekle)")) replyField.value = text;
+        else replyField.value = cur + "\n\n" + text;
+        replyField.rows = Math.min(14, Math.max(5, replyField.value.split("\n").length + 1));
+        replyField.focus();
+      }
+      card.querySelectorAll("[data-tpl]").forEach(function (b) { b.onclick = function () { putTpl(b.getAttribute("data-tpl")); }; });
+      card.querySelectorAll("[data-tpldel]").forEach(function (b) {
+        b.onclick = function () {
+          if (!confirm("Eigene Vorlage löschen? · Kendi şablonun silinsin mi?")) return;
+          var keep = supOwnTpl().filter(function (x) { return x.id !== b.getAttribute("data-tpldel"); });
+          try { localStorage.setItem("mk_support_own_tpl", JSON.stringify(keep)); } catch (e) {}
+          supportSection();
+        };
+      });
+      var saveTpl = card.querySelector("[data-tplsave]");
+      if (saveTpl) saveTpl.onclick = function () {
+        var text = replyField ? replyField.value.trim() : "";
+        if (!text) { out.textContent = "Erst Text schreiben · Önce metin yaz"; return; }
+        var title = prompt("Name der Vorlage · Şablonun adı:", "");
+        if (!title) return;
+        var own = supOwnTpl();
+        own.push({ id: String(Date.now()), title: title.slice(0, 40), text: text });
+        try { localStorage.setItem("mk_support_own_tpl", JSON.stringify(own.slice(-20))); } catch (e) {}
+        supportSection();
+      };
+      // status "in Arbeit" / "erledigt" chosen and the answer is still empty: the matching text is put in at once
+      var stSel = card.querySelector("[data-status]");
+      if (stSel && replyField) stSel.addEventListener("change", function () {
+        if (!replyField.value.trim() && (stSel.value === "done" || stSel.value === "progress")) putTpl(stSel.value === "done" ? "fixed" : "progress");
+      });
       var call = function (method, body) {
         return fetch("/api/support", { method: method, headers: { "content-type": "application/json", "x-admin-token": token() }, body: JSON.stringify(body) })
           .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { j.httpOk = r.ok; return j; }); })

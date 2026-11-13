@@ -18,6 +18,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -222,6 +223,18 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
         onOpen = { viewModel.navigateTo(AppScreen.COMMUNITY) }
     )
 
+    // 2026-11-14 (owner): the top part (search box, live banner, sponsor place) gets out of the way while scrolling
+    // down and comes back when scrolling up or opening another page – the page itself gets the room
+    var headerShown by remember { mutableStateOf(true) }
+    LaunchedEffect(uiState.currentScreen) { headerShown = true }
+    val headerScroll = remember {
+        object : androidx.compose.ui.input.nestedscroll.NestedScrollConnection {
+            override fun onPreScroll(available: androidx.compose.ui.geometry.Offset, source: androidx.compose.ui.input.nestedscroll.NestedScrollSource): androidx.compose.ui.geometry.Offset {
+                if (available.y < -6f) headerShown = false else if (available.y > 6f) headerShown = true
+                return androidx.compose.ui.geometry.Offset.Zero
+            }
+        }
+    }
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -233,10 +246,10 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     onLanguageChange = { viewModel.setLanguage(it) },
                     onNavigate = { viewModel.navigateTo(it) },
                     onOpenHamburgerMenu = { showHamburgerMenu = true },
-                    showSearchBox = uiState.currentScreen == AppScreen.HOME ||
+                    showSearchBox = (uiState.currentScreen == AppScreen.HOME ||
                             uiState.currentScreen == AppScreen.BUSINESSES ||
                             uiState.currentScreen == AppScreen.FOOD ||
-                            uiState.currentScreen == AppScreen.DEALS,
+                            uiState.currentScreen == AppScreen.DEALS) && (headerShown || uiState.searchQuery.isNotBlank()),
                     searchQuery = uiState.searchQuery,
                     onSearchChange = { viewModel.setSearchQuery(it) },
                     isNotificationsEnabled = uiState.isNotificationsEnabled,
@@ -259,6 +272,7 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
+            androidx.compose.animation.AnimatedVisibility(visible = headerShown) { Column {
             // Real-time In-App Live Alert Heads-up Banner (S-Bahn, BVG, Feuerwehr, Polizei)
             // Full-page web screens need the room; the ticker stays one tap away.
             if (uiState.currentScreen != AppScreen.KIEZ_MATCH && uiState.currentScreen != AppScreen.COMMUNITY && uiState.currentScreen != AppScreen.WERBEN) {
@@ -280,11 +294,13 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     showCoupons = uiState.currentScreen == AppScreen.DEALS
                 )
             }
+            } } // end of the part that hides while scrolling
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
+                    .nestedScroll(headerScroll)
             ) {
                 when (uiState.currentScreen) {
                 AppScreen.HOME, AppScreen.BUSINESSES -> BusinessesScreen(
