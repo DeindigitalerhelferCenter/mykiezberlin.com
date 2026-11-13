@@ -188,7 +188,7 @@ fun EmergencyScreen(
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 90.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                items(SampleData.emergencyContacts) { contact ->
+                items(SampleData.emergencyContacts + com.example.ui.components.ExtraEmergencyContacts) { contact -> // 2026-11-14: more numbers
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -288,6 +288,9 @@ fun EmergencyScreen(
                         }
                     }
                 }
+                // 2026-11-14 (owner): Berliner Feuerwehr "Ihre Sicherheit" + Berliner Telefonbuch
+                item { com.example.ui.components.FeuerwehrSection(language) }
+                item { com.example.ui.components.TelefonbuchSection(language) }
             }
         } else if (selectedTab == 1) {
             // 22 Mahalle Karakolu Listesi

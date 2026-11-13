@@ -828,6 +828,11 @@ function openCreateStoryModal() {
       <div class="form-group"><label class="form-label">${esc(tr("Story-Art", "Hikâye türü"))}</label><select id="new-story-kind" class="form-control">${STORY_KINDS.map((k) => `<option value="${k}">${esc(kinds[k])}</option>`).join("")}</select></div>
       <div class="form-group"><label class="form-label">Kiez</label><select id="new-story-kiez" class="form-control">${kiezOptions}<option value="Ganz Berlin">Ganz Berlin</option></select></div>
       <div class="form-group"><label class="form-label">${esc(tr("Laufzeit", "Süre"))}</label><select id="new-story-duration" class="form-control"><option value="24">24 h</option><option value="48">48 h</option></select></div>
+      <details class="form-group mk-deal-form"><summary class="form-label" style="cursor:pointer">🏷️ ${esc(tr("Angebot / Rabatt (optional)", "İndirim / kampanya (isteğe bağlı)"))}</summary>
+        <p class="ext-note" style="margin:4px 0 6px">${esc(tr("Wird zusätzlich unter „Exklusive Kiez-Vorteile“ gezeigt, solange die Story läuft.", "Story yayında olduğu sürece „Özel Kiez İndirimleri“ bölümünde de görünür."))}</p>
+        <input id="new-story-deal-what" class="form-control" maxlength="80" placeholder="${esc(tr("Was? z. B. Ayran 1 L", "Ne? örn. Ayran 1 L"))}" style="margin-bottom:6px">
+        <div style="display:flex;gap:6px"><input id="new-story-deal-price" class="form-control" maxlength="30" placeholder="${esc(tr("Neuer Preis, z. B. 0,99 €", "Yeni fiyat, örn. 0,99 €"))}"><input id="new-story-deal-old" class="form-control" maxlength="30" placeholder="${esc(tr("Alter Preis (optional)", "Eski fiyat (isteğe bağlı)"))}"></div>
+      </details>
       <div class="form-group"><label class="form-label">Foto / Video</label><input type="file" id="new-story-file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" class="form-control"></div>
       <button class="btn-primary" onclick="submitUserStory()">${esc(tr("Einreichen", "Gönder"))}</button>
       <p class="ext-note"><a href="/story-regeln">Story-Regeln</a> · ${esc(tr("Beiträge erscheinen nach Prüfung.", "Gönderiler onaydan sonra yayınlanır."))}</p>

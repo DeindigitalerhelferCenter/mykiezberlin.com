@@ -15,7 +15,7 @@ export async function onRequestGet({ request, env }) {
   await cleanupOldRequests(database);
   const statsFrom = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
   const [stories, posts, comments, submissions, users, ads, adRequests, adStats] = await Promise.all([
-    read(`SELECT id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, created_at, approved_at, link FROM stories ORDER BY created_at DESC LIMIT 200`),
+    read(`SELECT id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, created_at, approved_at, link, deal FROM stories ORDER BY created_at DESC LIMIT 200`),
     read(`SELECT id, title, description, kiez, category, author, media_key, user_id, status, created_at FROM reporter_posts ORDER BY created_at DESC LIMIT 100`),
     read(`SELECT id, post_id, target, kind, user_id, author, text, status, created_at FROM reporter_comments ORDER BY created_at DESC LIMIT 100`),
     read(`SELECT id, type, payload, status, created_at FROM submissions ORDER BY created_at DESC LIMIT 100`),

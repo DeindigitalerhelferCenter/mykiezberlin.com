@@ -131,8 +131,8 @@ fun SponsorTierCard(ad: ServerAd, language: AppLanguage, size: String = ad.size,
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         if (tier.key != "s" && logo.isNotBlank()) {
-                            AsyncImage(model = logo, contentDescription = null, contentScale = ContentScale.Crop,
-                                modifier = Modifier.size(if (tier.key == "l") 44.dp else 38.dp).clip(RoundedCornerShape(10.dp)).background(Color.White))
+                            AsyncImage(model = logo, contentDescription = null, contentScale = ContentScale.Fit, // 2026-11-14: whole logo, not cut
+                                modifier = Modifier.size(if (tier.key == "l") 44.dp else 38.dp).clip(RoundedCornerShape(10.dp)).background(Color.White).padding(2.dp))
                         }
                         Column(Modifier.weight(1f)) {
                             Text(ad.name, fontWeight = FontWeight.ExtraBold, fontSize = if (tier.key == "l") 16.sp else if (tier.key == "m") 15.sp else 14.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)

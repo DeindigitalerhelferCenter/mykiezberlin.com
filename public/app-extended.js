@@ -164,6 +164,8 @@ async function loadServerStories() {
       // 2026-11-13: admin stories with several pictures/videos (story-multi.js shows them one after another)
       media: Array.isArray(s.media) ? s.media.map((m) => ({ url: `/media/${m.key}`, video: m.type === "video", caption: m.caption || "" })) : [],
       durationHours: s.duration_hours,
+      deal: s.deal && s.deal.what ? { what: s.deal.what, price: s.deal.price, old: s.deal.old || "" } : null, // 2026-11-14
+      approvedAt: s.approved_at,
       status: "approved",
       link: safeUrl(s.link || "https://mykiezberlin.com"),
       instagram: /^https:\/\/www\.instagram\.com\/(p|reel|tv)\//.test(s.link || "") ? s.link : "",
@@ -227,6 +229,10 @@ async function submitUserStory() {
   form.append("kiez", kiez);
   form.append("kind", document.getElementById("new-story-kind")?.value || "news");
   form.append("durationHours", document.getElementById("new-story-duration")?.value || "24");
+  // 2026-11-14: optional offer (shown also under "Exklusive Kiez-Vorteile")
+  form.append("deal_what", document.getElementById("new-story-deal-what")?.value.trim() || "");
+  form.append("deal_price", document.getElementById("new-story-deal-price")?.value.trim() || "");
+  form.append("deal_old", document.getElementById("new-story-deal-old")?.value.trim() || "");
   if (file) form.append("file", file);
 
   try {

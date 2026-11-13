@@ -284,11 +284,16 @@ fun TipCardItem(
     onOpenMap: () -> Unit,
     onOpenDirections: () -> Unit
 ) {
+    // 2026-11-14 (owner): tapping the card opens a detail window (before it opened Google Maps directly)
+    var showDetail by remember { mutableStateOf(false) }
+    if (showDetail) {
+        com.example.ui.components.TipDetailDialog(tip, language, onMap = { showDetail = false; onOpenMap() }, onRoute = { showDetail = false; onOpenDirections() }, onDismiss = { showDetail = false })
+    }
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp)
-            .clickable { onOpenMap() },
+            .clickable { showDetail = true },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp)

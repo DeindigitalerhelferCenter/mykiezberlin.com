@@ -92,7 +92,7 @@ private fun SponsorView(ad: ServerAd, size: String, language: AppLanguage, onHid
         ) {
             Box(Modifier.width(3.dp).height(30.dp).background(SponsorGold))
             val logo = ad.logo.ifBlank { ad.image }
-            if (logo.isNotBlank()) AsyncImage(model = logo, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.size(32.dp).clip(RoundedCornerShape(8.dp)))
+            if (logo.isNotBlank()) AsyncImage(model = logo, contentDescription = null, contentScale = ContentScale.Fit, /* 2026-11-14: whole logo */ modifier = Modifier.size(32.dp).clip(RoundedCornerShape(8.dp)))
             Column(Modifier.weight(1f)) {
                 Text(ad.name, fontWeight = FontWeight.Bold, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(category.ifBlank { headline }, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -125,7 +125,7 @@ private fun SponsorView(ad: ServerAd, size: String, language: AppLanguage, onHid
                 if (size != "large" || ad.image.isBlank()) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         val logo = ad.logo.ifBlank { ad.image }
-                        if (logo.isNotBlank()) AsyncImage(model = logo, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.size(48.dp).clip(RoundedCornerShape(10.dp)).clickable { SponsorInfoState.show(ad) })
+                        if (logo.isNotBlank()) AsyncImage(model = logo, contentDescription = null, contentScale = ContentScale.Fit, /* 2026-11-14: whole logo */ modifier = Modifier.size(48.dp).clip(RoundedCornerShape(10.dp)).clickable { SponsorInfoState.show(ad) })
                         Column(Modifier.weight(1f)) {
                             Text(ad.name, fontWeight = FontWeight.ExtraBold, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             if (category.isNotBlank()) Text(category, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)

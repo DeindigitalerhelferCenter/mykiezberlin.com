@@ -1,6 +1,6 @@
 // Shared Kiez stories: public list and moderated submissions.
 import { safeLink } from "../_lib/blocklist.js";
-import { cleanText, cleanupExpiredStories, db, ipHash, isAdmin, json, noDb, rateLimited, sha256Hex, storyMediaList, storyTextKey, validAuthor } from "../_lib/util.js";
+import { cleanText, cleanupExpiredStories, db, ipHash, isAdmin, json, noDb, rateLimited, sha256Hex, parseDeal, storyDeal, storyMediaList, storyTextKey, validAuthor } from "../_lib/util.js";
 
 const HOUR_MS = 3600000;
 const MAX_HOURS = 720;
@@ -40,11 +40,11 @@ export async function onRequestGet({ env, waitUntil }) {
   waitUntil(cleanupExpiredStories(env));
   const now = Date.now();
   const { results } = await database
-    .prepare(`SELECT id, headline, subtext, kiez, kind, author, media_key, media_type, media_extra, duration_hours, approved_at, link FROM stories WHERE status = 'approved' AND approved_at <= ? AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT 60`)
+    .prepare(`SELECT id, headline, subtext, kiez, kind, author, media_key, media_type, media_extra, deal, duration_hours, approved_at, link FROM stories WHERE status = 'approved' AND approved_at <= ? AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT 60`)
     .bind(now, now)
     .all();
   // 2026-11-13: "media" = every picture/video of the story in order (old clients keep using media_key)
-  return json({ stories: results.map(({ media_extra, ...r }) => ({ ...r, link: safeLink(r.link), media: storyMediaList({ ...r, media_extra }) })) });
+  return json({ stories: results.map(({ media_extra, deal, ...r }) => ({ ...r, link: safeLink(r.link), media: storyMediaList({ ...r, media_extra }), deal: parseDeal(deal) })) });
 }
 
 export async function onRequestPost({ request, env }) {
@@ -58,6 +58,7 @@ export async function onRequestPost({ request, env }) {
   const kind = KINDS.includes(form.get("kind")) ? form.get("kind") : "news";
   // Name of the person who shares (needed for the weekly Kiez-Stars)
   const author = cleanText(form.get("author"), 40) || "Kiez Community";
+  const deal = storyDeal(form, cleanText); // 2026-11-14: optional offer (users, sponsors, admin)
   const durationHours = USER_DURATIONS.includes(Number(form.get("durationHours"))) ? Number(form.get("durationHours")) : 24;
   if (!headline || !kiez) return json({ error: "missing_fields" }, 400);
 
@@ -117,15 +118,15 @@ export async function onRequestPost({ request, env }) {
       extra.push({ key, type: video ? "video" : "image", caption: cleanText(form.get(`caption_${i + 2}`), 300) });
     }
     await database
-      .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, ip, created_at, approved_at, link, by_admin, media_hash, text_hash, media_extra) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved', ?, ?, ?, ?, 1, ?, ?, ?)`)
-      .bind(id, headline, subtext, kiez, adminKind, cleanText(form.get("author"), 40) || "My Kiez Berlin", mediaKey, mediaType, hours, ip, now, start, webLink(form.get("link")), mediaHash, textHash, JSON.stringify(extra))
+      .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, ip, created_at, approved_at, link, by_admin, media_hash, text_hash, media_extra, deal) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved', ?, ?, ?, ?, 1, ?, ?, ?, ?)`)
+      .bind(id, headline, subtext, kiez, adminKind, cleanText(form.get("author"), 40) || "My Kiez Berlin", mediaKey, mediaType, hours, ip, now, start, webLink(form.get("link")), mediaHash, textHash, JSON.stringify(extra), deal)
       .run();
     return json({ id, status: start > now ? "scheduled" : "approved", publishAt: start, durationHours: hours }, 201);
   }
 
   await database
-    .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, ip, created_at, media_hash, text_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)`)
-    .bind(id, headline, subtext, kiez, kind, author, mediaKey, mediaType, durationHours, ip, Date.now(), mediaHash, textHash)
+    .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, ip, created_at, media_hash, text_hash, deal) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?)`)
+    .bind(id, headline, subtext, kiez, kind, author, mediaKey, mediaType, durationHours, ip, Date.now(), mediaHash, textHash, deal)
     .run();
   return json({ id, status: "pending" }, 201);
 }

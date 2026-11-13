@@ -116,7 +116,9 @@
 
   function sponsorHtml(ad) {
     if (!ad || typeof window.mkSponsorCardHtml !== "function") return "";
-    return '<div class="mk-deck-sponsor">' + window.mkSponsorCardHtml(ad, ad.size) + "</div>";
+    // 2026-11-14 (owner): Premium = full width on the PC (was half width and looked smaller than Plus)
+    var prem = ad.size === "large" || ad.size === "banner";
+    return '<div class="mk-deck-sponsor' + (prem ? " mk-deck-sponsor-l" : "") + '">' + window.mkSponsorCardHtml(ad, ad.size) + "</div>";
   }
 
   function allSponsorsButton() {
@@ -181,6 +183,11 @@
     ".mk-deck-btn{margin-top:10px;border:0;border-radius:10px;padding:9px 14px;font-weight:800;background:var(--deck);color:#fff;cursor:pointer}" +
     ".mk-deck-sponsor{margin:14px 0}" +
     ".mk-deck-all{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:18px 0 8px}.mk-deck-all .btn-primary{flex:1;min-width:200px}" +
-    ".mk-deck-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:6px}.mk-deck-chips .chip-btn{flex:none}";
+    ".mk-deck-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:6px}.mk-deck-chips .chip-btn{flex:none}" +
+    /* 2026-11-14 (owner): on the PC the boxes are no longer stretched to the height of the sponsor card next to them
+       (big empty windows); Premium takes the full width and is the biggest card */
+    "@media(min-width:768px){.main-content>.mk-deck-box,.main-content>.mk-deck-sponsor{align-self:start;margin:0}" +
+    ".main-content>.mk-deck-sponsor-l,.main-content>.mk-deck-all{grid-column:1/-1}" +
+    ".mk-deck-sponsor-l .mk-sp.mk-sz-l{min-height:300px}.mk-deck-sponsor-l .mk-sz-l .mk-sz-pic{flex:0 0 min(55%,700px)}}";
   document.head.appendChild(css);
 })();

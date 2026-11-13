@@ -149,7 +149,9 @@ data class KiezStory(
     val views: Int = 1,
     val createdAtMillis: Long = System.currentTimeMillis(),
     // 2026-11-13: admin stories with several pictures/videos – everything after the first one (mediaUri)
-    val extraMedia: List<StoryMedia> = emptyList()
+    val extraMedia: List<StoryMedia> = emptyList(),
+    // 2026-11-14: offer of the story (also shown under "Özel Kiez İndirimleri")
+    val deal: com.example.ui.components.StoryDeal? = null
 )
 
 /** One further picture/video of a story (admin stories can have many, e.g. a sponsor ad with 4 pictures + 2 videos). */

@@ -196,6 +196,8 @@
     ".mk-sz-label{position:absolute;top:8px;right:8px;font-size:10px;font-weight:700;background:#F2B705;color:#222;border-radius:6px;padding:1px 6px;z-index:1}" +
     ".mk-sz-head{display:flex;gap:12px;align-items:center;padding-right:56px}.mk-sz-name{min-width:0}.mk-sz-name b{display:block;line-height:1.25}.mk-sz-name small{display:block;opacity:.7;font-size:12px}" +
     ".mk-sz-logo{flex:none;object-fit:cover;background:#fff;border:1px solid rgba(0,0,0,.08)}" +
+    /* 2026-11-14 (owner): logos were cut (cover) – now the whole logo is visible */
+    ".mk-sp .mk-sz-logo{object-fit:contain!important;padding:3px;box-sizing:border-box}" +
     ".mk-sz-hl{margin:0;font-size:13.5px;line-height:1.45}" +
     ".mk-sz-meta{display:block;font-size:12.5px;opacity:.8;line-height:1.35}" +
     ".mk-sz-coupon{padding:6px 10px;border:1.5px dashed #F2B705;border-radius:10px;font-size:12.5px;background:rgba(242,183,5,.12)}" +
@@ -228,6 +230,8 @@
     "@media(prefers-reduced-motion:reduce){.mk-glow{animation:none!important}}" +
     /* Premium: big picture */
     ".mk-sp.mk-sz-l{flex-direction:row;min-height:260px}.mk-sz-l .mk-sz-pic{flex:0 0 min(50%,640px)}.mk-sz-l .mk-sz-pic img{aspect-ratio:1200/630}" +
+    ".mk-sz-l .mk-sz-pic{display:flex;align-items:center;justify-content:center}.mk-sz-l .mk-sz-pic img{height:auto!important;object-fit:contain!important}" +
+    "@media(min-width:701px) and (max-width:1100px){.mk-sp.mk-sz-l{flex-direction:column}.mk-sz-l .mk-sz-pic{flex:none}}" +
     "@media(max-width:700px){.mk-sp.mk-sz-l{flex-direction:column}.mk-sz-l .mk-sz-pic{flex:none}}" +
     /* Plus: medium picture on top */
     ".mk-sp.mk-sz-m{flex-direction:column}.mk-sz-m .mk-sz-pic{flex:none}.mk-sz-m .mk-sz-pic img{aspect-ratio:1200/630}.mk-sz-m .mk-sz-logo{width:52px;height:52px;border-radius:12px}" +

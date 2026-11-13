@@ -69,7 +69,7 @@ fun SponsorInfoHost(language: AppLanguage) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 val logo = ad.logo.ifBlank { ad.image }
-                if (logo.isNotBlank()) AsyncImage(model = logo, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.size(60.dp).clip(RoundedCornerShape(14.dp)))
+                if (logo.isNotBlank()) AsyncImage(model = logo, contentDescription = null, contentScale = ContentScale.Fit, /* 2026-11-14: whole logo */ modifier = Modifier.size(60.dp).clip(RoundedCornerShape(14.dp)))
                 Column(Modifier.weight(1f)) {
                     Text(L("Anzeige", "Reklam", "Ad"), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF222222),
                         modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(Color(0xFFF2B705)).padding(horizontal = 6.dp, vertical = 1.dp))

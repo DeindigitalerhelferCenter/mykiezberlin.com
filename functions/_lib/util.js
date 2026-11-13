@@ -101,7 +101,21 @@ const MIGRATIONS = [
   // 2026-11-13 (owner): admin stories with any number of pictures/videos – the first one stays in media_key,
   // the others are a JSON list [{ key, type, caption }]
   `ALTER TABLE stories ADD COLUMN media_extra TEXT DEFAULT '[]'`,
+  // 2026-11-14 (owner): a story can carry an offer (e.g. "Ayran 0,99 € statt 1,50 €") – it is also shown under
+  // "Exklusive Kiez-Vorteile" as long as the story runs. JSON { what, price, old }
+  `ALTER TABLE stories ADD COLUMN deal TEXT DEFAULT ''`,
 ];
+
+/** Offer of a story from the form fields deal_what / deal_price / deal_old (empty when not filled). */
+export function storyDeal(form, clean) {
+  const what = clean(form.get("deal_what"), 80);
+  const price = clean(form.get("deal_price"), 30);
+  const old = clean(form.get("deal_old"), 30);
+  return what && price ? JSON.stringify({ what, price, old }) : "";
+}
+export function parseDeal(text) {
+  try { const d = JSON.parse(text || ""); return d && d.what && d.price ? { what: String(d.what), price: String(d.price), old: String(d.old || "") } : null; } catch (e) { return null; }
+}
 
 // All R2 keys of one story (main picture/video + the extra ones of admin stories)
 export function storyMediaList(row) {

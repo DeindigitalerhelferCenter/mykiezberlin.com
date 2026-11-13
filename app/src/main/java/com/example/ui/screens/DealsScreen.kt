@@ -41,7 +41,10 @@ fun DealsScreen(
     language: AppLanguage,
     activeRedeemDeal: Deal?,
     onOpenRedeem: (Deal) -> Unit,
-    onCloseRedeem: () -> Unit
+    onCloseRedeem: () -> Unit,
+    // 2026-11-14: offers written into running stories
+    stories: List<com.example.data.model.KiezStory> = emptyList(),
+    onOpenStory: (com.example.data.model.KiezStory) -> Unit = {}
 ) {
     val context = LocalContext.current
     Column(
@@ -83,6 +86,8 @@ fun DealsScreen(
                 }
             }
         }
+
+        com.example.ui.components.StoryDealsSection(language, stories, onOpenStory)
 
         // 2-column grid of deals
         LazyVerticalGrid(

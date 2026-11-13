@@ -305,6 +305,7 @@ function renderPlannerRows() {
         <textarea class="form-control" rows="3" maxlength="500" placeholder="Metin" oninput="plannerSet(${row.key}, 'subtext', this.value)">${adminEsc(row.subtext)}</textarea>
         <div style="display: flex; gap: 5px;">${input(row, "kiez", "Kiez", 'style="flex: 1;"')}${input(row, "kind", "Kategori", 'list="planner-kinds" style="flex: 1;"')}</div>
         ${input(row, "link", "Web linki (isteğe bağlı) https://…")}
+        <div style="display: flex; gap: 5px; flex-wrap: wrap;" title="2026-11-14: doluysa story 'Özel Kiez İndirimleri' bölümünde de görünür">🏷️ ${input(row, "deal_what", "İndirim: ne? (örn. Ayran 1 L)", 'maxlength="80" style="flex: 2; min-width: 160px;"')}${input(row, "deal_price", "Yeni fiyat (0,99 €)", 'maxlength="30" style="flex: 1; min-width: 90px;"')}${input(row, "deal_old", "Eski fiyat (isteğe bağlı)", 'maxlength="30" style="flex: 1; min-width: 90px;"')}</div>
         ${plannerExtrasHtml(row)}
         <div style="display: flex; gap: 5px; flex-wrap: wrap;">
           <label style="display: grid; gap: 2px; flex: 1;">▶️ Başlangıç<input type="datetime-local" class="form-control" value="${toLocalInput(row.start)}" onchange="plannerSet(${row.key}, 'start', this.value)"></label>
@@ -356,6 +357,10 @@ async function plannerUploadAll() {
       form.set("kiez", row.kiez.trim() || "Ganz Berlin");
       form.set("kind", row.kind.trim() || "news");
       form.set("link", row.link.trim());
+      // 2026-11-14: offer of the story (also shown under "Exklusive Kiez-Vorteile")
+      form.set("deal_what", (row.deal_what || "").trim());
+      form.set("deal_price", (row.deal_price || "").trim());
+      form.set("deal_old", (row.deal_old || "").trim());
       form.set("author", "My Kiez Berlin");
       form.set("publishAt", String(row.start));
       form.set("endAt", String(row.end));

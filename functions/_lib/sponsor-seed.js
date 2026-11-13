@@ -36,14 +36,13 @@ export const SPONSOR_SEED = [
   // ---- Mittel (49 €) ----
   {
     id: "allianz-efeoglu", plan: "m", name: "Allianz Versicherung Ceyhun Efeoglu", kieze: "Charlottenburg-Wilmersdorf",
-    headline_de: "Private & gewerbliche Versicherungen – mit Kiez-Rabatt KIEZ10",
-    headline_tr: "Özel ve ticari sigortalar – KIEZ10 mahalle indirimiyle",
-    headline_en: "Private & business insurance – with Kiez discount KIEZ10",
+    headline_de: "Private & gewerbliche Versicherungen – persönliche Beratung im Kiez",
+    headline_tr: "Özel ve ticari sigortalar – mahallede kişisel danışmanlık",
+    headline_en: "Private & business insurance – personal advice in your Kiez",
     cta_de: "Beratung anfragen", cta_tr: "Danışmanlık iste", cta_en: "Get advice",
     link_web: "https://vertretung.allianz.de/ceyhun.efeoglu/", link_wa: "", link_tel: "030 34502524", link_ig: IG("@allianz.ceyhunefeoglu"),
     extra: {
       category: { de: "Versicherungsagentur", tr: "Sigorta acentesi", en: "Insurance agency" }, address: "Wilmersdorfer Straße 165, 10585 Berlin", hours: "Mo–Fr nach Absprache", email: "ceyhun.efeoglu@allianz.de", primary: "tel",
-      coupon: { code: "KIEZ10", de: "10 % auf alle Versicherungsprodukte", tr: "Tüm sigorta ürünlerinde %10", en: "10% on all insurance products" },
     },
   },
   {
@@ -252,6 +251,29 @@ export async function seedSponsors(database) {
   await applyTekRedFix(database);
   await applyNewSponsorsFix(database);
   await applyAdnanBekarFix(database);
+  await applyAllianzFix(database);
+}
+
+// 2026-11-14 (owner): Allianz has no KIEZ10 coupon – coupon and "KIEZ10" in the headline removed; "CE" replaced by the
+// word "Allianz" (banner + logo). Package stays Plus. Runs once.
+async function applyAllianzFix(database) {
+  const id = "fix:2026-11-14-allianz";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  const row = await database.prepare(`SELECT extra FROM ads WHERE id = 'allianz-efeoglu'`).first();
+  if (!row) return;
+  let extra = {};
+  try { extra = JSON.parse(row.extra || "{}") || {}; } catch (e) { extra = {}; }
+  delete extra.coupon;
+  extra.logo = "/assets/sponsors/allianz-efeoglu-logo-2.webp";
+  const now = Date.now();
+  await database.batch([
+    database.prepare(`UPDATE ads SET image = ?, extra = ?, plan = 'm', headline_de = ?, headline_tr = ?, headline_en = ?, updated_at = ? WHERE id = 'allianz-efeoglu'`).bind(
+      "/assets/sponsors/allianz-efeoglu-2.webp", JSON.stringify(extra),
+      "Private & gewerbliche Versicherungen – persönliche Beratung im Kiez",
+      "Özel ve ticari sigortalar – mahallede kişisel danışmanlık",
+      "Private & business insurance – personal advice in your Kiez", now),
+    database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now),
+  ]);
 }
 
 // 2026-11-13 (owner): "TROJA CONSULTING" is now "Adnan Bekar" – name, banner and logo (AB). Contact data stays. Runs once.

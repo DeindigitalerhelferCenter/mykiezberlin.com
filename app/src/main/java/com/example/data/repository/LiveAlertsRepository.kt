@@ -226,7 +226,8 @@ object LiveAlertsRepository {
                             durationHours = o.optInt("duration_hours", 24),
                             status = "approved",
                             createdAtMillis = approvedAt,
-                            extraMedia = com.example.data.model.parseExtraStoryMedia(o.optJSONArray("media"))
+                            extraMedia = com.example.data.model.parseExtraStoryMedia(o.optJSONArray("media")),
+                            deal = com.example.ui.components.parseStoryDeal(o.optJSONObject("deal"))
                         )
                     )
                 }
@@ -480,7 +481,8 @@ object LiveAlertsRepository {
                             status = o.optString("status", "pending"),
                             modNote = "Server",
                             createdAtMillis = approvedAt,
-                            extraMedia = com.example.data.model.parseExtraStoryMedia(o.optJSONArray("media"))
+                            extraMedia = com.example.data.model.parseExtraStoryMedia(o.optJSONArray("media")),
+                            deal = com.example.ui.components.parseStoryDeal(o.optJSONObject("deal"))
                         )
                     )
                 }
@@ -549,6 +551,7 @@ object LiveAlertsRepository {
                 .addFormDataPart("kind", kind)
                 .addFormDataPart("durationHours", validDuration.toString())
             if (author.isNotBlank()) builder.addFormDataPart("author", author.trim().take(40))
+            com.example.ui.components.StoryDealDraft.addTo(builder) // 2026-11-14: optional offer
             if (fileBytes != null && fileBytes.isNotEmpty()) {
                 val requestFile = fileBytes.toRequestBody((mimeType ?: "image/jpeg").toMediaType())
                 builder.addFormDataPart("file", fileName ?: "story_${System.currentTimeMillis()}.jpg", requestFile)
@@ -590,6 +593,7 @@ object LiveAlertsRepository {
                 .addFormDataPart("kind", kind)
                 .addFormDataPart("durationHours", validDuration.toString())
             if (author.isNotBlank()) builder.addFormDataPart("author", author.trim().take(40))
+            com.example.ui.components.StoryDealDraft.addTo(builder) // 2026-11-14: optional offer
             if (fileBytes != null && fileBytes.isNotEmpty()) {
                 val requestFile = fileBytes.toRequestBody((mimeType ?: "image/jpeg").toMediaType())
                 builder.addFormDataPart("file", fileName ?: "story_${System.currentTimeMillis()}.jpg", requestFile)

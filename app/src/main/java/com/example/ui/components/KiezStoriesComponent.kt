@@ -1119,6 +1119,7 @@ fun StoryCreateDialog(
 ) {
     var headline by remember { mutableStateOf(initialHeadline) }
     var subtext by remember { mutableStateOf(initialSubtext) }
+    remember { com.example.ui.components.StoryDealDraft.clear(); 0 } // 2026-11-14: new form = empty offer
     var selectedKiez by remember { mutableStateOf("Kreuzberg") }
     var selectedKind by remember { mutableStateOf("news") }
     var selectedColor by remember { mutableStateOf("blau") }
@@ -1600,6 +1601,9 @@ fun StoryCreateDialog(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
+
+                // 2026-11-14 (owner): optional offer – also shown under "Özel Kiez İndirimleri"
+                com.example.ui.components.StoryDealFields(language)
 
                 // Commercial Toggle with 3 months free
                 Row(

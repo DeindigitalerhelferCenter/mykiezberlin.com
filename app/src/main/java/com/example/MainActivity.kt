@@ -474,7 +474,9 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     language = uiState.language,
                     activeRedeemDeal = uiState.activeRedeemDeal,
                     onOpenRedeem = { viewModel.openRedeemDeal(it) },
-                    onCloseRedeem = { viewModel.closeRedeemDeal() }
+                    onCloseRedeem = { viewModel.closeRedeemDeal() },
+                    stories = uiState.allStories,
+                    onOpenStory = { viewModel.openStory(it) }
                 )
 
                 AppScreen.KNOWLEDGE -> KnowledgeScreen(
