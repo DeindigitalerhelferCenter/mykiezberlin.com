@@ -132,7 +132,8 @@ function homeAdsSectionHtml() {
   const ads = homeAds.length ? homeAds.map(adCardHtml).join("") : [0, 1].map(exampleAdHtml).join("");
   const fresh = homeAds.map((a) => a.id).filter((id) => !trackedAds.has(id));
   fresh.forEach((id) => trackedAds.add(id));
-  setTimeout(() => trackAds("imp", fresh), 0);
+  // 2026-11-13: counted only when really seen on screen (sponsor-seen.js), no longer on render
+  setTimeout(() => { if (window.mkSeenIn) window.mkSeenIn(); }, 300);
   return `
     <div class="ext-row" style="margin-top: 16px; align-items: center;">
       <h3 class="ext-subheading" style="margin: 0;">${esc(tr("Sponsoren & Partner", "Sponsorlar & Partnerler"))}</h3>

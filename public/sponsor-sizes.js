@@ -106,7 +106,8 @@
   window.mkSponsorGridHtml = function () {
     if (!allAds.length) return "";
     var list = allAds.slice().sort(function (a, b) { return rank(a) - rank(b) || String(a.name).localeCompare(String(b.name)); });
-    setTimeout(function () { trackImp(list.map(function (a) { return a.id; })); }, 0);
+    // 2026-11-13: counted only when really seen on screen (sponsor-seen.js), no longer on render
+    setTimeout(function () { if (window.mkSeenIn) window.mkSeenIn(); else trackImp(list.map(function (a) { return a.id; })); }, 300);
     return '<div class="mk-sz-grid">' + list.map(function (a) { return window.mkSponsorCardHtml(a, a.size); }).join("") + "</div>";
   };
 
@@ -128,6 +129,7 @@
   function load() {
     fetch("/api/ads?place=page").then(function (r) { return r.ok ? r.json() : { ads: [] }; }).then(function (d) {
       allAds = d.ads || [];
+      window.mkAllAds = allAds; // 2026-11-13: home-deck.js picks the home sponsors from this list
       if (typeof window.mkRegisterAds === "function") window.mkRegisterAds(allAds);
       hookHome();
       if (typeof currentTab === "string" && currentTab === "home" && typeof renderTabContent === "function") renderTabContent();

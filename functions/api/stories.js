@@ -1,6 +1,6 @@
 // Shared Kiez stories: public list and moderated submissions.
 import { safeLink } from "../_lib/blocklist.js";
-import { cleanText, cleanupExpiredStories, db, ipHash, isAdmin, json, noDb, rateLimited, sha256Hex, storyTextKey, validAuthor } from "../_lib/util.js";
+import { cleanText, cleanupExpiredStories, db, ipHash, isAdmin, json, noDb, rateLimited, sha256Hex, storyMediaList, storyTextKey, validAuthor } from "../_lib/util.js";
 
 const HOUR_MS = 3600000;
 const MAX_HOURS = 720;
@@ -27,6 +27,9 @@ const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 const MEDIA_TYPES = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "video/mp4": "mp4", "video/webm": "webm" };
 const KINDS = ["news", "traffic", "event", "warn", "info", "politics"];
+// 2026-11-13 (owner): the admin may add as many pictures/videos to one story as needed (e.g. a sponsor ad
+// with 4 pictures + 2 videos). Users still send one file. Hard cap only against mistakes.
+const ADMIN_MAX_FILES = 30;
 const USER_DURATIONS = [24, 48];
 // Duplicates are checked against stories of the last 30 days that were not rejected.
 const DUPLICATE_WINDOW_MS = 30 * 24 * HOUR_MS;
@@ -37,10 +40,11 @@ export async function onRequestGet({ env, waitUntil }) {
   waitUntil(cleanupExpiredStories(env));
   const now = Date.now();
   const { results } = await database
-    .prepare(`SELECT id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, approved_at, link FROM stories WHERE status = 'approved' AND approved_at <= ? AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT 60`)
+    .prepare(`SELECT id, headline, subtext, kiez, kind, author, media_key, media_type, media_extra, duration_hours, approved_at, link FROM stories WHERE status = 'approved' AND approved_at <= ? AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT 60`)
     .bind(now, now)
     .all();
-  return json({ stories: results.map((r) => ({ ...r, link: safeLink(r.link) })) });
+  // 2026-11-13: "media" = every picture/video of the story in order (old clients keep using media_key)
+  return json({ stories: results.map(({ media_extra, ...r }) => ({ ...r, link: safeLink(r.link), media: storyMediaList({ ...r, media_extra }) })) });
 }
 
 export async function onRequestPost({ request, env }) {
@@ -99,9 +103,22 @@ export async function onRequestPost({ request, env }) {
     const now = Date.now();
     const { start, hours } = plannedWindow(form, now);
     const adminKind = cleanText(form.get("kind"), 30) || "news";
+    // further pictures/videos (admin only): every file after the first one, with an optional text per file
+    const extra = [];
+    const files = form.getAll("file").filter((x) => x && typeof x !== "string" && x.size > 0).slice(1, ADMIN_MAX_FILES);
+    for (let i = 0; i < files.length; i++) {
+      const x = files[i];
+      const ext = MEDIA_TYPES[x.type];
+      if (!ext) continue; // unknown type: skipped, the story is still saved
+      const video = x.type.startsWith("video/");
+      if (x.size > (video ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES)) continue;
+      const key = `stories/${id}-${i + 2}.${ext}`;
+      await env.BUCKET.put(key, await x.arrayBuffer(), { httpMetadata: { contentType: x.type } });
+      extra.push({ key, type: video ? "video" : "image", caption: cleanText(form.get(`caption_${i + 2}`), 300) });
+    }
     await database
-      .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, ip, created_at, approved_at, link, by_admin, media_hash, text_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved', ?, ?, ?, ?, 1, ?, ?)`)
-      .bind(id, headline, subtext, kiez, adminKind, cleanText(form.get("author"), 40) || "My Kiez Berlin", mediaKey, mediaType, hours, ip, now, start, webLink(form.get("link")), mediaHash, textHash)
+      .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, ip, created_at, approved_at, link, by_admin, media_hash, text_hash, media_extra) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved', ?, ?, ?, ?, 1, ?, ?, ?)`)
+      .bind(id, headline, subtext, kiez, adminKind, cleanText(form.get("author"), 40) || "My Kiez Berlin", mediaKey, mediaType, hours, ip, now, start, webLink(form.get("link")), mediaHash, textHash, JSON.stringify(extra))
       .run();
     return json({ id, status: start > now ? "scheduled" : "approved", publishAt: start, durationHours: hours }, 201);
   }

@@ -93,7 +93,7 @@ export const SPONSOR_SEED = [
     extra: { category: { de: "Unternehmensberatung", tr: "İşletme danışmanlığı", en: "Business consulting" }, address: "Hertzbergstr. 7, 12055 Berlin", hours: "Mo–Fr 09:00–17:00", email: "info@sari-beratung.de", primary: "tel" },
   },
   {
-    id: "troja-consulting", plan: "s", name: "TROJA CONSULTING", kieze: "",
+    id: "troja-consulting", plan: "s", name: "Adnan Bekar", kieze: "", // 2026-11-13 (owner): was "TROJA CONSULTING"; id kept for the statistics
     headline_de: "Unternehmensberatung, Lohn- und Gehaltsabrechnung, Buchhaltung & Immobilien",
     headline_tr: "İşletme danışmanlığı, bordro, muhasebe ve emlak danışmanlığı",
     headline_en: "Business consulting, payroll, bookkeeping & real estate",
@@ -251,6 +251,24 @@ export async function seedSponsors(database) {
   await applyTekLogoFix(database);
   await applyTekRedFix(database);
   await applyNewSponsorsFix(database);
+  await applyAdnanBekarFix(database);
+}
+
+// 2026-11-13 (owner): "TROJA CONSULTING" is now "Adnan Bekar" – name, banner and logo (AB). Contact data stays. Runs once.
+async function applyAdnanBekarFix(database) {
+  const id = "fix:2026-11-13-adnanbekar";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  const row = await database.prepare(`SELECT extra FROM ads WHERE id = 'troja-consulting'`).first();
+  if (!row) return;
+  let extra = {};
+  try { extra = JSON.parse(row.extra || "{}") || {}; } catch (e) { extra = {}; }
+  extra.logo = "/assets/sponsors/troja-consulting-logo-2.webp";
+  if (typeof extra.description === "string") extra.description = extra.description.replace(/TROJA\s*Consulting:?\s*/gi, "");
+  const now = Date.now();
+  await database.batch([
+    database.prepare(`UPDATE ads SET name = 'Adnan Bekar', image = ?, extra = ?, updated_at = ? WHERE id = 'troja-consulting'`).bind("/assets/sponsors/troja-consulting-2.webp", JSON.stringify(extra), now),
+    database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now),
+  ]);
 }
 
 // 2026-11-13 (owner): pictures from "YENI SPONSORLAR.zip" in the sponsors' own gallery (contact sheet).

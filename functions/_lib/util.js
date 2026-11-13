@@ -98,7 +98,23 @@ const MIGRATIONS = [
   `ALTER TABLE stories ADD COLUMN text_hash TEXT DEFAULT ''`,
   `CREATE INDEX IF NOT EXISTS idx_stories_media_hash ON stories(media_hash)`,
   `CREATE INDEX IF NOT EXISTS idx_stories_text_hash ON stories(text_hash)`,
+  // 2026-11-13 (owner): admin stories with any number of pictures/videos – the first one stays in media_key,
+  // the others are a JSON list [{ key, type, caption }]
+  `ALTER TABLE stories ADD COLUMN media_extra TEXT DEFAULT '[]'`,
 ];
+
+// All R2 keys of one story (main picture/video + the extra ones of admin stories)
+export function storyMediaList(row) {
+  const list = [];
+  if (row && row.media_key) list.push({ key: row.media_key, type: row.media_type || "image", caption: "" });
+  try {
+    const extra = JSON.parse((row && row.media_extra) || "[]");
+    if (Array.isArray(extra)) extra.forEach((m) => { if (m && m.key) list.push({ key: String(m.key), type: m.type === "video" ? "video" : "image", caption: String(m.caption || "") }); });
+  } catch (e) {
+    // broken JSON: only the main media
+  }
+  return list;
+}
 
 // Accepts only Instagram post/reel links and returns them in one canonical form.
 export function instagramUrl(value) {
@@ -128,11 +144,11 @@ export async function cleanupExpiredStories(env) {
   const database = await db(env);
   if (!database) return;
   const { results } = await database
-    .prepare(`SELECT id, media_key FROM stories WHERE status = 'approved' AND approved_at + duration_hours * ${HOUR_MS} + ${ADMIN_GRACE_MS} < ? LIMIT 20`)
+    .prepare(`SELECT id, media_key, media_type, media_extra FROM stories WHERE status = 'approved' AND approved_at + duration_hours * ${HOUR_MS} + ${ADMIN_GRACE_MS} < ? LIMIT 20`)
     .bind(Date.now())
     .all();
   for (const row of results) {
-    if (row.media_key && env.BUCKET) await env.BUCKET.delete(row.media_key);
+    if (env.BUCKET) for (const m of storyMediaList(row)) await env.BUCKET.delete(m.key).catch(() => {});
     await database.prepare(`DELETE FROM stories WHERE id = ?`).bind(row.id).run();
   }
 }

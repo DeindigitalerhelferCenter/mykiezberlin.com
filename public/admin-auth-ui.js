@@ -268,16 +268,78 @@
     var list = data.messages || [];
     var open = list.filter(function (m) { return m.status !== "done"; }).length;
     var topic = { app: "App/Web", sponsor: "Sponsor", other: "Sonstiges" };
+    // 2026-11-13 (owner): answer, edit and delete; filter; finished messages are deleted after 30 days
+    var STATUS = { "new": "🆕 Neu · Yeni", progress: "⏳ In Arbeit · İşlemde", done: "✓ Erledigt · Tamamlandı" };
+    var filter = window.mkSupportFilter || "open";
+    var shown = list.filter(function (m) { return filter === "all" ? true : filter === "done" ? m.status === "done" : m.status !== "done"; });
+    var IN = "width:100%;box-sizing:border-box;background:#0d1117;color:#e6edf3;border:1px solid #30363d;border-radius:8px;padding:7px;font:inherit;font-size:13px";
+    var tab = function (k, label) { return '<button class="chip-btn' + (filter === k ? " active" : "") + '" data-supf="' + k + '">' + label + "</button>"; };
     box.innerHTML = '<h3 style="font-size:16px;font-weight:800;margin-bottom:8px">🛠 Support-Meldungen (' + open + " offen · açık)</h3>" +
-      (list.length ? list.map(function (m) {
-        return '<div style="padding:10px;margin-bottom:8px;border:1px solid #30363d;border-radius:10px;background:#161b22;opacity:' + (m.status === "done" ? ".55" : "1") + '">' +
-          '<div style="font-size:11px;color:#8b949e">' + esc(new Date(m.created_at).toLocaleString("de-DE")) + " · " + esc(topic[m.topic] || m.topic) + (m.sponsor ? " · " + esc(m.sponsor) : "") + (m.page ? " · " + esc(m.page) : "") + "</div>" +
-          '<div style="font-size:13px;white-space:pre-wrap;margin:6px 0">' + esc(m.message) + "</div>" +
-          (m.email ? '<div style="font-size:12px">✉️ <a style="color:#58a6ff" href="mailto:' + esc(m.email) + '">' + esc(m.email) + "</a></div>" : "") +
-          '<button class="chip-btn" style="margin-top:6px" data-sup="' + esc(m.id) + '" data-next="' + (m.status === "done" ? "new" : "done") + '">' + (m.status === "done" ? "Wieder öffnen · Tekrar aç" : "Erledigt ✓ · Tamamlandı") + "</button></div>";
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">' + tab("open", "Offen · Açık (" + open + ")") + tab("done", "Erledigt · Tamamlanan (" + (list.length - open) + ")") + tab("all", "Alle · Hepsi (" + list.length + ")") + "</div>" +
+      '<p style="font-size:11px;color:#8b949e;margin:0 0 8px">Erledigte Meldungen werden nach ' + (data.keepDays || 30) + " Tagen automatisch gelöscht · Tamamlananlar " + (data.keepDays || 30) + " gün sonra otomatik silinir.</p>" +
+      (shown.length ? shown.map(function (m) {
+        var replies = (m.replies || []).map(function (r) {
+          return '<div style="font-size:12px;border-left:3px solid #2ea043;padding:4px 8px;margin:4px 0;white-space:pre-wrap"><span style="color:#8b949e">↩ ' + esc(new Date(r.at).toLocaleString("de-DE")) + "</span><br>" + esc(r.text) + "</div>";
+        }).join("");
+        var left = m.status === "done" && m.done_at ? Math.max(0, Math.ceil((m.done_at + (data.keepDays || 30) * 86400000 - Date.now()) / 86400000)) : null;
+        return '<div data-supbox="' + esc(m.id) + '" style="padding:10px;margin-bottom:8px;border:1px solid #30363d;border-radius:10px;background:#161b22;opacity:' + (m.status === "done" ? ".7" : "1") + '">' +
+          '<div style="font-size:11px;color:#8b949e">' + esc(new Date(m.created_at).toLocaleString("de-DE")) + " · " + esc(topic[m.topic] || m.topic) + (m.sponsor ? " · " + esc(m.sponsor) : "") + (m.page ? " · " + esc(m.page) : "") + (m.name ? " · " + esc(m.name) : "") +
+          (left !== null ? " · 🗑 in " + left + " Tagen · gün" : "") + "</div>" +
+          '<div data-msgview style="font-size:13px;white-space:pre-wrap;margin:6px 0">' + esc(m.message) + "</div>" +
+          '<textarea data-msgedit rows="4" style="' + IN + ';display:none">' + esc(m.message) + "</textarea>" +
+          (m.email ? '<div style="font-size:12px">✉️ <a style="color:#58a6ff" href="mailto:' + esc(m.email) + '">' + esc(m.email) + "</a></div>" : '<div style="font-size:12px;color:#8b949e">Keine E-Mail – Antwort nicht möglich · E-posta yok, cevap gönderilemez</div>') +
+          replies +
+          '<div style="display:grid;gap:6px;margin-top:8px">' +
+          '<label style="font-size:12px">Status · Durum <select data-status style="' + IN + ';width:auto">' + Object.keys(STATUS).map(function (k) { return '<option value="' + k + '"' + (m.status === k ? " selected" : "") + ">" + STATUS[k] + "</option>"; }).join("") + "</select></label>" +
+          '<textarea data-note rows="2" placeholder="Interne Notiz (nur Admin) · Dahili not (sadece admin)" style="' + IN + '">' + esc(m.note || "") + "</textarea>" +
+          (m.email ? '<textarea data-reply rows="3" placeholder="Antwort an den Nutzer (wird per E-Mail von support@ gesendet) · Kullanıcıya cevap (support@ adresinden e-posta ile gider)" style="' + IN + '"></textarea>' : "") +
+          '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
+          '<button class="chip-btn active" data-act="save">💾 Speichern · Kaydet</button>' +
+          (m.email ? '<button class="chip-btn" data-act="reply">✉️ Antwort senden · Cevap gönder</button>' : "") +
+          '<button class="chip-btn" data-act="edit">✏️ Text bearbeiten · Metni düzenle</button>' +
+          '<button class="chip-btn" data-act="del" style="color:#f85149">🗑 Löschen · Sil</button>' +
+          '<span data-out style="font-size:12px;align-self:center"></span></div></div></div>';
       }).join("") : '<p style="font-size:12px;color:#8b949e">Keine Meldungen · Bildirim yok</p>');
-    box.querySelectorAll("[data-sup]").forEach(function (b) {
-      b.onclick = function () { window.mkSupportDone(b.getAttribute("data-sup"), b.getAttribute("data-next")); };
+    box.querySelectorAll("[data-supf]").forEach(function (b) {
+      b.onclick = function () { window.mkSupportFilter = b.getAttribute("data-supf"); supportSection(); };
+    });
+    box.querySelectorAll("[data-supbox]").forEach(function (card) {
+      var id = card.getAttribute("data-supbox");
+      var out = card.querySelector("[data-out]");
+      var call = function (method, body) {
+        return fetch("/api/support", { method: method, headers: { "content-type": "application/json", "x-admin-token": token() }, body: JSON.stringify(body) })
+          .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { j.httpOk = r.ok; return j; }); })
+          .catch(function () { return { error: "network" }; });
+      };
+      card.querySelectorAll("[data-act]").forEach(function (b) {
+        b.onclick = async function () {
+          var act = b.getAttribute("data-act");
+          if (act === "edit") {
+            var ed = card.querySelector("[data-msgedit]"), view = card.querySelector("[data-msgview]");
+            var on = ed.style.display === "none"; ed.style.display = on ? "block" : "none"; view.style.display = on ? "none" : "block";
+            return;
+          }
+          if (act === "del") {
+            if (!confirm("Meldung endgültig löschen? · Bildirim kalıcı olarak silinsin mi?")) return;
+            out.textContent = "…"; var d = await call("DELETE", { id: id });
+            if (d.httpOk) supportSection(); else out.textContent = "Fehler · Hata: " + (d.error || "?");
+            return;
+          }
+          if (act === "reply") {
+            var text = card.querySelector("[data-reply]").value.trim();
+            if (!text) { out.textContent = "Bitte Antwort schreiben · Lütfen cevap yazın"; return; }
+            out.textContent = "Wird gesendet … · Gönderiliyor …";
+            var r = await call("POST", { action: "reply", id: id, text: text });
+            if (r.httpOk) supportSection(); else out.textContent = "Fehler · Hata: " + (r.error || "?") + (r.detail ? " (" + r.detail + ")" : "");
+            return;
+          }
+          var ed2 = card.querySelector("[data-msgedit]");
+          var body = { id: id, status: card.querySelector("[data-status]").value, note: card.querySelector("[data-note]").value };
+          if (ed2.style.display !== "none") body.message = ed2.value;
+          out.textContent = "…"; var s = await call("PATCH", body);
+          if (s.httpOk) supportSection(); else out.textContent = "Fehler · Hata: " + (s.error || "?");
+        };
+      });
     });
   }
   window.mkSupportDone = async function (id, status) {

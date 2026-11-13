@@ -4,6 +4,7 @@
 // GET  /api/visit (x-admin-token) -> visitors and views per day (30 days), split by web/app,
 //      plus how often each sponsor was shown and clicked (30 days).
 import { cleanText, db, isAdmin, json, noDb, sha256Hex } from "../_lib/util.js";
+import { monthlyGoal } from "../_lib/plans.js";
 
 const SOURCES = ["web", "app", "app-web"];
 
@@ -51,5 +52,11 @@ export async function onRequestGet({ request, env }) {
     .prepare(`SELECT s.ad_id, a.name, a.plan, SUM(s.imp) AS views, SUM(s.clk) AS clicks FROM ad_stats s LEFT JOIN ads a ON a.id = s.ad_id WHERE s.day >= ? GROUP BY s.ad_id ORDER BY views DESC LIMIT 60`)
     .bind(fromUtc)
     .all();
-  return json({ today: berlinDay(), days, sponsors });
+  // 2026-11-13: this calendar month (for the fixed monthly goals per package)
+  const monthStart = new Date().toISOString().slice(0, 8) + "01";
+  const { results: month } = await database
+    .prepare(`SELECT a.id AS ad_id, a.name, a.plan, a.active, COALESCE(SUM(s.imp), 0) AS views, COALESCE(SUM(s.clk), 0) AS clicks FROM ads a LEFT JOIN ad_stats s ON s.ad_id = a.id AND s.day >= ? GROUP BY a.id ORDER BY views DESC LIMIT 200`)
+    .bind(monthStart)
+    .all();
+  return json({ today: berlinDay(), days, sponsors, month: month.map((m) => ({ ...m, goal: monthlyGoal(m.plan) })), monthStart, honestSince: "2026-11-13" });
 }

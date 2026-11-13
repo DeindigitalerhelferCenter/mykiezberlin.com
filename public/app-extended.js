@@ -161,6 +161,8 @@ async function loadServerStories() {
       image: s.media_key && s.media_type !== "video" ? `/media/${s.media_key}` : "assets/images/hero_berlin.jpg",
       isVideo: s.media_type === "video",
       videoUri: s.media_type === "video" ? `/media/${s.media_key}` : "",
+      // 2026-11-13: admin stories with several pictures/videos (story-multi.js shows them one after another)
+      media: Array.isArray(s.media) ? s.media.map((m) => ({ url: `/media/${m.key}`, video: m.type === "video", caption: m.caption || "" })) : [],
       durationHours: s.duration_hours,
       status: "approved",
       link: safeUrl(s.link || "https://mykiezberlin.com"),

@@ -1065,7 +1065,7 @@ function renderStorySlide() {
 function startStoryTimer() {
   clearInterval(storyTimer);
   storyProgress = 0;
-  const durationMs = 7000;
+  const durationMs = window.mkStoryDurationMs || 7000; // 2026-11-13: longer for videos (story-multi.js)
   const interval = 50;
   const step = (interval / durationMs) * 100;
 

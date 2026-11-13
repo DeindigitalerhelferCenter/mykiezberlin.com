@@ -35,21 +35,49 @@ async function rssAlerts(url, key, limit) {
   }));
 }
 
+// 2026-11-13 (owner: "old BVG/Feuerwehr news"): BVG texts carry left-over attribute pieces
+// ("' line-id='U6' aria-label='U-Bahn U6'>") – removed here.
+function cleanBvg(text) {
+  return stripTags(text).replace(/'?\s*(?:[\w-]+='[^']*'\s*)+>?/g, " ").replace(/\s+/g, " ").trim();
+}
+
+const DAY_MS = 86400000;
+const NEWS_MAX_AGE = 3 * DAY_MS; // Polizei / Feuerwehr: only the last 3 days …
+const NEWS_MIN_KEEP = 3; // … but never an empty box: then the 3 newest stay (with their age)
+const BVG_FRESH = 2 * DAY_MS; // disruptions that started today or yesterday
+const BVG_ONGOING_MAX = 3; // long-running construction works: at most 3, at the end of the list
+
+function freshOnly(items) {
+  const now = Date.now();
+  const fresh = items.filter((i) => i.publishedAt && now - i.publishedAt <= NEWS_MAX_AGE);
+  if (fresh.length >= NEWS_MIN_KEEP) return fresh;
+  return [...items].sort((a, b) => (b.publishedAt || 0) - (a.publishedAt || 0)).slice(0, NEWS_MIN_KEEP);
+}
+
 async function bvgAlerts() {
   const data = await fetchJson("https://www.bvg.de/disruption-reports-service/disruptions/v1/de");
   const now = Date.now();
-  return (data.elements || [])
+  const all = (data.elements || [])
     .filter((e) => !e.endDate || Date.parse(e.endDate) > now)
-    .slice(0, 12)
-    .map((e) => ({
-      id: `bvg-${e.id}`,
-      source: "bvg",
-      ...STYLE.bvg,
-      title: stripTags(e.content?.[0]?.headline || e.disruptionTypes?.[0]?.displayName || "BVG-Meldung"),
-      body: stripTags(e.content?.[0]?.content || "").slice(0, 280),
-      url: "https://www.bvg.de/de/verbindungen/stoerungsmeldungen",
-      publishedAt: Date.parse(e.startDate || e.lastModified || "") || null,
-    }));
+    .map((e) => {
+      const start = Date.parse(e.startDate || e.lastModified || "") || null;
+      const ongoing = !start || now - start > BVG_FRESH;
+      const title = cleanBvg(e.content?.[0]?.headline || e.disruptionTypes?.[0]?.displayName || "BVG-Meldung");
+      const since = start ? new Date(start).toLocaleDateString("de-DE", { timeZone: "Europe/Berlin" }) : "";
+      return {
+        id: `bvg-${e.id}`,
+        source: "bvg",
+        ...STYLE.bvg,
+        title: ongoing ? `Bauarbeiten / Dauerhinweis${since ? " seit " + since : ""}: ${title}` : title,
+        body: cleanBvg(e.content?.[0]?.content || "").slice(0, 280),
+        url: "https://www.bvg.de/de/verbindungen/stoerungsmeldungen",
+        publishedAt: start,
+        ongoing,
+      };
+    });
+  const fresh = all.filter((a) => !a.ongoing).slice(0, 12);
+  const ongoing = all.filter((a) => a.ongoing).sort((a, b) => (b.publishedAt || 0) - (a.publishedAt || 0)).slice(0, BVG_ONGOING_MAX);
+  return [...fresh, ...ongoing];
 }
 
 async function sbahnAlerts() {
@@ -252,8 +280,10 @@ async function build() {
     sources[keys[i]] = r.status === "fulfilled";
     value[keys[i]] = r.status === "fulfilled" ? r.value : null;
   });
+  for (const k of ["polizei", "feuerwehr"]) if (value[k]) value[k] = freshOnly(value[k]);
   const alerts = ["polizei", "feuerwehr", "bvg", "sbahn"].flatMap((k) => value[k] || []);
-  alerts.sort((a, b) => (b.publishedAt || 0) - (a.publishedAt || 0));
+  // newest first; long-running BVG works always at the end
+  alerts.sort((a, b) => (a.ongoing ? 1 : 0) - (b.ongoing ? 1 : 0) || (b.publishedAt || 0) - (a.publishedAt || 0));
   return { updatedAt: Date.now(), alerts, news: value.news || [], sport: value.sport || [], business: value.business || [], weather: value.weather, quotes: value.quotes || [], sources };
 }
 

@@ -29,6 +29,11 @@
     try { fetch("/api/ads", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ kind: kind, ids: [id] }), keepalive: true }).catch(function () {}); } catch (x) {}
   }
   window.mkSponsorClick = function (id) { track("click", id); };
+  // 2026-11-13 (owner: honest numbers): a sponsor counts as seen only when it is really on the screen (sponsor-seen.js)
+  function seenIn(root, ads) {
+    if (window.mkSeenIn) { setTimeout(function () { window.mkSeenIn(root); }, 50); return; }
+    ads.forEach(function (a) { track("imp", a.id); });
+  }
 
   // Smooth weighted round robin: Groß appears 3×, Mittel 2×, Klein 1× per round, well mixed.
   function buildSequence(ads) {
@@ -106,8 +111,7 @@
       var local = pageAds.filter(function (a) { return a.size === "small" && kiezMatch(a, kiez); });
       top.innerHTML = local.map(function (a) { return html(a, "small"); }).join("") + html(current);
       content.insertBefore(top, content.firstChild);
-      track("imp", current.id);
-      local.forEach(function (a) { track("imp", a.id); });
+      seenIn(top, [current].concat(local)); // 2026-11-13: counted only when really seen
     }
     // Inside long lists: a Groß/Mittel sponsor after every 6th card
     if (listAds.length) {
@@ -118,7 +122,7 @@
         slot.className = "mk-sp-slot";
         slot.innerHTML = html(ad);   // 2026-11-13: size from the package (was always "medium")
         cards[i].insertAdjacentElement("afterend", slot);
-        track("imp", ad.id);
+        seenIn(slot, [ad]);
       }
     }
     // Coupons of sponsors on the "Gutscheine" page

@@ -25,6 +25,31 @@
     return box.querySelector(".body");
   }
 
+  // 2026-11-13 (owner): package totals + fixed monthly goal per sponsor (Basic 1.000, Plus 3.000, Premium 8.000 views)
+  function monthHtml(d) {
+    var month = (d.month || []).filter(function (m) { return m.active !== 0; });
+    if (!month.length) return "";
+    var groups = { l: [0, 0, 0], m: [0, 0, 0], s: [0, 0, 0] };
+    month.forEach(function (m) { var g = groups[m.plan === "l" ? "l" : m.plan === "s" ? "s" : "m"]; g[0] += m.views || 0; g[1] += m.clicks || 0; g[2] += 1; });
+    var day = new Date().getDate(), days = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+    var bar = function (v, goal) {
+      var pct = Math.min(100, Math.round((v / goal) * 100)), due = Math.round((goal * day) / days);
+      var color = v >= due ? "#2ea043" : v >= due * 0.7 ? "#d29922" : "#f85149";
+      return '<div style="background:#30363d;border-radius:6px;height:8px;min-width:80px"><div style="width:' + pct + "%;height:8px;border-radius:6px;background:" + color + '"></div></div>' +
+        '<small style="color:#8b949e">' + v + " / " + goal + " (" + pct + " %) · heute fällig · bugüne kadar: " + due + "</small>";
+    };
+    var label = { l: "🔴 Premium", m: "🟢 Plus", s: "🔵 Basic" };
+    var since = d.honestSince ? d.honestSince.split("-").reverse().join(".") : "13.11.2026";
+    return '<p style="font-size:11.5px;color:#8b949e;margin:14px 0 6px">Ab ' + since + ' zählt ein Sponsor nur, wenn seine Karte wirklich auf dem Bildschirm war (mind. halb, 1 Sekunde). Admin, Tests und Bots zählen nicht. Ältere Zahlen sind höher, weil früher jede geladene Karte zählte. · ' +
+      since + " itibarıyla sponsor sadece kartı gerçekten ekranda görüldüğünde sayılır (en az yarısı, 1 saniye). Admin, testler ve botlar sayılmaz. Eski sayılar daha yüksek, çünkü önceden yüklenen her kart sayılıyordu.</p>" +
+      "<b>Pakete · Paketler (dieser Monat · bu ay)</b>" +
+      '<table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px"><thead><tr style="color:#8b949e"><th style="text-align:left">Paket</th><th>Sponsoren</th><th>Gesehen · görüldü</th><th>Klicks · tık</th></tr></thead><tbody>' +
+      ["l", "m", "s"].map(function (k) { return '<tr><td style="text-align:left">' + label[k] + "</td><td>" + groups[k][2] + "</td><td>" + groups[k][0] + "</td><td>" + groups[k][1] + "</td></tr>"; }).join("") + "</tbody></table>" +
+      '<b style="display:block;margin-top:14px">Monatsziel pro Sponsor · Sponsor başına aylık hedef</b>' +
+      '<table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px"><thead><tr style="color:#8b949e"><th style="text-align:left">Name</th><th style="text-align:left">Ziel · hedef</th></tr></thead><tbody>' +
+      month.map(function (m) { return '<tr><td style="text-align:left">' + e(m.name || m.ad_id) + " <small>" + (label[m.plan === "l" ? "l" : m.plan === "s" ? "s" : "m"]) + '</small></td><td style="text-align:left">' + bar(m.views || 0, m.goal || 1000) + "</td></tr>"; }).join("") + "</tbody></table>";
+  }
+
   // ---------- 1. statistics ----------
   function stats() {
     var body = section("admin-stats", "📊 Statistik · İstatistik (30 Tage · gün)");
@@ -50,7 +75,7 @@
       body.innerHTML = '<div style="display:flex;gap:10px;flex-wrap:wrap">' + tile("Heute · Bugün", today) + tile("7 Tage · gün", week) + tile("30 Tage · gün", all) + "</div>" +
         '<p style="font-size:11.5px;color:#8b949e;margin:8px 0 14px">Besucher = Geräte pro Tag (anonym, ohne Cookies) · Ziyaretçi = günlük cihaz sayısı (anonim, çerezsiz). Zählung ab 13.11.2026.</p>' +
         '<b>Sponsoren · Sponsorlar</b><table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px"><thead><tr style="color:#8b949e"><th style="text-align:left">Name</th><th>Paket</th><th>Gesehen · görüldü</th><th>Klicks · tık</th><th>Rate</th></tr></thead><tbody>' +
-        (rows || '<tr><td colspan="5">–</td></tr>') + "</tbody></table>";
+        (rows || '<tr><td colspan="5">–</td></tr>') + "</tbody></table>" + monthHtml(d);
       body.querySelectorAll("td,th").forEach(function (c) { c.style.padding = "6px 4px"; c.style.borderBottom = "1px solid #30363d"; if (!c.style.textAlign) c.style.textAlign = "right"; });
     }).catch(function () { body.textContent = "Keine Verbindung · Bağlantı yok"; });
   }

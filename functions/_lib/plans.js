@@ -13,6 +13,14 @@ export const PLAN_RULES = {
   banner: { size: "banner", weight: 2, places: ["slider", "page"] },
 };
 
+// 2026-11-13 (owner): fixed monthly service per package – guaranteed "really seen" views per calendar month.
+// The rotation (/api/ads?place=page) prefers sponsors that are furthest behind their monthly goal.
+export const MONTHLY_VIEWS = { s: 1000, m: 3000, gp: 3000, banner: 3000, l: 8000 };
+
+export function monthlyGoal(plan) {
+  return MONTHLY_VIEWS[String(plan || "").toLowerCase()] || MONTHLY_VIEWS.s;
+}
+
 export const AD_PLACE_KEYS = ["slider", "home", "quiz", "page", "list", "kiez"];
 
 export function planRule(plan) {

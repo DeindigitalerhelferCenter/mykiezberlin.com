@@ -1,6 +1,6 @@
 // Server-side moderation for all shared content.
 import { isBlockedUrl } from "../_lib/blocklist.js";
-import { cleanText, db, instagramUrl, isAdmin, json, noDb } from "../_lib/util.js";
+import { cleanText, db, instagramUrl, isAdmin, json, noDb, storyMediaList } from "../_lib/util.js";
 import { AD_PLACE_KEYS, parseExtra, planRule } from "../_lib/plans.js";
 import { cleanupOldRequests, KEEP_DAYS, REPLY_KINDS, REQUEST_COLUMNS, replyTemplate, resendWelcome, sendReply, shapeRequest } from "../_lib/ad-requests.js";
 import { mailReady } from "../_lib/mail.js";
@@ -203,8 +203,9 @@ export async function onRequestPost({ request, env }) {
     await database.prepare(`UPDATE stories SET status = 'approved', approved_at = ? WHERE id = ?`).bind(Date.now(), id).run();
   } else if (action === "delete") {
     if ((type === "story" || type === "post") && env.BUCKET) {
-      const row = await database.prepare(`SELECT media_key FROM ${table} WHERE id = ?`).bind(id).first();
-      if (row?.media_key) await env.BUCKET.delete(row.media_key);
+      const row = await database.prepare(`SELECT ${type === "story" ? "media_key, media_type, media_extra" : "media_key"} FROM ${table} WHERE id = ?`).bind(id).first();
+      // 2026-11-13: admin stories can have several pictures/videos
+      for (const m of type === "story" ? storyMediaList(row) : row?.media_key ? [{ key: row.media_key }] : []) await env.BUCKET.delete(m.key).catch(() => {});
     }
     await database.prepare(`DELETE FROM ${table} WHERE id = ?`).bind(id).run();
   } else {

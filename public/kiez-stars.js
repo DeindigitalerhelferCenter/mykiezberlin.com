@@ -5,6 +5,7 @@
   var NAME_KEY = "mk_author";
   var SEEN_KEY = "mk_stars_seen";
   var data = null;
+  var showStars = Math.random() < 0.5; // 2026-11-13: shown on about every second visit
 
   function lang() {
     var l = (typeof currentLanguage === "string" ? currentLanguage : "de").toLowerCase();
@@ -46,6 +47,19 @@
       '<div style="font-size:12.5px;font-weight:600;margin-top:8px">' + progress + "</div>" +
       '<div style="font-size:11px;opacity:.7;margin-top:2px">🥉 3 · 🥈 7 · 🥇 12 ' + t("Stories / Woche", "hikâye / hafta", "stories / week") + "</div>" +
       '<button id="mk-stars-share" style="margin-top:10px;width:100%;padding:10px;border:0;border-radius:12px;background:#E30613;color:#fff;font-weight:700"><i class="bi bi-camera-fill" aria-hidden="true"></i> ' + t("Story teilen", "Hikâye paylaş", "Share a story") + "</button>";
+    // 2026-11-13 (owner): small window, opens on tap, and not on every visit (comes and goes like the other home boxes)
+    var full = box.innerHTML;
+    var first = top[0] ? medal(top[0].rank) + " " + esc(top[0].name) : t("Noch frei – sei die/der Erste!", "Henüz boş – ilk sen ol!", "Still free – be the first!");
+    box.innerHTML = '<button type="button" id="mk-stars-toggle" aria-expanded="false" style="display:flex;align-items:center;gap:8px;width:100%;border:0;background:none;padding:0;color:inherit;font:inherit;text-align:left;cursor:pointer">' +
+      '<b style="font-size:15px;flex:1">🏆 ' + t("Kiez-Stars der Woche", "Haftanın Kiez Yıldızları", "Kiez Stars of the week") + ' <span style="font-weight:600;font-size:13px">· ' + first + '</span></b><span id="mk-stars-arrow">▾</span></button>' +
+      '<div id="mk-stars-body" hidden style="margin-top:8px">' + full + "</div>";
+    box.style.padding = "10px 14px";
+    box.hidden = !showStars;
+    document.getElementById("mk-stars-toggle").onclick = function () {
+      var body = document.getElementById("mk-stars-body"), open = body.hidden;
+      body.hidden = !open; this.setAttribute("aria-expanded", String(open));
+      document.getElementById("mk-stars-arrow").textContent = open ? "▴" : "▾";
+    };
     var share = document.getElementById("mk-stars-share");
     if (share) share.onclick = function () { if (typeof openCreateStoryModal === "function") openCreateStoryModal(); };
     var lastLink = document.getElementById("mk-stars-last");

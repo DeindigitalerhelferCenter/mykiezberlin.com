@@ -170,6 +170,63 @@ function plannerAddRow(file) {
   return plannerRows[plannerRows.length - 1];
 }
 
+// ---- 2026-11-13 (owner): one admin story with any number of pictures/videos (e.g. sponsor ad: 4 pictures + 2 videos).
+// The row's own picture/video is #1, the extras follow in this order. Viewers swipe through them.
+function plannerExtrasHtml(row) {
+  if (!row.file) return `<div style="color: #8b949e;">Ek resim/video için önce bu story'ye bir resim veya video seç.</div>`;
+  const extras = row.extras || [];
+  const thumb = (x, n) => `
+    <div style="width: 70px; flex: none; text-align: center;">
+      ${x.isVideo ? `<div style="position: relative; cursor: pointer;" onclick="mkAdminMedia('${x.preview}', true)"><video src="${x.preview}#t=0.5" preload="metadata" muted playsinline style="width: 70px; height: 96px; object-fit: cover; border-radius: 6px; background: #000;"></video><span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">▶️</span></div>`
+        : `<img src="${x.preview}" alt="" onclick="mkAdminMedia('${x.preview}', false)" style="width: 70px; height: 96px; object-fit: cover; border-radius: 6px; cursor: zoom-in;">`}
+      <div>#${n + 2}</div>
+      <input class="form-control" style="font-size: 11px; padding: 2px 4px;" placeholder="Metin" value="${adminEsc(x.caption || "")}" oninput="plannerExtraCaption(${row.key}, ${n}, this.value)">
+      <div style="display: flex; gap: 2px; justify-content: center; margin-top: 2px;">
+        <button class="chip-btn" style="padding: 1px 6px;" onclick="plannerExtraMove(${row.key}, ${n}, -1)">←</button>
+        <button class="chip-btn" style="padding: 1px 6px;" onclick="plannerExtraMove(${row.key}, ${n}, 1)">→</button>
+        <button class="chip-btn" style="padding: 1px 6px;" onclick="plannerExtraRemove(${row.key}, ${n})">✕</button>
+      </div>
+    </div>`;
+  return `
+    <div style="border: 1px dashed #30363d; border-radius: 8px; padding: 6px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: wrap;">
+        <b>🎞️ Bu story'de ${1 + extras.length} resim/video</b>
+        <label class="chip-btn" style="cursor: pointer;">➕ Resim / video ekle<input type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" multiple style="display: none;" onchange="plannerAddExtras(${row.key}, this.files); this.value='';"></label>
+      </div>
+      ${extras.length ? `<div style="display: flex; gap: 6px; overflow-x: auto; margin-top: 6px;">${extras.map(thumb).join("")}</div>` : ""}
+    </div>`;
+}
+
+function plannerAddExtras(key, files) {
+  const row = plannerRows.find((r) => r.key === key);
+  if (!row) return;
+  row.extras = row.extras || [];
+  [...files].forEach((file) => row.extras.push({ file, preview: URL.createObjectURL(file), isVideo: file.type.startsWith("video/"), caption: "" }));
+  if (row.status === "ok") row.status = "";
+  renderPlannerRows();
+}
+
+function plannerExtraCaption(key, n, value) {
+  const row = plannerRows.find((r) => r.key === key);
+  if (row && row.extras && row.extras[n]) row.extras[n].caption = value;
+}
+
+function plannerExtraMove(key, n, step) {
+  const row = plannerRows.find((r) => r.key === key);
+  if (!row || !row.extras) return;
+  const m = n + step;
+  if (m < 0 || m >= row.extras.length) return;
+  [row.extras[n], row.extras[m]] = [row.extras[m], row.extras[n]];
+  renderPlannerRows();
+}
+
+function plannerExtraRemove(key, n) {
+  const row = plannerRows.find((r) => r.key === key);
+  if (!row || !row.extras) return;
+  row.extras.splice(n, 1);
+  renderPlannerRows();
+}
+
 function plannerSet(key, field, value) {
   const row = plannerRows.find((r) => r.key === key);
   if (!row) return;
@@ -248,6 +305,7 @@ function renderPlannerRows() {
         <textarea class="form-control" rows="3" maxlength="500" placeholder="Metin" oninput="plannerSet(${row.key}, 'subtext', this.value)">${adminEsc(row.subtext)}</textarea>
         <div style="display: flex; gap: 5px;">${input(row, "kiez", "Kiez", 'style="flex: 1;"')}${input(row, "kind", "Kategori", 'list="planner-kinds" style="flex: 1;"')}</div>
         ${input(row, "link", "Web linki (isteğe bağlı) https://…")}
+        ${plannerExtrasHtml(row)}
         <div style="display: flex; gap: 5px; flex-wrap: wrap;">
           <label style="display: grid; gap: 2px; flex: 1;">▶️ Başlangıç<input type="datetime-local" class="form-control" value="${toLocalInput(row.start)}" onchange="plannerSet(${row.key}, 'start', this.value)"></label>
           <label style="display: grid; gap: 2px; flex: 1;">⏹️ Bitiş<input type="datetime-local" class="form-control" value="${toLocalInput(row.end)}" onchange="plannerSet(${row.key}, 'end', this.value)"></label>
@@ -302,6 +360,15 @@ async function plannerUploadAll() {
       form.set("publishAt", String(row.start));
       form.set("endAt", String(row.end));
       if (row.file) form.set("file", await plannerPrepareFile(row.file));
+      // 2026-11-13: further pictures/videos of the same story (only with a first picture/video)
+      if (row.file && row.extras && row.extras.length) {
+        for (let n = 0; n < row.extras.length; n++) {
+          const x = row.extras[n];
+          if (x.isVideo && x.file.size > 50 * 1024 * 1024) throw new Error(`Ek video ${n + 2}: 50 MB'den büyük`);
+          form.append("file", await plannerPrepareFile(x.file));
+          form.set(`caption_${n + 2}`, (x.caption || "").trim());
+        }
+      }
       const res = await fetch("/api/stories", { method: "POST", headers: { "x-admin-token": plannerToken() }, body: form });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
