@@ -165,6 +165,23 @@ export async function seedSponsors(database) {
   ]));
   await applyFixes(database);
   await applyPlanFix(database);
+  await applyTekLogoFix(database);
+}
+
+// 2026-11-13: real TEK logo (logo + banner) under new file names, so browsers and the app do not keep the old cached pictures. Runs once.
+async function applyTekLogoFix(database) {
+  const id = "fix:2026-11-13-teklogo";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  const row = await database.prepare(`SELECT extra FROM ads WHERE id = 'terra-verde-tek'`).first();
+  if (!row) return;
+  let extra = {};
+  try { extra = JSON.parse(row.extra || "{}") || {}; } catch (e) { extra = {}; }
+  extra.logo = "/assets/sponsors/terra-verde-tek-logo-2.webp";
+  const now = Date.now();
+  await database.batch([
+    database.prepare(`UPDATE ads SET image = ?, extra = ?, updated_at = ? WHERE id = 'terra-verde-tek'`).bind("/assets/sponsors/terra-verde-tek-2.webp", JSON.stringify(extra), now),
+    database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now),
+  ]);
 }
 
 // 2026-11-13 (owner): Terra Verde TEK is Kiez Premium, GRZ Haustechnik is Kiez Basic. Runs once.
