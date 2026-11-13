@@ -65,11 +65,21 @@
         }).join("") + "</div></div>";
       var anchor = body.querySelector(".mk-sz-btns");
       if (anchor) anchor.insertAdjacentHTML("beforebegin", html); else body.insertAdjacentHTML("beforeend", html);
-      card.querySelectorAll(".mk-reel-tile").forEach(function (b) {
-        b.addEventListener("click", function (ev) { ev.preventDefault(); ev.stopPropagation(); viewer(list, +b.getAttribute("data-n")); });
-      });
+      lists[id] = list;
     });
   }
+  // one listener for all tiles (capture phase: runs before the card's own "open sponsor sheet" click)
+  var lists = {};
+  document.addEventListener("click", function (ev) {
+    var tile = ev.target && ev.target.closest && ev.target.closest(".mk-reel-tile");
+    if (!tile) return;
+    var card = tile.closest("[data-ad]");
+    var list = card && lists[card.getAttribute("data-ad")];
+    if (!list) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    viewer(list, +tile.getAttribute("data-n"));
+  }, true);
   function scan(root) { (root || document).querySelectorAll(".mk-sp[data-ad]").forEach(fill); }
 
   var css = document.createElement("style");

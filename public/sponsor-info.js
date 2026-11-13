@@ -90,7 +90,7 @@
   // Taps on a sponsor card open the sheet; the small buttons inside a card stay direct links.
   document.addEventListener("click", function (ev) {
     var t = ev.target;
-    if (!t || !t.closest || t.closest(".mk-sp-btn") || t.closest("#mk-si")) return;
+    if (!t || !t.closest || t.closest(".mk-sp-btn") || t.closest("#mk-si") || t.closest(".mk-reel")) return; // 2026-11-14: photo strip has its own viewer
     var card = t.closest("[data-ad]");
     var id = card && card.getAttribute("data-ad");
     if (!id) {
