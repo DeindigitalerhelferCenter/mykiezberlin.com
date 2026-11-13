@@ -69,9 +69,12 @@ private fun hasPlace(address: String) =
     address.any { it.isDigit() } && !address.contains("Umgebung", true) && !address.contains("Ganz Berlin", true)
 
 @Composable
-fun SponsorTierCard(ad: ServerAd, language: AppLanguage, size: String = ad.size, onHide: (() -> Unit)? = null) {
+fun SponsorTierCard(ad: ServerAd, language: AppLanguage, size: String = ad.size, onHide: (() -> Unit)? = null, compact: Boolean = false) {
     val context = LocalContext.current
     val tier = tierOf(size)
+    // 2026-11-14 (APK check): compact = small picture left (sponsor place on top of sub-pages took half the screen);
+    // frame colour and package badge stay those of the real package
+    val lk = if (compact) "s" else tier.key
     // 2026-11-13 (owner: honest numbers): counted when the card is shown for 1 second (cards far below the screen are
     // not composed by the list yet); the admin phone does not count
     LaunchedEffect(ad.id) {
@@ -98,7 +101,7 @@ fun SponsorTierCard(ad: ServerAd, language: AppLanguage, size: String = ad.size,
     val wa = if (ad.linkWa.isNotBlank()) "https://wa.me/" + ad.linkWa.filter { it.isDigit() } else ""
     val web = ad.linkWeb.ifBlank { ad.linkIg }
     val route = if (hasPlace(ad.address)) "https://www.google.com/maps/dir/?api=1&destination=" + Uri.encode(ad.name + ", " + ad.address) else ""
-    val coupon = if (ad.couponCode.isNotBlank() && tier.key != "s") "🎟️ ${ad.couponCode} · " + pickText(language, ad.couponDe, ad.couponTr, ad.couponEn) else ""
+    val coupon = if (ad.couponCode.isNotBlank() && lk != "s") "🎟️ ${ad.couponCode} · " + pickText(language, ad.couponDe, ad.couponTr, ad.couponEn) else ""
 
     Box(
         Modifier.fillMaxWidth()
@@ -111,18 +114,18 @@ fun SponsorTierCard(ad: ServerAd, language: AppLanguage, size: String = ad.size,
     ) {
         Column {
             // Premium + Plus: picture on top (Premium bigger)
-            if (tier.key != "s" && picture.isNotBlank()) {
+            if (lk != "s" && picture.isNotBlank()) {
                 AsyncImage(
                     model = picture, contentDescription = ad.name, contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxWidth()
-                        .padding(if (tier.key == "m") PaddingValues(start = 10.dp, end = 10.dp, top = 10.dp) else PaddingValues(0.dp))
-                        .clip(RoundedCornerShape(if (tier.key == "m") 12.dp else 0.dp))
+                        .padding(if (lk == "m") PaddingValues(start = 10.dp, end = 10.dp, top = 10.dp) else PaddingValues(0.dp))
+                        .clip(RoundedCornerShape(if (lk == "m") 12.dp else 0.dp))
                         .aspectRatio(1200f / 630f)
                 )
             }
             Row(Modifier.padding(start = 12.dp, end = 12.dp, top = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 // Basic: small picture left, like a story tile
-                if (tier.key == "s" && picture.isNotBlank()) {
+                if (lk == "s" && picture.isNotBlank()) {
                     AsyncImage(
                         model = picture, contentDescription = ad.name, contentScale = ContentScale.Crop,
                         modifier = Modifier.width(118.dp).aspectRatio(1200f / 630f).clip(RoundedCornerShape(10.dp))
@@ -130,12 +133,12 @@ fun SponsorTierCard(ad: ServerAd, language: AppLanguage, size: String = ad.size,
                 }
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        if (tier.key != "s" && logo.isNotBlank()) {
+                        if (lk != "s" && logo.isNotBlank()) {
                             AsyncImage(model = logo, contentDescription = null, contentScale = ContentScale.Fit, // 2026-11-14: whole logo, not cut
-                                modifier = Modifier.size(if (tier.key == "l") 44.dp else 38.dp).clip(RoundedCornerShape(10.dp)).background(Color.White).padding(2.dp))
+                                modifier = Modifier.size(if (lk == "l") 44.dp else 38.dp).clip(RoundedCornerShape(10.dp)).background(Color.White).padding(2.dp))
                         }
                         Column(Modifier.weight(1f)) {
-                            Text(ad.name, fontWeight = FontWeight.ExtraBold, fontSize = if (tier.key == "l") 16.sp else if (tier.key == "m") 15.sp else 14.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            Text(ad.name, fontWeight = FontWeight.ExtraBold, fontSize = if (lk == "l") 16.sp else if (lk == "m") 15.sp else 14.sp, maxLines = if (compact) 1 else 2, overflow = TextOverflow.Ellipsis)
                             if (category.isNotBlank()) Text(category, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                         Text(
@@ -144,9 +147,9 @@ fun SponsorTierCard(ad: ServerAd, language: AppLanguage, size: String = ad.size,
                         )
                         if (onHide != null) Text("✕", fontSize = 13.sp, modifier = Modifier.clickable { onHide() }.padding(2.dp))
                     }
-                    if (headline.isNotBlank()) Text(headline, fontSize = if (tier.key == "s") 12.sp else 13.sp, maxLines = if (tier.key == "s") 2 else 3, overflow = TextOverflow.Ellipsis)
-                    if (ad.address.isNotBlank()) Text("📍 " + ad.address, fontSize = 11.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    if (ad.hours.isNotBlank()) Text("🕒 " + ad.hours, fontSize = 11.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    if (headline.isNotBlank()) Text(headline, fontSize = if (lk == "s") 12.sp else 13.sp, maxLines = if (compact) 1 else if (lk == "s") 2 else 3, overflow = TextOverflow.Ellipsis)
+                    if (ad.address.isNotBlank()) Text("📍 " + ad.address, fontSize = 11.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = if (compact) 1 else 2, overflow = TextOverflow.Ellipsis)
+                    if (!compact && ad.hours.isNotBlank()) Text("🕒 " + ad.hours, fontSize = 11.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
             if (coupon.isNotBlank()) {

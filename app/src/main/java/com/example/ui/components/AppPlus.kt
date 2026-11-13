@@ -98,7 +98,7 @@ fun StoryDealFields(language: AppLanguage) {
 fun StoryDealsSection(language: AppLanguage, stories: List<KiezStory>, onOpen: (KiezStory) -> Unit) {
     val now = System.currentTimeMillis()
     val deals = stories.filter { it.deal != null && it.status == "approved" && it.createdAtMillis + it.durationHours * 3_600_000L > now }
-    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text("🏷️ " + t(language, "Aktuelle Angebote aus den Kiez-Stories", "Kiez hikâyelerindeki güncel indirimler"), fontWeight = FontWeight.Bold, fontSize = 14.sp, color = PlusRed)
         if (deals.isEmpty()) {
             Text(t(language, "Gerade keine Story-Angebote. Teile selbst eins über „Story teilen“ → „Angebot / Rabatt“.", "Şu an hikâye indirimi yok. „Hikâye paylaş“ → „İndirim / kampanya“ ile sen de paylaş."), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)

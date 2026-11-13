@@ -53,9 +53,10 @@ fun PageSponsorSlot(screenKey: String, language: AppLanguage, activeKiez: String
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         // 2026-11-13: same card as the home page and the web (picture, package badge, glowing frame)
-        local.forEach { SponsorTierCard(it, language) { hidden = true } }
-        if (coupons.isNotEmpty()) coupons.forEach { SponsorTierCard(it, language) { hidden = true } }
-        else if (ad != null) SponsorTierCard(ad, language) { hidden = true }
+        // 2026-11-14 (APK check): the fixed place on top of a page took half of the screen (and on "Kuponlar" every
+        // coupon sponsor one under the other) – now one compact card (picture left), the page itself keeps the room
+        val one = remember(screenKey, local, coupons, ad) { local.firstOrNull() ?: coupons.shuffled().firstOrNull() ?: ad }
+        if (one != null) SponsorTierCard(one, language, onHide = { hidden = true }, compact = true)
     }
 }
 

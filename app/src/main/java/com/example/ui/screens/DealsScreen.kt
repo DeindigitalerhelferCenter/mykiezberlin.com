@@ -87,8 +87,6 @@ fun DealsScreen(
             }
         }
 
-        com.example.ui.components.StoryDealsSection(language, stories, onOpenStory)
-
         // 2-column grid of deals
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
@@ -96,6 +94,10 @@ fun DealsScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            // 2026-11-14: offers from running stories – scrolls together with the deals
+            item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                Box(Modifier.padding(horizontal = 0.dp)) { com.example.ui.components.StoryDealsSection(language, stories, onOpenStory) }
+            }
             items(SampleData.deals) { deal ->
                 Card(
                     modifier = Modifier
