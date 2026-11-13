@@ -128,7 +128,11 @@ async function deleteAd(id) {
 }
 
 function toDateInput(ms) {
-  return ms ? new Date(ms).toISOString().slice(0, 10) : "";
+  // 2026-11-13: local date (Berlin), not UTC – saving parses the date as local midnight,
+  // so the UTC date showed one day earlier and every save moved start/end one day back.
+  if (!ms) return "";
+  const d = new Date(ms);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 function openAdForm(id, requestId = "") {
