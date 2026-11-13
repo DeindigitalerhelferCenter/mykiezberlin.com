@@ -63,8 +63,11 @@ fun HomeAdsSection(
 ) {
     val tr = language == AppLanguage.TURKISH
     val en = language == AppLanguage.ENGLISH
-    val ads by AdsRepository.homeAds.collectAsState()
-    LaunchedEffect(Unit) { AdsRepository.refresh() }
+    val homeAds by AdsRepository.homeAds.collectAsState()
+    // 2026-11-13: like the web home page – every sponsor, sorted Premium → Plus → Basic
+    val pageAds by AdsRepository.pageAds.collectAsState()
+    val ads = remember(homeAds, pageAds) { (pageAds.ifEmpty { homeAds }).sortedWith(compareBy({ tierRank(it) }, { it.name.lowercase() })) }
+    LaunchedEffect(Unit) { AdsRepository.refresh(); AdsRepository.refreshPageAds() }
     LaunchedEffect(ads) { AdsRepository.trackImpressions(ads.map { it.id }) }
 
     Column(
@@ -94,7 +97,7 @@ fun HomeAdsSection(
                 onClick = { onOpenWerben("banner") }
             )
         } else {
-            ads.forEach { ad -> ServerAdCard(ad = ad, tr = tr, en = en) }
+            ads.forEach { ad -> SponsorTierCard(ad = ad, language = language) }
         }
 
         Text(if (tr) "İşletme paketleri" else "Pakete für Betriebe", fontWeight = FontWeight.ExtraBold, fontSize = 17.sp, modifier = Modifier.padding(top = 6.dp))

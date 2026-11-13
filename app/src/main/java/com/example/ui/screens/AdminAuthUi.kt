@@ -370,6 +370,9 @@ fun AdminAccountDialog(onDismiss: () -> Unit) {
                     try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://mykiezberlin.com/admin.html")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } catch (_: Exception) {}
                 }) { Text("👥 Admins verwalten (Web) · Adminleri yönet", color = Color.White, fontSize = 12.sp) }
                 OutlinedButton(onClick = {
+                    try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://mykiezberlin.com/admin.html#admin-sponsor-panel")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } catch (_: Exception) {}
+                }) { Text("🤝 Sponsoren verwalten (Web) · Sponsorları yönet", color = Color.White, fontSize = 12.sp) }
+                OutlinedButton(onClick = {
                     try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://mykiezberlin.com/admin.html#admin-support")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } catch (_: Exception) {}
                 }) { Text("🛠 Support-Meldungen (Web) · Destek bildirimleri", color = Color.White, fontSize = 12.sp) }
 

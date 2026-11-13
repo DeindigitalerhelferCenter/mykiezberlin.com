@@ -551,6 +551,14 @@ fun AdminScreen(
                 }
 
                 "sponsors" -> {
+                    // 2026-11-13: real sponsors are managed in the web admin (packages, new sponsor, panel links)
+                    item {
+                        Button(
+                            onClick = { try { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://mykiezberlin.com/admin.html#admin-sponsor-panel")).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) } catch (_: Exception) {} },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A73E8))
+                        ) { Text("🤝 Sponsoren verwalten (Web) · Sponsorları yönet: Paket, ➕ Neu, Panel-Link", color = Color.White, fontSize = 12.sp) }
+                    }
                     item {
                         Text(
                             text = if (language == AppLanguage.TURKISH) "Aktif Sponsörler (${SampleData.sponsors.size})" else "Aktive Sponsoren (${SampleData.sponsors.size})",

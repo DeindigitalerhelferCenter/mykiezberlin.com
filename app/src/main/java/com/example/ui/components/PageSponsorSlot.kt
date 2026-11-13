@@ -52,9 +52,10 @@ fun PageSponsorSlot(screenKey: String, language: AppLanguage, activeKiez: String
         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        local.forEach { SponsorView(it, "small", language) { hidden = true } }
-        if (coupons.isNotEmpty()) coupons.forEach { SponsorView(it, it.size, language) { hidden = true } }
-        else if (ad != null) SponsorView(ad, ad.size, language) { hidden = true }
+        // 2026-11-13: same card as the home page and the web (picture, package badge, glowing frame)
+        local.forEach { SponsorTierCard(it, language) { hidden = true } }
+        if (coupons.isNotEmpty()) coupons.forEach { SponsorTierCard(it, language) { hidden = true } }
+        else if (ad != null) SponsorTierCard(ad, language) { hidden = true }
     }
 }
 
