@@ -173,6 +173,7 @@
         var list = (d.media || []).slice(0, 12);
         if (!list.length || !document.body.contains(sheet)) return;
         var html = '<div class="mk-si-gal">' + list.map(function (m) {
+          if (m.media_type === "instagram") return '<iframe src="' + e(String(m.url).replace(/\/?$/, "/") + "embed") + '" title="Instagram" loading="lazy" style="width:100%;min-height:420px;border:0;border-radius:12px;background:#fff"></iframe>';
           return m.media_type === "video"
             ? '<video src="' + e(m.url) + '" controls preload="metadata" playsinline></video>'
             : '<a href="' + e(m.url) + '" target="_blank" rel="noopener"><img src="' + e(m.url) + '" alt="' + e(m.caption || ad.name) + '" loading="lazy"></a>';

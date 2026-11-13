@@ -1115,12 +1115,14 @@ fun StoryCreateDialog(
     initialSubtext: String = "",
     initialLink: String = "",
     initialMediaUri: String? = null,
-    initialIsVideo: Boolean = false
+    initialIsVideo: Boolean = false,
+    initialKiez: String = "",
+    quotaLeft: Int? = null // 2026-11-14: stories left today (null = unknown / admin)
 ) {
     var headline by remember { mutableStateOf(initialHeadline) }
     var subtext by remember { mutableStateOf(initialSubtext) }
     remember { com.example.ui.components.StoryDealDraft.clear(); 0 } // 2026-11-14: new form = empty offer
-    var selectedKiez by remember { mutableStateOf("Kreuzberg") }
+    var selectedKiez by remember { mutableStateOf(initialKiez.ifBlank { "Kreuzberg" }) }
     var selectedKind by remember { mutableStateOf("news") }
     var selectedColor by remember { mutableStateOf("blau") }
     val storyContext = LocalContext.current
@@ -1329,6 +1331,14 @@ fun StoryCreateDialog(
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                if (quotaLeft != null) {
+                    Text(
+                        text = if (quotaLeft == 0) (if (language == AppLanguage.TURKISH) "⚠️ Bugünkü 5 hikâye hakkın doldu – yarın tekrar paylaşabilirsin." else "⚠️ Deine 5 Stories für heute sind aufgebraucht – morgen geht es weiter.")
+                        else (if (language == AppLanguage.TURKISH) "📊 Bugün $quotaLeft hikâye hakkın kaldı." else "📊 Du kannst heute noch $quotaLeft Stories teilen."),
+                        fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                        color = if (quotaLeft == 0) BerlinRed else MaterialTheme.colorScheme.primary
+                    )
+                }
 
                 // Media picker buttons
                 Row(

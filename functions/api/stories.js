@@ -1,6 +1,6 @@
 // Shared Kiez stories: public list and moderated submissions.
 import { safeLink } from "../_lib/blocklist.js";
-import { aiCheck, cleanDevice, cleanupStoryMedia, dailyLimited, isTrusted, USER_DAILY_LIMIT } from "../_lib/story-guard.js";
+import { aiCheck, cleanDevice, cleanupStoryMedia, dailyLimited, dailyUsed, isTrusted, USER_DAILY_LIMIT } from "../_lib/story-guard.js";
 import { cleanText, cleanupExpiredStories, db, ipHash, isAdmin, json, noDb, rateLimited, sha256Hex, parseDeal, storyDeal, storyMediaList, storyTextKey, validAuthor } from "../_lib/util.js";
 
 const HOUR_MS = 3600000;
@@ -35,9 +35,15 @@ const USER_DURATIONS = [24, 48];
 // Duplicates are checked against stories of the last 30 days that were not rejected.
 const DUPLICATE_WINDOW_MS = 30 * 24 * HOUR_MS;
 
-export async function onRequestGet({ env, waitUntil }) {
+export async function onRequestGet({ request, env, waitUntil }) {
   const database = await db(env);
   if (!database) return noDb();
+  // 2026-11-14 (owner: warn BEFORE the server refuses): GET /api/stories?quota=1&device=… -> stories left today
+  const params = new URL(request.url).searchParams;
+  if (params.get("quota")) {
+    const used = await dailyUsed(database, await ipHash(request, env), cleanDevice(params.get("device")));
+    return json({ used, limit: USER_DAILY_LIMIT, left: Math.max(0, USER_DAILY_LIMIT - used) }, 200, { "cache-control": "no-store" });
+  }
   waitUntil(cleanupExpiredStories(env));
   waitUntil(cleanupStoryMedia(env, database).catch(() => {})); // 2026-11-14: rejected / long-waiting media
   const now = Date.now();

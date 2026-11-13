@@ -167,8 +167,8 @@ progress{width:100%;margin-top:8px}
     var list = $("mlist"); list.innerHTML = "";
     state.media.forEach(function (m) {
       var fig = document.createElement("figure");
-      var src = m.media_key.charAt(0) === "/" ? m.media_key : "/media/" + m.media_key; // 2026-11-13: seeded pictures live in /assets
-      fig.innerHTML = (m.media_type === "video" ? '<video src="' + src + '" controls preload="metadata"></video>' : '<img src="' + src + '" alt="" loading="lazy">') +
+      var src = m.media_key.charAt(0) === "/" || m.media_key.indexOf("https://") === 0 ? m.media_key : "/media/" + m.media_key; // 2026-11-13: seeded pictures live in /assets
+      fig.innerHTML = (m.media_type === "instagram" ? '<a href="' + src + '" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;aspect-ratio:1;background:linear-gradient(135deg,#feda75,#d62976,#4f5bd5);color:#fff;font-weight:800;text-decoration:none">📷 Instagram</a>' : m.media_type === "video" ? '<video src="' + src + '" controls preload="metadata"></video>' : '<img src="' + src + '" alt="" loading="lazy">') +
         (m.status === "hidden" ? '<span class="hid"></span>' : "") + '<button class="x" type="button" aria-label="Delete">✕</button><figcaption></figcaption>';
       fig.querySelector("figcaption").textContent = m.caption || new Date(m.created_at).toLocaleString(lang);
       if (m.status === "hidden") fig.querySelector(".hid").textContent = t("hidden");

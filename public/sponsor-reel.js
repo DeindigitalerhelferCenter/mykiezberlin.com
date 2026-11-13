@@ -29,7 +29,8 @@
     function show() {
       var m = list[i];
       box.innerHTML = '<button type="button" class="mk-rv-x" aria-label="' + e(L("Schließen", "Kapat", "Close")) + '">✕</button>' +
-        (m.media_type === "video" ? '<video src="' + e(m.url) + '" controls autoplay playsinline></video>' : '<img src="' + e(m.url) + '" alt="' + e(m.caption || "") + '">') +
+        (m.media_type === "instagram" ? '<iframe class="mk-rv-ig" src="' + e(String(m.url).replace(/\/?$/, "/") + "embed") + '" title="Instagram" allowfullscreen></iframe>'
+          : m.media_type === "video" ? '<video src="' + e(m.url) + '" controls autoplay playsinline></video>' : '<img src="' + e(m.url) + '" alt="' + e(m.caption || "") + '">') +
         (m.caption ? '<div class="mk-rv-cap">' + e(m.caption) + "</div>" : "") +
         (list.length > 1 ? '<button type="button" class="mk-rv-prev" aria-label="←">‹</button><button type="button" class="mk-rv-next" aria-label="→">›</button><div class="mk-rv-n">' + (i + 1) + " / " + list.length + "</div>" : "");
     }
@@ -61,7 +62,8 @@
       var html = '<div class="mk-reel"><div class="mk-reel-t">📸 ' + e(own.length ? L("Fotos & Videos", "Fotoğraf & videolar", "Photos & videos") + " (" + own.length + ")" : L("Fotos", "Fotoğraflar", "Photos")) + "</div>" +
         '<div class="mk-reel-row">' + list.map(function (m, n) {
           return '<button type="button" class="mk-reel-tile" data-n="' + n + '" aria-label="' + e(L("Bild öffnen", "Resmi aç", "Open")) + '">' +
-            (m.media_type === "video" ? '<video src="' + e(m.url) + '#t=0.5" preload="metadata" muted playsinline></video><span class="mk-reel-play">▶</span>' : '<img src="' + e(m.url) + '" alt="" loading="lazy">') + "</button>";
+            (m.media_type === "instagram" ? '<span class="mk-reel-ig">📷<b>Instagram</b>' + (/\/reel\//.test(m.url) ? "▶ Reel" : "Post") + "</span>"
+              : m.media_type === "video" ? '<video src="' + e(m.url) + '#t=0.5" preload="metadata" muted playsinline></video><span class="mk-reel-play">▶</span>' : '<img src="' + e(m.url) + '" alt="" loading="lazy">') + "</button>";
         }).join("") + "</div></div>";
       var anchor = body.querySelector(".mk-sz-btns");
       if (anchor) anchor.insertAdjacentHTML("beforebegin", html); else body.insertAdjacentHTML("beforeend", html);
@@ -90,6 +92,8 @@
     ".mk-reel-tile img,.mk-reel-tile video{display:block;width:100%;height:100%;object-fit:cover;border-radius:10px;background:#111}" +
     ".mk-reel-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:#fff;font-size:14px;background:rgba(0,0,0,.5);border-radius:50%;width:26px;height:26px;line-height:26px;text-align:center}" +
     ".mk-sz-s .mk-reel-tile{width:52px;height:76px}" +
+    ".mk-reel-ig{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:100%;height:100%;border-radius:10px;background:linear-gradient(135deg,#feda75,#d62976,#4f5bd5);color:#fff;font-size:10px;line-height:1.1}.mk-reel-ig b{font-size:9.5px}" +
+    ".mk-rv-ig{width:min(440px,94vw);height:min(760px,84vh);border:0;border-radius:12px;background:#fff}" +
     "#mk-reel-view{position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.94);display:flex;align-items:center;justify-content:center}" +
     "#mk-reel-view img,#mk-reel-view video{max-width:100%;max-height:86vh;object-fit:contain}" +
     "#mk-reel-view button{position:absolute;border:0;background:rgba(255,255,255,.15);color:#fff;border-radius:50%;width:44px;height:44px;font-size:22px;cursor:pointer}" +

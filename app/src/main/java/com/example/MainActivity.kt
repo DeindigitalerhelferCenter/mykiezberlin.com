@@ -649,7 +649,9 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                 initialSubtext = draft?.subtext.orEmpty(),
                 initialLink = draft?.link.orEmpty(),
                 initialMediaUri = draft?.mediaUri,
-                initialIsVideo = draft?.isVideo ?: false
+                initialIsVideo = draft?.isVideo ?: false,
+                initialKiez = draft?.kiez.orEmpty(),
+                quotaLeft = viewModel.storyQuotaLeft.collectAsStateWithLifecycle().value
             )
         }
     }
@@ -665,7 +667,11 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     else if (feedback == "AUTHOR")
                         (if (uiState.language == AppLanguage.TURKISH) "⚠️ İsim eksik" else if (uiState.language == AppLanguage.ENGLISH) "⚠️ Name missing" else "⚠️ Name fehlt")
                     else if (feedback == "REJECTED")
-                        (if (uiState.language == AppLanguage.TURKISH) "İçerik Reddedildi" else "Beitrag abgelehnt")
+                        (if (uiState.language == AppLanguage.TURKISH) "⚠️ Lütfen metni kontrol et" else "⚠️ Bitte Text prüfen")
+                    else if (feedback == "LIMIT")
+                        (if (uiState.language == AppLanguage.TURKISH) "⚠️ Günlük sınır doldu" else "⚠️ Tageslimit erreicht")
+                    else if (feedback == "TOO_MANY" || feedback == "NETWORK" || feedback == "FILE")
+                        (if (uiState.language == AppLanguage.TURKISH) "⚠️ Gönderilemedi" else "⚠️ Nicht gesendet")
                     else
                         if (feedback == "Veröffentlicht") (if (uiState.language == AppLanguage.TURKISH) "Hikâye Yayında! 🎉" else "Story ist online! 🎉")
                         else (if (uiState.language == AppLanguage.TURKISH) "Hikâye gönderildi ⏳" else "Story eingereicht ⏳"),
@@ -684,9 +690,21 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                         else "Bitte gib deinen Namen oder Spitznamen ein (mindestens 2 Buchstaben, nicht nur Emojis)."
                     } else if (feedback == "REJECTED") {
                         if (uiState.language == AppLanguage.TURKISH)
-                            "Gönderiniz politik, küfür veya 18+ içerik kurallarımıza aykırı olduğu için reddedilmiştir."
+                            "Metninde politik, küfür veya 18+ olabilecek bir kelime var. Lütfen düzelt – yazdıkların duruyor, sonra tekrar gönder."
                         else
-                            "Dein Beitrag verstößt gegen unsere Richtlinien (keine Politik, keine Beleidigungen, keine 18+ Inhalte) und wurde abgelehnt."
+                            "Dein Text enthält ein Wort, das nach Politik, Beleidigung oder 18+ aussieht. Bitte ändern – dein Text bleibt erhalten, dann erneut senden."
+                    } else if (feedback == "LIMIT") {
+                        if (uiState.language == AppLanguage.TURKISH) "Bugün zaten 5 hikâye paylaştın. Yazdıkların formda duruyor – yarın gönderebilirsin."
+                        else "Du hast heute schon 5 Stories geteilt. Dein Text bleibt im Formular – morgen kannst du ihn senden."
+                    } else if (feedback == "TOO_MANY") {
+                        if (uiState.language == AppLanguage.TURKISH) "Kısa sürede çok fazla gönderi. Yazdıkların formda duruyor – biraz sonra tekrar dene."
+                        else "Zu viele Beiträge in kurzer Zeit. Dein Text bleibt im Formular – bitte später erneut senden."
+                    } else if (feedback == "FILE") {
+                        if (uiState.language == AppLanguage.TURKISH) "Dosya uygun değil (resim 5 MB'a, video 50 MB'a kadar). Yazdıkların formda duruyor – başka dosya seç."
+                        else "Die Datei passt nicht (Bild bis 5 MB, Video bis 50 MB). Dein Text bleibt im Formular – bitte andere Datei wählen."
+                    } else if (feedback == "NETWORK") {
+                        if (uiState.language == AppLanguage.TURKISH) "Bağlantı yok veya sunucu cevap vermedi. Yazdıkların formda duruyor – tekrar gönder."
+                        else "Keine Verbindung oder der Server antwortet nicht. Dein Text bleibt im Formular – bitte erneut senden."
                     } else if (feedback == "Veröffentlicht") {
                         if (uiState.language == AppLanguage.TURKISH)
                             "Hikâyeniz başarıyla yüklendi ve yayına alındı! Belirlediğiniz süre boyunca ana sayfa story barında ve ilgili mahallede aktif kalacaktır."

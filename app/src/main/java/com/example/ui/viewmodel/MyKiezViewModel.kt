@@ -167,7 +167,8 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
         val subtext: String,
         val link: String,
         val mediaUri: String?,
-        val isVideo: Boolean
+        val isVideo: Boolean,
+        val kiez: String = "" // 2026-11-14: story given back after a refusal keeps its Kiez
     )
 
     private val _shareDraft = MutableStateFlow<ShareDraft?>(null)
@@ -183,6 +184,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
         val localMedia = mediaUri?.let { KiezStorageManager.copyMediaToInternalStorage(app, it, isVideo) ?: it }
         _shareDraft.value = ShareDraft(headline, subtext, link, localMedia, isVideo)
         _uiState.update { it.copy(showAddStoryDialog = true, currentScreen = AppScreen.HOME) }
+        refreshStoryQuota()
     }
 
     fun clearShareDraft() {
@@ -840,6 +842,34 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
 
     fun openAddStoryDialog() {
         _uiState.update { it.copy(showAddStoryDialog = true) }
+        refreshStoryQuota()
+    }
+
+    // 2026-11-14 (owner: warn BEFORE the server refuses): stories left today (null = unknown / admin)
+    private val _storyQuotaLeft = MutableStateFlow<Int?>(null)
+    val storyQuotaLeft: StateFlow<Int?> = _storyQuotaLeft
+    fun refreshStoryQuota() {
+        if (_uiState.value.isAdminAuthenticated) { _storyQuotaLeft.value = null; return }
+        viewModelScope.launch {
+            _storyQuotaLeft.value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                runCatching {
+                    val url = "https://mykiezberlin.com/api/stories?quota=1&device=" + android.net.Uri.encode(storyDeviceId())
+                    java.net.URL(url).openConnection().run { connectTimeout = 8000; readTimeout = 8000; getInputStream().bufferedReader().use { it.readText() } }
+                        .let { org.json.JSONObject(it).optInt("left", -1) }.takeIf { it >= 0 }
+                }.getOrNull()
+            }
+        }
+    }
+
+    /** 2026-11-14: the server refused the story – it comes back into the form (nothing typed is lost) with the reason. */
+    private fun giveStoryBack(story: KiezStory, feedback: String) {
+        _shareDraft.value = ShareDraft(story.headline, story.subtext, story.link, story.mediaUri, story.isVideo, story.kiez)
+        _uiState.update { state ->
+            val newAll = state.allStories.filterNot { it.id == story.id }
+            KiezStorageManager.saveStories(app, newAll)
+            state.copy(allStories = newAll, customStories = state.customStories.filterNot { it.id == story.id }, showAddStoryDialog = true, storySubmissionFeedback = feedback)
+        }
+        refreshStoryQuota()
     }
 
     fun closeAddStoryDialog() {
@@ -870,6 +900,10 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
             _uiState.update { it.copy(storySubmissionFeedback = "AUTHOR") }
             return
         }
+        if (!adminNow && _storyQuotaLeft.value == 0) {
+            _uiState.update { it.copy(storySubmissionFeedback = "LIMIT") }
+            return
+        }
         if (!adminNow) {
             val key = storyTextKey(headline, subtext)
             val already = _uiState.value.allStories.any { !it.id.startsWith("story_") && it.status != "rejected" && storyTextKey(it.headline, it.subtext) == key }
@@ -892,6 +926,11 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
         }
 
         if (hasProhibitedContent) {
+            // 2026-11-14 (owner): warn instead of rejecting – the form stays open with the text, the user can correct it
+            _uiState.update { it.copy(storySubmissionFeedback = "REJECTED") }
+            return
+        }
+        if (false) {
             val rejectedStory = KiezStory(
                 id = "story_${System.currentTimeMillis()}",
                 headline = headline,
@@ -951,7 +990,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                 allStories = updatedStories,
                 customStories = listOf(newStory) + it.customStories,
                 showAddStoryDialog = false,
-                storySubmissionFeedback = if (isAdminPost) "Veröffentlicht" else "Wird vor der Veröffentlichung geprüft"
+                storySubmissionFeedback = if (isAdminPost) "Veröffentlicht" else null // users: shown when the server answered
             )
         }
         viewModelScope.launch {
@@ -991,36 +1030,26 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
             val serverId = upload.id
             val tr = _uiState.value.language == com.example.data.model.AppLanguage.TURKISH
             if (upload.code == 429) {
-                // 2026-11-14: daily limit (3 per day) or too many in one hour – the local copy is removed again
-                _uiState.update { state ->
-                    val newAll = state.allStories.filterNot { it.id == newStory.id }
-                    KiezStorageManager.saveStories(app, newAll)
-                    state.copy(allStories = newAll, customStories = state.customStories.filterNot { it.id == newStory.id })
-                }
-                android.widget.Toast.makeText(app,
-                    if (upload.error == "daily_limit") (if (tr) "Günlük sınır doldu: günde 3 hikâye. Yarın devam!" else "Tageslimit erreicht: 3 Stories pro Tag. Morgen geht es weiter!")
-                    else (if (tr) "Çok fazla gönderi. Lütfen sonra dene." else "Zu viele Beiträge. Bitte später versuchen."),
-                    android.widget.Toast.LENGTH_LONG).show()
+                // 2026-11-14: daily limit (5 per day) or too many in one hour – the story goes back into the form
+                giveStoryBack(newStory, if (upload.error == "daily_limit") "LIMIT" else "TOO_MANY")
                 return@launch
             }
-            if (upload.status == "approved" && !isAdminPost) {
-                android.widget.Toast.makeText(app, if (tr) "Hikâyen şimdi yayında ✅" else "Deine Story ist jetzt online ✅", android.widget.Toast.LENGTH_LONG).show()
+            if (!isAdminPost && serverId != null) {
+                _uiState.update { it.copy(storySubmissionFeedback = if (upload.status == "approved") "Veröffentlicht" else "Wird vor der Veröffentlichung geprüft") }
+                refreshStoryQuota()
             }
             if (upload.code == 409 || upload.code == 400) {
-                // Server refused: same picture/text already uploaded (409) or name missing (400).
-                _uiState.update { state ->
-                    val newAll = state.allStories.filterNot { it.id == newStory.id }
-                    KiezStorageManager.saveStories(app, newAll)
-                    state.copy(
-                        allStories = newAll,
-                        customStories = state.customStories.filterNot { it.id == newStory.id },
-                        storySubmissionFeedback = if (upload.code == 409) "DUPLICATE" else "AUTHOR"
-                    )
-                }
+                // Server refused: same picture/text already uploaded (409) or name missing (400) – back into the form
+                giveStoryBack(newStory, if (upload.code == 409) "DUPLICATE" else "AUTHOR")
+                return@launch
+            }
+            if (upload.code == 413 || upload.code == 415) {
+                giveStoryBack(newStory, "FILE")
                 return@launch
             }
             if (serverId == null) {
-                android.widget.Toast.makeText(app, "Server-Upload fehlgeschlagen – Story nur auf diesem Handy", android.widget.Toast.LENGTH_LONG).show()
+                // no connection / server error: nothing is lost, the story goes back into the form
+                giveStoryBack(newStory, "NETWORK")
                 return@launch
             }
             if (isAdminPost) {
@@ -1043,7 +1072,6 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                 }
             }
         }
-        if (!isAdminPost) android.widget.Toast.makeText(app, "Wird vor der Veröffentlichung geprüft", android.widget.Toast.LENGTH_LONG).show()
     }
 
     /** 2026-11-14: random id of this phone (no personal data) – server: daily limit and trusted devices. */

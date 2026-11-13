@@ -93,7 +93,7 @@ async function applyUpdate(database, ad, f) {
 
 async function deleteMedia(env, database, row) {
   // pictures under /assets (seeded 2026-11-13) are not in R2 – only the row is removed
-  if (row.media_key && !row.media_key.startsWith("/") && env.BUCKET) await env.BUCKET.delete(row.media_key).catch(() => {});
+  if (row.media_key && !row.media_key.startsWith("/") && !row.media_key.startsWith("https://") && env.BUCKET) await env.BUCKET.delete(row.media_key).catch(() => {});
   await database.prepare(`DELETE FROM sponsor_media WHERE id = ?`).bind(row.id).run();
 }
 

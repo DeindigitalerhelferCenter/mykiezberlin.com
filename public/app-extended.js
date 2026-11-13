@@ -237,6 +237,19 @@ async function submitUserStory() {
     return;
   }
 
+  // 2026-11-14 (owner): warn before the server would refuse – the text stays in the form
+  if (file && file.size > (file.type.startsWith("video/") ? 50 : 5) * 1024 * 1024) {
+    mkStoryNotice(tr("Datei zu groß", "Dosya çok büyük"), tr("Bitte ein Bild bis 5 MB oder ein Video bis 50 MB wählen. Dein Text bleibt erhalten.", "Lütfen 5 MB'a kadar resim veya 50 MB'a kadar video seç. Yazdıkların duruyor."));
+    return;
+  }
+  try {
+    const q = await fetch("/api/stories?quota=1&device=" + encodeURIComponent(mkStoryDevice()), { cache: "no-store" }).then((r) => (r.ok ? r.json() : null));
+    if (q && q.left === 0) {
+      mkStoryNotice(tr("Tageslimit erreicht", "Günlük sınır doldu"), tr("Du hast heute schon " + q.limit + " Stories geteilt. Dein Text bleibt hier – morgen kannst du ihn senden.", "Bugün zaten " + q.limit + " hikâye paylaştın. Yazdıkların burada duruyor – yarın gönderebilirsin."));
+      return;
+    }
+  } catch (e) {}
+
   const form = new FormData();
   form.append("headline", headline);
   form.append("subtext", subtext);
@@ -261,7 +274,7 @@ async function submitUserStory() {
       if (answer.error === "daily_limit") {
         mkStoryNotice(
           tr("Tageslimit erreicht", "Günlük sınır doldu"),
-          tr("Du kannst " + (answer.limit || 3) + " Stories pro Tag teilen. Morgen geht es weiter!", "Günde " + (answer.limit || 3) + " hikâye paylaşabilirsin. Yarın devam!")
+          tr("Du kannst " + (answer.limit || 5) + " Stories pro Tag teilen. Dein Text bleibt hier – morgen kannst du ihn senden.", "Günde " + (answer.limit || 5) + " hikâye paylaşabilirsin. Yazdıkların burada duruyor – yarın gönderebilirsin.")
         );
       } else showToast(tr("Zu viele Beiträge. Bitte versuche es später.", "Çok fazla gönderi. Lütfen sonra deneyin."));
       return;
@@ -279,10 +292,10 @@ async function submitUserStory() {
       );
       return;
     } else if (res.status === 413 || res.status === 415) {
-      showToast(tr("Bitte ein Bild bis 5 MB oder ein Video bis 50 MB wählen.", "Lütfen 5 MB'a kadar görsel veya 50 MB'a kadar video seçin."));
+      mkStoryNotice(tr("Datei passt nicht", "Dosya uygun değil"), tr("Bitte ein Bild (JPG, PNG, WebP) bis 5 MB oder ein Video (MP4, WebM) bis 50 MB wählen. Dein Text bleibt erhalten.", "Lütfen 5 MB'a kadar resim (JPG, PNG, WebP) veya 50 MB'a kadar video (MP4, WebM) seç. Yazdıkların duruyor."));
       return;
     } else {
-      showToast(tr("Veröffentlichen ist gerade nicht möglich.", "Şu anda yayınlanamıyor."));
+      mkStoryNotice(tr("Senden gerade nicht möglich", "Şu an gönderilemiyor"), tr("Bitte versuche es gleich noch einmal. Dein Text bleibt erhalten.", "Lütfen birazdan tekrar dene. Yazdıkların duruyor."));
       return;
     }
   } catch (e) {

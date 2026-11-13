@@ -214,7 +214,7 @@ object AdsRepository {
                 val arr = JSONObject(resp.body?.string() ?: "{}").optJSONArray("media") ?: JSONArray()
                 (0 until minOf(arr.length(), 12)).map { i ->
                     val m = arr.getJSONObject(i)
-                    Pair("https://mykiezberlin.com" + m.optString("url"), m.optString("media_type") == "video")
+                    Pair(m.optString("url").let { if (it.startsWith("https://")) it else "https://mykiezberlin.com$it" }, m.optString("media_type") == "video") // 2026-11-14: instagram links stay as they are
                 }
             }
         }

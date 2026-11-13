@@ -109,7 +109,8 @@ fun SponsorInfoHost(language: AppLanguage) {
             if (media.isNotEmpty()) Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 media.forEach { (url, isVideo) ->
                     Box(Modifier.size(130.dp).clip(RoundedCornerShape(12.dp)).background(Color.Black).clickable { open(url) }, contentAlignment = Alignment.Center) {
-                        if (isVideo) Text("▶", fontSize = 34.sp, color = Color.White)
+                        if (url.contains("instagram.com/")) Text("📷 Instagram" + if (url.contains("/reel/")) " ▶" else "", fontSize = 13.sp, color = Color.White, fontWeight = FontWeight.Bold) // 2026-11-14
+                        else if (isVideo) Text("▶", fontSize = 34.sp, color = Color.White)
                         else AsyncImage(model = url, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
                     }
                 }

@@ -252,6 +252,46 @@ export async function seedSponsors(database) {
   await applyNewSponsorsFix(database);
   await applyAdnanBekarFix(database);
   await applyAllianzFix(database);
+  await applyAquaAdnanFix(database);
+}
+
+// 2026-11-14 (owner): Aqua Marinn – real logo, new banner (logo + 2 pictures), 2 pictures + 4 Instagram posts/reels in the
+// sponsor's own gallery (media_type 'instagram', media_key = the post link). Adnan Bekar – his real profile photo as logo.
+// New file names because of the asset cache. Runs once.
+const AQUA_MEDIA = [
+  ["g-aqua-1", "/assets/sponsors/gallery/aqua-marinn-1.webp", "image", "Spor salonu – kendine iyilik yap"],
+  ["g-aqua-2", "/assets/sponsors/gallery/aqua-marinn-2.webp", "image", "Günaydın – Aqua Park"],
+  ["ig-aqua-1", "https://www.instagram.com/p/DeydZG0ovNJ/", "instagram", "Instagram"],
+  ["ig-aqua-2", "https://www.instagram.com/p/DeRV9HSoA_7/", "instagram", "Instagram"],
+  ["ig-aqua-3", "https://www.instagram.com/reel/Dc8fTVgiJwT/", "instagram", "Instagram Reel"],
+  ["ig-aqua-4", "https://www.instagram.com/reel/DeMEm27o9Ba/", "instagram", "Instagram Reel"],
+];
+async function applyAquaAdnanFix(database) {
+  const id = "fix:2026-11-14-aqua-adnan";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  await ensureSponsorTables(database);
+  const now = Date.now();
+  const extraOf = async (adId) => {
+    const row = await database.prepare(`SELECT extra FROM ads WHERE id = ?`).bind(adId).first();
+    if (!row) return null;
+    try { return JSON.parse(row.extra || "{}") || {}; } catch (e) { return {}; }
+  };
+  const aqua = await extraOf("aqua-marinn");
+  const adnan = await extraOf("troja-consulting");
+  const steps = [];
+  if (aqua) {
+    aqua.logo = "/assets/sponsors/aqua-marinn-logo-2.webp";
+    steps.push(database.prepare(`UPDATE ads SET image = ?, extra = ?, updated_at = ? WHERE id = 'aqua-marinn'`).bind("/assets/sponsors/aqua-marinn-2.webp", JSON.stringify(aqua), now));
+    AQUA_MEDIA.forEach(([mid, key, type, caption], i) => steps.push(
+      database.prepare(`INSERT OR IGNORE INTO sponsor_media (id, ad_id, media_key, media_type, caption, status, bytes, created_at, by_admin) VALUES (?, 'aqua-marinn', ?, ?, ?, 'live', 0, ?, 1)`)
+        .bind(mid, key, type, caption, now - i)));
+  }
+  if (adnan) {
+    adnan.logo = "/assets/sponsors/troja-consulting-logo-3.webp";
+    steps.push(database.prepare(`UPDATE ads SET extra = ?, updated_at = ? WHERE id = 'troja-consulting'`).bind(JSON.stringify(adnan), now));
+  }
+  steps.push(database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now));
+  await database.batch(steps);
 }
 
 // 2026-11-14 (owner): Allianz has no KIEZ10 coupon – coupon and "KIEZ10" in the headline removed; "CE" replaced by the

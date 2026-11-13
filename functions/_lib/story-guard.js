@@ -5,7 +5,7 @@
 //     the admin, none rejected) go online at once when the AI check is fine; everybody else waits for the admin.
 import { storyMediaList } from "./util.js";
 
-export const USER_DAILY_LIMIT = 3; // stories per user and 24 hours (admin not counted)
+export const USER_DAILY_LIMIT = 5; // stories per user and 24 hours (admin not counted)
 export const TRUST_APPROVED = 3; // approved stories needed before a device publishes directly
 const PENDING_MAX_MS = 14 * 24 * 3600000; // waiting longer than 14 days -> rejected, media removed
 const AI_MODELS = ["@cf/meta/llama-4-scout-17b-16e-instruct", "@cf/mistralai/mistral-small-3.1-24b-instruct"];
@@ -21,6 +21,16 @@ export async function ensureGuard(database) {
 export function cleanDevice(value) {
   const v = String(value ?? "").trim();
   return /^[A-Za-z0-9-]{16,64}$/.test(v) ? v : "";
+}
+
+/** Stories of this user in the last 24 hours (for the "you have N left today" hint before sending). */
+export async function dailyUsed(database, ip, device) {
+  const since = Date.now() - 24 * 3600000;
+  const row = await database
+    .prepare(`SELECT COUNT(*) AS n FROM stories WHERE by_admin = 0 AND created_at > ? AND (ip = ? OR (? != '' AND device = ?))`)
+    .bind(since, ip, device, device)
+    .first();
+  return row?.n ?? 0;
 }
 
 export async function dailyLimited(database, ip, device) {

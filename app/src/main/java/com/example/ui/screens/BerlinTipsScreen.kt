@@ -266,7 +266,8 @@ fun BerlinTipsScreen(
                     tip = tip,
                     language = language,
                     onOpenMap = {
-                        MapHelper.openGoogleMaps(context, "${tip.name} Berlin", tip.lat, tip.lng)
+                        // 2026-11-14 (owner): the real place page (name + address), not only a pin on the coordinates
+                        MapHelper.openGoogleMaps(context, "${tip.name}, ${tip.address.ifBlank { "Berlin" }}")
                     },
                     onOpenDirections = {
                         MapHelper.openDirections(context, "${tip.name} Berlin", tip.lat, tip.lng)
@@ -284,7 +285,7 @@ fun TipCardItem(
     onOpenMap: () -> Unit,
     onOpenDirections: () -> Unit
 ) {
-    // 2026-11-14 (owner): tapping the card opens a detail window (before it opened Google Maps directly)
+    // 2026-11-14 (owner): tapping the card opens the real Google Maps place page; "ℹ️ Details" opens our window
     var showDetail by remember { mutableStateOf(false) }
     if (showDetail) {
         com.example.ui.components.TipDetailDialog(tip, language, onMap = { showDetail = false; onOpenMap() }, onRoute = { showDetail = false; onOpenDirections() }, onDismiss = { showDetail = false })
@@ -293,11 +294,21 @@ fun TipCardItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp)
-            .clickable { showDetail = true },
+            .clickable { onOpenMap() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
+        Box {
+            com.example.ui.components.TipPhoto(tip, Modifier.fillMaxWidth())
+            if (com.example.ui.components.tipPhotoUrl(tip.id).isNotBlank()) {
+                Text(
+                    "ℹ️ " + if (language == AppLanguage.TURKISH) "Detaylar" else "Details", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White,
+                    modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).clip(RoundedCornerShape(50)).background(Color.Black.copy(alpha = 0.55f))
+                        .clickable { showDetail = true }.padding(horizontal = 10.dp, vertical = 4.dp)
+                )
+            }
+        }
         Column(modifier = Modifier.padding(14.dp)) {
             // Header Row: Kiez Badge + Free Badge
             Row(

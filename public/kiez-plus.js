@@ -62,6 +62,45 @@
   // ---------- 2. Berlin-Tipps detail window ----------
   // 2026-11-14: categories are English keys – shown in German / Turkish
   var TIP_CAT = { culture: ["Kultur", "Kültür"], view: ["Aussicht", "Manzara"], park: ["Park & Natur", "Park & Doğa"], kids: ["Für Kinder", "Çocuklar için"], museum: ["Museum", "Müze"] };
+  // 2026-11-14 (owner): real photos of every tip (Wikipedia / Wikimedia Commons, checked one by one, credit shown)
+  // and a tap on the card opens the real Google Maps place page (name + address -> photos, reviews, hours)
+  var TIP_PHOTO = {
+    "botanischer-garten": "Foto: Axel Mauruszat · Attribution · Wikimedia Commons",
+    "brandenburger-tor": "Foto: Thomas Wolf, www.foto-tw.de · CC BY-SA 3.0 · Wikimedia Commons",
+    "britzer-garten": "Foto: Denis Apel · CC BY-SA 4.0 · Wikimedia Commons",
+    "checkpoint-charlie": "Foto: Christian David · CC BY-SA 4.0 · Wikimedia Commons",
+    "east-side-gallery": "Foto: Joachim F. Thurn · CC BY-SA 3.0 de · Wikimedia Commons",
+    "fernsehturm": "Foto: Diego Delso · CC BY-SA 4.0 · Wikimedia Commons",
+    "gaerten-der-welt": "Foto: A.Savin · CC BY-SA 3.0 · Wikimedia Commons",
+    "gendarmenmarkt": "Foto: Ansgar Koreng · CC BY 3.0 de · Wikimedia Commons",
+    "gleisdreieck": "Foto: A.Savin · FAL · Wikimedia Commons",
+    "greenwichpromenade": "Foto: Fridolin freudenfett · CC BY-SA 4.0 · Wikimedia Commons",
+    "holocaust-mahnmal": "Foto: Alexander Blum · CC BY-SA 4.0 · Wikimedia Commons",
+    "humboldthain": "Foto: Angela Monika Arnold · CC BY-SA 2.0 de · Wikimedia Commons",
+    "koepenick": "Foto: A.Savin · CC BY-SA 3.0 · Wikimedia Commons",
+    "koernerpark": "Foto: Assenmacher · CC BY-SA 3.0 · Wikimedia Commons",
+    "mauer-gedenkstaette": "Foto: HerrAdams · CC BY-SA 4.0 · Wikimedia Commons",
+    "mauerpark": "Foto: Traktorminze · CC BY 3.0 · Wikimedia Commons",
+    "molecule-man": "Foto: Avda · CC BY-SA 3.0 · Wikimedia Commons",
+    "museumsinsel": "Foto: Thomas Wolf, www.foto-tw.de · CC BY-SA 3.0 · Wikimedia Commons",
+    "naturkundemuseum": "Foto: Dosseman · CC BY-SA 4.0 · Wikimedia Commons",
+    "rathaus-schoeneberg": "Foto: Dirk Ingo Franke · CC BY 3.0 · Wikimedia Commons",
+    "reichstag": "Foto: Jörg Braukmann · CC BY-SA 4.0 · Wikimedia Commons",
+    "schloss-charlottenburg": "Foto: Times · CC BY-SA 3.0 · Wikimedia Commons",
+    "schoenhausen": "Foto: A.Savin · CC BY-SA 3.0 · Wikimedia Commons",
+    "stasimuseum": "Foto: Gunnar Klack · CC BY-SA 4.0 · Wikimedia Commons",
+    "technikmuseum": "Foto: Sir James · CC BY-SA 2.0 de · Wikimedia Commons",
+    "tempelhofer-feld": "Foto: Matti Blume · CC BY-SA 4.0 · Wikimedia Commons",
+    "tiergarten-park": "Foto: beedubz · CC BY-SA 3.0 · Wikimedia Commons",
+    "tierpark": "Foto: Dreizung · CC BY 3.0 · Wikimedia Commons",
+    "treptower-park": "Foto: Andreas Steinhoff · Attribution · Wikimedia Commons",
+    "viktoriapark": "Foto: A.Savin · FAL · Wikimedia Commons",
+    "volkspark-friedrichshain": "Foto: A.Savin · FAL · Wikimedia Commons",
+    "zitadelle-spandau": "Foto: Carsten Steger · CC BY-SA 4.0 · Wikimedia Commons",
+    "zoo-berlin": "Foto: Jean-Pierre Dalbéra from Paris, France · CC BY 2.0 · Wikimedia Commons"
+  };
+  function tipPhoto(t) { return TIP_PHOTO[t.id] ? "/assets/tips/" + t.id + ".webp" : ""; }
+  function tipMaps(t) { return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(t.name + ", " + (t.address || "Berlin")); }
   window.mkOpenTip = function (id) {
     var t = (typeof BERLIN_TIPS === "object" ? BERLIN_TIPS : []).find(function (x) { return x.id === id; });
     if (!t || typeof openDetailModal !== "function") return;
@@ -73,7 +112,9 @@
     // same map embed as the sponsor contact sheet (allowed by the CSP: maps.google.com)
     var map = '<iframe title="Karte" loading="lazy" referrerpolicy="no-referrer-when-downgrade" style="display:block;width:100%;height:220px;border:0;border-radius:12px;margin-top:12px;background:#e5e3df" src="https://maps.google.com/maps?q=' +
       encodeURIComponent(t.lat && t.lng ? t.lat + "," + t.lng : (t.address || t.name)) + '&z=16&output=embed"></iframe>';
-    openDetailModal(
+    var photo = tipPhoto(t)
+      ? '<figure style="margin:6px 0 0"><img src="' + tipPhoto(t) + '" alt="' + E(t.name) + '" style="display:block;width:100%;max-height:300px;object-fit:cover;border-radius:12px"><figcaption style="font-size:10.5px;opacity:.65;margin-top:3px">' + E(TIP_PHOTO[t.id]) + "</figcaption></figure>" : "";
+    openDetailModal(photo +
       '<h3 class="modal-title" style="padding-right:36px;margin-top:6px">' + E(t.name) + "</h3>" +
       '<div class="card-subtitle" style="margin-top:4px">📍 ' + E(t.address || "") + (kiez ? " · " + E(kiez.name) : "") + "</div>" +
       '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">' + (t.isFree ? '<span class="card-tag">' + E(T("Gratis", "Ücretsiz")) + "</span>" : "") +
@@ -94,10 +135,19 @@
         card.style.cursor = "pointer";
         card.setAttribute("role", "button");
         card.setAttribute("tabindex", "0");
-        card.addEventListener("click", function (ev) { if (ev.target.closest("a")) return; window.mkOpenTip(t.id); });
-        card.addEventListener("keydown", function (ev) { if (ev.key === "Enter") window.mkOpenTip(t.id); });
+        // 2026-11-14 (owner): card = real Google Maps place page; "Details" = our window
+        card.addEventListener("click", function (ev) {
+          if (ev.target.closest("a")) return;
+          if (ev.target.closest(".mk-tip-details")) { window.mkOpenTip(t.id); return; }
+          window.open(tipMaps(t), "_blank", "noopener");
+        });
+        card.addEventListener("keydown", function (ev) { if (ev.key === "Enter") window.open(tipMaps(t), "_blank", "noopener"); });
         var actions = card.querySelector(".ext-actions");
-        if (actions) actions.insertAdjacentHTML("afterbegin", '<button type="button" class="chip-btn active"><i class="bi bi-info-circle-fill"></i> ' + E(T("Details", "Detaylar")) + "</button>");
+        if (actions) actions.insertAdjacentHTML("afterbegin", '<button type="button" class="chip-btn active mk-tip-details"><i class="bi bi-info-circle-fill"></i> ' + E(T("Details", "Detaylar")) + "</button>");
+        if (tipPhoto(t) && !card.querySelector(".mk-tip-photo")) {
+          card.insertAdjacentHTML("afterbegin", '<div class="mk-tip-photo" style="position:relative;margin:-14px -14px 10px;overflow:hidden;border-radius:16px 16px 0 0"><img src="' + tipPhoto(t) + '" alt="' + E(t.name) + '" loading="lazy" style="display:block;width:100%;aspect-ratio:16/9;object-fit:cover">' +
+            '<span style="position:absolute;right:6px;bottom:4px;font-size:9.5px;color:#fff;background:rgba(0,0,0,.45);padding:1px 6px;border-radius:6px;max-width:90%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + E(TIP_PHOTO[t.id]) + "</span></div>");
+        }
       });
     };
   }

@@ -278,6 +278,60 @@ fun TelefonbuchScreen(language: AppLanguage, onBack: () -> Unit) {
     }
 }
 
+// ---------------- Berlin-Tipps photos ----------------
+// 2026-11-14 (owner): real photos of every tip (Wikipedia / Wikimedia Commons, checked one by one) – credit is shown
+val TIP_PHOTO_CREDIT = mapOf(
+    "botanischer-garten" to "Foto: Axel Mauruszat · Attribution · Wikimedia Commons",
+    "brandenburger-tor" to "Foto: Thomas Wolf, www.foto-tw.de · CC BY-SA 3.0 · Wikimedia Commons",
+    "britzer-garten" to "Foto: Denis Apel · CC BY-SA 4.0 · Wikimedia Commons",
+    "checkpoint-charlie" to "Foto: Christian David · CC BY-SA 4.0 · Wikimedia Commons",
+    "east-side-gallery" to "Foto: Joachim F. Thurn · CC BY-SA 3.0 de · Wikimedia Commons",
+    "fernsehturm" to "Foto: Diego Delso · CC BY-SA 4.0 · Wikimedia Commons",
+    "gaerten-der-welt" to "Foto: A.Savin · CC BY-SA 3.0 · Wikimedia Commons",
+    "gendarmenmarkt" to "Foto: Ansgar Koreng · CC BY 3.0 de · Wikimedia Commons",
+    "gleisdreieck" to "Foto: A.Savin · FAL · Wikimedia Commons",
+    "greenwichpromenade" to "Foto: Fridolin freudenfett · CC BY-SA 4.0 · Wikimedia Commons",
+    "holocaust-mahnmal" to "Foto: Alexander Blum · CC BY-SA 4.0 · Wikimedia Commons",
+    "humboldthain" to "Foto: Angela Monika Arnold · CC BY-SA 2.0 de · Wikimedia Commons",
+    "koepenick" to "Foto: A.Savin · CC BY-SA 3.0 · Wikimedia Commons",
+    "koernerpark" to "Foto: Assenmacher · CC BY-SA 3.0 · Wikimedia Commons",
+    "mauer-gedenkstaette" to "Foto: HerrAdams · CC BY-SA 4.0 · Wikimedia Commons",
+    "mauerpark" to "Foto: Traktorminze · CC BY 3.0 · Wikimedia Commons",
+    "molecule-man" to "Foto: Avda · CC BY-SA 3.0 · Wikimedia Commons",
+    "museumsinsel" to "Foto: Thomas Wolf, www.foto-tw.de · CC BY-SA 3.0 · Wikimedia Commons",
+    "naturkundemuseum" to "Foto: Dosseman · CC BY-SA 4.0 · Wikimedia Commons",
+    "rathaus-schoeneberg" to "Foto: Dirk Ingo Franke · CC BY 3.0 · Wikimedia Commons",
+    "reichstag" to "Foto: Jörg Braukmann · CC BY-SA 4.0 · Wikimedia Commons",
+    "schloss-charlottenburg" to "Foto: Times · CC BY-SA 3.0 · Wikimedia Commons",
+    "schoenhausen" to "Foto: A.Savin · CC BY-SA 3.0 · Wikimedia Commons",
+    "stasimuseum" to "Foto: Gunnar Klack · CC BY-SA 4.0 · Wikimedia Commons",
+    "technikmuseum" to "Foto: Sir James · CC BY-SA 2.0 de · Wikimedia Commons",
+    "tempelhofer-feld" to "Foto: Matti Blume · CC BY-SA 4.0 · Wikimedia Commons",
+    "tiergarten-park" to "Foto: beedubz · CC BY-SA 3.0 · Wikimedia Commons",
+    "tierpark" to "Foto: Dreizung · CC BY 3.0 · Wikimedia Commons",
+    "treptower-park" to "Foto: Andreas Steinhoff · Attribution · Wikimedia Commons",
+    "viktoriapark" to "Foto: A.Savin · FAL · Wikimedia Commons",
+    "volkspark-friedrichshain" to "Foto: A.Savin · FAL · Wikimedia Commons",
+    "zitadelle-spandau" to "Foto: Carsten Steger · CC BY-SA 4.0 · Wikimedia Commons",
+    "zoo-berlin" to "Foto: Jean-Pierre Dalbéra from Paris, France · CC BY 2.0 · Wikimedia Commons"
+)
+fun tipPhotoUrl(id: String) = if (TIP_PHOTO_CREDIT.containsKey(id)) "https://mykiezberlin.com/assets/tips/$id.webp" else ""
+/** Real Google Maps place page (name + address): photos, reviews, opening hours. */
+fun tipMapsUrl(tip: BerlinTip) = "https://www.google.com/maps/search/?api=1&query=" + Uri.encode(tip.name + ", " + tip.address.ifBlank { "Berlin" })
+
+@Composable
+fun TipPhoto(tip: BerlinTip, modifier: Modifier = Modifier) {
+    val url = tipPhotoUrl(tip.id)
+    if (url.isBlank()) return
+    Box(modifier) {
+        AsyncImage(model = url, contentDescription = tip.name, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f))
+        Text(
+            TIP_PHOTO_CREDIT[tip.id].orEmpty(), fontSize = 8.5.sp, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.align(Alignment.BottomEnd).padding(4.dp).clip(RoundedCornerShape(6.dp)).background(Color.Black.copy(alpha = 0.45f)).padding(horizontal = 5.dp, vertical = 1.dp)
+        )
+    }
+}
+
 // ---------------- Berlin-Tipps detail ----------------
 
 // 2026-11-14: the tip categories are stored as English keys – shown in the user's language
@@ -298,6 +352,7 @@ fun TipDetailDialog(tip: BerlinTip, language: AppLanguage, onMap: () -> Unit, on
         title = { Text(tip.name, fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                TipPhoto(tip, Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)))
                 Text("📍 " + tip.address, fontSize = 12.5.sp, color = PlusRed)
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(tip.kiezId.replace("-", " ").replaceFirstChar { it.uppercase() }, fontSize = 11.sp, modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(PlusRed.copy(alpha = 0.1f)).padding(horizontal = 6.dp, vertical = 2.dp))

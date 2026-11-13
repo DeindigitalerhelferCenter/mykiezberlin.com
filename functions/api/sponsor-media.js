@@ -21,7 +21,7 @@ export async function onRequestGet({ request, env }) {
     .prepare(`SELECT id, media_key, media_type, caption, created_at FROM sponsor_media WHERE ad_id = ? AND status = 'live' ORDER BY created_at DESC LIMIT 30`)
     .bind(adId)
     .all();
-  return json({ media: results.map((m) => ({ ...m, url: m.media_key.startsWith("/") ? m.media_key : `/media/${m.media_key}` })) }, 200, { "cache-control": "public, max-age=60" });
+  return json({ media: results.map((m) => ({ ...m, url: m.media_key.startsWith("/") || m.media_key.startsWith("https://") ? m.media_key : `/media/${m.media_key}` /* 2026-11-14: instagram posts */ })) }, 200, { "cache-control": "public, max-age=60" });
 }
 
 export async function onRequestPost({ request, env }) {
