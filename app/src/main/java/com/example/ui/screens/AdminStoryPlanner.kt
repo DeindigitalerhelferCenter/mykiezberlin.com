@@ -64,6 +64,10 @@ private class PlanRow(val key: Int, val uri: Uri?, val isVideo: Boolean) {
     var kiez by mutableStateOf("Ganz Berlin")
     var kind by mutableStateOf("news")
     var link by mutableStateOf("")
+    // 2026-11-14: offer of the story (shown in "Özel Kiez İndirimleri" / Kuponlar), same as the web planner
+    var dealWhat by mutableStateOf("")
+    var dealPrice by mutableStateOf("")
+    var dealOld by mutableStateOf("")
     var start by mutableLongStateOf(0L)
     var end by mutableLongStateOf(0L)
     var status by mutableStateOf("") // "" | busy | ok | error
@@ -130,6 +134,11 @@ private fun uploadPlanned(context: Context, token: String, row: PlanRow): String
         .addFormDataPart("author", "My Kiez Berlin")
         .addFormDataPart("publishAt", row.start.toString())
         .addFormDataPart("endAt", row.end.toString())
+    if (row.dealWhat.isNotBlank() || row.dealPrice.isNotBlank()) {
+        builder.addFormDataPart("deal_what", row.dealWhat.trim())
+            .addFormDataPart("deal_price", row.dealPrice.trim())
+            .addFormDataPart("deal_old", row.dealOld.trim())
+    }
     if (row.uri != null) {
         val media = readMedia(context, row.uri, row.isVideo) ?: return "Datei nicht lesbar"
         if (row.isVideo && media.first.size > 50_000_000) return "Video größer als 50 MB"
@@ -362,6 +371,11 @@ private fun PlanRowCard(index: Int, row: PlanRow, onAi: () -> Unit, onRemove: ()
                 PlannerField(row.kind, { row.kind = it.take(30) }, "Kategori", Modifier.weight(1f))
             }
             PlannerField(row.link, { row.link = it.take(500) }, "Web linki (isteğe bağlı)")
+            PlannerField(row.dealWhat, { row.dealWhat = it.take(80) }, "🏷️ Angebot · İndirim (isteğe bağlı)")
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                PlannerField(row.dealPrice, { row.dealPrice = it.take(30) }, "Preis · Fiyat", Modifier.weight(1f))
+                PlannerField(row.dealOld, { row.dealOld = it.take(30) }, "Alter Preis · Eski", Modifier.weight(1f))
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 OutlinedButton(onClick = { pickDateTime(context, row.start) { row.start = it; if (row.end <= it) row.end = it + 24 * HOUR } }, modifier = Modifier.weight(1f), contentPadding = PaddingValues(4.dp)) {
                     Text("▶️ " + fmt(row.start), color = Color.White, fontSize = 11.sp)
