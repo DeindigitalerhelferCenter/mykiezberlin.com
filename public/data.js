@@ -10,28 +10,29 @@ const APK_DOWNLOAD_URL = "https://pub-2416186352064f76ad404097041588ba.r2.dev/My
 const BERLIN_LIVE_ALERTS = [];
 
 // Berlin Kieze Database (24+ Bezirke & All Districts)
+// 2026-11-14 (owner): real photos (Wikimedia Commons, credit shown by photo-guard.js) – no stock photos
 const BERLIN_KIEZE = [
-  { id: "mitte", name: "Mitte", subtitle: "Regierung, Kunst & Alexanderplatz", population: "ca. 385.000", image: "assets/images/kiez_mitte.jpg", vibe: "Urban & Lebendig" },
-  { id: "kreuzberg", name: "Kreuzberg", subtitle: "Kult-Kiez, Paul-Lincke-Ufer & Streetfood", population: "ca. 155.000", image: "assets/images/kiez_kreuzberg.jpg", vibe: "Bunt & Kreativ" },
-  { id: "prenzlauerberg", name: "Prenzlauer Berg", subtitle: "Kollwitzplatz, Altbau & Cafékultur", population: "ca. 165.000", image: "assets/images/kiez_prenzlauerberg.jpg", vibe: "Gemütlich & Familiär" },
-  { id: "friedrichshain", name: "Friedrichshain", subtitle: "Boxhagener Platz, RAW & Spree", population: "ca. 140.000", image: "assets/images/kiez_friedrichshain.jpg", vibe: "Szene & Ausgehen" },
-  { id: "neukoelln", name: "Neukölln", subtitle: "Weserstraße, Tempelhofer Feld & Vielfalt", population: "ca. 330.000", image: "assets/images/kiez_neukoelln.jpg", vibe: "Dynamisch & Multikulti" },
-  { id: "charlottenburg", name: "Charlottenburg", subtitle: "Ku'damm, Schloss & Savignyplatz", population: "ca. 130.000", image: "assets/images/kiez_charlottenburg.jpg", vibe: "Elegant & Klassisch" },
-  { id: "wilmersdorf", name: "Wilmersdorf", subtitle: "Preußenpark, Fasanenplatz & Ruhe", population: "ca. 100.000", image: "assets/images/kiez_wilmersdorf.jpg", vibe: "Gediegen & Grün" },
-  { id: "schoeneberg", name: "Schöneberg", subtitle: "Winterfeldtplatz, Regenbogenkiez & Akazienkiez", population: "ca. 125.000", image: "assets/images/kiez_schoeneberg.jpg", vibe: "Offen & Traditionsreich" },
-  { id: "tempelhof", name: "Tempelhof", subtitle: "Freiheit Tempelhofer Feld & Hafen", population: "ca. 65.000", image: "assets/images/kiez_tempelhof.jpg", vibe: "Weite & Erholung" },
-  { id: "wedding", name: "Wedding", subtitle: "Pankeufer, Sprengelkiez & Authentizität", population: "ca. 85.000", image: "assets/images/kiez_wedding.jpg", vibe: "Echt & Unverfälscht" },
-  { id: "moabit", name: "Moabit", subtitle: "Arminiusmarkthalle, Spreebogen & Insel", population: "ca. 80.000", image: "assets/images/kiez_moabit.jpg", vibe: "Kiezig & Zentral" },
-  { id: "tiergarten", name: "Tiergarten", subtitle: "Großer Tiergarten, Philharmonie & Zoo", population: "ca. 15.000", image: "assets/images/kiez_tiergarten.jpg", vibe: "Grüne Lunge" },
-  { id: "tegel", name: "Tegel", subtitle: "Tegeler See, Greenwichpromenade & Wald", population: "ca. 37.000", image: "assets/images/hero_berlin.jpg", vibe: "Am Wasser" },
-  { id: "spandau", name: "Spandau", subtitle: "Zitadelle, Havel & Altstadt Spandau", population: "ca. 245.000", image: "assets/images/hero_berlin.jpg", vibe: "Historisch & Wasser" },
-  { id: "reinickendorf", name: "Reinickendorf", subtitle: "Schäfersee, Humboldt-Bibliothek & Kieze", population: "ca. 265.000", image: "assets/images/hero_berlin.jpg", vibe: "Wohnlich & Grün" },
-  { id: "pankow", name: "Pankow", subtitle: "Schloss Schönhausen, Bürgerpark & Florakiez", population: "ca. 410.000", image: "assets/images/hero_berlin.jpg", vibe: "Grün & Kulturell" },
-  { id: "treptow", name: "Treptow", subtitle: "Treptower Park, Insel der Jugend & Spree", population: "ca. 280.000", image: "assets/images/hero_berlin.jpg", vibe: "Entspannt am Wasser" },
-  { id: "koepenick", name: "Köpenick", subtitle: "Müggelsee, Schloss & Hauptmann", population: "ca. 68.000", image: "assets/images/hero_berlin.jpg", vibe: "Maritime Idylle" },
-  { id: "steglitz", name: "Steglitz", subtitle: "Schloßstraße, Botanischer Garten & Stadtpark", population: "ca. 75.000", image: "assets/images/hero_berlin.jpg", vibe: "Einkaufen & Natur" },
-  { id: "zehlendorf", name: "Zehlendorf", subtitle: "Wannsee, Krumme Lanke & Villen", population: "ca. 60.000", image: "assets/images/hero_berlin.jpg", vibe: "Badeseen & Wald" },
-  { id: "marzahn", name: "Marzahn", subtitle: "Gärten der Welt, Seilbahn & Wuhletal", population: "ca. 110.000", image: "assets/images/hero_berlin.jpg", vibe: "Weite & Parks" }
+  { id: "mitte", name: "Mitte", subtitle: "Regierung, Kunst & Alexanderplatz", population: "ca. 385.000", image: "/assets/kieze/mitte-1.webp", vibe: "Urban & Lebendig" },
+  { id: "kreuzberg", name: "Kreuzberg", subtitle: "Kult-Kiez, Paul-Lincke-Ufer & Streetfood", population: "ca. 155.000", image: "/assets/kieze/kreuzberg-1.webp", vibe: "Bunt & Kreativ" },
+  { id: "prenzlauerberg", name: "Prenzlauer Berg", subtitle: "Kollwitzplatz, Altbau & Cafékultur", population: "ca. 165.000", image: "/assets/kieze/prenzlauer-berg-1.webp", vibe: "Gemütlich & Familiär" },
+  { id: "friedrichshain", name: "Friedrichshain", subtitle: "Boxhagener Platz, RAW & Spree", population: "ca. 140.000", image: "/assets/kieze/friedrichshain-1.webp", vibe: "Szene & Ausgehen" },
+  { id: "neukoelln", name: "Neukölln", subtitle: "Weserstraße, Tempelhofer Feld & Vielfalt", population: "ca. 330.000", image: "/assets/kieze/neukoelln-1.webp", vibe: "Dynamisch & Multikulti" },
+  { id: "charlottenburg", name: "Charlottenburg", subtitle: "Ku'damm, Schloss & Savignyplatz", population: "ca. 130.000", image: "/assets/kieze/charlottenburg-1.webp", vibe: "Elegant & Klassisch" },
+  { id: "wilmersdorf", name: "Wilmersdorf", subtitle: "Preußenpark, Fasanenplatz & Ruhe", population: "ca. 100.000", image: "/assets/kieze/wilmersdorf-1.webp", vibe: "Gediegen & Grün" },
+  { id: "schoeneberg", name: "Schöneberg", subtitle: "Winterfeldtplatz, Regenbogenkiez & Akazienkiez", population: "ca. 125.000", image: "/assets/kieze/schoeneberg-1.webp", vibe: "Offen & Traditionsreich" },
+  { id: "tempelhof", name: "Tempelhof", subtitle: "Freiheit Tempelhofer Feld & Hafen", population: "ca. 65.000", image: "/assets/kieze/tempelhof-1.webp", vibe: "Weite & Erholung" },
+  { id: "wedding", name: "Wedding", subtitle: "Pankeufer, Sprengelkiez & Authentizität", population: "ca. 85.000", image: "/assets/kieze/wedding-1.webp", vibe: "Echt & Unverfälscht" },
+  { id: "moabit", name: "Moabit", subtitle: "Arminiusmarkthalle, Spreebogen & Insel", population: "ca. 80.000", image: "/assets/kieze/moabit-1.webp", vibe: "Kiezig & Zentral" },
+  { id: "tiergarten", name: "Tiergarten", subtitle: "Großer Tiergarten, Philharmonie & Zoo", population: "ca. 15.000", image: "/assets/kieze/tiergarten-1.webp", vibe: "Grüne Lunge" },
+  { id: "tegel", name: "Tegel", subtitle: "Tegeler See, Greenwichpromenade & Wald", population: "ca. 37.000", image: "/assets/kieze/reinickendorf-1.webp", vibe: "Am Wasser" },
+  { id: "spandau", name: "Spandau", subtitle: "Zitadelle, Havel & Altstadt Spandau", population: "ca. 245.000", image: "/assets/kieze/spandau-1.webp", vibe: "Historisch & Wasser" },
+  { id: "reinickendorf", name: "Reinickendorf", subtitle: "Schäfersee, Humboldt-Bibliothek & Kieze", population: "ca. 265.000", image: "/assets/kieze/reinickendorf-1.webp", vibe: "Wohnlich & Grün" },
+  { id: "pankow", name: "Pankow", subtitle: "Schloss Schönhausen, Bürgerpark & Florakiez", population: "ca. 410.000", image: "/assets/kieze/pankow-1.webp", vibe: "Grün & Kulturell" },
+  { id: "treptow", name: "Treptow", subtitle: "Treptower Park, Insel der Jugend & Spree", population: "ca. 280.000", image: "/assets/kieze/treptow-1.webp", vibe: "Entspannt am Wasser" },
+  { id: "koepenick", name: "Köpenick", subtitle: "Müggelsee, Schloss & Hauptmann", population: "ca. 68.000", image: "/assets/kieze/koepenick-1.webp", vibe: "Maritime Idylle" },
+  { id: "steglitz", name: "Steglitz", subtitle: "Schloßstraße, Botanischer Garten & Stadtpark", population: "ca. 75.000", image: "/assets/kieze/steglitz-1.webp", vibe: "Einkaufen & Natur" },
+  { id: "zehlendorf", name: "Zehlendorf", subtitle: "Wannsee, Krumme Lanke & Villen", population: "ca. 60.000", image: "/assets/kieze/zehlendorf-1.webp", vibe: "Badeseen & Wald" },
+  { id: "marzahn", name: "Marzahn", subtitle: "Gärten der Welt, Seilbahn & Wuhletal", population: "ca. 110.000", image: "/assets/kieze/marzahn-1.webp", vibe: "Weite & Parks" }
 ];
 
 // Initial Real Stories
@@ -42,7 +43,7 @@ const DEFAULT_STORIES = [
     kiez: "Kreuzberg",
     headline: "Neuer Wochenmarkt am Maybachufer",
     subtext: "Ab morgen startet der erweiterte Bauernmarkt mit regionalen Bioprodukten aus Brandenburg direkt am Kanal.",
-    image: "assets/images/kiez_kreuzberg.jpg",
+    image: "/assets/places/no-photo.webp",
     isVideo: false,
     durationHours: 48,
     status: "approved",
@@ -54,7 +55,7 @@ const DEFAULT_STORIES = [
     kiez: "Neukölln",
     headline: "Tempelhofer Feld Sonnenuntergang",
     subtext: "Tausende Berliner genießen den milden Herbstabend auf der Landebahn mit Musik und Rollschuhen.",
-    image: "assets/images/kiez_neukoelln.jpg",
+    image: "/assets/tips/tempelhofer-feld.webp",
     isVideo: false,
     durationHours: 24,
     status: "approved",
@@ -66,7 +67,7 @@ const DEFAULT_STORIES = [
     kiez: "Prenzlauer Berg",
     headline: "Kult-Flohmarkt am Mauerpark",
     subtext: "Jeden Sonntag Flohmarkt, Streetfood und das legendäre Amphitheater-Karaoke im Mauerpark.",
-    image: "assets/images/event_mauerpark.jpg",
+    image: "/assets/tips/mauerpark.webp",
     isVideo: false,
     durationHours: 48,
     status: "approved",
@@ -78,7 +79,7 @@ const DEFAULT_STORIES = [
     kiez: "Mitte",
     headline: "Festival of Lights 2026",
     subtext: "Die weltberühmten Lichtprojektionen am Brandenburger Tor und Fernsehturm verzaubern die Hauptstadt.",
-    image: "assets/images/quiz_brandenburg.jpg",
+    image: "/assets/places/festival_of_lights.webp",
     isVideo: false,
     durationHours: 72,
     status: "approved",
@@ -90,7 +91,7 @@ const DEFAULT_STORIES = [
     kiez: "Friedrichshain",
     headline: "Street Food Night Markthalle Neun",
     subtext: "Jeden Donnerstag Street Food Thursday mit Spezialitäten aus aller Welt und Craft Beer.",
-    image: "assets/images/event_markthalle.jpg",
+    image: "/assets/places/no-photo.webp",
     isVideo: false,
     durationHours: 48,
     status: "approved",
@@ -111,7 +112,7 @@ const BERLIN_EVENTS = [
     isFree: true,
     category: "Lichtkunst & Spektakel",
     description: "Internationale Lichtkünstler verwandeln die Wahrzeichen Berlins wie Brandenburger Tor und TV-Turm in spektakuläre Kunstwerke.",
-    image: "assets/images/quiz_brandenburg.jpg",
+    image: "/assets/places/festival_of_lights.webp",
     link: "https://www.berlin.de/events/volksfeste/"
   },
   {
@@ -125,7 +126,7 @@ const BERLIN_EVENTS = [
     isFree: true,
     category: "Volksfest & Rummel",
     description: "Riesenrad, Autoscooter, Zuckerwatte und Spaß für die ganze Familie auf dem zentralen Festplatz Kurt-Schumacher-Damm.",
-    image: "assets/images/hero_berlin.jpg",
+    image: "/assets/places/no-photo.webp",
     link: "https://www.berlin.de/events/volksfeste/"
   },
   {
@@ -139,7 +140,7 @@ const BERLIN_EVENTS = [
     isFree: false,
     category: "Musik & Konzerte",
     description: "Eines der traditionsreichsten Jazzfestivals Europas mit Weltklasse-Musikern und intimen Kiez-Sessions.",
-    image: "assets/images/event_jazz.jpg",
+    image: "/assets/places/no-photo.webp",
     link: "https://www.berlin.de/events/volksfeste/"
   },
   {
@@ -153,7 +154,7 @@ const BERLIN_EVENTS = [
     isFree: true,
     category: "Markt & Live-Musik",
     description: "Der legendäre Berliner Sonntagsflohmarkt mit Vintage-Schätzen, Kiez-Gastro und Bearpit-Karaoke.",
-    image: "assets/images/event_mauerpark.jpg",
+    image: "/assets/tips/mauerpark.webp",
     link: "https://www.berlin.de/events/volksfeste/"
   },
   {
@@ -167,7 +168,7 @@ const BERLIN_EVENTS = [
     isFree: true,
     category: "Winter- & Festzeit",
     description: "Glühwein, traditionelles Kunsthandwerk und Lichterglanz auf den schönsten Berliner Plätzen.",
-    image: "assets/images/hero_berlin.jpg",
+    image: "/assets/places/no-photo.webp",
     link: "https://www.berlin.de/events/volksfeste/"
   }
 ];
@@ -179,7 +180,7 @@ const QUIZ_QUESTIONS = [
     question: "Welches Berliner Bauwerk ist mit 368 Metern das höchste Gebäude Deutschlands?",
     options: ["Berliner Dom", "Berliner Fernsehturm", "Funkturm Berlin", "Potsdamer Platz Tower"],
     correctIndex: 1,
-    image: "assets/images/quiz_fernsehturm.jpg",
+    image: "/assets/tips/fernsehturm.webp",
     explanation: "Der Berliner Fernsehturm am Alexanderplatz wurde 1969 eröffnet und ist mit 368 Metern das höchste Bauwerk Deutschlands."
   },
   {
@@ -187,7 +188,7 @@ const QUIZ_QUESTIONS = [
     question: "Welcher Kiez ist berühmt für den Admiralbrücke-Sonnenuntergang und die Markthalle Neun?",
     options: ["Kreuzberg", "Charlottenburg", "Spandau", "Pankow"],
     correctIndex: 0,
-    image: "assets/images/kiez_kreuzberg.jpg",
+    image: "/assets/places/admiralbruecke.webp",
     explanation: "Kreuzberg (SO36 und Kreuzberg 61) ist weltberühmt für das bunte Treiben am Landwehrkanal und die Markthalle Neun."
   },
   {
@@ -195,7 +196,7 @@ const QUIZ_QUESTIONS = [
     question: "Durch welches weltberühmte Berliner Tor zogen Napoleon und 1989 die Bürger beim Mauerfall?",
     options: ["Kottbusser Tor", "Brandenburger Tor", "Schlesisches Tor", "Frankfurter Tor"],
     correctIndex: 1,
-    image: "assets/images/quiz_brandenburg.jpg",
+    image: "/assets/tips/brandenburger-tor.webp",
     explanation: "Das Brandenburger Tor am Pariser Platz ist das Nationalsymbol für Freiheit und die Einheit Berlins."
   },
   {
@@ -203,7 +204,7 @@ const QUIZ_QUESTIONS = [
     question: "Auf welchem ehemaligen Flughafen befindet sich heute Berlins größter innerstädtischer Volkspark?",
     options: ["Flughafen Tegel", "Flughafen Tempelhof", "Flughafen Schönefeld", "Flughafen Gatow"],
     correctIndex: 1,
-    image: "assets/images/kiez_tempelhof.jpg",
+    image: "/assets/tips/tempelhofer-feld.webp",
     explanation: "Das Tempelhofer Feld umfasst über 300 Hektar Freifläche mitten in der Stadt für Sport, Grillen und Erholung."
   },
   {
@@ -211,7 +212,7 @@ const QUIZ_QUESTIONS = [
     question: "Welcher Kiez hat das Schloss Charlottenburg und den traditionsreichen Kurfürstendamm?",
     options: ["Charlottenburg", "Wedding", "Marzahn", "Treptow"],
     correctIndex: 0,
-    image: "assets/images/kiez_charlottenburg.jpg",
+    image: "/assets/tips/schloss-charlottenburg.webp",
     explanation: "Charlottenburg ist der Inbegriff der City West mit dem prachtvollen Barockschloss der Hohenzollern."
   }
 ];

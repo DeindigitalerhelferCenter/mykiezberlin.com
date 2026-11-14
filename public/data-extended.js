@@ -22,12 +22,12 @@ const KIEZE_FULL = [
    "Museumsinsel",
    "Hackesche Höfe"
   ],
-  "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/54/Berlin_Museumsinsel_%2832564623867%29.jpg/960px-Berlin_Museumsinsel_%2832564623867%29.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/mitte-1.webp",
   "impressionImages": [
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/54/Berlin_Museumsinsel_%2832564623867%29.jpg/960px-Berlin_Museumsinsel_%2832564623867%29.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c1/Berlin_Humboldt-Universit%C3%A4t_Juristische_Fakult%C3%A4t.jpg/960px-Berlin_Humboldt-Universit%C3%A4t_Juristische_Fakult%C3%A4t.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/89/Berlin_Holocaust-Mahnmal_in_Mitte_1.jpg/960px-Berlin_Holocaust-Mahnmal_in_Mitte_1.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f0/Berlin_-_Hackescher_Markt_S-Bahnhof_Nacht.jpg/960px-Berlin_-_Hackescher_Markt_S-Bahnhof_Nacht.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+   "https://mykiezberlin.com/assets/kieze/mitte-1.webp",
+   "https://mykiezberlin.com/assets/kieze/mitte-2.webp",
+   "https://mykiezberlin.com/assets/kieze/mitte-3.webp",
+   "https://mykiezberlin.com/assets/kieze/mitte-4.webp"
   ],
   "rentIndex": "",
   "vibe": "Metropolisch & Monumental",
@@ -52,32 +52,32 @@ const KIEZE_FULL = [
   "policePhone": "+49 30 4664 557700",
   "photoCredits": [
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/54/Berlin_Museumsinsel_%2832564623867%29.jpg/960px-Berlin_Museumsinsel_%2832564623867%29.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berlin_Museumsinsel_(32564623867).jpg",
-    "license": "CC BY 2.0",
-    "artist": "Jorge Franganillo from Barcelona, Spain",
-    "title": "Berlin Museumsinsel (32564623867)"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c1/Berlin_Humboldt-Universit%C3%A4t_Juristische_Fakult%C3%A4t.jpg/960px-Berlin_Humboldt-Universit%C3%A4t_Juristische_Fakult%C3%A4t.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berlin_Humboldt-Universit%C3%A4t_Juristische_Fakult%C3%A4t.jpg",
-    "license": "CC BY-SA 4.0",
-    "artist": "NoRud",
-    "title": "Berlin Humboldt-Universität Juristische Fakultät"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/89/Berlin_Holocaust-Mahnmal_in_Mitte_1.jpg/960px-Berlin_Holocaust-Mahnmal_in_Mitte_1.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berlin_Holocaust-Mahnmal_in_Mitte_1.jpg",
-    "license": "CC BY-SA 4.0",
-    "artist": "NoRud",
-    "title": "Berlin Holocaust-Mahnmal in Mitte 1"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f0/Berlin_-_Hackescher_Markt_S-Bahnhof_Nacht.jpg/960px-Berlin_-_Hackescher_Markt_S-Bahnhof_Nacht.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berlin_-_Hackescher_Markt_S-Bahnhof_Nacht.jpg",
+    "url": "https://mykiezberlin.com/assets/kieze/mitte-1.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Brandenburger_Tor_abends.jpg",
     "license": "CC BY-SA 3.0",
-    "artist": "Pedelecs",
-    "title": "Berlin - Hackescher Markt S-Bahnhof Nacht"
+    "artist": "Thomas Wolf, www.foto-tw.de",
+    "title": "Brandenburger_Tor_abends"
+   },
+   {
+    "url": "https://mykiezberlin.com/assets/kieze/mitte-2.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin_Museumsinsel_Fernsehturm.jpg",
+    "license": "CC BY-SA 3.0",
+    "artist": "Thomas Wolf, www.foto-tw.de",
+    "title": "Berlin_Museumsinsel_Fernsehturm"
+   },
+   {
+    "url": "https://mykiezberlin.com/assets/kieze/mitte-3.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:150418_Konzerthaus_Berlin_Gendarmenmarkt.jpg",
+    "license": "CC BY 3.0 de",
+    "artist": "Ansgar Koreng",
+    "title": "150418_Konzerthaus_Berlin_Gendarmenmarkt"
+   },
+   {
+    "url": "https://mykiezberlin.com/assets/kieze/mitte-4.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Hackesche_h%C3%B6fe_berlin.jpg",
+    "license": "CC BY-SA 3.0 de",
+    "artist": "Arne Müseler",
+    "title": "Hackesche_höfe_berlin"
    }
   ],
   "sources": {
@@ -111,12 +111,12 @@ const KIEZE_FULL = [
    "Markthalle Neun",
    "Bergmannkiez"
   ],
-  "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9b/Kottbusser_Tor_Panorama.jpg/960px-Kottbusser_Tor_Panorama.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/kreuzberg-1.webp",
   "impressionImages": [
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9b/Kottbusser_Tor_Panorama.jpg/960px-Kottbusser_Tor_Panorama.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/59/Hintze_Kreuzberg_1829.JPG/960px-Hintze_Kreuzberg_1829.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6d/Crowd_at_the_MyFest_in_Berlin_Kreuzberg.jpg/960px-Crowd_at_the_MyFest_in_Berlin_Kreuzberg.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/01/Berlin%2C_Willy-Brandt-Haus_im_Bundestagswahlkampf_2021.jpg/960px-Berlin%2C_Willy-Brandt-Haus_im_Bundestagswahlkampf_2021.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+   "https://mykiezberlin.com/assets/kieze/kreuzberg-1.webp",
+   "https://mykiezberlin.com/assets/kieze/kreuzberg-2.webp",
+   "https://mykiezberlin.com/assets/kieze/kreuzberg-3.webp",
+   "https://mykiezberlin.com/assets/kieze/kreuzberg-4.webp"
   ],
   "rentIndex": "",
   "vibe": "Alternativ & Bunt",
@@ -141,32 +141,32 @@ const KIEZE_FULL = [
   "policePhone": "+49 30 4664 552700",
   "photoCredits": [
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9b/Kottbusser_Tor_Panorama.jpg/960px-Kottbusser_Tor_Panorama.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Kottbusser_Tor_Panorama.jpg",
-    "license": "CC BY-SA 3.0",
-    "artist": "Boris Niehaus (www.1just.de)",
-    "title": "Kottbusser Tor Panorama"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/59/Hintze_Kreuzberg_1829.JPG/960px-Hintze_Kreuzberg_1829.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Hintze_Kreuzberg_1829.JPG",
-    "license": "Public domain",
-    "artist": "Johann Heinrich Hintze",
-    "title": "Hintze Kreuzberg 1829"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6d/Crowd_at_the_MyFest_in_Berlin_Kreuzberg.jpg/960px-Crowd_at_the_MyFest_in_Berlin_Kreuzberg.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Crowd_at_the_MyFest_in_Berlin_Kreuzberg.jpg",
+    "url": "https://mykiezberlin.com/assets/kieze/kreuzberg-1.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Oberbaumbr%C3%BCcke_mit_U-Bahn.jpg",
     "license": "CC BY 2.0",
-    "artist": "Alexbip",
-    "title": "Crowd at the MyFest in Berlin Kreuzberg"
+    "artist": "Sarah Jane at Flickr",
+    "title": "Oberbaumbrücke_mit_U-Bahn"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/01/Berlin%2C_Willy-Brandt-Haus_im_Bundestagswahlkampf_2021.jpg/960px-Berlin%2C_Willy-Brandt-Haus_im_Bundestagswahlkampf_2021.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berlin,_Willy-Brandt-Haus_im_Bundestagswahlkampf_2021.jpg",
-    "license": "CC BY-SA 4.0",
-    "artist": "JoachimKohler-HB",
-    "title": "Berlin, Willy-Brandt-Haus im Bundestagswahlkampf 2021"
+    "url": "https://mykiezberlin.com/assets/kieze/kreuzberg-2.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Viktoriapark_B-Kreuzberg_06-2017_img1.jpg",
+    "license": "FAL",
+    "artist": "A.Savin",
+    "title": "Viktoriapark_B-Kreuzberg_06-2017_img1"
+   },
+   {
+    "url": "https://mykiezberlin.com/assets/kieze/kreuzberg-3.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Deutsches_technikmuseum_berlin_20080429.jpg",
+    "license": "CC BY-SA 2.0 de",
+    "artist": "Sir James",
+    "title": "Deutsches_technikmuseum_berlin_20080429"
+   },
+   {
+    "url": "https://mykiezberlin.com/assets/kieze/kreuzberg-4.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Jewish_Museum_Berlin_-_panoramio_(2).jpg",
+    "license": "CC BY-SA 3.0",
+    "artist": "Laima Gūtmane (simka…",
+    "title": "Jewish_Museum_Berlin_-_panoramio_(2)"
    }
   ],
   "sources": {
@@ -199,10 +199,11 @@ const KIEZE_FULL = [
    "Richardplatz",
    "Weserstraße Bars"
   ],
-  "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1b/Rixdorf_1857.jpg/960px-Rixdorf_1857.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/neukoelln-1.webp",
   "impressionImages": [
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1b/Rixdorf_1857.jpg/960px-Rixdorf_1857.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/76/Berlin_Neuk%C3%B6lln_Hermannplatz_2002.jpg/960px-Berlin_Neuk%C3%B6lln_Hermannplatz_2002.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+   "https://mykiezberlin.com/assets/kieze/neukoelln-1.webp",
+   "https://mykiezberlin.com/assets/kieze/neukoelln-2.webp",
+   "https://mykiezberlin.com/assets/kieze/neukoelln-3.webp"
   ],
   "rentIndex": "",
   "vibe": "Dynamisch & Trendsetzend",
@@ -227,18 +228,25 @@ const KIEZE_FULL = [
   "policePhone": "+49 30 4664 554701",
   "photoCredits": [
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1b/Rixdorf_1857.jpg/960px-Rixdorf_1857.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Rixdorf_1857.jpg",
-    "license": "Public domain",
-    "artist": "Königlicher Preußischer Großer Generalstab, Topographische Abteilung (1857)",
-    "title": "Rixdorf 1857"
+    "url": "https://mykiezberlin.com/assets/kieze/neukoelln-1.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin_Neukoelln_Rathaus_asv2021-03_img1.jpg",
+    "license": "FAL",
+    "artist": "A.Savin",
+    "title": "Berlin_Neukoelln_Rathaus_asv2021-03_img1"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/76/Berlin_Neuk%C3%B6lln_Hermannplatz_2002.jpg/960px-Berlin_Neuk%C3%B6lln_Hermannplatz_2002.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berlin_Neuk%C3%B6lln_Hermannplatz_2002.jpg",
+    "url": "https://mykiezberlin.com/assets/kieze/neukoelln-2.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin-Neuk%C3%B6lln_K%C3%B6rnerpark_Richtung_Wassertreppe.jpg",
     "license": "CC BY-SA 3.0",
-    "artist": "selbst",
-    "title": "Berlin Neukölln Hermannplatz 2002"
+    "artist": "Assenmacher",
+    "title": "Berlin-Neukölln_Körnerpark_Richtung_Wassertreppe"
+   },
+   {
+    "url": "https://mykiezberlin.com/assets/kieze/neukoelln-3.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin_Neukoelln_Hermannplatz_asv2021-03_img1.jpg",
+    "license": "FAL",
+    "artist": "A.Savin",
+    "title": "Berlin_Neukoelln_Hermannplatz_asv2021-03_img1"
    }
   ],
   "sources": {
@@ -271,12 +279,12 @@ const KIEZE_FULL = [
    "Boxhagener Platz",
    "Simon-Dach-Straße"
   ],
-  "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/07/Strausberger_Platz_%281%29.JPG/960px-Strausberger_Platz_%281%29.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/friedrichshain-1.webp",
   "impressionImages": [
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/07/Strausberger_Platz_%281%29.JPG/960px-Strausberger_Platz_%281%29.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2a/Simon-Dach-Stra%C3%9Fe_Berlin.jpg/960px-Simon-Dach-Stra%C3%9Fe_Berlin.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ae/RAW_Berlin_2016.jpg/960px-RAW_Berlin_2016.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9c/Oberbaumbr%C3%BCcke_Berlin_%2810%29.JPG/960px-Oberbaumbr%C3%BCcke_Berlin_%2810%29.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+   "https://mykiezberlin.com/assets/kieze/friedrichshain-1.webp",
+   "https://mykiezberlin.com/assets/kieze/friedrichshain-2.webp",
+   "https://mykiezberlin.com/assets/kieze/friedrichshain-3.webp",
+   "https://mykiezberlin.com/assets/kieze/friedrichshain-4.webp"
   ],
   "rentIndex": "",
   "vibe": "Clubkultur & Streetlife",
@@ -300,32 +308,32 @@ const KIEZE_FULL = [
   "policePhone": "+49 30 4664 551700",
   "photoCredits": [
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/07/Strausberger_Platz_%281%29.JPG/960px-Strausberger_Platz_%281%29.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Strausberger_Platz_(1).JPG",
-    "license": "CC BY-SA 3.0",
-    "artist": "Benreis",
-    "title": "Strausberger Platz (1)"
+    "url": "https://mykiezberlin.com/assets/kieze/friedrichshain-1.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Bundesarchiv_B_145_Bild-F088809-0038,_Berlin,_East_Side_Gallery.jpg",
+    "license": "CC BY-SA 3.0 de",
+    "artist": "Joachim F. Thurn",
+    "title": "Bundesarchiv_B_145_Bild-F088809-0038,_Berlin,_East_Side_Gallery"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2a/Simon-Dach-Stra%C3%9Fe_Berlin.jpg/960px-Simon-Dach-Stra%C3%9Fe_Berlin.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Simon-Dach-Stra%C3%9Fe_Berlin.jpg",
+    "url": "https://mykiezberlin.com/assets/kieze/friedrichshain-2.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Frankfurter_Tor_Westansicht_Berlin_April_2006_022.jpg",
     "license": "Public domain",
-    "artist": "Gryffindor",
-    "title": "Simon-Dach-Straße Berlin"
+    "artist": "Gryffindor 18:46, 17 April 2006 (UTC)",
+    "title": "Frankfurter_Tor_Westansicht_Berlin_April_2006_022"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ae/RAW_Berlin_2016.jpg/960px-RAW_Berlin_2016.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:RAW_Berlin_2016.jpg",
-    "license": "CC BY 2.0",
-    "artist": "Tine Volpert",
-    "title": "RAW Berlin 2016"
+    "url": "https://mykiezberlin.com/assets/kieze/friedrichshain-3.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin_Volkspark_Friedrichshain_09-2017_img1.jpg",
+    "license": "FAL",
+    "artist": "A.Savin",
+    "title": "Berlin_Volkspark_Friedrichshain_09-2017_img1"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9c/Oberbaumbr%C3%BCcke_Berlin_%2810%29.JPG/960px-Oberbaumbr%C3%BCcke_Berlin_%2810%29.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Oberbaumbr%C3%BCcke_Berlin_(10).JPG",
-    "license": "CC BY-SA 4.0",
-    "artist": "Dr. Bernd Gross",
-    "title": "Oberbaumbrücke Berlin (10)"
+    "url": "https://mykiezberlin.com/assets/kieze/friedrichshain-4.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin_karlmarxallee_kl.jpg",
+    "license": "CC BY-SA 2.0",
+    "artist": "Wikimedia Commons",
+    "title": "Berlin_karlmarxallee_kl"
    }
   ],
   "sources": {
@@ -358,12 +366,12 @@ const KIEZE_FULL = [
    "Kulturbrauerei",
    "Wasserturm"
   ],
-  "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f8/Feuerwache_Prenzlauer_Berg%2C_2008-05-14.jpg/960px-Feuerwache_Prenzlauer_Berg%2C_2008-05-14.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/prenzlauer-berg-1.webp",
   "impressionImages": [
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f8/Feuerwache_Prenzlauer_Berg%2C_2008-05-14.jpg/960px-Feuerwache_Prenzlauer_Berg%2C_2008-05-14.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/14/Eberswalder_Str_U-Bahn_station%2C_Berlin%2C_Germany%2C_June_2013_%289059830063%29.jpg/960px-Eberswalder_Str_U-Bahn_station%2C_Berlin%2C_Germany%2C_June_2013_%289059830063%29.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/25/Brauerei_-_Pfefferberg_Ansicht_%28_Berlin_%29.jpg/960px-Brauerei_-_Pfefferberg_Ansicht_%28_Berlin_%29.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ec/Blick_ueber_prenzlberg.jpg/960px-Blick_ueber_prenzlberg.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+   "https://mykiezberlin.com/assets/kieze/prenzlauer-berg-1.webp",
+   "https://mykiezberlin.com/assets/kieze/prenzlauer-berg-2.webp",
+   "https://mykiezberlin.com/assets/kieze/prenzlauer-berg-3.webp",
+   "https://mykiezberlin.com/assets/kieze/prenzlauer-berg-4.webp"
   ],
   "rentIndex": "",
   "vibe": "Bohème & Familienidyll",
@@ -388,32 +396,32 @@ const KIEZE_FULL = [
   "policePhone": "+49 30 4664 115701",
   "photoCredits": [
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f8/Feuerwache_Prenzlauer_Berg%2C_2008-05-14.jpg/960px-Feuerwache_Prenzlauer_Berg%2C_2008-05-14.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Feuerwache_Prenzlauer_Berg,_2008-05-14.jpg",
-    "license": "CC BY-SA 3.0",
-    "artist": "Stern",
-    "title": "Feuerwache Prenzlauer Berg, 2008-05-14"
+    "url": "https://mykiezberlin.com/assets/kieze/prenzlauer-berg-1.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin-Kulturbrauerei.jpg",
+    "license": "Public domain",
+    "artist": "Kaspar Metz",
+    "title": "Berlin-Kulturbrauerei"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/14/Eberswalder_Str_U-Bahn_station%2C_Berlin%2C_Germany%2C_June_2013_%289059830063%29.jpg/960px-Eberswalder_Str_U-Bahn_station%2C_Berlin%2C_Germany%2C_June_2013_%289059830063%29.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Eberswalder_Str_U-Bahn_station,_Berlin,_Germany,_June_2013_(9059830063).jpg",
-    "license": "CC BY-SA 2.0",
-    "artist": "calflier001",
-    "title": "Eberswalder Str U-Bahn station, Berlin, Germany, June 2013 (9059830063"
+    "url": "https://mykiezberlin.com/assets/kieze/prenzlauer-berg-2.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Wasserturm_Prenzlauer_Berg_Berlin_07-2015.jpg",
+    "license": "CC BY-SA 3.0",
+    "artist": "A.Savin",
+    "title": "Wasserturm_Prenzlauer_Berg_Berlin_07-2015"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/25/Brauerei_-_Pfefferberg_Ansicht_%28_Berlin_%29.jpg/960px-Brauerei_-_Pfefferberg_Ansicht_%28_Berlin_%29.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Brauerei_-_Pfefferberg_Ansicht_(_Berlin_).jpg",
-    "license": "CC BY-SA 3.0",
-    "artist": "Heinzi",
-    "title": "Brauerei - Pfefferberg Ansicht ( Berlin )"
+    "url": "https://mykiezberlin.com/assets/kieze/prenzlauer-berg-3.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:2012_Gethsemanekirche_(Berlin).jpg",
+    "license": "CC BY-SA 4.0",
+    "artist": "Chris06",
+    "title": "2012_Gethsemanekirche_(Berlin)"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ec/Blick_ueber_prenzlberg.jpg/960px-Blick_ueber_prenzlberg.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Blick_ueber_prenzlberg.jpg",
-    "license": "CC BY-SA 3.0",
-    "artist": "",
-    "title": "Blick ueber prenzlberg"
+    "url": "https://mykiezberlin.com/assets/kieze/prenzlauer-berg-4.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Kollwitzplatz_Januar_2025.jpg",
+    "license": "CC BY-SA 4.0",
+    "artist": "Traktorminze",
+    "title": "Kollwitzplatz_Januar_2025"
    }
   ],
   "sources": {
@@ -446,12 +454,12 @@ const KIEZE_FULL = [
    "Savignyplatz",
    "Deutsche Oper"
   ],
-  "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/ff/CharlottenburgHardenbergstra%C3%9FeUDK.jpg/960px-CharlottenburgHardenbergstra%C3%9FeUDK.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/charlottenburg-1.webp",
   "impressionImages": [
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/ff/CharlottenburgHardenbergstra%C3%9FeUDK.jpg/960px-CharlottenburgHardenbergstra%C3%9FeUDK.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/62/CharlottenburgFasanenstra%C3%9FeJ%C3%BCdischesGemeindehaus.JPG/960px-CharlottenburgFasanenstra%C3%9FeJ%C3%BCdischesGemeindehaus.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4b/CharlottenburgAltLietzow.JPG/960px-CharlottenburgAltLietzow.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fd/Bikini_Haus_in_Berlin.jpg/960px-Bikini_Haus_in_Berlin.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+   "https://mykiezberlin.com/assets/kieze/charlottenburg-1.webp",
+   "https://mykiezberlin.com/assets/kieze/charlottenburg-2.webp",
+   "https://mykiezberlin.com/assets/kieze/charlottenburg-3.webp",
+   "https://mykiezberlin.com/assets/kieze/charlottenburg-4.webp"
   ],
   "rentIndex": "",
   "vibe": "Klassisch-Elegant",
@@ -475,32 +483,32 @@ const KIEZE_FULL = [
   "policePhone": "+49 30 4664 225701",
   "photoCredits": [
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/ff/CharlottenburgHardenbergstra%C3%9FeUDK.jpg/960px-CharlottenburgHardenbergstra%C3%9FeUDK.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:CharlottenburgHardenbergstra%C3%9FeUDK.jpg",
+    "url": "https://mykiezberlin.com/assets/kieze/charlottenburg-1.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin_Charlottenburger_Schloss_Strassenseite.jpg",
     "license": "CC BY-SA 3.0",
-    "artist": "Fridolin freudenfett (Peter Kuley)",
-    "title": "CharlottenburgHardenbergstraßeUDK"
+    "artist": "Times",
+    "title": "Berlin_Charlottenburger_Schloss_Strassenseite"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/62/CharlottenburgFasanenstra%C3%9FeJ%C3%BCdischesGemeindehaus.JPG/960px-CharlottenburgFasanenstra%C3%9FeJ%C3%BCdischesGemeindehaus.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:CharlottenburgFasanenstra%C3%9FeJ%C3%BCdischesGemeindehaus.JPG",
+    "url": "https://mykiezberlin.com/assets/kieze/charlottenburg-2.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Ged%C3%A4chtniskirche1.JPG",
     "license": "CC BY-SA 3.0",
-    "artist": "Fridolin freudenfett (Peter Kuley)",
-    "title": "CharlottenburgFasanenstraßeJüdischesGemeindehaus"
+    "artist": "nl:User:GerardM",
+    "title": "Gedächtniskirche1"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4b/CharlottenburgAltLietzow.JPG/960px-CharlottenburgAltLietzow.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:CharlottenburgAltLietzow.JPG",
+    "url": "https://mykiezberlin.com/assets/kieze/charlottenburg-3.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Funkturm_Berlin_View_03.jpg",
     "license": "CC BY-SA 3.0",
-    "artist": "Fridolin freudenfett (Peter Kuley)",
-    "title": "CharlottenburgAltLietzow"
+    "artist": "A.Savin",
+    "title": "Funkturm_Berlin_View_03"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fd/Bikini_Haus_in_Berlin.jpg/960px-Bikini_Haus_in_Berlin.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Bikini_Haus_in_Berlin.jpg",
-    "license": "CC BY-SA 4.0",
-    "artist": "Tom Koronowski",
-    "title": "Bikini Haus in Berlin"
+    "url": "https://mykiezberlin.com/assets/kieze/charlottenburg-4.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Savigny-Platz.jpg",
+    "license": "CC BY-SA 3.0",
+    "artist": "Uwe Thobae",
+    "title": "Savigny-Platz"
    }
   ],
   "sources": {
@@ -533,7 +541,7 @@ const KIEZE_FULL = [
    "Rathaus Schöneberg",
    "Nollendorfplatz"
   ],
-  "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/69/Berliner_Gedenktafel_Hauptstr_155_%28Sch%C3%B6n%29_David_Bowie.jpg/960px-Berliner_Gedenktafel_Hauptstr_155_%28Sch%C3%B6n%29_David_Bowie.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/schoeneberg-1.webp",
   "rentIndex": "",
   "vibe": "Tolerant & Genussfreudig",
   "transitLines": "U1, U2, U3, U4, U7, S1, S2, S25, S41, S42 (Innsbrucker Platz)",
@@ -555,32 +563,32 @@ const KIEZE_FULL = [
   "policePhone": "+49 30 4664 441701",
   "photoCredits": [
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/69/Berliner_Gedenktafel_Hauptstr_155_%28Sch%C3%B6n%29_David_Bowie.jpg/960px-Berliner_Gedenktafel_Hauptstr_155_%28Sch%C3%B6n%29_David_Bowie.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berliner_Gedenktafel_Hauptstr_155_(Sch%C3%B6n)_David_Bowie.jpg",
-    "license": "CC BY-SA 3.0",
-    "artist": "OTFW , Berlin",
-    "title": "Berliner Gedenktafel Hauptstr 155 (Schön) David Bowie"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/11/Berlin_Schoeneberg_ahornstrasse_4_kroatische_botschaft_14.10.2011_11-35-14.jpg/960px-Berlin_Schoeneberg_ahornstrasse_4_kroatische_botschaft_14.10.2011_11-35-14.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berlin_Schoeneberg_ahornstrasse_4_kroatische_botschaft_14.10.2011_11-35-14.jpg",
+    "url": "https://mykiezberlin.com/assets/kieze/schoeneberg-1.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin_schoeneberg_belziger_26.10.2012_11-53-22_ShiftN.jpg",
     "license": "CC BY 3.0",
     "artist": "Dirk Ingo Franke",
-    "title": "Berlin Schoeneberg ahornstrasse 4 kroatische botschaft 14.10.2011 11-3"
+    "title": "Berlin_schoeneberg_belziger_26.10.2012_11-53-22_ShiftN"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e4/Berlin_-_Bayerischer_Platz.jpg/960px-Berlin_-_Bayerischer_Platz.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berlin_-_Bayerischer_Platz.jpg",
-    "license": "CC BY-SA 4.0",
-    "artist": "Marek Śliwecki",
-    "title": "Berlin - Bayerischer Platz"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f2/Berlin-Sch%C3%B6neberg_Westarpstra%C3%9Fe.jpg/960px-Berlin-Sch%C3%B6neberg_Westarpstra%C3%9Fe.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berlin-Sch%C3%B6neberg_Westarpstra%C3%9Fe.jpg",
+    "url": "https://mykiezberlin.com/assets/kieze/schoeneberg-2.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin,_Schoeneberg,_Tauentzienstrasse_21-24,_KaDeWe.jpg",
     "license": "CC BY-SA 3.0",
-    "artist": "Assenmacher",
-    "title": "Berlin-Schöneberg Westarpstraße"
+    "artist": "Jörg Zägel",
+    "title": "Berlin,_Schoeneberg,_Tauentzienstrasse_21-24,_KaDeWe"
+   },
+   {
+    "url": "https://mykiezberlin.com/assets/kieze/schoeneberg-3.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Nollendorfplatz_B-Schoeneberg_06-2017_img2.jpg",
+    "license": "FAL",
+    "artist": "A.Savin",
+    "title": "Nollendorfplatz_B-Schoeneberg_06-2017_img2"
+   },
+   {
+    "url": "https://mykiezberlin.com/assets/kieze/schoeneberg-4.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Winterfeldtplatz_20160504_10.jpg",
+    "license": "CC BY 4.0",
+    "artist": "Sebastian Rittau",
+    "title": "Winterfeldtplatz_20160504_10"
    }
   ],
   "sources": {
@@ -590,10 +598,10 @@ const KIEZE_FULL = [
    "population": "https://download.statistik-berlin-brandenburg.de/e6710fc4098ecab8/7087df199efb/SB_A01-05-00_2026h01_BE.pdf"
   },
   "impressionImages": [
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/69/Berliner_Gedenktafel_Hauptstr_155_%28Sch%C3%B6n%29_David_Bowie.jpg/960px-Berliner_Gedenktafel_Hauptstr_155_%28Sch%C3%B6n%29_David_Bowie.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/11/Berlin_Schoeneberg_ahornstrasse_4_kroatische_botschaft_14.10.2011_11-35-14.jpg/960px-Berlin_Schoeneberg_ahornstrasse_4_kroatische_botschaft_14.10.2011_11-35-14.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e4/Berlin_-_Bayerischer_Platz.jpg/960px-Berlin_-_Bayerischer_Platz.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f2/Berlin-Sch%C3%B6neberg_Westarpstra%C3%9Fe.jpg/960px-Berlin-Sch%C3%B6neberg_Westarpstra%C3%9Fe.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+   "https://mykiezberlin.com/assets/kieze/schoeneberg-1.webp",
+   "https://mykiezberlin.com/assets/kieze/schoeneberg-2.webp",
+   "https://mykiezberlin.com/assets/kieze/schoeneberg-3.webp",
+   "https://mykiezberlin.com/assets/kieze/schoeneberg-4.webp"
   ],
   "populationDate": "30.06.2026"
  },
@@ -619,7 +627,7 @@ const KIEZE_FULL = [
    "Leopoldplatz",
    "Gerichtshöfe Kunst"
   ],
-  "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/83/Wedding_Edinburgher_Strasse.JPG/960px-Wedding_Edinburgher_Strasse.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/wedding-1.webp",
   "rentIndex": "",
   "vibe": "Direkt & Inspirierend",
   "transitLines": "U6, U9, S41, S42 (Wedding), Tram M13, 50, Bus M27",
@@ -642,32 +650,32 @@ const KIEZE_FULL = [
   "policePhone": "+49 30 4664 117701",
   "photoCredits": [
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/83/Wedding_Edinburgher_Strasse.JPG/960px-Wedding_Edinburgher_Strasse.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Wedding_Edinburgher_Strasse.JPG",
-    "license": "Public domain",
-    "artist": "Hendrik Lorenz",
-    "title": "Wedding Edinburgher Strasse"
+    "url": "https://mykiezberlin.com/assets/kieze/wedding-1.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Amtsgericht_Wedding.jpg",
+    "license": "CC BY 3.0 de",
+    "artist": "Ansgar Koreng",
+    "title": "Amtsgericht_Wedding"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f5/Wedding_Bristolstrasse.JPG/960px-Wedding_Bristolstrasse.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Wedding_Bristolstrasse.JPG",
-    "license": "Public domain",
-    "artist": "Hendrik Lorenz",
-    "title": "Wedding Bristolstrasse"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d2/Wedding_Augustenburger_Platz.jpg/960px-Wedding_Augustenburger_Platz.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Wedding_Augustenburger_Platz.jpg",
+    "url": "https://mykiezberlin.com/assets/kieze/wedding-2.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin-wedding_nazareth-kirche_20050415_453_part.jpg",
     "license": "CC BY-SA 3.0",
-    "artist": "Fridolin freudenfett (Peter Kuley)",
-    "title": "Wedding Augustenburger Platz"
+    "artist": "Georg Slickers",
+    "title": "Berlin-wedding_nazareth-kirche_20050415_453_part"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/Strandbad_Ploetzensee.JPG/960px-Strandbad_Ploetzensee.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Strandbad_Ploetzensee.JPG",
+    "url": "https://mykiezberlin.com/assets/kieze/wedding-3.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:B-Wedding_Muellerstr_Kreuzung_Seestr.jpg",
     "license": "CC BY-SA 3.0",
-    "artist": "Dreizung",
-    "title": "Strandbad Ploetzensee"
+    "artist": "A.Savin",
+    "title": "B-Wedding Muellerstr Kreuzung Seestr"
+   },
+   {
+    "url": "https://mykiezberlin.com/assets/kieze/wedding-4.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Beech_and_bench_(20150503-DSC04975).jpg",
+    "license": "CC BY-SA 4.0",
+    "artist": "Matti Blume",
+    "title": "Beech and bench (20150503-DSC04975)"
    }
   ],
   "sources": {
@@ -677,10 +685,10 @@ const KIEZE_FULL = [
    "population": "https://download.statistik-berlin-brandenburg.de/e6710fc4098ecab8/7087df199efb/SB_A01-05-00_2026h01_BE.pdf"
   },
   "impressionImages": [
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/83/Wedding_Edinburgher_Strasse.JPG/960px-Wedding_Edinburgher_Strasse.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f5/Wedding_Bristolstrasse.JPG/960px-Wedding_Bristolstrasse.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d2/Wedding_Augustenburger_Platz.jpg/960px-Wedding_Augustenburger_Platz.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/Strandbad_Ploetzensee.JPG/960px-Strandbad_Ploetzensee.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+   "https://mykiezberlin.com/assets/kieze/wedding-1.webp",
+   "https://mykiezberlin.com/assets/kieze/wedding-2.webp",
+   "https://mykiezberlin.com/assets/kieze/wedding-3.webp",
+   "https://mykiezberlin.com/assets/kieze/wedding-4.webp"
   ],
   "populationDate": "30.06.2026"
  },
@@ -706,7 +714,7 @@ const KIEZE_FULL = [
    "Kulturfabrik Moabit",
    "Fritz-Schloß-Park"
   ],
-  "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8b/Die_Gartenlaube_%281867%29_b_556.jpg/960px-Die_Gartenlaube_%281867%29_b_556.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/moabit-1.webp",
   "rentIndex": "",
   "vibe": "Gemütlich & Bodenständig",
   "transitLines": "U9 (Turmstr., Birkenstr.), S41, S42 (Westhafen), Tram M10",
@@ -728,32 +736,25 @@ const KIEZE_FULL = [
   "policePhone": "+49 30 4664 227700",
   "photoCredits": [
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8b/Die_Gartenlaube_%281867%29_b_556.jpg/960px-Die_Gartenlaube_%281867%29_b_556.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Die_Gartenlaube_(1867)_b_556.jpg",
-    "license": "Public domain",
-    "artist": "verschiedene",
-    "title": "Die Gartenlaube (1867) b 556"
+    "url": "https://mykiezberlin.com/assets/kieze/moabit-1.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin_Hauptbahnhof_Ostseite_HDR.jpg",
+    "license": "CC BY 3.0 de",
+    "artist": "Ansgar Koreng",
+    "title": "Berlin_Hauptbahnhof_Ostseite_HDR"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5f/Bundesministerium_des_Innern_Berlin_4.jpg/960px-Bundesministerium_des_Innern_Berlin_4.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Bundesministerium_des_Innern_Berlin_4.jpg",
+    "url": "https://mykiezberlin.com/assets/kieze/moabit-2.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin_Moabit_market_hall.jpg",
     "license": "CC BY-SA 3.0",
-    "artist": "Manfred Brückels",
-    "title": "Bundesministerium des Innern Berlin 4"
+    "artist": "Doris Antony, Berlin",
+    "title": "Berlin_Moabit_market_hall"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5f/Berlin_oldfashioned_pub_altmoabit_dec_2004.jpg/960px-Berlin_oldfashioned_pub_altmoabit_dec_2004.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berlin_oldfashioned_pub_altmoabit_dec_2004.jpg",
-    "license": "CC BY-SA 3.0",
-    "artist": "Sir James",
-    "title": "Berlin oldfashioned pub altmoabit dec 2004"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6e/Berlin_Paech_fountain.jpg/960px-Berlin_Paech_fountain.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berlin_Paech_fountain.jpg",
-    "license": "CC BY-SA 3.0",
-    "artist": "Doris Antony , Berlin",
-    "title": "Berlin Paech fountain"
+    "url": "https://mykiezberlin.com/assets/kieze/moabit-3.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin_JVA_und_Kriminalgericht_Moabit_Luftbild_asv2024-07_img4.jpg",
+    "license": "FAL",
+    "artist": "A.Savin",
+    "title": "Berlin_JVA_und_Kriminalgericht_Moabit_Luftbild_asv2024-07_img4"
    }
   ],
   "sources": {
@@ -763,10 +764,9 @@ const KIEZE_FULL = [
    "population": "https://download.statistik-berlin-brandenburg.de/e6710fc4098ecab8/7087df199efb/SB_A01-05-00_2026h01_BE.pdf"
   },
   "impressionImages": [
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8b/Die_Gartenlaube_%281867%29_b_556.jpg/960px-Die_Gartenlaube_%281867%29_b_556.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5f/Bundesministerium_des_Innern_Berlin_4.jpg/960px-Bundesministerium_des_Innern_Berlin_4.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5f/Berlin_oldfashioned_pub_altmoabit_dec_2004.jpg/960px-Berlin_oldfashioned_pub_altmoabit_dec_2004.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6e/Berlin_Paech_fountain.jpg/960px-Berlin_Paech_fountain.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+   "https://mykiezberlin.com/assets/kieze/moabit-1.webp",
+   "https://mykiezberlin.com/assets/kieze/moabit-2.webp",
+   "https://mykiezberlin.com/assets/kieze/moabit-3.webp"
   ],
   "populationDate": "30.06.2026"
  },
@@ -792,7 +792,7 @@ const KIEZE_FULL = [
    "Café am Neuen See",
    "Kulturforum & Philharmonie"
   ],
-  "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0e/TiergartenCanisiusColleg-2.jpg/960px-TiergartenCanisiusColleg-2.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/tiergarten-1.webp",
   "rentIndex": "",
   "vibe": "Prächtig & Naturreich",
   "transitLines": "S3, S5, S7, S9 (Bellevue, Tiergarten), U9 (Hansaplatz), Bus 100, 200",
@@ -814,32 +814,32 @@ const KIEZE_FULL = [
   "policePhone": "+49 30 4664 227700",
   "photoCredits": [
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0e/TiergartenCanisiusColleg-2.jpg/960px-TiergartenCanisiusColleg-2.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:TiergartenCanisiusColleg-2.jpg",
-    "license": "CC BY-SA 3.0",
-    "artist": "Fridolin freudenfett",
-    "title": "TiergartenCanisiusColleg-2"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/dc/Spanische_Botschaft_Fornt.jpg/960px-Spanische_Botschaft_Fornt.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Spanische_Botschaft_Fornt.jpg",
-    "license": "CC BY-SA 3.0",
-    "artist": "Sargoth",
-    "title": "Spanische Botschaft Fornt"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/08/Regierungsviertel_Berlin.jpg/960px-Regierungsviertel_Berlin.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Regierungsviertel_Berlin.jpg",
+    "url": "https://mykiezberlin.com/assets/kieze/tiergarten-1.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Reichstagsgeb%C3%A4ude_von_Westen.jpg",
     "license": "CC BY-SA 4.0",
-    "artist": "Marek Heise Fotografie, Berlin",
-    "title": "Regierungsviertel Berlin"
+    "artist": "Jörg Braukmann",
+    "title": "Reichstagsgebäude_von_Westen"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4b/Potsdamer_Platz_vom_Reichstag_aus_2005.jpg/960px-Potsdamer_Platz_vom_Reichstag_aus_2005.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Potsdamer_Platz_vom_Reichstag_aus_2005.jpg",
+    "url": "https://mykiezberlin.com/assets/kieze/tiergarten-2.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Haus_der_Kulturen_der_Welt,_Blaue_Stunde,_Berlin,_160521,_ako.jpg",
+    "license": "CC BY-SA 3.0 de",
+    "artist": "Ansgar Koreng",
+    "title": "Haus_der_Kulturen_der_Welt,_Blaue_Stunde,_Berlin,_160521,_ako"
+   },
+   {
+    "url": "https://mykiezberlin.com/assets/kieze/tiergarten-3.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin_-_Siegess%C3%A4ule1.jpg",
+    "license": "FAL",
+    "artist": "Taxiarchos228",
+    "title": "Berlin_-_Siegessäule1"
+   },
+   {
+    "url": "https://mykiezberlin.com/assets/kieze/tiergarten-4.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin_Tiergarten_Siegess%C3%A4ule_Luftansicht.jpg",
     "license": "CC BY-SA 3.0",
-    "artist": "H005",
-    "title": "Potsdamer Platz vom Reichstag aus 2005"
+    "artist": "beedubz",
+    "title": "Berlin_Tiergarten_Siegessäule_Luftansicht"
    }
   ],
   "sources": {
@@ -849,10 +849,10 @@ const KIEZE_FULL = [
    "population": "https://download.statistik-berlin-brandenburg.de/e6710fc4098ecab8/7087df199efb/SB_A01-05-00_2026h01_BE.pdf"
   },
   "impressionImages": [
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0e/TiergartenCanisiusColleg-2.jpg/960px-TiergartenCanisiusColleg-2.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/dc/Spanische_Botschaft_Fornt.jpg/960px-Spanische_Botschaft_Fornt.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/08/Regierungsviertel_Berlin.jpg/960px-Regierungsviertel_Berlin.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4b/Potsdamer_Platz_vom_Reichstag_aus_2005.jpg/960px-Potsdamer_Platz_vom_Reichstag_aus_2005.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+   "https://mykiezberlin.com/assets/kieze/tiergarten-1.webp",
+   "https://mykiezberlin.com/assets/kieze/tiergarten-2.webp",
+   "https://mykiezberlin.com/assets/kieze/tiergarten-3.webp",
+   "https://mykiezberlin.com/assets/kieze/tiergarten-4.webp"
   ],
   "populationDate": "30.06.2026"
  },
@@ -878,7 +878,7 @@ const KIEZE_FULL = [
    "Fasanenplatz",
    "Volkspark Wilmersdorf"
   ],
-  "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/05/Fehrbelliner_Platz_4_Berlin-Wilmersdorf.jpg/960px-Fehrbelliner_Platz_4_Berlin-Wilmersdorf.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/wilmersdorf-1.webp",
   "rentIndex": "",
   "vibe": "Ruhig & Lebensfroh",
   "transitLines": "U3, U7, U9, S41, S42, S46 (Heidelberger Platz)",
@@ -900,32 +900,25 @@ const KIEZE_FULL = [
   "policePhone": "+49 30 4664 226700",
   "photoCredits": [
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/05/Fehrbelliner_Platz_4_Berlin-Wilmersdorf.jpg/960px-Fehrbelliner_Platz_4_Berlin-Wilmersdorf.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Fehrbelliner_Platz_4_Berlin-Wilmersdorf.jpg",
-    "license": "CC0",
-    "artist": "Bodo Kubrak",
-    "title": "Fehrbelliner Platz 4 Berlin-Wilmersdorf"
+    "url": "https://mykiezberlin.com/assets/kieze/wilmersdorf-1.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:VolksparkWilmersdorf1.JPG",
+    "license": "CC BY-SA 3.0",
+    "artist": "Lienhard Schulz",
+    "title": "VolksparkWilmersdorf1"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f7/Comenius-Schule_Wilhelmsaue_20151219_8.jpg/960px-Comenius-Schule_Wilhelmsaue_20151219_8.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Comenius-Schule_Wilhelmsaue_20151219_8.jpg",
-    "license": "CC BY 4.0",
-    "artist": "Sebastian Rittau",
-    "title": "Comenius-Schule Wilhelmsaue 20151219 8"
+    "url": "https://mykiezberlin.com/assets/kieze/wilmersdorf-2.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:WilmersdorfPreu%C3%9Fenpark.jpg",
+    "license": "CC BY-SA 3.0",
+    "artist": "Fridolin freudenfett (Peter Kuley)",
+    "title": "WilmersdorfPreußenpark"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/76/Berlin_Wilmersdorf_Heilig_Kreuz_Kirche_08.05.2012_21-10-29.jpg/960px-Berlin_Wilmersdorf_Heilig_Kreuz_Kirche_08.05.2012_21-10-29.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berlin_Wilmersdorf_Heilig_Kreuz_Kirche_08.05.2012_21-10-29.jpg",
-    "license": "CC BY 3.0",
-    "artist": "Dirk Ingo Franke",
-    "title": "Berlin Wilmersdorf Heilig Kreuz Kirche 08.05.2012 21-10-29"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1b/Berlin_Wilmerdorf_Ansicht_1900.jpg/960px-Berlin_Wilmerdorf_Ansicht_1900.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berlin_Wilmerdorf_Ansicht_1900.jpg",
-    "license": "Public domain",
-    "artist": "Waldemar Titzenthaler",
-    "title": "Berlin Wilmerdorf Ansicht 1900"
+    "url": "https://mykiezberlin.com/assets/kieze/wilmersdorf-3.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:BrunnenWasserspieleMai2007.jpg",
+    "license": "CC BY-SA 3.0 de",
+    "artist": "lillianne",
+    "title": "BrunnenWasserspieleMai2007"
    }
   ],
   "sources": {
@@ -935,10 +928,9 @@ const KIEZE_FULL = [
    "population": "https://download.statistik-berlin-brandenburg.de/e6710fc4098ecab8/7087df199efb/SB_A01-05-00_2026h01_BE.pdf"
   },
   "impressionImages": [
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/05/Fehrbelliner_Platz_4_Berlin-Wilmersdorf.jpg/960px-Fehrbelliner_Platz_4_Berlin-Wilmersdorf.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f7/Comenius-Schule_Wilhelmsaue_20151219_8.jpg/960px-Comenius-Schule_Wilhelmsaue_20151219_8.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/76/Berlin_Wilmersdorf_Heilig_Kreuz_Kirche_08.05.2012_21-10-29.jpg/960px-Berlin_Wilmersdorf_Heilig_Kreuz_Kirche_08.05.2012_21-10-29.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1b/Berlin_Wilmerdorf_Ansicht_1900.jpg/960px-Berlin_Wilmerdorf_Ansicht_1900.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+   "https://mykiezberlin.com/assets/kieze/wilmersdorf-1.webp",
+   "https://mykiezberlin.com/assets/kieze/wilmersdorf-2.webp",
+   "https://mykiezberlin.com/assets/kieze/wilmersdorf-3.webp"
   ],
   "populationDate": "30.06.2026"
  },
@@ -964,7 +956,7 @@ const KIEZE_FULL = [
    "Tempelhofer Hafen",
    "Bärensiedlung"
   ],
-  "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/90/Gedenktafel_Manfred-von-Richthofen-Str_77_Fritz_Br%C3%A4uning.JPG/960px-Gedenktafel_Manfred-von-Richthofen-Str_77_Fritz_Br%C3%A4uning.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/tempelhof-1.webp",
   "rentIndex": "",
   "vibe": "Grenzenlos & Entspannt",
   "transitLines": "U6 (Tempelhof, Alt-Tempelhof), S41, S42, S45, S46",
@@ -987,32 +979,25 @@ const KIEZE_FULL = [
   "policePhone": "+49 30 4664 0",
   "photoCredits": [
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/90/Gedenktafel_Manfred-von-Richthofen-Str_77_Fritz_Br%C3%A4uning.JPG/960px-Gedenktafel_Manfred-von-Richthofen-Str_77_Fritz_Br%C3%A4uning.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Gedenktafel_Manfred-von-Richthofen-Str_77_Fritz_Br%C3%A4uning.JPG",
-    "license": "CC BY-SA 3.0",
-    "artist": "OTFW , Berlin",
-    "title": "Gedenktafel Manfred-von-Richthofen-Str 77 Fritz Bräuning"
+    "url": "https://mykiezberlin.com/assets/kieze/tempelhof-1.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Aerial,_Berlin_(_1090064).jpg",
+    "license": "CC BY-SA 4.0",
+    "artist": "Matti Blume",
+    "title": "Aerial,_Berlin_(_1090064)"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d0/Gedenktafel_Gottlieb-Dunkel-Str_27_%28Temph%29_Lothar_Erdmann.jpg/960px-Gedenktafel_Gottlieb-Dunkel-Str_27_%28Temph%29_Lothar_Erdmann.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Gedenktafel_Gottlieb-Dunkel-Str_27_(Temph)_Lothar_Erdmann.jpg",
+    "url": "https://mykiezberlin.com/assets/kieze/tempelhof-2.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin_-_Flughafen_Tempelhof_-_2016.jpg",
     "license": "CC BY-SA 3.0",
-    "artist": "OTFW , Berlin",
-    "title": "Gedenktafel Gottlieb-Dunkel-Str 27 (Temph) Lothar Erdmann"
+    "artist": "Avda",
+    "title": "Berlin_-_Flughafen_Tempelhof_-_2016"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1a/Gedenktafel_Columbiadamm_71_%28Templ%29_Columbiahaus.jpg/960px-Gedenktafel_Columbiadamm_71_%28Templ%29_Columbiahaus.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Gedenktafel_Columbiadamm_71_(Templ)_Columbiahaus.jpg",
+    "url": "https://mykiezberlin.com/assets/kieze/tempelhof-3.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:09055113_Berlin_Tempelhof,_Parkstra%C3%9Fe_5_002.jpg",
     "license": "CC BY-SA 3.0",
-    "artist": "OTFW , Berlin",
-    "title": "Gedenktafel Columbiadamm 71 (Templ) Columbiahaus"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b7/Gedenktafel_Alt_Tempelhof_21_%28Temph%29_Lehnschulzenhof.jpg/960px-Gedenktafel_Alt_Tempelhof_21_%28Temph%29_Lehnschulzenhof.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Gedenktafel_Alt_Tempelhof_21_(Temph)_Lehnschulzenhof.jpg",
-    "license": "CC BY-SA 3.0",
-    "artist": "OTFW , Berlin",
-    "title": "Gedenktafel Alt Tempelhof 21 (Temph) Lehnschulzenhof"
+    "artist": "Sekamor",
+    "title": "09055113_Berlin_Tempelhof,_Parkstraße_5_002"
    }
   ],
   "sources": {
@@ -1022,10 +1007,9 @@ const KIEZE_FULL = [
    "population": "https://download.statistik-berlin-brandenburg.de/e6710fc4098ecab8/7087df199efb/SB_A01-05-00_2026h01_BE.pdf"
   },
   "impressionImages": [
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/90/Gedenktafel_Manfred-von-Richthofen-Str_77_Fritz_Br%C3%A4uning.JPG/960px-Gedenktafel_Manfred-von-Richthofen-Str_77_Fritz_Br%C3%A4uning.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d0/Gedenktafel_Gottlieb-Dunkel-Str_27_%28Temph%29_Lothar_Erdmann.jpg/960px-Gedenktafel_Gottlieb-Dunkel-Str_27_%28Temph%29_Lothar_Erdmann.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1a/Gedenktafel_Columbiadamm_71_%28Templ%29_Columbiahaus.jpg/960px-Gedenktafel_Columbiadamm_71_%28Templ%29_Columbiahaus.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b7/Gedenktafel_Alt_Tempelhof_21_%28Temph%29_Lehnschulzenhof.jpg/960px-Gedenktafel_Alt_Tempelhof_21_%28Temph%29_Lehnschulzenhof.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+   "https://mykiezberlin.com/assets/kieze/tempelhof-1.webp",
+   "https://mykiezberlin.com/assets/kieze/tempelhof-2.webp",
+   "https://mykiezberlin.com/assets/kieze/tempelhof-3.webp"
   ],
   "populationDate": "30.06.2026"
  },
@@ -1051,7 +1035,7 @@ const KIEZE_FULL = [
    "Pankeufer Promenade",
    "Gesundbrunnen-Center"
   ],
-  "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/6/65/Wedding_Kleing%C3%A4rten_an_der_Bornholmer_Stra%C3%9Fe.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/gesundbrunnen-1.webp",
   "rentIndex": "",
   "vibe": "Verkehrsgünstig & Multikulti",
   "transitLines": "U8, S1, S2, S25, S26, S41, S42 (Gesundbrunnen Fernbahnhof)",
@@ -1072,32 +1056,32 @@ const KIEZE_FULL = [
   "policePhone": "+49 30 4664 117701",
   "photoCredits": [
    {
-    "url": "https://upload.wikimedia.org/wikipedia/commons/6/65/Wedding_Kleing%C3%A4rten_an_der_Bornholmer_Stra%C3%9Fe.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-    "page": "https://commons.wikimedia.org/wiki/File:Wedding_Kleing%C3%A4rten_an_der_Bornholmer_Stra%C3%9Fe.jpg",
-    "license": "Public domain",
-    "artist": "Fischchen",
-    "title": "Wedding Kleingärten an der Bornholmer Straße"
+    "url": "https://mykiezberlin.com/assets/kieze/gesundbrunnen-1.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Humboldth%C3%B6he2.jpg",
+    "license": "CC BY-SA 2.0 de",
+    "artist": "Angela Monika Arnold",
+    "title": "Humboldthöhe2"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2d/Telefunken_Ger%C3%A4tewerk_Schwedenstra%C3%9Fe%2C_Berlin.JPG/960px-Telefunken_Ger%C3%A4tewerk_Schwedenstra%C3%9Fe%2C_Berlin.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Telefunken_Ger%C3%A4tewerk_Schwedenstra%C3%9Fe,_Berlin.JPG",
-    "license": "CC0",
-    "artist": "Onkel Dittmeyer",
-    "title": "Telefunken Gerätewerk Schwedenstraße, Berlin"
+    "url": "https://mykiezberlin.com/assets/kieze/gesundbrunnen-2.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Swinem%C3%BCnder_Br%C3%BCcke_Berlin.jpg",
+    "license": "CC BY-SA 4.0",
+    "artist": "Marek Sliwecki",
+    "title": "Swinemünder_Brücke_Berlin"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/ff/Rotaprint_gebaeude.jpg/960px-Rotaprint_gebaeude.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Rotaprint_gebaeude.jpg",
-    "license": "CC BY-SA 3.0",
-    "artist": "Oimel",
-    "title": "Rotaprint gebaeude"
+    "url": "https://mykiezberlin.com/assets/kieze/gesundbrunnen-3.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin_-_Bahnhof_Gesundbrunnen_(7357167108).jpg",
+    "license": "CC BY-SA 2.0",
+    "artist": "IngolfBLN",
+    "title": "Berlin_-_Bahnhof_Gesundbrunnen_(7357167108)"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2e/Panke2.jpg/960px-Panke2.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Panke2.jpg",
-    "license": "CC BY-SA 3.0",
-    "artist": "Richardfabi",
-    "title": "Panke2"
+    "url": "https://mykiezberlin.com/assets/kieze/gesundbrunnen-4.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Badstra%C3%9Fe_Berlin-Gesundbrunnen.jpg",
+    "license": "CC BY-SA 4.0",
+    "artist": "Queryzo",
+    "title": "Badstraße_Berlin-Gesundbrunnen"
    }
   ],
   "sources": {
@@ -1107,10 +1091,10 @@ const KIEZE_FULL = [
    "population": "https://download.statistik-berlin-brandenburg.de/e6710fc4098ecab8/7087df199efb/SB_A01-05-00_2026h01_BE.pdf"
   },
   "impressionImages": [
-   "https://upload.wikimedia.org/wikipedia/commons/6/65/Wedding_Kleing%C3%A4rten_an_der_Bornholmer_Stra%C3%9Fe.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2d/Telefunken_Ger%C3%A4tewerk_Schwedenstra%C3%9Fe%2C_Berlin.JPG/960px-Telefunken_Ger%C3%A4tewerk_Schwedenstra%C3%9Fe%2C_Berlin.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/ff/Rotaprint_gebaeude.jpg/960px-Rotaprint_gebaeude.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2e/Panke2.jpg/960px-Panke2.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+   "https://mykiezberlin.com/assets/kieze/gesundbrunnen-1.webp",
+   "https://mykiezberlin.com/assets/kieze/gesundbrunnen-2.webp",
+   "https://mykiezberlin.com/assets/kieze/gesundbrunnen-3.webp",
+   "https://mykiezberlin.com/assets/kieze/gesundbrunnen-4.webp"
   ],
   "populationDate": "30.06.2026"
  },
@@ -1136,7 +1120,7 @@ const KIEZE_FULL = [
    "Gutshaus Steglitz",
    "Stadtpark"
   ],
-  "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c1/Lukaskirche1_Berlin-Steglitz_-_Mutter_Erde_fec.jpg/960px-Lukaskirche1_Berlin-Steglitz_-_Mutter_Erde_fec.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/steglitz-1.webp",
   "rentIndex": "",
   "vibe": "Etabliert & Komfortabel",
   "transitLines": "U9 (Rathaus Steglitz, Schloßstr.), S1 (Feuerbachstr.), Bus X83, M48",
@@ -1158,32 +1142,32 @@ const KIEZE_FULL = [
   "policePhone": "+49 30 4664 0",
   "photoCredits": [
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c1/Lukaskirche1_Berlin-Steglitz_-_Mutter_Erde_fec.jpg/960px-Lukaskirche1_Berlin-Steglitz_-_Mutter_Erde_fec.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Lukaskirche1_Berlin-Steglitz_-_Mutter_Erde_fec.jpg",
-    "license": "Attribution",
-    "artist": "Mutter Erde",
-    "title": "Lukaskirche1 Berlin-Steglitz - Mutter Erde fec"
+    "url": "https://mykiezberlin.com/assets/kieze/steglitz-1.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin_-_Bierpinsel.jpg",
+    "license": "CC BY-SA 4.0",
+    "artist": "Marek Śliwecki",
+    "title": "Berlin_-_Bierpinsel"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3f/GWB_Wagen_2_01.jpg/960px-GWB_Wagen_2_01.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:GWB_Wagen_2_01.jpg",
-    "license": "Public domain",
-    "artist": "Autor/-in unbekannt Unknown author",
-    "title": "GWB Wagen 2 01"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/46/Clp_20110319_Hp_Berlin_Feuerbachstra%C3%9Fe_EG_2.jpg/960px-Clp_20110319_Hp_Berlin_Feuerbachstra%C3%9Fe_EG_2.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Clp_20110319_Hp_Berlin_Feuerbachstra%C3%9Fe_EG_2.jpg",
+    "url": "https://mykiezberlin.com/assets/kieze/steglitz-2.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Rathaus_Berlin-Steglitz_Sep12.jpg",
     "license": "CC BY-SA 3.0",
-    "artist": "Christian Liebscher ( Platte )",
-    "title": "Clp 20110319 Hp Berlin Feuerbachstraße EG 2"
+    "artist": "A.Savin",
+    "title": "Rathaus_Berlin-Steglitz_Sep12"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/da/Berlin-_Hanstedter_Weg-_Grundschule_am_Insulaner-_vom_Hanstedter_Weg_aus_9.8.2014.jpg/960px-Berlin-_Hanstedter_Weg-_Grundschule_am_Insulaner-_vom_Hanstedter_Weg_aus_9.8.2014.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berlin-_Hanstedter_Weg-_Grundschule_am_Insulaner-_vom_Hanstedter_Weg_aus_9.8.2014.jpg",
-    "license": "CC BY-SA 3.0",
-    "artist": "Wikimedia-User Jivee Blau",
-    "title": "Berlin- Hanstedter Weg- Grundschule am Insulaner- vom Hanstedter Weg a"
+    "url": "https://mykiezberlin.com/assets/kieze/steglitz-3.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:120929-Steglitz-Titania-Palast.JPG",
+    "license": "CC BY 3.0",
+    "artist": "Muns",
+    "title": "120929-Steglitz-Titania-Palast"
+   },
+   {
+    "url": "https://mykiezberlin.com/assets/kieze/steglitz-4.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin_Stadtpark_Steglitz_UAV_04-2017_img1.jpg",
+    "license": "FAL",
+    "artist": "A.Savin",
+    "title": "Berlin_Stadtpark_Steglitz_UAV_04-2017_img1"
    }
   ],
   "sources": {
@@ -1193,10 +1177,10 @@ const KIEZE_FULL = [
    "population": "https://download.statistik-berlin-brandenburg.de/e6710fc4098ecab8/7087df199efb/SB_A01-05-00_2026h01_BE.pdf"
   },
   "impressionImages": [
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c1/Lukaskirche1_Berlin-Steglitz_-_Mutter_Erde_fec.jpg/960px-Lukaskirche1_Berlin-Steglitz_-_Mutter_Erde_fec.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3f/GWB_Wagen_2_01.jpg/960px-GWB_Wagen_2_01.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/46/Clp_20110319_Hp_Berlin_Feuerbachstra%C3%9Fe_EG_2.jpg/960px-Clp_20110319_Hp_Berlin_Feuerbachstra%C3%9Fe_EG_2.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/da/Berlin-_Hanstedter_Weg-_Grundschule_am_Insulaner-_vom_Hanstedter_Weg_aus_9.8.2014.jpg/960px-Berlin-_Hanstedter_Weg-_Grundschule_am_Insulaner-_vom_Hanstedter_Weg_aus_9.8.2014.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+   "https://mykiezberlin.com/assets/kieze/steglitz-1.webp",
+   "https://mykiezberlin.com/assets/kieze/steglitz-2.webp",
+   "https://mykiezberlin.com/assets/kieze/steglitz-3.webp",
+   "https://mykiezberlin.com/assets/kieze/steglitz-4.webp"
   ],
   "populationDate": "30.06.2026"
  },
@@ -1222,7 +1206,7 @@ const KIEZE_FULL = [
    "Jugendstil Mexikoplatz",
    "Haus am Waldsee"
   ],
-  "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a1/Zehlendorf_Wilskistra%C3%9Fe-003.JPG/960px-Zehlendorf_Wilskistra%C3%9Fe-003.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/zehlendorf-1.webp",
   "rentIndex": "",
   "vibe": "Idyllisch & Nobel",
   "transitLines": "S1 (Zehlendorf, Mexikoplatz, Sundgauer Str.), Bus X10, 112, 118",
@@ -1244,32 +1228,25 @@ const KIEZE_FULL = [
   "policePhone": "+49 30 4664 0",
   "photoCredits": [
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a1/Zehlendorf_Wilskistra%C3%9Fe-003.JPG/960px-Zehlendorf_Wilskistra%C3%9Fe-003.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Zehlendorf_Wilskistra%C3%9Fe-003.JPG",
-    "license": "CC BY-SA 3.0",
-    "artist": "Fridolin freudenfett (Peter Kuley)",
-    "title": "Zehlendorf Wilskistraße-003"
+    "url": "https://mykiezberlin.com/assets/kieze/zehlendorf-1.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin_Schlachtensee_asv2022-08_img2.jpg",
+    "license": "FAL",
+    "artist": "A.Savin",
+    "title": "Berlin_Schlachtensee_asv2022-08_img2"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1a/Zehlendorf_Teltower_Damm_10.jpg/960px-Zehlendorf_Teltower_Damm_10.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Zehlendorf_Teltower_Damm_10.jpg",
+    "url": "https://mykiezberlin.com/assets/kieze/zehlendorf-2.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Krumme_Lanke_B-Zehlendorf_06-2017.jpg",
+    "license": "FAL",
+    "artist": "A.Savin",
+    "title": "Krumme_Lanke_B-Zehlendorf_06-2017"
+   },
+   {
+    "url": "https://mykiezberlin.com/assets/kieze/zehlendorf-3.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Zehlendorf_Rathaus.jpg",
     "license": "CC BY-SA 3.0",
     "artist": "Clemensfranz",
-    "title": "Zehlendorf Teltower Damm 10"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5e/Haus_am_Waldsee_Internationale_Kunst_in_Berlin%2C_2019%2C_Foto_Bernd_Borchardt.jpg/960px-Haus_am_Waldsee_Internationale_Kunst_in_Berlin%2C_2019%2C_Foto_Bernd_Borchardt.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Haus_am_Waldsee_Internationale_Kunst_in_Berlin,_2019,_Foto_Bernd_Borchardt.jpg",
-    "license": "CC BY-SA 4.0",
-    "artist": "Haus am Waldsee",
-    "title": "Haus am Waldsee Internationale Kunst in Berlin, 2019, Foto Bernd Borch"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1b/Berlin-Zehlendorf_Dorfkirche.jpg/960px-Berlin-Zehlendorf_Dorfkirche.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berlin-Zehlendorf_Dorfkirche.jpg",
-    "license": "CC BY 3.0",
-    "artist": "Photo: Andreas Praefcke",
-    "title": "Berlin-Zehlendorf Dorfkirche"
+    "title": "Zehlendorf_Rathaus"
    }
   ],
   "sources": {
@@ -1279,10 +1256,9 @@ const KIEZE_FULL = [
    "population": "https://download.statistik-berlin-brandenburg.de/e6710fc4098ecab8/7087df199efb/SB_A01-05-00_2026h01_BE.pdf"
   },
   "impressionImages": [
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a1/Zehlendorf_Wilskistra%C3%9Fe-003.JPG/960px-Zehlendorf_Wilskistra%C3%9Fe-003.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1a/Zehlendorf_Teltower_Damm_10.jpg/960px-Zehlendorf_Teltower_Damm_10.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5e/Haus_am_Waldsee_Internationale_Kunst_in_Berlin%2C_2019%2C_Foto_Bernd_Borchardt.jpg/960px-Haus_am_Waldsee_Internationale_Kunst_in_Berlin%2C_2019%2C_Foto_Bernd_Borchardt.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1b/Berlin-Zehlendorf_Dorfkirche.jpg/960px-Berlin-Zehlendorf_Dorfkirche.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+   "https://mykiezberlin.com/assets/kieze/zehlendorf-1.webp",
+   "https://mykiezberlin.com/assets/kieze/zehlendorf-2.webp",
+   "https://mykiezberlin.com/assets/kieze/zehlendorf-3.webp"
   ],
   "populationDate": "30.06.2026"
  },
@@ -1308,7 +1284,7 @@ const KIEZE_FULL = [
    "Havelpromenade",
    "Kolksiedlung"
   ],
-  "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5f/Spandau_Intra_Moenia_1728.jpg/960px-Spandau_Intra_Moenia_1728.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/spandau-1.webp",
   "rentIndex": "",
   "vibe": "Traditionsreich & Wasserreich",
   "transitLines": "U7 (Rathaus Spandau), S3, S9 (Spandau), Regionalbahn & ICE",
@@ -1331,32 +1307,25 @@ const KIEZE_FULL = [
   "policePhone": "+49 30 4664 221700",
   "photoCredits": [
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5f/Spandau_Intra_Moenia_1728.jpg/960px-Spandau_Intra_Moenia_1728.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Spandau_Intra_Moenia_1728.jpg",
-    "license": "Public domain",
-    "artist": "Gustav Haestskau",
-    "title": "Spandau Intra Moenia 1728"
+    "url": "https://mykiezberlin.com/assets/kieze/spandau-1.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Aerial_image_of_Spandau_Citadel_(view_from_the_southeast).jpg",
+    "license": "CC BY-SA 4.0",
+    "artist": "Carsten Steger",
+    "title": "Aerial_image_of_Spandau_Citadel_(view_from_the_southeast)"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e3/Merian_Spandau.jpg/960px-Merian_Spandau.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Merian_Spandau.jpg",
-    "license": "Public domain",
-    "artist": "Matthäus Merian",
-    "title": "Merian Spandau"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/42/Gedenktafel_Reformationsplatz_2_%28Span%29_Ernst_Ludwig_Heim.JPG/960px-Gedenktafel_Reformationsplatz_2_%28Span%29_Ernst_Ludwig_Heim.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Gedenktafel_Reformationsplatz_2_(Span)_Ernst_Ludwig_Heim.JPG",
+    "url": "https://mykiezberlin.com/assets/kieze/spandau-2.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:2013-08_View_from_Rathaus_Spandau_03.jpg",
     "license": "CC BY-SA 3.0",
-    "artist": "OTFW , Berlin",
-    "title": "Gedenktafel Reformationsplatz 2 (Span) Ernst Ludwig Heim"
+    "artist": "A.Savin",
+    "title": "2013-08_View_from_Rathaus_Spandau_03"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bb/Ansicht_Spandau_um_1850.jpg/960px-Ansicht_Spandau_um_1850.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Ansicht_Spandau_um_1850.jpg",
-    "license": "Public domain",
-    "artist": "L. Rohbock, Joh. Poppel",
-    "title": "Ansicht Spandau um 1850"
+    "url": "https://mykiezberlin.com/assets/kieze/spandau-3.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Rathaus_B-Spandau_07-2017.jpg",
+    "license": "FAL",
+    "artist": "A.Savin",
+    "title": "Rathaus_B-Spandau_07-2017"
    }
   ],
   "sources": {
@@ -1366,10 +1335,9 @@ const KIEZE_FULL = [
    "population": "https://download.statistik-berlin-brandenburg.de/e6710fc4098ecab8/7087df199efb/SB_A01-05-00_2026h01_BE.pdf"
   },
   "impressionImages": [
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5f/Spandau_Intra_Moenia_1728.jpg/960px-Spandau_Intra_Moenia_1728.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e3/Merian_Spandau.jpg/960px-Merian_Spandau.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/42/Gedenktafel_Reformationsplatz_2_%28Span%29_Ernst_Ludwig_Heim.JPG/960px-Gedenktafel_Reformationsplatz_2_%28Span%29_Ernst_Ludwig_Heim.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bb/Ansicht_Spandau_um_1850.jpg/960px-Ansicht_Spandau_um_1850.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+   "https://mykiezberlin.com/assets/kieze/spandau-1.webp",
+   "https://mykiezberlin.com/assets/kieze/spandau-2.webp",
+   "https://mykiezberlin.com/assets/kieze/spandau-3.webp"
   ],
   "populationDate": "30.06.2026"
  },
@@ -1395,7 +1363,7 @@ const KIEZE_FULL = [
    "Schloss Tegel & Park",
    "Tegeler Fließ"
   ],
-  "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d9/Wei%C3%9Fe_Stadt_Aroser_Allee_S%C3%BCdseite.jpg/960px-Wei%C3%9Fe_Stadt_Aroser_Allee_S%C3%BCdseite.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/reinickendorf-1.webp",
   "rentIndex": "",
   "vibe": "Naturnah & Ruhig",
   "transitLines": "U8 (Rathaus Reinickendorf, Franz-Neumann-Platz), S25, Bus 125, 221",
@@ -1418,32 +1386,25 @@ const KIEZE_FULL = [
   "policePhone": "+49 30 4664 112701",
   "photoCredits": [
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d9/Wei%C3%9Fe_Stadt_Aroser_Allee_S%C3%BCdseite.jpg/960px-Wei%C3%9Fe_Stadt_Aroser_Allee_S%C3%BCdseite.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Wei%C3%9Fe_Stadt_Aroser_Allee_S%C3%BCdseite.jpg",
+    "url": "https://mykiezberlin.com/assets/kieze/reinickendorf-1.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Tegeler_See_1a.jpg",
+    "license": "Public domain",
+    "artist": "TILMAN KLUGE at German Wikipedia",
+    "title": "Tegeler_See_1a"
+   },
+   {
+    "url": "https://mykiezberlin.com/assets/kieze/reinickendorf-2.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:09011641_Berlin-Tegel,_Adelheidallee_17-21_001.jpg",
+    "license": "CC BY-SA 3.0",
+    "artist": "Sekamor",
+    "title": "09011641_Berlin-Tegel,_Adelheidallee_17-21_001"
+   },
+   {
+    "url": "https://mykiezberlin.com/assets/kieze/reinickendorf-3.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Tegel_Greenwichpromenade_Telefonzelle_und_Briefkasten-001.jpg",
     "license": "CC BY-SA 4.0",
     "artist": "Fridolin freudenfett",
-    "title": "Weiße Stadt Aroser Allee Südseite"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/36/Straube_Umgegend_von_Berlin_und_Potsdam_1886%3B_Berlin-Reinickendorf_%28cropped%29.jpg/960px-Straube_Umgegend_von_Berlin_und_Potsdam_1886%3B_Berlin-Reinickendorf_%28cropped%29.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Straube_Umgegend_von_Berlin_und_Potsdam_1886;_Berlin-Reinickendorf_(cropped).jpg",
-    "license": "Public domain",
-    "artist": "de:Julius Straube , Zeichnung u. Stich d. Situation u. Schrift v. Bernh. Koschin",
-    "title": "Straube Umgegend von Berlin und Potsdam 1886; Berlin-Reinickendorf (cr"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cb/Grab_Friedrich_Wilke.jpg/960px-Grab_Friedrich_Wilke.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Grab_Friedrich_Wilke.jpg",
-    "license": "CC BY-SA 4.0",
-    "artist": "Dignus est intrare",
-    "title": "Grab Friedrich Wilke"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fb/Berlin_knorke_reinickendorf_dorfkirche.jpg/960px-Berlin_knorke_reinickendorf_dorfkirche.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berlin_knorke_reinickendorf_dorfkirche.jpg",
-    "license": "CC BY 3.0",
-    "artist": "Dirk Ingo Franke",
-    "title": "Berlin knorke reinickendorf dorfkirche"
+    "title": "Tegel_Greenwichpromenade_Telefonzelle_und_Briefkasten-001"
    }
   ],
   "sources": {
@@ -1453,10 +1414,9 @@ const KIEZE_FULL = [
    "population": "https://download.statistik-berlin-brandenburg.de/e6710fc4098ecab8/7087df199efb/SB_A01-05-00_2026h01_BE.pdf"
   },
   "impressionImages": [
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d9/Wei%C3%9Fe_Stadt_Aroser_Allee_S%C3%BCdseite.jpg/960px-Wei%C3%9Fe_Stadt_Aroser_Allee_S%C3%BCdseite.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/36/Straube_Umgegend_von_Berlin_und_Potsdam_1886%3B_Berlin-Reinickendorf_%28cropped%29.jpg/960px-Straube_Umgegend_von_Berlin_und_Potsdam_1886%3B_Berlin-Reinickendorf_%28cropped%29.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cb/Grab_Friedrich_Wilke.jpg/960px-Grab_Friedrich_Wilke.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fb/Berlin_knorke_reinickendorf_dorfkirche.jpg/960px-Berlin_knorke_reinickendorf_dorfkirche.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+   "https://mykiezberlin.com/assets/kieze/reinickendorf-1.webp",
+   "https://mykiezberlin.com/assets/kieze/reinickendorf-2.webp",
+   "https://mykiezberlin.com/assets/kieze/reinickendorf-3.webp"
   ],
   "populationDate": "30.06.2026"
  },
@@ -1482,7 +1442,7 @@ const KIEZE_FULL = [
    "Rathaus Pankow",
    "Sommerbad Pankow"
   ],
-  "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6e/U-Bahn_Berlin_Pankow-3zu2.JPG/960px-U-Bahn_Berlin_Pankow-3zu2.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/pankow-1.webp",
   "rentIndex": "",
   "vibe": "Beschaulich & Kulturvoll",
   "transitLines": "U2 (Pankow, Vinetastr.), S2, S8, S85 (Pankow), Tram 50, M1",
@@ -1504,32 +1464,32 @@ const KIEZE_FULL = [
   "policePhone": "+49 30 4664 113701",
   "photoCredits": [
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6e/U-Bahn_Berlin_Pankow-3zu2.JPG/960px-U-Bahn_Berlin_Pankow-3zu2.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:U-Bahn_Berlin_Pankow-3zu2.JPG",
+    "url": "https://mykiezberlin.com/assets/kieze/pankow-1.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin_Schloss_Schoenhausen_06-2014.jpg",
     "license": "CC BY-SA 3.0",
-    "artist": "U-Bahn_Berlin_Pankow.JPG : Jcornelius",
-    "title": "U-Bahn Berlin Pankow-3zu2"
+    "artist": "A.Savin",
+    "title": "Berlin_Schloss_Schoenhausen_06-2014"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8c/Berlin_Kavaliershaus.jpg/960px-Berlin_Kavaliershaus.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berlin_Kavaliershaus.jpg",
+    "url": "https://mykiezberlin.com/assets/kieze/pankow-2.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Rathaus_Pankow_(2009).jpg",
     "license": "CC BY-SA 3.0",
-    "artist": "Doris Antony , Berlin",
-    "title": "Berlin Kavaliershaus"
+    "artist": "Jochen Teufel",
+    "title": "Rathaus_Pankow_(2009)"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/93/Berlin_-_J%C3%BCdisches_Waisenhaus.jpg/960px-Berlin_-_J%C3%BCdisches_Waisenhaus.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berlin_-_J%C3%BCdisches_Waisenhaus.jpg",
+    "url": "https://mykiezberlin.com/assets/kieze/pankow-3.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin_-_B%C3%BCrgerpark_Pankow.jpg",
     "license": "CC BY-SA 4.0",
     "artist": "Marek Śliwecki",
-    "title": "Berlin - Jüdisches Waisenhaus"
+    "title": "Berlin_-_Bürgerpark_Pankow"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/31/Berlin_-_Alte_Pfarrkirche_%E2%80%9EZu_den_Vier_Evangelisten%E2%80%9C.jpg/960px-Berlin_-_Alte_Pfarrkirche_%E2%80%9EZu_den_Vier_Evangelisten%E2%80%9C.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berlin_-_Alte_Pfarrkirche_%E2%80%9EZu_den_Vier_Evangelisten%E2%80%9C.jpg",
-    "license": "CC BY-SA 4.0",
-    "artist": "Marek Śliwecki",
-    "title": "Berlin - Alte Pfarrkirche „Zu den Vier Evangelisten“"
+    "url": "https://mykiezberlin.com/assets/kieze/pankow-4.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:MajakowskiringPieck.JPG",
+    "license": "CC BY-SA 3.0",
+    "artist": "Berlin Brewer",
+    "title": "MajakowskiringPieck"
    }
   ],
   "sources": {
@@ -1539,10 +1499,10 @@ const KIEZE_FULL = [
    "population": "https://download.statistik-berlin-brandenburg.de/e6710fc4098ecab8/7087df199efb/SB_A01-05-00_2026h01_BE.pdf"
   },
   "impressionImages": [
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6e/U-Bahn_Berlin_Pankow-3zu2.JPG/960px-U-Bahn_Berlin_Pankow-3zu2.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8c/Berlin_Kavaliershaus.jpg/960px-Berlin_Kavaliershaus.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/93/Berlin_-_J%C3%BCdisches_Waisenhaus.jpg/960px-Berlin_-_J%C3%BCdisches_Waisenhaus.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/31/Berlin_-_Alte_Pfarrkirche_%E2%80%9EZu_den_Vier_Evangelisten%E2%80%9C.jpg/960px-Berlin_-_Alte_Pfarrkirche_%E2%80%9EZu_den_Vier_Evangelisten%E2%80%9C.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+   "https://mykiezberlin.com/assets/kieze/pankow-1.webp",
+   "https://mykiezberlin.com/assets/kieze/pankow-2.webp",
+   "https://mykiezberlin.com/assets/kieze/pankow-3.webp",
+   "https://mykiezberlin.com/assets/kieze/pankow-4.webp"
   ],
   "populationDate": "30.06.2026"
  },
@@ -1568,7 +1528,7 @@ const KIEZE_FULL = [
    "Landschaftspark Herzberge",
    "Rummelsburger Bucht"
   ],
-  "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/Terrain-Gesellschaft_Rittergut_Lichtenberg.jpg/960px-Terrain-Gesellschaft_Rittergut_Lichtenberg.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/lichtenberg-1.webp",
   "rentIndex": "",
   "vibe": "Dynamisch & Vielfältig",
   "transitLines": "U5 (Lichtenberg, Magdalenenstr.), S5, S7, S75, S41, S42, Tram M8, 21",
@@ -1590,32 +1550,25 @@ const KIEZE_FULL = [
   "policePhone": "+49 30 4664 334700",
   "photoCredits": [
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/Terrain-Gesellschaft_Rittergut_Lichtenberg.jpg/960px-Terrain-Gesellschaft_Rittergut_Lichtenberg.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Terrain-Gesellschaft_Rittergut_Lichtenberg.jpg",
-    "license": "Public domain",
-    "artist": "Axel.Mauruszat",
-    "title": "Terrain-Gesellschaft Rittergut Lichtenberg"
+    "url": "https://mykiezberlin.com/assets/kieze/lichtenberg-1.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin_Tierpark_Friedrichsfelde_12-2015_Schloss_img1.jpg",
+    "license": "FAL",
+    "artist": "A.Savin",
+    "title": "Berlin_Tierpark_Friedrichsfelde_12-2015_Schloss_img1"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ed/Parkaue_25.jpg/960px-Parkaue_25.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Parkaue_25.jpg",
-    "license": "CC BY-SA 3.0",
-    "artist": "Michael G. Schroeder",
-    "title": "Parkaue 25"
+    "url": "https://mykiezberlin.com/assets/kieze/lichtenberg-2.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Tierpark_Berlin_Haupteingang_2016.jpg",
+    "license": "CC BY 3.0",
+    "artist": "Dreizung",
+    "title": "Tierpark_Berlin_Haupteingang_2016"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/81/Kirche-Berlin-Lichtenberg.jpg/960px-Kirche-Berlin-Lichtenberg.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Kirche-Berlin-Lichtenberg.jpg",
+    "url": "https://mykiezberlin.com/assets/kieze/lichtenberg-3.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Rathaus-Berlin-Lichtenberg.jpg",
     "license": "CC BY-SA 3.0",
-    "artist": "",
-    "title": "Kirche-Berlin-Lichtenberg"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/35/Infotafeln_Rummelsburger_Bucht_%28Berlin-Rummelsburg_2011%29_1166-1046-%28120%29.jpg/960px-Infotafeln_Rummelsburger_Bucht_%28Berlin-Rummelsburg_2011%29_1166-1046-%28120%29.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Infotafeln_Rummelsburger_Bucht_(Berlin-Rummelsburg_2011)_1166-1046-(120).jpg",
-    "license": "CC BY-SA 3.0",
-    "artist": "Lotse",
-    "title": "Infotafeln Rummelsburger Bucht (Berlin-Rummelsburg 2011) 1166-1046-(12"
+    "artist": "No machine-readable author provided. Feitscherg assumed (based on copyright clai",
+    "title": "Rathaus-Berlin-Lichtenberg"
    }
   ],
   "sources": {
@@ -1625,10 +1578,9 @@ const KIEZE_FULL = [
    "population": "https://download.statistik-berlin-brandenburg.de/e6710fc4098ecab8/7087df199efb/SB_A01-05-00_2026h01_BE.pdf"
   },
   "impressionImages": [
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/Terrain-Gesellschaft_Rittergut_Lichtenberg.jpg/960px-Terrain-Gesellschaft_Rittergut_Lichtenberg.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ed/Parkaue_25.jpg/960px-Parkaue_25.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/81/Kirche-Berlin-Lichtenberg.jpg/960px-Kirche-Berlin-Lichtenberg.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/35/Infotafeln_Rummelsburger_Bucht_%28Berlin-Rummelsburg_2011%29_1166-1046-%28120%29.jpg/960px-Infotafeln_Rummelsburger_Bucht_%28Berlin-Rummelsburg_2011%29_1166-1046-%28120%29.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+   "https://mykiezberlin.com/assets/kieze/lichtenberg-1.webp",
+   "https://mykiezberlin.com/assets/kieze/lichtenberg-2.webp",
+   "https://mykiezberlin.com/assets/kieze/lichtenberg-3.webp"
   ],
   "populationDate": "30.06.2026"
  },
@@ -1654,7 +1606,7 @@ const KIEZE_FULL = [
    "Zenner Biergarten & Konzerte",
    "Sowjetisches Ehrenmal"
   ],
-  "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/48/Open_air_meeting%2C_Berlin_LCCN2014687907_%28cropped%29.jpg/960px-Open_air_meeting%2C_Berlin_LCCN2014687907_%28cropped%29.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/treptow-1.webp",
   "rentIndex": "",
   "vibe": "Entspannt am Wasser",
   "transitLines": "S8, S9, S41, S42, S45, S85 (Treptower Park), Bus 165, 265",
@@ -1677,32 +1629,32 @@ const KIEZE_FULL = [
   "policePhone": "+49 30 4664 335700",
   "photoCredits": [
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/48/Open_air_meeting%2C_Berlin_LCCN2014687907_%28cropped%29.jpg/960px-Open_air_meeting%2C_Berlin_LCCN2014687907_%28cropped%29.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Open_air_meeting,_Berlin_LCCN2014687907_(cropped).jpg",
-    "license": "Public domain",
-    "artist": "Bain News Service, publisher",
-    "title": "Open air meeting, Berlin LCCN2014687907 (cropped)"
+    "url": "https://mykiezberlin.com/assets/kieze/treptow-1.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin_Treptower_Park_-_Wiese.jpg",
+    "license": "Attribution",
+    "artist": "Andreas Steinhoff",
+    "title": "Berlin_Treptower_Park_-_Wiese"
    },
    {
-    "url": "https://upload.wikimedia.org/wikipedia/commons/3/35/Bundesarchiv_Bild_183-1990-0702-306%2C_Berlin%2C_Treptow%2C_Gastst%C3%A4tte_%22Zenner%22_%28a%29.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-    "page": "https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_183-1990-0702-306,_Berlin,_Treptow,_Gastst%C3%A4tte_%22Zenner%22_(a).jpg",
-    "license": "CC BY-SA 3.0 de",
-    "artist": "Schindler, Karl-Heinz",
-    "title": "Bundesarchiv Bild 183-1990-0702-306, Berlin, Treptow, Gaststätte \"Zenn"
+    "url": "https://mykiezberlin.com/assets/kieze/treptow-2.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Sowjetisches_Ehrendenkmal_Klemm_Russischer_Soldat.jpg",
+    "license": "CC BY-SA 4.0",
+    "artist": "Toniklemm",
+    "title": "Sowjetisches_Ehrendenkmal_Klemm_Russischer_Soldat"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d9/Berliner_Gewerbeausstellung_1896_Kolonial_Ausstellung_Neu_Guinea_H%C3%BCtten.jpg/960px-Berliner_Gewerbeausstellung_1896_Kolonial_Ausstellung_Neu_Guinea_H%C3%BCtten.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berliner_Gewerbeausstellung_1896_Kolonial_Ausstellung_Neu_Guinea_H%C3%BCtten.jpg",
-    "license": "Public domain",
-    "artist": "Verlag des Verbandes für Photographie und deren Vervielfältigung für die Gewerbe",
-    "title": "Berliner Gewerbeausstellung 1896 Kolonial Ausstellung Neu Guinea Hütte"
+    "url": "https://mykiezberlin.com/assets/kieze/treptow-3.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Molecule_Man_-_Berlin_-_2013.jpg",
+    "license": "CC BY-SA 3.0",
+    "artist": "Avda",
+    "title": "Molecule_Man_-_Berlin_-_2013"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6f/Berliner_Gewerbeausstellung_1896_02.jpg/960px-Berliner_Gewerbeausstellung_1896_02.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berliner_Gewerbeausstellung_1896_02.jpg",
-    "license": "Public domain",
-    "artist": "Julius Straube",
-    "title": "Berliner Gewerbeausstellung 1896 02"
+    "url": "https://mykiezberlin.com/assets/kieze/treptow-4.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Archenhold_Sternwarte_Klemm_2022.jpg",
+    "license": "CC BY-SA 4.0",
+    "artist": "Toniklemm",
+    "title": "Archenhold_Sternwarte_Klemm_2022"
    }
   ],
   "sources": {
@@ -1713,10 +1665,10 @@ const KIEZE_FULL = [
   },
   "populationDate": "30.06.2026",
   "impressionImages": [
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/48/Open_air_meeting%2C_Berlin_LCCN2014687907_%28cropped%29.jpg/960px-Open_air_meeting%2C_Berlin_LCCN2014687907_%28cropped%29.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://upload.wikimedia.org/wikipedia/commons/3/35/Bundesarchiv_Bild_183-1990-0702-306%2C_Berlin%2C_Treptow%2C_Gastst%C3%A4tte_%22Zenner%22_%28a%29.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d9/Berliner_Gewerbeausstellung_1896_Kolonial_Ausstellung_Neu_Guinea_H%C3%BCtten.jpg/960px-Berliner_Gewerbeausstellung_1896_Kolonial_Ausstellung_Neu_Guinea_H%C3%BCtten.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6f/Berliner_Gewerbeausstellung_1896_02.jpg/960px-Berliner_Gewerbeausstellung_1896_02.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+   "https://mykiezberlin.com/assets/kieze/treptow-1.webp",
+   "https://mykiezberlin.com/assets/kieze/treptow-2.webp",
+   "https://mykiezberlin.com/assets/kieze/treptow-3.webp",
+   "https://mykiezberlin.com/assets/kieze/treptow-4.webp"
   ]
  },
  {
@@ -1741,7 +1693,7 @@ const KIEZE_FULL = [
    "Historisches Rathaus Köpenick",
    "Bölschestraße Friedrichshagen"
   ],
-  "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6f/Train_station_Berlin_Koepenick_entrance_building.jpg/960px-Train_station_Berlin_Koepenick_entrance_building.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/koepenick-1.webp",
   "rentIndex": "",
   "vibe": "Maritime Idylle",
   "transitLines": "S3 (Köpenick, Hirschgarten, Friedrichshagen), Tram 60, 61, 62, 68",
@@ -1764,32 +1716,25 @@ const KIEZE_FULL = [
   "policePhone": "+49 30 4664 336700",
   "photoCredits": [
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6f/Train_station_Berlin_Koepenick_entrance_building.jpg/960px-Train_station_Berlin_Koepenick_entrance_building.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Train_station_Berlin_Koepenick_entrance_building.jpg",
-    "license": "CC BY-SA 3.0 de",
-    "artist": "Jcornelius",
-    "title": "Train station Berlin Koepenick entrance building"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d1/Berlin-K%C3%B6penick_-_Rathaus_1.jpg/960px-Berlin-K%C3%B6penick_-_Rathaus_1.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berlin-K%C3%B6penick_-_Rathaus_1.jpg",
-    "license": "Attribution",
-    "artist": "Andreas Steinhoff",
-    "title": "Berlin-Köpenick - Rathaus 1"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c2/Berlin-K%C3%B6penick_-_Dahmeufer_Altstadt_Panorama.jpg/960px-Berlin-K%C3%B6penick_-_Dahmeufer_Altstadt_Panorama.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berlin-K%C3%B6penick_-_Dahmeufer_Altstadt_Panorama.jpg",
-    "license": "Attribution",
-    "artist": "Andreas Steinhoff",
-    "title": "Berlin-Köpenick - Dahmeufer Altstadt Panorama"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/52/Berlin-Koepenick_Schloss1_05-2014.jpg/960px-Berlin-Koepenick_Schloss1_05-2014.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+    "url": "https://mykiezberlin.com/assets/kieze/koepenick-1.webp",
     "page": "https://commons.wikimedia.org/wiki/File:Berlin-Koepenick_Schloss1_05-2014.jpg",
     "license": "CC BY-SA 3.0",
     "artist": "A.Savin",
-    "title": "Berlin-Koepenick Schloss1 05-2014"
+    "title": "Berlin-Koepenick_Schloss1_05-2014"
+   },
+   {
+    "url": "https://mykiezberlin.com/assets/kieze/koepenick-2.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin-K%C3%B6penick_-_Rathaus_1.jpg",
+    "license": "Attribution",
+    "artist": "Andreas Steinhoff",
+    "title": "Berlin-Köpenick_-_Rathaus_1"
+   },
+   {
+    "url": "https://mykiezberlin.com/assets/kieze/koepenick-3.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin_M%C3%BCggelturm_5.jpg",
+    "license": "Attribution",
+    "artist": "Andreas Steinhoff",
+    "title": "Berlin_Müggelturm_5"
    }
   ],
   "sources": {
@@ -1799,10 +1744,9 @@ const KIEZE_FULL = [
    "population": "https://download.statistik-berlin-brandenburg.de/e6710fc4098ecab8/7087df199efb/SB_A01-05-00_2026h01_BE.pdf"
   },
   "impressionImages": [
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6f/Train_station_Berlin_Koepenick_entrance_building.jpg/960px-Train_station_Berlin_Koepenick_entrance_building.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d1/Berlin-K%C3%B6penick_-_Rathaus_1.jpg/960px-Berlin-K%C3%B6penick_-_Rathaus_1.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c2/Berlin-K%C3%B6penick_-_Dahmeufer_Altstadt_Panorama.jpg/960px-Berlin-K%C3%B6penick_-_Dahmeufer_Altstadt_Panorama.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/52/Berlin-Koepenick_Schloss1_05-2014.jpg/960px-Berlin-Koepenick_Schloss1_05-2014.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+   "https://mykiezberlin.com/assets/kieze/koepenick-1.webp",
+   "https://mykiezberlin.com/assets/kieze/koepenick-2.webp",
+   "https://mykiezberlin.com/assets/kieze/koepenick-3.webp"
   ],
   "populationDate": "30.06.2026"
  },
@@ -1828,7 +1772,7 @@ const KIEZE_FULL = [
    "Wuhletal-Wanderweg",
    "Bockwindmühle"
   ],
-  "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c0/Marzahn_Gaerten_der_Welt_08-2015_img06_Christian_Monastery_Garden.jpg/960px-Marzahn_Gaerten_der_Welt_08-2015_img06_Christian_Monastery_Garden.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/marzahn-1.webp",
   "rentIndex": "",
   "vibe": "Grün & Überraschend",
   "transitLines": "U5 (Kienberg - Gärten der Welt), S7 (Marzahn), Tram M6, 18",
@@ -1851,32 +1795,18 @@ const KIEZE_FULL = [
   "policePhone": "+49 30 4664 332700",
   "photoCredits": [
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c0/Marzahn_Gaerten_der_Welt_08-2015_img06_Christian_Monastery_Garden.jpg/960px-Marzahn_Gaerten_der_Welt_08-2015_img06_Christian_Monastery_Garden.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Marzahn_Gaerten_der_Welt_08-2015_img06_Christian_Monastery_Garden.jpg",
+    "url": "https://mykiezberlin.com/assets/kieze/marzahn-1.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Marzahn_Gaerten_der_Welt_08-2015_img08_Chinese_Garden.jpg",
     "license": "CC BY-SA 3.0",
     "artist": "A.Savin",
-    "title": "Marzahn Gaerten der Welt 08-2015 img06 Christian Monastery Garden"
+    "title": "Marzahn_Gaerten_der_Welt_08-2015_img08_Chinese_Garden"
    },
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4b/Berlin_marzahn_panorama.jpg/960px-Berlin_marzahn_panorama.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berlin_marzahn_panorama.jpg",
+    "url": "https://mykiezberlin.com/assets/kieze/marzahn-2.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Alt-Marzahn_Kirche_110320_AMA_fec_(12).JPG",
     "license": "CC BY-SA 3.0",
-    "artist": "",
-    "title": "Berlin marzahn panorama"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5b/Berlin_marzahn_aerial_view.jpg/960px-Berlin_marzahn_aerial_view.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berlin_marzahn_aerial_view.jpg",
-    "license": "CC BY-SA 3.0 de",
-    "artist": "Arne Müseler",
-    "title": "Berlin marzahn aerial view"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b2/Berlin_Marzahn_Alt-Marzahn_51_%2809080510%29.JPG/960px-Berlin_Marzahn_Alt-Marzahn_51_%2809080510%29.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Berlin_Marzahn_Alt-Marzahn_51_(09080510).JPG",
-    "license": "CC BY-SA 3.0",
-    "artist": "Kvikk",
-    "title": "Berlin Marzahn Alt-Marzahn 51 (09080510)"
+    "artist": "Angela M. Arnold (=44penguins)",
+    "title": "Alt-Marzahn_Kirche_110320_AMA_fec_(12)"
    }
   ],
   "sources": {
@@ -1886,10 +1816,8 @@ const KIEZE_FULL = [
    "population": "https://download.statistik-berlin-brandenburg.de/e6710fc4098ecab8/7087df199efb/SB_A01-05-00_2026h01_BE.pdf"
   },
   "impressionImages": [
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c0/Marzahn_Gaerten_der_Welt_08-2015_img06_Christian_Monastery_Garden.jpg/960px-Marzahn_Gaerten_der_Welt_08-2015_img06_Christian_Monastery_Garden.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4b/Berlin_marzahn_panorama.jpg/960px-Berlin_marzahn_panorama.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5b/Berlin_marzahn_aerial_view.jpg/960px-Berlin_marzahn_aerial_view.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b2/Berlin_Marzahn_Alt-Marzahn_51_%2809080510%29.JPG/960px-Berlin_Marzahn_Alt-Marzahn_51_%2809080510%29.JPG?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+   "https://mykiezberlin.com/assets/kieze/marzahn-1.webp",
+   "https://mykiezberlin.com/assets/kieze/marzahn-2.webp"
   ],
   "populationDate": "30.06.2026"
  },
@@ -1915,7 +1843,7 @@ const KIEZE_FULL = [
    "Britzer Mühle",
    "Hufeisensiedlung UNESCO"
   ],
-  "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8e/Gutshof_Britz.jpg/960px-Gutshof_Britz.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/britz-1.webp",
   "rentIndex": "",
   "vibe": "Gartenstadt & Ruhig",
   "transitLines": "U7 (Grenzallee, Blaschkoallee, Parchimer Allee, Britz-Süd), Bus M44, M46",
@@ -1937,32 +1865,32 @@ const KIEZE_FULL = [
   "policePhone": "+49 30 4664 448700",
   "photoCredits": [
    {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8e/Gutshof_Britz.jpg/960px-Gutshof_Britz.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Gutshof_Britz.jpg",
-    "license": "CC BY-SA 3.0",
-    "artist": "Ahle, Fischer &amp; Co. Bau GmbH",
-    "title": "Gutshof Britz"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/33/Gedenktafel_Onkel-Br%C3%A4sig-Str_138_%28Britz%29_Heinrich_Vogeler.jpg/960px-Gedenktafel_Onkel-Br%C3%A4sig-Str_138_%28Britz%29_Heinrich_Vogeler.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Gedenktafel_Onkel-Br%C3%A4sig-Str_138_(Britz)_Heinrich_Vogeler.jpg",
-    "license": "CC BY-SA 3.0",
-    "artist": "OTFW , Berlin",
-    "title": "Gedenktafel Onkel-Bräsig-Str 138 (Britz) Heinrich Vogeler"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c2/Gedenktafel_D%C3%B6rchl%C3%A4uchtingstr_50_%28Britz%29_Erich_M%C3%BChsam.jpg/960px-Gedenktafel_D%C3%B6rchl%C3%A4uchtingstr_50_%28Britz%29_Erich_M%C3%BChsam.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Gedenktafel_D%C3%B6rchl%C3%A4uchtingstr_50_(Britz)_Erich_M%C3%BChsam.jpg",
-    "license": "CC BY-SA 3.0",
-    "artist": "OTFW , Berlin",
-    "title": "Gedenktafel Dörchläuchtingstr 50 (Britz) Erich Mühsam"
-   },
-   {
-    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f7/Britzer_Baumbl%C3%BCte_%282016%29.jpg/960px-Britzer_Baumbl%C3%BCte_%282016%29.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-    "page": "https://commons.wikimedia.org/wiki/File:Britzer_Baumbl%C3%BCte_(2016).jpg",
+    "url": "https://mykiezberlin.com/assets/kieze/britz-1.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:IBritzer_Garten_denis_apel.JPG",
     "license": "CC BY-SA 4.0",
-    "artist": "Dettmero",
-    "title": "Britzer Baumblüte (2016)"
+    "artist": "Denis Apel",
+    "title": "IBritzer_Garten_denis_apel"
+   },
+   {
+    "url": "https://mykiezberlin.com/assets/kieze/britz-2.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Berlin_Britz_Schloss_asv2021-03_img2.jpg",
+    "license": "FAL",
+    "artist": "A.Savin",
+    "title": "Berlin_Britz_Schloss_asv2021-03_img2"
+   },
+   {
+    "url": "https://mykiezberlin.com/assets/kieze/britz-3.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Luftbild_Hufeisen_in_der_Hufeisensiedlung.jpg",
+    "license": "CC BY-SA 3.0",
+    "artist": "Sebastian Trommer",
+    "title": "Luftbild_Hufeisen_in_der_Hufeisensiedlung"
+   },
+   {
+    "url": "https://mykiezberlin.com/assets/kieze/britz-4.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Britzer-muehle.jpg",
+    "license": "CC BY-SA 3.0",
+    "artist": "Aeggy",
+    "title": "Britzer-muehle"
    }
   ],
   "sources": {
@@ -1972,10 +1900,10 @@ const KIEZE_FULL = [
    "population": "https://download.statistik-berlin-brandenburg.de/e6710fc4098ecab8/7087df199efb/SB_A01-05-00_2026h01_BE.pdf"
   },
   "impressionImages": [
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8e/Gutshof_Britz.jpg/960px-Gutshof_Britz.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/33/Gedenktafel_Onkel-Br%C3%A4sig-Str_138_%28Britz%29_Heinrich_Vogeler.jpg/960px-Gedenktafel_Onkel-Br%C3%A4sig-Str_138_%28Britz%29_Heinrich_Vogeler.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c2/Gedenktafel_D%C3%B6rchl%C3%A4uchtingstr_50_%28Britz%29_Erich_M%C3%BChsam.jpg/960px-Gedenktafel_D%C3%B6rchl%C3%A4uchtingstr_50_%28Britz%29_Erich_M%C3%BChsam.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-   "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f7/Britzer_Baumbl%C3%BCte_%282016%29.jpg/960px-Britzer_Baumbl%C3%BCte_%282016%29.jpg?utm_source=de.wikipedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+   "https://mykiezberlin.com/assets/kieze/britz-1.webp",
+   "https://mykiezberlin.com/assets/kieze/britz-2.webp",
+   "https://mykiezberlin.com/assets/kieze/britz-3.webp",
+   "https://mykiezberlin.com/assets/kieze/britz-4.webp"
   ],
   "populationDate": "30.06.2026"
  },
@@ -2003,7 +1931,7 @@ const KIEZE_FULL = [
    "Spreewald Fließgewässer",
    "Werder Havel"
   ],
-  "imageUrl": "https://images.unsplash.com/photo-1560969184-10fe8719e047?w=800&auto=format&fit=crop&q=80",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/umgebung-1.webp",
   "rentIndex": "",
   "vibe": "Natur & Ausflug",
   "transitLines": "S-Bahn S7 (Potsdam Hbf), Regionalbahn RE1, RE7, FEX (VBB-Tarif ABC)",
@@ -2021,7 +1949,35 @@ const KIEZE_FULL = [
   "buergeramtAddress": "Friedrich-Ebert-Straße 79/81, 14469 Potsdam",
   "policeStation": "Polizeiinspektion Potsdam",
   "policeAddress": "Henning-von-Tresckow-Straße 9-13, 14467 Potsdam",
-  "policePhone": "+49 331 55080"
+  "policePhone": "+49 331 55080",
+  "impressionImages": [
+   "https://mykiezberlin.com/assets/kieze/umgebung-1.webp",
+   "https://mykiezberlin.com/assets/kieze/umgebung-2.webp",
+   "https://mykiezberlin.com/assets/kieze/umgebung-3.webp"
+  ],
+  "photoCredits": [
+   {
+    "url": "https://mykiezberlin.com/assets/kieze/umgebung-1.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Reflection_of_Sanssouci_Palace.jpg",
+    "license": "CC BY-SA 4.0",
+    "artist": "Yuropoulos",
+    "title": "Reflection_of_Sanssouci_Palace"
+   },
+   {
+    "url": "https://mykiezberlin.com/assets/kieze/umgebung-2.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Spreewald_04-2016_img03_Spree_near_Luebbenau.jpg",
+    "license": "FAL",
+    "artist": "A.Savin",
+    "title": "Spreewald_04-2016_img03_Spree_near_Luebbenau"
+   },
+   {
+    "url": "https://mykiezberlin.com/assets/kieze/umgebung-3.webp",
+    "page": "https://commons.wikimedia.org/wiki/File:Grosser_Wannsee_Berlin.jpg",
+    "license": "CC BY-SA 3.0",
+    "artist": "Times",
+    "title": "Grosser_Wannsee_Berlin"
+   }
+  ]
  }
 ];
 const FOOD_SPOTS = [
@@ -2035,7 +1991,7 @@ const FOOD_SPOTS = [
   "distance": "450 m",
   "address": "Mehringdamm 32, 10961 Berlin",
   "priceRange": "€",
-  "imageUrl": "https://images.unsplash.com/photo-1561758033-d89a9ad46330?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "https://mykiezberlin.com/assets/places/mustafas.webp",
   "isSponsored": false,
   "phone": "+49 30 69532940",
   "website": "https://mustafas.de",
@@ -2056,7 +2012,7 @@ const FOOD_SPOTS = [
   "distance": "1,2 km",
   "address": "Kollwitzstraße 83, 10435 Berlin",
   "priceRange": "€€",
-  "imageUrl": "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "",
   "isSponsored": true,
   "phone": "+49 30 44048641",
   "website": "https://cafe-anna-blume.de",
@@ -2077,7 +2033,7 @@ const FOOD_SPOTS = [
   "distance": "850 m",
   "address": "Eisenbahnstraße 42/43, 10997 Berlin",
   "priceRange": "€€",
-  "imageUrl": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "",
   "isSponsored": false,
   "phone": "+49 30 61074714",
   "website": "https://markthalleneun.de",
@@ -2098,7 +2054,7 @@ const FOOD_SPOTS = [
   "distance": "1,5 km",
   "address": "Oberbaumstraße 8, 10997 Berlin",
   "priceRange": "€",
-  "imageUrl": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "https://mykiezberlin.com/assets/places/burgermeister.webp",
   "isSponsored": false,
   "phone": "+49 30 23883840",
   "website": "https://burger-meister.de",
@@ -2119,7 +2075,7 @@ const FOOD_SPOTS = [
   "distance": "2,3 km",
   "address": "Alte Schönhauser Str. 14, 10119 Berlin",
   "priceRange": "€€",
-  "imageUrl": "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "",
   "isSponsored": false,
   "phone": "+49 30 96081527",
   "website": "https://fiveelephant.com",
@@ -2140,7 +2096,7 @@ const FOOD_SPOTS = [
   "distance": "500 m",
   "address": "Mehringdamm 36, 10961 Berlin",
   "priceRange": "€",
-  "imageUrl": "https://images.unsplash.com/photo-1627042633145-b780d842ba45?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "https://mykiezberlin.com/assets/places/curry36.webp",
   "isSponsored": false,
   "phone": "+49 30 2517368",
   "website": "https://curry36.de",
@@ -2219,7 +2175,7 @@ const EVENTS_FULL = [
  },
  {
   "id": "weihnachtszauber_berlin",
-  "title": "Berliner Weihnachtszauber & Kiez Pazarları",
+  "title": "Berliner Weihnachtszauber & Mahalle Pazarları",
   "dayLabel": "MO",
   "dateNum": "23",
   "monthLabel": "NOV",
@@ -2340,16 +2296,12 @@ const BUSINESSES = [
   "kiezName": "Kreuzberg",
   "distance": "300 m",
   "address": "Oranienstraße 185, 10999 Berlin",
-  "imageUrl": "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "",
   "isSponsored": true,
   "phone": "+49 30 61284455",
   "website": "https://kiezfriseur-berlin.de",
   "openingHours": "Mo-Sa: 10:00 - 20:00 Uhr",
-  "galleryImages": [
-   "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&auto=format&fit=crop&q=80",
-   "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600&auto=format&fit=crop&q=80",
-   "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=600&auto=format&fit=crop&q=80"
-  ],
+  "galleryImages": [],
   "description": "Traditionelles Handwerk trifft moderne Styles. Spezialisiert auf Herren- und Damenschnitte, Bartpflege und Naturfarben in entspannter Kiez-Atmosphäre."
  },
  {
@@ -2361,15 +2313,12 @@ const BUSINESSES = [
   "kiezName": "Neukölln",
   "distance": "400 m",
   "address": "Sonnenallee 54, 12045 Berlin",
-  "imageUrl": "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "",
   "isSponsored": false,
   "phone": "+49 30 55432100",
   "website": "https://brotzeit-neukoelln.de",
   "openingHours": "Di-So: 07:00 - 18:00 Uhr",
-  "galleryImages": [
-   "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&auto=format&fit=crop&q=80",
-   "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=600&auto=format&fit=crop&q=80"
-  ],
+  "galleryImages": [],
   "description": "Täglich frisch gebackenes Sauerteigbrot aus regionalem Bio-Getreide, traditionelle Berliner Schrippen, Zimtschnecken und Specialty Coffee."
  },
  {
@@ -2381,14 +2330,12 @@ const BUSINESSES = [
   "kiezName": "Kreuzberg",
   "distance": "550 m",
   "address": "Wrangelstraße 72, 10997 Berlin",
-  "imageUrl": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "",
   "isSponsored": false,
   "phone": "+49 30 69812300",
   "website": "https://kiezfitness-kreuzberg.de",
   "openingHours": "Mo-Fr: 06:30 - 23:00, Sa-So: 08:00 - 21:00",
-  "galleryImages": [
-   "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&auto=format&fit=crop&q=80"
-  ],
+  "galleryImages": [],
   "description": "Dein familiäres Gym im Kiez. State-of-the-Art Freihanteln, Functional-Area, Sauna und über 30 wöchentliche Kurse von Calisthenics bis Yoga."
  },
  {
@@ -2400,14 +2347,12 @@ const BUSINESSES = [
   "kiezName": "Mitte",
   "distance": "700 m",
   "address": "Torstraße 112, 10119 Berlin",
-  "imageUrl": "https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "",
   "isSponsored": false,
   "phone": "+49 30 28091100",
   "website": "https://apotheke-torstrasse.de",
   "openingHours": "Mo-Fr: 08:30 - 19:30, Sa: 09:00 - 16:00",
-  "galleryImages": [
-   "https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=600&auto=format&fit=crop&q=80"
-  ],
+  "galleryImages": [],
   "description": "Kompetente pharmazeutische Beratung, Botendienst direkt zu dir nach Hause im Kiez und ein breites Sortiment an Naturkosmetik."
  },
  {
@@ -2419,14 +2364,12 @@ const BUSINESSES = [
   "kiezName": "Pankow",
   "distance": "1,1 km",
   "address": "Prenzlauer Allee 88, 10405 Berlin",
-  "imageUrl": "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "",
   "isSponsored": false,
   "phone": "+49 30 44332211",
   "website": "https://rechtbox-beratung.de",
   "openingHours": "Mo-Fr: 09:00 - 18:00 Uhr",
-  "galleryImages": [
-   "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&auto=format&fit=crop&q=80"
-  ],
+  "galleryImages": [],
   "description": "Digitale Steuerberatung und Buchhaltung für Gastronomen, Freiberufler, Kiez-Geschäfte und Startups. Papierlos, schnell und transparent."
  },
  {
@@ -2438,7 +2381,7 @@ const BUSINESSES = [
   "kiezName": "Wedding",
   "distance": "500 m",
   "address": "Müllerstraße 142, 13353 Berlin",
-  "imageUrl": "https://images.unsplash.com/photo-1561651823-34feb02250e4?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "",
   "isSponsored": true,
   "phone": "+49 30 45021234",
   "whatsapp": "+4915126509586",
@@ -2455,7 +2398,7 @@ const BUSINESSES = [
   "kiezName": "Wedding",
   "distance": "750 m",
   "address": "Uferstraße 8, 13357 Berlin",
-  "imageUrl": "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "",
   "phone": "+49 30 45678912",
   "whatsapp": "+4915126509586",
   "website": "https://cafe-pfoertner.de",
@@ -2471,7 +2414,7 @@ const BUSINESSES = [
   "kiezName": "Friedrichshain",
   "distance": "350 m",
   "address": "Grünberger Str. 34, 10245 Berlin",
-  "imageUrl": "https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "",
   "phone": "+49 30 29364400",
   "whatsapp": "+4915126509586",
   "website": "https://silberfisch-berlin.de",
@@ -2487,7 +2430,7 @@ const BUSINESSES = [
   "kiezName": "Friedrichshain",
   "distance": "450 m",
   "address": "Simon-Dach-Straße 22, 10245 Berlin",
-  "imageUrl": "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "",
   "phone": "+49 30 29778899",
   "whatsapp": "+4915126509586",
   "website": "https://simondach-barber.de",
@@ -2503,7 +2446,7 @@ const BUSINESSES = [
   "kiezName": "Charlottenburg",
   "distance": "600 m",
   "address": "Kantstraße 64, 10627 Berlin",
-  "imageUrl": "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "",
   "phone": "+49 30 3241100",
   "whatsapp": "+4915126509586",
   "website": "https://kant-konditorei.de",
@@ -2519,7 +2462,7 @@ const BUSINESSES = [
   "kiezName": "Charlottenburg",
   "distance": "850 m",
   "address": "Kantstraße 148, 10623 Berlin",
-  "imageUrl": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "https://mykiezberlin.com/assets/places/schwarzes_cafe.webp",
   "phone": "+49 30 3138038",
   "whatsapp": "+4915126509586",
   "website": "https://schwarzescafe-berlin.de",
@@ -2535,7 +2478,7 @@ const BUSINESSES = [
   "kiezName": "Schöneberg",
   "distance": "400 m",
   "address": "Winterfeldtstraße 45, 10781 Berlin",
-  "imageUrl": "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "",
   "phone": "+49 30 2168900",
   "whatsapp": "+4915126509586",
   "website": "https://winterfeldt-kiez.de",
@@ -2551,7 +2494,7 @@ const BUSINESSES = [
   "kiezName": "Moabit",
   "distance": "500 m",
   "address": "Arminiusstraße 2, 10551 Berlin",
-  "imageUrl": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/moabit-2.webp",
   "phone": "+49 30 39876543",
   "whatsapp": "+4915126509586",
   "website": "https://arminiusmarkthalle.com",
@@ -2567,7 +2510,7 @@ const BUSINESSES = [
   "kiezName": "Prenzlauer Berg",
   "distance": "300 m",
   "address": "Kollwitzstraße 83, 10435 Berlin",
-  "imageUrl": "https://images.unsplash.com/photo-1525610553991-2bede1a236e2?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "",
   "isSponsored": true,
   "hasCoupon": true,
   "couponText": "%20 İndirim (Frühstückset)",
@@ -2586,7 +2529,7 @@ const BUSINESSES = [
   "kiezName": "Kreuzberg",
   "distance": "250 m",
   "address": "Mehringdamm 32, 10961 Berlin",
-  "imageUrl": "https://images.unsplash.com/photo-1561651823-34feb02250e4?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "https://mykiezberlin.com/assets/places/mustafas.webp",
   "phone": "+49 30 69532100",
   "whatsapp": "+4915126509586",
   "website": "https://mustafas.de",
@@ -2602,7 +2545,7 @@ const BUSINESSES = [
   "kiezName": "Neukölln",
   "distance": "350 m",
   "address": "Sonnenallee 54, 12045 Berlin",
-  "imageUrl": "https://images.unsplash.com/photo-1540914124281-342587941389?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "",
   "phone": "+49 30 62725678",
   "whatsapp": "+4915126509586",
   "website": "https://azzam-berlin.de",
@@ -2618,7 +2561,7 @@ const BUSINESSES = [
   "kiezName": "Tempelhof",
   "distance": "600 m",
   "address": "Tempelhofer Damm 90, 12101 Berlin",
-  "imageUrl": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "",
   "phone": "+49 30 78912300",
   "whatsapp": "+4915126509586",
   "website": "https://tempelhof-sport.de",
@@ -2634,7 +2577,7 @@ const BUSINESSES = [
   "kiezName": "Steglitz",
   "distance": "700 m",
   "address": "Schloßstraße 42, 12165 Berlin",
-  "imageUrl": "https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "",
   "phone": "+49 30 7914422",
   "whatsapp": "+4915126509586",
   "website": "https://schloss-apotheke-steglitz.de",
@@ -2651,7 +2594,7 @@ const DEALS = [
   "validUntil": "Gültig bis 31.12.2026",
   "category": "Freizeit & Fitness",
   "code": "FITKIEZ10",
-  "imageUrl": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&auto=format&fit=crop&q=80"
+  "imageUrl": ""
  },
  {
   "id": "deal_kiez_friseur_active",
@@ -2661,14 +2604,14 @@ const DEALS = [
   "validUntil": "Gültig bis 31.12.2026",
   "category": "Dienstleistungen",
   "code": "KIEZSTYLE15",
-  "imageUrl": "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&auto=format&fit=crop&q=80"
+  "imageUrl": ""
  }
 ];
 const QUIZ_FULL = [
  {
   "id": 1,
   "question": "In welchem Bezirk steht das Brandenburger Tor?",
-  "imageUrl": "https://images.unsplash.com/photo-1560969184-10fe8719e047?w=800&auto=format&fit=crop&q=80",
+  "imageUrl": "https://mykiezberlin.com/assets/tips/brandenburger-tor.webp",
   "options": [
    "Mitte",
    "Friedrichshain",
@@ -2681,7 +2624,7 @@ const QUIZ_FULL = [
  {
   "id": 2,
   "question": "Welches Tier ist das traditionelle Wappentier von Berlin?",
-  "imageUrl": "https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=800&auto=format&fit=crop&q=80",
+  "imageUrl": "https://mykiezberlin.com/assets/places/quiz_baer.webp",
   "options": [
    "Der Berliner Adler",
    "Der Berliner Bär",
@@ -2694,7 +2637,7 @@ const QUIZ_FULL = [
  {
   "id": 3,
   "question": "Wie hoch ist der Berliner Fernsehturm am Alexanderplatz?",
-  "imageUrl": "https://images.unsplash.com/photo-1546726747-421c6d69c929?w=800&auto=format&fit=crop&q=80",
+  "imageUrl": "https://mykiezberlin.com/assets/tips/fernsehturm.webp",
   "options": [
    "288 Meter",
    "325 Meter",
@@ -2707,7 +2650,7 @@ const QUIZ_FULL = [
  {
   "id": 4,
   "question": "Was bedeutet das typische Berliner Wort 'Schrippe'?",
-  "imageUrl": "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&auto=format&fit=crop&q=80",
+  "imageUrl": "https://mykiezberlin.com/assets/places/quiz_schrippe.webp",
   "options": [
    "Ein Brötchen",
    "Eine U-Bahn-Fahrkarte",
@@ -2720,7 +2663,7 @@ const QUIZ_FULL = [
  {
   "id": 5,
   "question": "In welchem Jahr fiel die Berliner Mauer?",
-  "imageUrl": "https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?w=800&auto=format&fit=crop&q=80",
+  "imageUrl": "https://mykiezberlin.com/assets/places/quiz_mauerfall.webp",
   "options": [
    "1987",
    "1989",
@@ -2738,7 +2681,7 @@ const ARTICLES = [
   "subtitle": "Von der Doppelstadt zur Hauptstadt",
   "category": "Geschichte",
   "readTimeMinutes": 5,
-  "imageUrl": "https://images.unsplash.com/photo-1560969184-10fe8719e047?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "https://mykiezberlin.com/assets/tips/brandenburger-tor.webp",
   "fullContent": "Berlin entstand im 13. Jahrhundert als Doppelstadt Berlin und Cölln an den Ufern der Spree. Über die Jahrhunderte entwickelte sich die Stadt von einer kurfürstlichen und preußischen Residenz zur pulsierenden Kulturmetropole der Goldenen Zwanziger Jahre. Nach den Zerstörungen des Zweiten Weltkriegs und der 28 Jahre währenden Teilung im Kalten Krieg feierte Berlin 1989 die friedliche Wiedervereinigung. Heute ist die deutsche Hauptstadt ein globales Zentrum für Kreativität, Hochtechnologie, Wissenschaft und gelebte Toleranz."
  },
  {
@@ -2747,7 +2690,7 @@ const ARTICLES = [
   "subtitle": "Entstehung, Verlauf und Heute",
   "category": "Geschichte",
   "readTimeMinutes": 6,
-  "imageUrl": "https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "https://mykiezberlin.com/assets/places/quiz_mauerfall.webp",
   "fullContent": "Vom 13. August 1961 bis zum 9. November 1989 trennte die Berliner Mauer West-Berlin von Ost-Berlin und der DDR auf einer Länge von über 155 Kilometern. Die Grenzanlagen mit Todesstreifen, Wachtürmen und Selbstschussanlagen kosteten mindestens 140 Menschen das Leben. Der historische Mauerfall im November 1989 leitete das Ende des Kalten Krieges ein. Heute mahnen die Gedenkstätte Bernauer Straße und die 1,3 Kilometer lange East Side Gallery als weltweit längste Open-Air-Galerie an diese Epoche."
  },
  {
@@ -2756,7 +2699,7 @@ const ARTICLES = [
   "subtitle": "Vielfalt und Besonderheiten",
   "category": "Kultur",
   "readTimeMinutes": 4,
-  "imageUrl": "https://images.unsplash.com/photo-1572953109213-3be62398eb95?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "https://mykiezberlin.com/assets/kieze/kreuzberg-1.webp",
   "fullContent": "Ein 'Kiez' ist in Berlin weit mehr als ein einfacher Stadtteil. Es ist das Mikrokosmos-Gefühl der eigenen Nachbarschaft: der Bäcker an der Ecke, der Späti um Mitternacht, der Wochenmarkt und die Nachbarn, die sich seit Jahrzehnten grüßen. Jeder Kiez – ob Bergmannkiez, Kollwitzplatz oder Reuterkiez – besitzt seine ganz eigene Identität."
  },
  {
@@ -2765,7 +2708,7 @@ const ARTICLES = [
   "subtitle": "Das darf man nicht verpassen",
   "category": "Sehenswürdigkeiten",
   "readTimeMinutes": 5,
-  "imageUrl": "https://images.unsplash.com/photo-1599946347371-68eb71b16afc?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "https://mykiezberlin.com/assets/tips/museumsinsel.webp",
   "fullContent": "Vom Brandenburger Tor über die Museumsinsel bis zum Schloss Charlottenburg und der Siegessäule im Tiergarten: Berlin bietet unzählige weltberühmte Monumente und versteckte architektonische Juwele, die man unbedingt gesehen haben muss."
  },
  {
@@ -2774,7 +2717,7 @@ const ARTICLES = [
   "subtitle": "Typische Wörter und Ausdrücke",
   "category": "Sprache",
   "readTimeMinutes": 3,
-  "imageUrl": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&auto=format&fit=crop&q=80",
+  "imageUrl": "https://mykiezberlin.com/assets/places/quiz_schrippe.webp",
   "fullContent": "Der Berliner Dialekt ('Berliner Schnauze') ist direkt, herzlich und schlagfertig. 'Icke' heißt Ich, 'Knorke' bedeutet großartig, eine 'Stulle' ist ein belegtes Butterbrot und 'Jwd' steht für 'janz weit draußen'."
  }
 ];

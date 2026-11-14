@@ -103,7 +103,7 @@ async function loadSubmissions() {
     items.forEach((raw) => {
       const i = { ...raw, fromServer: true };
       if (i.type === "business") {
-        BUSINESSES.push({ ...i, imageUrl: "assets/images/hero_berlin.jpg", rating: 0, reviewsCount: 0, distance: "" });
+        BUSINESSES.push({ ...i, imageUrl: "" /* 2026-11-14: no stock photo */, rating: 0, reviewsCount: 0, distance: "" });
       } else if (i.type === "event") {
         EVENTS_FULL.push({ ...i, dayLabel: i.dateText, dateNum: "", monthLabel: "", imageUrl: "" });
       } else if (i.type === "job") {

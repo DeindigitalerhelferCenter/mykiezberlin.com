@@ -19,11 +19,12 @@ object SampleData {
             lat = 52.5200,
             lng = 13.4050,
             highlights = listOf("Fernsehturm", "Brandenburger Tor", "Museumsinsel", "Hackesche Höfe"),
-            imageUrl = "https://images.unsplash.com/photo-1560969184-10fe8719e047?w=800&auto=format&fit=crop&q=80", // Brandenburger Tor
+            imageUrl = "https://mykiezberlin.com/assets/kieze/mitte-1.webp", // 2026-11-14: real photo (Wikimedia Commons, see /api/kieze photoCredits)
             impressionImages = listOf(
-                "https://images.unsplash.com/photo-1560969184-10fe8719e047?w=600&auto=format&fit=crop&q=80",
-                "https://images.unsplash.com/photo-1599946347371-68eb71b16afc?w=600&auto=format&fit=crop&q=80",
-                "https://images.unsplash.com/photo-1546726747-421c6d69c929?w=600&auto=format&fit=crop&q=80"
+                "https://mykiezberlin.com/assets/kieze/mitte-1.webp",
+                "https://mykiezberlin.com/assets/kieze/mitte-2.webp",
+                "https://mykiezberlin.com/assets/kieze/mitte-3.webp",
+                "https://mykiezberlin.com/assets/kieze/mitte-4.webp"
             ),
             rentIndex = "21,50 €/m²",
             vibe = "Metropolisch & Monumental",
@@ -48,12 +49,12 @@ object SampleData {
             lat = 52.4986,
             lng = 13.4069,
             highlights = listOf("Görlitzer Park", "Streetart Oberbaumbrücke", "Landwehrkanal", "Markthalle Neun", "Bergmannkiez"),
-            imageUrl = "https://images.unsplash.com/photo-1587330979470-3595ac045ab0?w=800&auto=format&fit=crop&q=80", // Oberbaumbrücke Kreuzberg
+            imageUrl = "https://mykiezberlin.com/assets/kieze/kreuzberg-1.webp", // 2026-11-14: real photo (Wikimedia Commons, see /api/kieze photoCredits)
             impressionImages = listOf(
-                "https://images.unsplash.com/photo-1587330979470-3595ac045ab0?w=600&auto=format&fit=crop&q=80",
-                "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=600&auto=format&fit=crop&q=80",
-                "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600&auto=format&fit=crop&q=80",
-                "https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?w=600&auto=format&fit=crop&q=80"
+                "https://mykiezberlin.com/assets/kieze/kreuzberg-1.webp",
+                "https://mykiezberlin.com/assets/kieze/kreuzberg-2.webp",
+                "https://mykiezberlin.com/assets/kieze/kreuzberg-3.webp",
+                "https://mykiezberlin.com/assets/kieze/kreuzberg-4.webp"
             ),
             rentIndex = "16,80 €/m²",
             vibe = "Alternativ & Bunt",
@@ -78,10 +79,11 @@ object SampleData {
             lat = 52.4812,
             lng = 13.4353,
             highlights = listOf("Tempelhofer Feld", "Maybachufer Markt", "Richardplatz", "Weserstraße Bars"),
-            imageUrl = "https://images.unsplash.com/photo-1528728329032-2972f65dfb3f?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/kieze/neukoelln-1.webp", // 2026-11-14: real photo (Wikimedia Commons, see /api/kieze photoCredits)
             impressionImages = listOf(
-                "https://images.unsplash.com/photo-1528728329032-2972f65dfb3f?w=600&auto=format&fit=crop&q=80",
-                "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&auto=format&fit=crop&q=80"
+                "https://mykiezberlin.com/assets/kieze/neukoelln-1.webp",
+                "https://mykiezberlin.com/assets/kieze/neukoelln-2.webp",
+                "https://mykiezberlin.com/assets/kieze/neukoelln-3.webp"
             ),
             rentIndex = "14,80 €/m²",
             vibe = "Dynamisch & Trendsetzend",
@@ -106,10 +108,12 @@ object SampleData {
             lat = 52.5159,
             lng = 13.4543,
             highlights = listOf("East Side Gallery", "RAW-Gelände", "Boxhagener Platz", "Simon-Dach-Straße"),
-            imageUrl = "https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/kieze/friedrichshain-1.webp", // 2026-11-14: real photo (Wikimedia Commons, see /api/kieze photoCredits)
             impressionImages = listOf(
-                "https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?w=600&auto=format&fit=crop&q=80",
-                "https://images.unsplash.com/photo-1541872703-74c5e44368f9?w=600&auto=format&fit=crop&q=80"
+                "https://mykiezberlin.com/assets/kieze/friedrichshain-1.webp",
+                "https://mykiezberlin.com/assets/kieze/friedrichshain-2.webp",
+                "https://mykiezberlin.com/assets/kieze/friedrichshain-3.webp",
+                "https://mykiezberlin.com/assets/kieze/friedrichshain-4.webp"
             ),
             rentIndex = "17,50 €/m²",
             vibe = "Clubkultur & Streetlife",
@@ -134,10 +138,12 @@ object SampleData {
             lat = 52.5388,
             lng = 13.4244,
             highlights = listOf("Mauerpark & Flohmarkt", "Kollwitzplatz", "Kulturbrauerei", "Wasserturm"),
-            imageUrl = "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/kieze/prenzlauer-berg-1.webp", // 2026-11-14: real photo (Wikimedia Commons, see /api/kieze photoCredits)
             impressionImages = listOf(
-                "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=600&auto=format&fit=crop&q=80",
-                "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600&auto=format&fit=crop&q=80"
+                "https://mykiezberlin.com/assets/kieze/prenzlauer-berg-1.webp",
+                "https://mykiezberlin.com/assets/kieze/prenzlauer-berg-2.webp",
+                "https://mykiezberlin.com/assets/kieze/prenzlauer-berg-3.webp",
+                "https://mykiezberlin.com/assets/kieze/prenzlauer-berg-4.webp"
             ),
             rentIndex = "18,20 €/m²",
             vibe = "Bohème & Familienidyll",
@@ -162,9 +168,12 @@ object SampleData {
             lat = 52.5163,
             lng = 13.3040,
             highlights = listOf("Schloss Charlottenburg", "Kurfürstendamm", "Savignyplatz", "Deutsche Oper"),
-            imageUrl = "https://images.unsplash.com/photo-1560969184-10fe8719e047?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/kieze/charlottenburg-1.webp", // 2026-11-14: real photo (Wikimedia Commons, see /api/kieze photoCredits)
             impressionImages = listOf(
-                "https://images.unsplash.com/photo-1560969184-10fe8719e047?w=600&auto=format&fit=crop&q=80"
+                "https://mykiezberlin.com/assets/kieze/charlottenburg-1.webp",
+                "https://mykiezberlin.com/assets/kieze/charlottenburg-2.webp",
+                "https://mykiezberlin.com/assets/kieze/charlottenburg-3.webp",
+                "https://mykiezberlin.com/assets/kieze/charlottenburg-4.webp"
             ),
             rentIndex = "17,00 €/m²",
             vibe = "Klassisch-Elegant",
@@ -189,7 +198,7 @@ object SampleData {
             lat = 52.4830,
             lng = 13.3530,
             highlights = listOf("Winterfeldtplatz Markt", "Akazienkiez Cafés", "Rathaus Schöneberg", "Nollendorfplatz"),
-            imageUrl = "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/kieze/schoeneberg-1.webp", // 2026-11-14: real photo (Wikimedia Commons, see /api/kieze photoCredits)
             rentIndex = "16,20 €/m²",
             vibe = "Tolerant & Genussfreudig",
             transitLines = "U1, U2, U3, U4, U7, S1, S2, S25, S41, S42 (Innsbrucker Platz)",
@@ -213,7 +222,7 @@ object SampleData {
             lat = 52.5496,
             lng = 13.3526,
             highlights = listOf("Humboldthain Flakturm", "Café Pförtner Uferhallen", "Leopoldplatz", "Gerichtshöfe Kunst"),
-            imageUrl = "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/kieze/wedding-1.webp", // 2026-11-14: real photo (Wikimedia Commons, see /api/kieze photoCredits)
             rentIndex = "13,20 €/m²",
             vibe = "Direkt & Inspirierend",
             transitLines = "U6, U9, S41, S42 (Wedding), Tram M13, 50, Bus M27",
@@ -237,7 +246,7 @@ object SampleData {
             lat = 52.5302,
             lng = 13.3420,
             highlights = listOf("Arminius Markthalle", "Spree-Promenade", "Kulturfabrik Moabit", "Fritz-Schloß-Park"),
-            imageUrl = "https://images.unsplash.com/photo-1560969184-10fe8719e047?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/kieze/moabit-1.webp", // 2026-11-14: real photo (Wikimedia Commons, see /api/kieze photoCredits)
             rentIndex = "14,50 €/m²",
             vibe = "Gemütlich & Bodenständig",
             transitLines = "U9 (Turmstr., Birkenstr.), S41, S42 (Westhafen), Tram M10",
@@ -261,7 +270,7 @@ object SampleData {
             lat = 52.5145,
             lng = 13.3501,
             highlights = listOf("Siegessäule", "Schloss Bellevue", "Café am Neuen See", "Kulturforum & Philharmonie"),
-            imageUrl = "https://images.unsplash.com/photo-1508873696983-2df5293cb32b?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/kieze/tiergarten-1.webp", // 2026-11-14: real photo (Wikimedia Commons, see /api/kieze photoCredits)
             rentIndex = "19,00 €/m²",
             vibe = "Prächtig & Naturreich",
             transitLines = "S3, S5, S7, S9 (Bellevue, Tiergarten), U9 (Hansaplatz), Bus 100, 200",
@@ -285,7 +294,7 @@ object SampleData {
             lat = 52.4870,
             lng = 13.3150,
             highlights = listOf("Thai-Streetfood Preußenpark", "Rüdesheimer Platz", "Fasanenplatz", "Volkspark Wilmersdorf"),
-            imageUrl = "https://images.unsplash.com/photo-1541872703-74c5e44368f9?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/kieze/wilmersdorf-1.webp", // 2026-11-14: real photo (Wikimedia Commons, see /api/kieze photoCredits)
             rentIndex = "16,50 €/m²",
             vibe = "Ruhig & Lebensfroh",
             transitLines = "U3, U7, U9, S41, S42, S46 (Heidelberger Platz)",
@@ -309,7 +318,7 @@ object SampleData {
             lat = 52.4730,
             lng = 13.3850,
             highlights = listOf("Tempelhofer Feld", "Flughafengebäude Tempelhof", "Tempelhofer Hafen", "Bärensiedlung"),
-            imageUrl = "https://images.unsplash.com/photo-1508873696983-2df5293cb32b?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/kieze/tempelhof-1.webp", // 2026-11-14: real photo (Wikimedia Commons, see /api/kieze photoCredits)
             rentIndex = "13,80 €/m²",
             vibe = "Grenzenlos & Entspannt",
             transitLines = "U6 (Tempelhof, Alt-Tempelhof), S41, S42, S45, S46",
@@ -333,7 +342,7 @@ object SampleData {
             lat = 52.5507,
             lng = 13.3905,
             highlights = listOf("Berliner Unterwelten e.V.", "Flakturm Humboldthain", "Pankeufer Promenade", "Gesundbrunnen-Center"),
-            imageUrl = "https://images.unsplash.com/photo-1546726747-421c6d69c929?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/kieze/gesundbrunnen-1.webp", // 2026-11-14: real photo (Wikimedia Commons, see /api/kieze photoCredits)
             rentIndex = "13,00 €/m²",
             vibe = "Verkehrsgünstig & Multikulti",
             transitLines = "U8, S1, S2, S25, S26, S41, S42 (Gesundbrunnen Fernbahnhof)",
@@ -357,7 +366,7 @@ object SampleData {
             lat = 52.4560,
             lng = 13.3220,
             highlights = listOf("Schloßstraße", "Botanischer Garten Berlin", "Gutshaus Steglitz", "Stadtpark"),
-            imageUrl = "https://images.unsplash.com/photo-1541872703-74c5e44368f9?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/kieze/steglitz-1.webp", // 2026-11-14: real photo (Wikimedia Commons, see /api/kieze photoCredits)
             rentIndex = "14,20 €/m²",
             vibe = "Etabliert & Komfortabel",
             transitLines = "U9 (Rathaus Steglitz, Schloßstr.), S1 (Feuerbachstr.), Bus X83, M48",
@@ -381,7 +390,7 @@ object SampleData {
             lat = 52.4330,
             lng = 13.2590,
             highlights = listOf("Schlachtensee & Fischerhütte", "Krumme Lanke", "Jugendstil Mexikoplatz", "Haus am Waldsee"),
-            imageUrl = "https://images.unsplash.com/photo-1508873696983-2df5293cb32b?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/kieze/zehlendorf-1.webp", // 2026-11-14: real photo (Wikimedia Commons, see /api/kieze photoCredits)
             rentIndex = "15,50 €/m²",
             vibe = "Idyllisch & Nobel",
             transitLines = "S1 (Zehlendorf, Mexikoplatz, Sundgauer Str.), Bus X10, 112, 118",
@@ -405,7 +414,7 @@ object SampleData {
             lat = 52.5354,
             lng = 13.1990,
             highlights = listOf("Zitadelle Spandau", "St.-Nikolai-Kirche Altstadt", "Havelpromenade", "Kolksiedlung"),
-            imageUrl = "https://images.unsplash.com/photo-1560969184-10fe8719e047?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/kieze/spandau-1.webp", // 2026-11-14: real photo (Wikimedia Commons, see /api/kieze photoCredits)
             rentIndex = "11,80 €/m²",
             vibe = "Traditionsreich & Wasserreich",
             transitLines = "U7 (Rathaus Spandau), S3, S9 (Spandau), Regionalbahn & ICE",
@@ -429,7 +438,7 @@ object SampleData {
             lat = 52.5870,
             lng = 13.3290,
             highlights = listOf("Greenwichpromenade Tegel", "Schäfersee Rundweg", "Schloss Tegel & Park", "Tegeler Fließ"),
-            imageUrl = "https://images.unsplash.com/photo-1528728329032-2972f65dfb3f?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/kieze/reinickendorf-1.webp", // 2026-11-14: real photo (Wikimedia Commons, see /api/kieze photoCredits)
             rentIndex = "12,20 €/m²",
             vibe = "Naturnah & Ruhig",
             transitLines = "U8 (Rathaus Reinickendorf, Franz-Neumann-Platz), S25, Bus 125, 221",
@@ -453,7 +462,7 @@ object SampleData {
             lat = 52.5690,
             lng = 13.4020,
             highlights = listOf("Schloss Schönhausen", "Bürgerpark Pankow", "Rathaus Pankow", "Sommerbad Pankow"),
-            imageUrl = "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/kieze/pankow-1.webp", // 2026-11-14: real photo (Wikimedia Commons, see /api/kieze photoCredits)
             rentIndex = "14,50 €/m²",
             vibe = "Beschaulich & Kulturvoll",
             transitLines = "U2 (Pankow, Vinetastr.), S2, S8, S85 (Pankow), Tram 50, M1",
@@ -477,7 +486,7 @@ object SampleData {
             lat = 52.5130,
             lng = 13.4990,
             highlights = listOf("Dong Xuan Center", "Stasi-Museum Normannenstraße", "Landschaftspark Herzberge", "Rummelsburger Bucht"),
-            imageUrl = "https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/kieze/lichtenberg-1.webp", // 2026-11-14: real photo (Wikimedia Commons, see /api/kieze photoCredits)
             rentIndex = "13,00 €/m²",
             vibe = "Dynamisch & Vielfältig",
             transitLines = "U5 (Lichtenberg, Magdalenenstr.), S5, S7, S75, S41, S42, Tram M8, 21",
@@ -501,7 +510,7 @@ object SampleData {
             lat = 52.4900,
             lng = 13.4700,
             highlights = listOf("Treptower Park & Hafen", "Insel der Jugend Brücke", "Zenner Biergarten & Konzerte", "Sowjetisches Ehrenmal"),
-            imageUrl = "https://images.unsplash.com/photo-1528728329032-2972f65dfb3f?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/kieze/treptow-1.webp", // 2026-11-14: real photo (Wikimedia Commons, see /api/kieze photoCredits)
             rentIndex = "14,80 €/m²",
             vibe = "Entspannt am Wasser",
             transitLines = "S8, S9, S41, S42, S45, S85 (Treptower Park), Bus 165, 265",
@@ -525,7 +534,7 @@ object SampleData {
             lat = 52.4450,
             lng = 13.5760,
             highlights = listOf("Wasserschloss Köpenick", "Großer Müggelsee Strandbad", "Historisches Rathaus Köpenick", "Bölschestraße Friedrichshagen"),
-            imageUrl = "https://images.unsplash.com/photo-1508873696983-2df5293cb32b?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/kieze/koepenick-1.webp", // 2026-11-14: real photo (Wikimedia Commons, see /api/kieze photoCredits)
             rentIndex = "12,50 €/m²",
             vibe = "Maritime Idylle",
             transitLines = "S3 (Köpenick, Hirschgarten, Friedrichshagen), Tram 60, 61, 62, 68",
@@ -549,7 +558,7 @@ object SampleData {
             lat = 52.5450,
             lng = 13.5640,
             highlights = listOf("Gärten der Welt & Seilbahn", "Historisches Dorf Alt-Marzahn", "Wuhletal-Wanderweg", "Bockwindmühle"),
-            imageUrl = "https://images.unsplash.com/photo-1560969184-10fe8719e047?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/kieze/marzahn-1.webp", // 2026-11-14: real photo (Wikimedia Commons, see /api/kieze photoCredits)
             rentIndex = "10,80 €/m²",
             vibe = "Grün & Überraschend",
             transitLines = "U5 (Kienberg - Gärten der Welt), S7 (Marzahn), Tram M6, 18",
@@ -573,7 +582,7 @@ object SampleData {
             lat = 52.4430,
             lng = 13.4330,
             highlights = listOf("Britzer Garten & Parkbahn", "Schloss & Gutshof Britz", "Britzer Mühle", "Hufeisensiedlung UNESCO"),
-            imageUrl = "https://images.unsplash.com/photo-1528728329032-2972f65dfb3f?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/kieze/britz-1.webp", // 2026-11-14: real photo (Wikimedia Commons, see /api/kieze photoCredits)
             rentIndex = "13,40 €/m²",
             vibe = "Gartenstadt & Ruhig",
             transitLines = "U7 (Grenzallee, Blaschkoallee, Parchimer Allee, Britz-Süd), Bus M44, M46",
@@ -598,7 +607,7 @@ object SampleData {
             lat = 52.5200,
             lng = 13.4050,
             highlights = listOf("Schloss Sanssouci Potsdam", "Wannsee & Pfaueninsel", "Spreewald Fließgewässer", "Werder Havel"),
-            imageUrl = "https://images.unsplash.com/photo-1560969184-10fe8719e047?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/kieze/umgebung-1.webp", // 2026-11-14: real photo (Wikimedia Commons, see /api/kieze photoCredits)
             rentIndex = "",
             vibe = "Natur & Ausflug",
             transitLines = "S-Bahn S7 (Potsdam Hbf), Regionalbahn RE1, RE7, FEX (VBB-Tarif ABC)",
@@ -624,7 +633,7 @@ object SampleData {
             distance = "450 m",
             address = "Mehringdamm 32, 10961 Berlin",
             priceRange = "€",
-            imageUrl = "https://images.unsplash.com/photo-1561758033-d89a9ad46330?w=600&auto=format&fit=crop&q=80", // Döner Kebab
+            imageUrl = "https://mykiezberlin.com/assets/places/mustafas.webp", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             isSponsored = false,
             phone = "+49 30 69532940",
             website = "https://mustafas.de",
@@ -641,7 +650,7 @@ object SampleData {
             distance = "1,2 km",
             address = "Kollwitzstraße 83, 10435 Berlin",
             priceRange = "€€",
-            imageUrl = "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=600&auto=format&fit=crop&q=80", // Breakfast Etagere
+            imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             isSponsored = true,
             phone = "+49 30 44048641",
             website = "https://cafe-anna-blume.de",
@@ -658,7 +667,7 @@ object SampleData {
             distance = "850 m",
             address = "Eisenbahnstraße 42/43, 10997 Berlin",
             priceRange = "€€",
-            imageUrl = "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&auto=format&fit=crop&q=80", // Streetfood Hall
+            imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             isSponsored = false,
             phone = "+49 30 61074714",
             website = "https://markthalleneun.de",
@@ -675,7 +684,7 @@ object SampleData {
             distance = "1,5 km",
             address = "Oberbaumstraße 8, 10997 Berlin",
             priceRange = "€",
-            imageUrl = "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop&q=80", // Burger
+            imageUrl = "https://mykiezberlin.com/assets/places/burgermeister.webp", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             isSponsored = false,
             phone = "+49 30 23883840",
             website = "https://burger-meister.de",
@@ -692,7 +701,7 @@ object SampleData {
             distance = "2,3 km",
             address = "Alte Schönhauser Str. 14, 10119 Berlin",
             priceRange = "€€",
-            imageUrl = "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=600&auto=format&fit=crop&q=80", // Specialty Coffee & Cheesecake
+            imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             isSponsored = false,
             phone = "+49 30 96081527",
             website = "https://fiveelephant.com",
@@ -709,7 +718,7 @@ object SampleData {
             distance = "500 m",
             address = "Mehringdamm 36, 10961 Berlin",
             priceRange = "€",
-            imageUrl = "https://images.unsplash.com/photo-1627042633145-b780d842ba45?w=600&auto=format&fit=crop&q=80", // Currywurst & Fries
+            imageUrl = "https://mykiezberlin.com/assets/places/curry36.webp", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             isSponsored = false,
             phone = "+49 30 2517368",
             website = "https://curry36.de",
@@ -909,16 +918,12 @@ object SampleData {
             kiezName = "Kreuzberg",
             distance = "300 m",
             address = "Oranienstraße 185, 10999 Berlin",
-            imageUrl = "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&auto=format&fit=crop&q=80", // Barber salon
+            imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             isSponsored = true,
             phone = "+49 30 61284455",
             website = "https://kiezfriseur-berlin.de",
             openingHours = "Mo-Sa: 10:00 - 20:00 Uhr",
-            galleryImages = listOf(
-                "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&auto=format&fit=crop&q=80",
-                "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600&auto=format&fit=crop&q=80",
-                "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=600&auto=format&fit=crop&q=80"
-            ),
+            galleryImages = emptyList() /* 2026-11-14 (owner): no stock photos */,
             description = "Traditionelles Handwerk trifft moderne Styles. Spezialisiert auf Herren- und Damenschnitte, Bartpflege und Naturfarben in entspannter Kiez-Atmosphäre."
         ),
         LocalBusiness(
@@ -930,15 +935,12 @@ object SampleData {
             kiezName = "Neukölln",
             distance = "400 m",
             address = "Sonnenallee 54, 12045 Berlin",
-            imageUrl = "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&auto=format&fit=crop&q=80", // Bakery
+            imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             isSponsored = false,
             phone = "+49 30 55432100",
             website = "https://brotzeit-neukoelln.de",
             openingHours = "Di-So: 07:00 - 18:00 Uhr",
-            galleryImages = listOf(
-                "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&auto=format&fit=crop&q=80",
-                "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=600&auto=format&fit=crop&q=80"
-            ),
+            galleryImages = emptyList() /* 2026-11-14 (owner): no stock photos */,
             description = "Täglich frisch gebackenes Sauerteigbrot aus regionalem Bio-Getreide, traditionelle Berliner Schrippen, Zimtschnecken und Specialty Coffee."
         ),
         LocalBusiness(
@@ -950,14 +952,12 @@ object SampleData {
             kiezName = "Kreuzberg",
             distance = "550 m",
             address = "Wrangelstraße 72, 10997 Berlin",
-            imageUrl = "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&auto=format&fit=crop&q=80", // Gym
+            imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             isSponsored = false,
             phone = "+49 30 69812300",
             website = "https://kiezfitness-kreuzberg.de",
             openingHours = "Mo-Fr: 06:30 - 23:00, Sa-So: 08:00 - 21:00",
-            galleryImages = listOf(
-                "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&auto=format&fit=crop&q=80"
-            ),
+            galleryImages = emptyList() /* 2026-11-14 (owner): no stock photos */,
             description = "Dein familiäres Gym im Kiez. State-of-the-Art Freihanteln, Functional-Area, Sauna und über 30 wöchentliche Kurse von Calisthenics bis Yoga."
         ),
         LocalBusiness(
@@ -969,14 +969,12 @@ object SampleData {
             kiezName = "Mitte",
             distance = "700 m",
             address = "Torstraße 112, 10119 Berlin",
-            imageUrl = "https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=600&auto=format&fit=crop&q=80", // Pharmacy
+            imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             isSponsored = false,
             phone = "+49 30 28091100",
             website = "https://apotheke-torstrasse.de",
             openingHours = "Mo-Fr: 08:30 - 19:30, Sa: 09:00 - 16:00",
-            galleryImages = listOf(
-                "https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=600&auto=format&fit=crop&q=80"
-            ),
+            galleryImages = emptyList() /* 2026-11-14 (owner): no stock photos */,
             description = "Kompetente pharmazeutische Beratung, Botendienst direkt zu dir nach Hause im Kiez und ein breites Sortiment an Naturkosmetik."
         ),
         LocalBusiness(
@@ -988,14 +986,12 @@ object SampleData {
             kiezName = "Pankow",
             distance = "1,1 km",
             address = "Prenzlauer Allee 88, 10405 Berlin",
-            imageUrl = "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&auto=format&fit=crop&q=80", // Modern Office
+            imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             isSponsored = false,
             phone = "+49 30 44332211",
             website = "https://rechtbox-beratung.de",
             openingHours = "Mo-Fr: 09:00 - 18:00 Uhr",
-            galleryImages = listOf(
-                "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&auto=format&fit=crop&q=80"
-            ),
+            galleryImages = emptyList() /* 2026-11-14 (owner): no stock photos */,
             description = "Digitale Steuerberatung und Buchhaltung für Gastronomen, Freiberufler, Kiez-Geschäfte und Startups. Papierlos, schnell und transparent."
         ),
         LocalBusiness(
@@ -1007,7 +1003,7 @@ object SampleData {
             kiezName = "Wedding",
             distance = "500 m",
             address = "Müllerstraße 142, 13353 Berlin",
-            imageUrl = "https://images.unsplash.com/photo-1561651823-34feb02250e4?w=600&auto=format&fit=crop&q=80",
+            imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             isSponsored = true,
             phone = "+49 30 45021234",
             whatsapp = "+4915126509586",
@@ -1024,7 +1020,7 @@ object SampleData {
             kiezName = "Wedding",
             distance = "750 m",
             address = "Uferstraße 8, 13357 Berlin",
-            imageUrl = "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&auto=format&fit=crop&q=80",
+            imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             phone = "+49 30 45678912",
             whatsapp = "+4915126509586",
             website = "https://cafe-pfoertner.de",
@@ -1040,7 +1036,7 @@ object SampleData {
             kiezName = "Friedrichshain",
             distance = "350 m",
             address = "Grünberger Str. 34, 10245 Berlin",
-            imageUrl = "https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=600&auto=format&fit=crop&q=80",
+            imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             phone = "+49 30 29364400",
             whatsapp = "+4915126509586",
             website = "https://silberfisch-berlin.de",
@@ -1056,7 +1052,7 @@ object SampleData {
             kiezName = "Friedrichshain",
             distance = "450 m",
             address = "Simon-Dach-Straße 22, 10245 Berlin",
-            imageUrl = "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600&auto=format&fit=crop&q=80",
+            imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             phone = "+49 30 29778899",
             whatsapp = "+4915126509586",
             website = "https://simondach-barber.de",
@@ -1072,7 +1068,7 @@ object SampleData {
             kiezName = "Charlottenburg",
             distance = "600 m",
             address = "Kantstraße 64, 10627 Berlin",
-            imageUrl = "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=600&auto=format&fit=crop&q=80",
+            imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             phone = "+49 30 3241100",
             whatsapp = "+4915126509586",
             website = "https://kant-konditorei.de",
@@ -1088,7 +1084,7 @@ object SampleData {
             kiezName = "Charlottenburg",
             distance = "850 m",
             address = "Kantstraße 148, 10623 Berlin",
-            imageUrl = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/places/schwarzes_cafe.webp", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             phone = "+49 30 3138038",
             whatsapp = "+4915126509586",
             website = "https://schwarzescafe-berlin.de",
@@ -1104,7 +1100,7 @@ object SampleData {
             kiezName = "Schöneberg",
             distance = "400 m",
             address = "Winterfeldtstraße 45, 10781 Berlin",
-            imageUrl = "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&auto=format&fit=crop&q=80",
+            imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             phone = "+49 30 2168900",
             whatsapp = "+4915126509586",
             website = "https://winterfeldt-kiez.de",
@@ -1120,7 +1116,7 @@ object SampleData {
             kiezName = "Moabit",
             distance = "500 m",
             address = "Arminiusstraße 2, 10551 Berlin",
-            imageUrl = "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/kieze/moabit-2.webp", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             phone = "+49 30 39876543",
             whatsapp = "+4915126509586",
             website = "https://arminiusmarkthalle.com",
@@ -1136,7 +1132,7 @@ object SampleData {
             kiezName = "Prenzlauer Berg",
             distance = "300 m",
             address = "Kollwitzstraße 83, 10435 Berlin",
-            imageUrl = "https://images.unsplash.com/photo-1525610553991-2bede1a236e2?w=600&auto=format&fit=crop&q=80",
+            imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             isSponsored = true,
             hasCoupon = true,
             couponText = "%20 İndirim (Frühstückset)",
@@ -1155,7 +1151,7 @@ object SampleData {
             kiezName = "Kreuzberg",
             distance = "250 m",
             address = "Mehringdamm 32, 10961 Berlin",
-            imageUrl = "https://images.unsplash.com/photo-1561651823-34feb02250e4?w=600&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/places/mustafas.webp", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             phone = "+49 30 69532100",
             whatsapp = "+4915126509586",
             website = "https://mustafas.de",
@@ -1171,7 +1167,7 @@ object SampleData {
             kiezName = "Neukölln",
             distance = "350 m",
             address = "Sonnenallee 54, 12045 Berlin",
-            imageUrl = "https://images.unsplash.com/photo-1540914124281-342587941389?w=600&auto=format&fit=crop&q=80",
+            imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             phone = "+49 30 62725678",
             whatsapp = "+4915126509586",
             website = "https://azzam-berlin.de",
@@ -1187,7 +1183,7 @@ object SampleData {
             kiezName = "Tempelhof",
             distance = "600 m",
             address = "Tempelhofer Damm 90, 12101 Berlin",
-            imageUrl = "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&auto=format&fit=crop&q=80",
+            imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             phone = "+49 30 78912300",
             whatsapp = "+4915126509586",
             website = "https://tempelhof-sport.de",
@@ -1203,7 +1199,7 @@ object SampleData {
             kiezName = "Steglitz",
             distance = "700 m",
             address = "Schloßstraße 42, 12165 Berlin",
-            imageUrl = "https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=600&auto=format&fit=crop&q=80",
+            imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             phone = "+49 30 7914422",
             whatsapp = "+4915126509586",
             website = "https://schloss-apotheke-steglitz.de",
@@ -1236,7 +1232,7 @@ object SampleData {
             validUntil = "Gültig bis 31.12.2026",
             category = "Freizeit & Fitness",
             code = "FITKIEZ10",
-            imageUrl = "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&auto=format&fit=crop&q=80"
+            imageUrl = "" // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
         ),
         Deal(
             id = "deal_kiez_friseur_active",
@@ -1246,7 +1242,7 @@ object SampleData {
             validUntil = "Gültig bis 31.12.2026",
             category = "Dienstleistungen",
             code = "KIEZSTYLE15",
-            imageUrl = "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&auto=format&fit=crop&q=80"
+            imageUrl = "" // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
         )
     )
 
@@ -1258,7 +1254,7 @@ object SampleData {
         QuizQuestion(
             id = 1,
             question = "In welchem Bezirk steht das Brandenburger Tor?",
-            imageUrl = "https://images.unsplash.com/photo-1560969184-10fe8719e047?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/tips/brandenburger-tor.webp",
             options = listOf("Mitte", "Friedrichshain", "Charlottenburg", "Neukölln"),
             correctIndex = 0,
             explanation = "Richtig! 🎉 Das Brandenburger Tor steht im Bezirk Mitte und ist eines der bekanntesten Wahrzeichen Berlins."
@@ -1266,7 +1262,7 @@ object SampleData {
         QuizQuestion(
             id = 2,
             question = "Welches Tier ist das traditionelle Wappentier von Berlin?",
-            imageUrl = "https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/places/quiz_baer.webp",
             options = listOf("Der Berliner Adler", "Der Berliner Bär", "Der Berliner Löwe", "Der Berliner Fuchs"),
             correctIndex = 1,
             explanation = "Richtig! 🐻 Der Berliner Bär schmückt seit dem 13. Jahrhundert das Stadtwappen und begegnet einem überall in Berlin."
@@ -1274,7 +1270,7 @@ object SampleData {
         QuizQuestion(
             id = 3,
             question = "Wie hoch ist der Berliner Fernsehturm am Alexanderplatz?",
-            imageUrl = "https://images.unsplash.com/photo-1546726747-421c6d69c929?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/tips/fernsehturm.webp",
             options = listOf("288 Meter", "325 Meter", "368 Meter", "412 Meter"),
             correctIndex = 2,
             explanation = "Richtig! 🗼 Mit genau 368 Metern ist der Fernsehturm das höchste freistehende Bauwerk Deutschlands."
@@ -1282,7 +1278,7 @@ object SampleData {
         QuizQuestion(
             id = 4,
             question = "Was bedeutet das typische Berliner Wort 'Schrippe'?",
-            imageUrl = "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/places/quiz_schrippe.webp",
             options = listOf("Ein Brötchen", "Eine U-Bahn-Fahrkarte", "Ein alter Mantel", "Ein Regenschirm"),
             correctIndex = 0,
             explanation = "Genau! 🥖 In Berlin bestellt man beim Bäcker niemals Brötchen oder Semmeln, sondern immer echte 'Schrippen'."
@@ -1290,7 +1286,7 @@ object SampleData {
         QuizQuestion(
             id = 5,
             question = "In welchem Jahr fiel die Berliner Mauer?",
-            imageUrl = "https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?w=800&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/places/quiz_mauerfall.webp",
             options = listOf("1987", "1989", "1991", "1993"),
             correctIndex = 1,
             explanation = "Richtig! 🧱 Am 9. November 1989 öffnete sich die Berliner Mauer und markierte das Ende der Teilung Europas."
@@ -1305,7 +1301,7 @@ object SampleData {
             subtitle = "Von der Doppelstadt zur Hauptstadt",
             category = "Geschichte",
             readTimeMinutes = 5,
-            imageUrl = "https://images.unsplash.com/photo-1560969184-10fe8719e047?w=600&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/tips/brandenburger-tor.webp", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             fullContent = "Berlin entstand im 13. Jahrhundert als Doppelstadt Berlin und Cölln an den Ufern der Spree. Über die Jahrhunderte entwickelte sich die Stadt von einer kurfürstlichen und preußischen Residenz zur pulsierenden Kulturmetropole der Goldenen Zwanziger Jahre. Nach den Zerstörungen des Zweiten Weltkriegs und der 28 Jahre währenden Teilung im Kalten Krieg feierte Berlin 1989 die friedliche Wiedervereinigung. Heute ist die deutsche Hauptstadt ein globales Zentrum für Kreativität, Hochtechnologie, Wissenschaft und gelebte Toleranz."
         ),
         KiezArticle(
@@ -1314,7 +1310,7 @@ object SampleData {
             subtitle = "Entstehung, Verlauf und Heute",
             category = "Geschichte",
             readTimeMinutes = 6,
-            imageUrl = "https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?w=600&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/places/quiz_mauerfall.webp", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             fullContent = "Vom 13. August 1961 bis zum 9. November 1989 trennte die Berliner Mauer West-Berlin von Ost-Berlin und der DDR auf einer Länge von über 155 Kilometern. Die Grenzanlagen mit Todesstreifen, Wachtürmen und Selbstschussanlagen kosteten mindestens 140 Menschen das Leben. Der historische Mauerfall im November 1989 leitete das Ende des Kalten Krieges ein. Heute mahnen die Gedenkstätte Bernauer Straße und die 1,3 Kilometer lange East Side Gallery als weltweit längste Open-Air-Galerie an diese Epoche."
         ),
         KiezArticle(
@@ -1323,7 +1319,7 @@ object SampleData {
             subtitle = "Vielfalt und Besonderheiten",
             category = "Kultur",
             readTimeMinutes = 4,
-            imageUrl = "https://images.unsplash.com/photo-1572953109213-3be62398eb95?w=600&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/kieze/kreuzberg-1.webp", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             fullContent = "Ein 'Kiez' ist in Berlin weit mehr als ein einfacher Stadtteil. Es ist das Mikrokosmos-Gefühl der eigenen Nachbarschaft: der Bäcker an der Ecke, der Späti um Mitternacht, der Wochenmarkt und die Nachbarn, die sich seit Jahrzehnten grüßen. Jeder Kiez – ob Bergmannkiez, Kollwitzplatz oder Reuterkiez – besitzt seine ganz eigene Identität."
         ),
         KiezArticle(
@@ -1332,7 +1328,7 @@ object SampleData {
             subtitle = "Das darf man nicht verpassen",
             category = "Sehenswürdigkeiten",
             readTimeMinutes = 5,
-            imageUrl = "https://images.unsplash.com/photo-1599946347371-68eb71b16afc?w=600&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/tips/museumsinsel.webp", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             fullContent = "Vom Brandenburger Tor über die Museumsinsel bis zum Schloss Charlottenburg und der Siegessäule im Tiergarten: Berlin bietet unzählige weltberühmte Monumente und versteckte architektonische Juwele, die man unbedingt gesehen haben muss."
         ),
         KiezArticle(
@@ -1341,7 +1337,7 @@ object SampleData {
             subtitle = "Typische Wörter und Ausdrücke",
             category = "Sprache",
             readTimeMinutes = 3,
-            imageUrl = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&auto=format&fit=crop&q=80",
+            imageUrl = "https://mykiezberlin.com/assets/places/quiz_schrippe.webp", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             fullContent = "Der Berliner Dialekt ('Berliner Schnauze') ist direkt, herzlich und schlagfertig. 'Icke' heißt Ich, 'Knorke' bedeutet großartig, eine 'Stulle' ist ein belegtes Butterbrot und 'Jwd' steht für 'janz weit draußen'."
         )
     )

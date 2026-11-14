@@ -368,7 +368,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                                         kiezName = item.optString("kiezName", item.optString("kiez", "Berlin")),
                                         distance = "0.5 km",
                                         address = item.optString("address", "Berlin"),
-                                        imageUrl = item.optString("imageUrl", "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600"),
+                                        imageUrl = item.optString("imageUrl", ""),
                                         phone = item.optString("phone", item.optString("contact", "")),
                                         whatsapp = item.optString("whatsapp", "+4915126509586"),
                                         website = item.optString("website", "https://mykiezberlin.com"),
@@ -477,7 +477,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                                         kiezName = item.optString("kiezName", item.optString("kiez", "Berlin")),
                                         distance = "0.5 km",
                                         address = item.optString("address", "Berlin"),
-                                        imageUrl = item.optString("imageUrl", "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600"),
+                                        imageUrl = item.optString("imageUrl", ""),
                                         phone = item.optString("phone", item.optString("contact", "")),
                                         whatsapp = item.optString("whatsapp", "+4915126509586"),
                                         website = item.optString("website", "https://mykiezberlin.com"),
@@ -757,7 +757,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
             isFree = price.contains("kostenlos", ignoreCase = true) || price.contains("frei", ignoreCase = true) || price.isBlank(),
             category = category,
             description = desc,
-            imageUrl = "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80",
+            imageUrl = "" /* 2026-11-14: no stock photo */,
             locationAddress = "$kiezName, Berlin",
             organizer = "Kiez Community"
         )

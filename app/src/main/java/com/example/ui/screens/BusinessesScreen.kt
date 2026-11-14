@@ -516,7 +516,7 @@ fun BusinessesScreen(
                                     kiezName = kiezInput,
                                     distance = "100 m",
                                     address = addressInput,
-                                    imageUrl = "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&auto=format&fit=crop&q=80",
+                                    imageUrl = "" /* 2026-11-14: no stock photo */,
                                     phone = if (phoneInput.isBlank()) "+49 30 123456" else phoneInput,
                                     whatsapp = if (waInput.isBlank()) "+4915126509586" else waInput,
                                     description = if (descInput.isBlank()) "Neuer Betrieb im Kiez." else descInput

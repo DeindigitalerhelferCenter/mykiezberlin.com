@@ -698,10 +698,10 @@ function renderHomeTab(container) {
 
   // Sample businesses
   const businesses = [
-    { name: "Mustafa's Gemüse Kebab", category: "Gastro", kiez: "Kreuzberg", rating: "4.7 ★★★★★ (3.8k)", img: "assets/images/food_mustafas.jpg", desc: "Der berühmteste Gemüse-Döner Berlins am Mehringdamm mit frittiertem Gemüse und Feta." },
-    { name: "Café Anna Blume", category: "Gastro", kiez: "Prenzlauer Berg", rating: "4.8 ★★★★★ (2.1k)", img: "assets/images/food_annablume.jpg", desc: "Legendäre dreistöckige Frühstücksetagere mit echten Blumen im Kollwitzkiez." },
-    { name: "Burgermeister Schlesisches Tor", category: "Gastro", kiez: "Kreuzberg", rating: "4.6 ★★★★★ (4.5k)", img: "assets/images/food_burgermeister.jpg", desc: "Kult-Burger in einer ehemaligen historischen Jugendstil-Gasanstalt unter den U-Bahn-Gleisen." },
-    { name: "Curry 36", category: "Gastro", kiez: "Kreuzberg", rating: "4.5 ★★★★★ (5.2k)", img: "assets/images/food_curry36.jpg", desc: "Berlins Kult-Currywurst mit oder ohne Darm, direkt am Mehringdamm." }
+    { name: "Mustafa's Gemüse Kebab", category: "Gastro", kiez: "Kreuzberg", rating: "4.7 ★★★★★ (3.8k)", img: "/assets/places/mustafas.webp", desc: "Der berühmteste Gemüse-Döner Berlins am Mehringdamm mit frittiertem Gemüse und Feta." },
+    { name: "Café Anna Blume", category: "Gastro", kiez: "Prenzlauer Berg", rating: "4.8 ★★★★★ (2.1k)", img: "/assets/places/no-photo.webp", desc: "Legendäre dreistöckige Frühstücksetagere mit echten Blumen im Kollwitzkiez." },
+    { name: "Burgermeister Schlesisches Tor", category: "Gastro", kiez: "Kreuzberg", rating: "4.6 ★★★★★ (4.5k)", img: "/assets/places/burgermeister.webp", desc: "Kult-Burger in einer ehemaligen historischen Jugendstil-Gasanstalt unter den U-Bahn-Gleisen." },
+    { name: "Curry 36", category: "Gastro", kiez: "Kreuzberg", rating: "4.5 ★★★★★ (5.2k)", img: "/assets/places/curry36.webp", desc: "Berlins Kult-Currywurst mit oder ohne Darm, direkt am Mehringdamm." }
   ];
 
   businesses.forEach(b => {
@@ -1172,7 +1172,7 @@ function submitUserStory() {
     kiez: kiez,
     headline: headline,
     subtext: subtext,
-    image: "assets/images/hero_berlin.jpg",
+    image: (typeof mkKiezPhoto === "function" && mkKiezPhoto(kiez)) || "assets/images/hero_berlin.jpg", // 2026-11-14: real photo of the Kiez
     isVideo: false,
     durationHours: 24,
     status: "approved", // Directly available on web!

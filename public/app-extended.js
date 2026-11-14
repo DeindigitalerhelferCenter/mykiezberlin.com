@@ -27,6 +27,14 @@ function esc(value) {
 }
 
 // Only http(s), tel and relative asset links may reach an href or src.
+// 2026-11-14 (owner): real photo of a Kiez by name or id (for stories without own picture)
+function mkKiezPhoto(kiez) {
+  const k = String(kiez || "").toLowerCase();
+  const list = typeof KIEZE_FULL === "object" ? KIEZE_FULL : [];
+  const hit = list.find((x) => x.id === k || String(x.name).toLowerCase() === k);
+  return hit && hit.imageUrl && hit.id !== "umgebung" ? hit.imageUrl : "";
+}
+
 function safeUrl(value) {
   const url = String(value ?? "");
   // "/assets/..." added: server ads (/api/ads) use root-relative sponsor images
@@ -158,7 +166,7 @@ async function loadServerStories() {
       kiez: s.kiez,
       headline: s.headline,
       subtext: s.subtext,
-      image: s.media_key && s.media_type !== "video" ? `/media/${s.media_key}` : "assets/images/hero_berlin.jpg",
+      image: s.media_key && s.media_type !== "video" ? `/media/${s.media_key}` : (mkKiezPhoto(s.kiez) || "assets/images/hero_berlin.jpg"), // 2026-11-14: text story -> real photo of its Kiez
       isVideo: s.media_type === "video",
       videoUri: s.media_type === "video" ? `/media/${s.media_key}` : "",
       // 2026-11-13: admin stories with several pictures/videos (story-multi.js shows them one after another)
