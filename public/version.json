@@ -9,9 +9,9 @@
     "en": "New: 7 new sponsors, sponsors from Turkey, share button for every business, clock & weather, story folders with notifications, info windows (ⓘ) and bigger headlines."
   },
   "beta": {
-    "versionCode": 35,
-    "versionName": "1.34",
-    "apkUrl": "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin.com.apk",
+    "versionCode": 36,
+    "versionName": "1.35",
+    "apkUrl": "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin-test.apk",
     "notes": {
       "de": "Testversion – nur für das Admin-Handy.",
       "tr": "Test sürümü – sadece admin telefonu için.",
