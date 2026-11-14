@@ -39,6 +39,7 @@ data class StoryFolder(val key: String, val icon: String, val de: String, val tr
 
 val STORY_FOLDERS = listOf(
     StoryFolder("berlin", "🏘️", "Kiez & Berlin", "Mahalleler & Berlin", "Kiez & Berlin"),
+    StoryFolder("info", "ℹ️", "Info", "Info", "Info"), // 2026-11-14 (owner)
     StoryFolder("eil", "🚨", "Eilmeldungen", "Acil / Son Dakika", "Breaking news"),
     StoryFolder("verkehr", "🚇", "Verkehr & BVG", "Trafik & BVG", "Traffic & BVG"),
     StoryFolder("deutschland", "🇩🇪", "Deutschland", "Almanya", "Germany"),
@@ -165,7 +166,14 @@ fun AllFoldersDialog(language: AppLanguage, onClose: () -> Unit) {
                     Row(Modifier.fillMaxWidth().padding(vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text("${f.icon} ${f.label(language)}", fontWeight = FontWeight.Bold, fontSize = 14.sp,
                             modifier = Modifier.weight(1f).clickable { StoryFolders.selected.value = f.key; onClose() }.padding(vertical = 8.dp))
-                        Switch(checked = f.key in followed, onCheckedChange = { StoryFolders.toggleFollow(context, f.key) })
+                        // 2026-11-14 (owner: "cannot switch off"): the off state was almost invisible – clear grey track now
+                        Switch(
+                            checked = f.key in followed, onCheckedChange = { StoryFolders.toggleFollow(context, f.key) },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Color.White, checkedTrackColor = BerlinRed,
+                                uncheckedThumbColor = Color.White, uncheckedTrackColor = Color(0xFF9AA3B2), uncheckedBorderColor = Color(0xFF6B7280)
+                            )
+                        )
                     }
                 }
                 Text(when (language) {

@@ -243,16 +243,6 @@ export const SPONSOR_SEED = [
       description: "Türkische Bäckerei seit über 30 Jahren. Fladenbrot, Simit, Börek, Lahmacun, Baklava und Frühstück. Filialen: Hauptstraße 148 und Dominicusstraße 43, 10827 Berlin." },
   },
   {
-    id: "tugra-gida", plan: "m", name: "Tugra Gida", kieze: "Schöneberg",
-    headline_de: "Türkischer Supermarkt in Schöneberg – Lebensmittel aus der Heimat",
-    headline_tr: "Schöneberg'de Türk süpermarketi – memleketten gıda ürünleri",
-    headline_en: "Turkish supermarket in Schöneberg – groceries from home",
-    cta_de: "Jetzt anrufen", cta_tr: "Hemen ara", cta_en: "Call now",
-    link_web: "", link_wa: "", link_tel: "030 78711191", link_ig: "",
-    extra: { category: { de: "Supermarkt", tr: "Süpermarket", en: "Supermarket" }, address: "Hauptstraße 13, 10827 Berlin", hours: "", primary: "tel",
-      description: "Türkischer Supermarkt in Berlin-Schöneberg. Tugra Gida GmbH, HRB 266954 B, AG Berlin." },
-  },
-  {
     id: "berlin-pos", plan: "m", name: "Berlin POS Kassensysteme GmbH", kieze: "Schöneberg",
     headline_de: "Kassensysteme für Gastronomie, Metzgerei, Bäckerei & Supermarkt – Beratung, Verkauf & Reparatur",
     headline_tr: "Restoran, kasap, fırın ve market için kasa sistemleri – danışmanlık, satış ve tamir",
@@ -347,6 +337,23 @@ export async function seedSponsors(database) {
   await applyAllianzFix(database);
   await applyAquaAdnanFix(database);
   await applyNeueSponsorenFix(database);
+  await applyTugraInfoFix(database);
+}
+
+// 2026-11-14 (owner): "Tugra Gida" removed completely (no own photo, owner decision); "Info" stories get their own folder
+// "info" (were sorted into "aemter") – stored folders of those stories are cleared, they are sorted again on reading. Runs once.
+async function applyTugraInfoFix(database) {
+  const id = "fix:2026-11-14-tugra-info";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  await ensureSponsorTables(database);
+  const now = Date.now();
+  await database.batch([
+    database.prepare(`DELETE FROM sponsor_media WHERE ad_id = 'tugra-gida'`),
+    database.prepare(`DELETE FROM ads WHERE id = 'tugra-gida'`),
+    database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES ('ad:tugra-gida', ?)`).bind(now), // never added again
+    database.prepare(`UPDATE stories SET cats = '' WHERE LOWER(kind) = 'info' AND cats LIKE 'aemter%'`),
+    database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now),
+  ]);
 }
 
 // 2026-11-14 (owner): "NEUE SPONSOREN.zip" – gallery pictures of the new sponsors, 2 offers of Adnan Bekar,

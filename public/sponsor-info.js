@@ -68,7 +68,8 @@
     box.innerHTML =
       '<div class="mk-si-bg"></div><div class="mk-si-sheet" role="dialog" aria-modal="true" aria-label="' + e(ad.name) + '">' +
       '<button class="mk-si-x" type="button" aria-label="' + e(L("Schließen", "Kapat", "Close")) + '">✕</button>' +
-      '<div class="mk-si-head">' + (logo ? '<img src="' + e(logo) + '" alt="">' : "") +
+      // 2026-11-14 (owner): no separate logo in the contact window – it is already in the banner of the card
+      '<div class="mk-si-head">' +
       '<div><span class="mk-si-label">' + e(L("Anzeige", "Reklam", "Ad")) + "</span><b>" + e(ad.name) + "</b>" + (cat(ad) ? "<small>" + e(cat(ad)) + "</small>" : "") + "</div></div>" +
       (txt(ad, "headline") ? '<p class="mk-si-hl">' + e(txt(ad, "headline")) + "</p>" : "") + coupon +
       (main.length ? '<div class="mk-si-btns">' + main.join("") + "</div>" : "") +

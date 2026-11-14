@@ -5,6 +5,7 @@
 
 export const STORY_CATS = [
   { key: "berlin", icon: "🏘️", de: "Kiez & Berlin", tr: "Mahalleler & Berlin", en: "Kiez & Berlin" },
+  { key: "info", icon: "ℹ️", de: "Info", tr: "Info", en: "Info" }, // 2026-11-14 (owner): own folder for "Info" stories
   { key: "eil", icon: "🚨", de: "Eilmeldungen", tr: "Acil / Son Dakika", en: "Breaking news" },
   { key: "verkehr", icon: "🚇", de: "Verkehr & BVG", tr: "Trafik & BVG", en: "Traffic & BVG" },
   { key: "deutschland", icon: "🇩🇪", de: "Deutschland", tr: "Almanya", en: "Germany" },
@@ -25,7 +26,7 @@ export const CAT_KEYS = STORY_CATS.map((c) => c.key);
 
 // old story kinds (app chips, admin planner) -> folder
 const KIND_MAP = {
-  news: "berlin", neuigkeit: "berlin", info: "aemter", politics: "berlin", politik: "berlin",
+  news: "berlin", neuigkeit: "berlin", info: "info", politics: "berlin", politik: "berlin",
   traffic: "verkehr", verkehr: "verkehr", event: "events", veranstaltung: "events",
   warn: "eil", warnung: "eil", eilmeldung: "eil", sport: "sport", jobs: "jobs", angebot: "angebote",
 };

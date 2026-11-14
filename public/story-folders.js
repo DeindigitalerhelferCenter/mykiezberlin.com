@@ -14,7 +14,7 @@
   var TOUR_KEY = "mk_tour_done_v1";
   var activeCat = "";
   var CATS = [
-    ["berlin", "🏘️", "Kiez & Berlin", "Mahalleler & Berlin", "Kiez & Berlin"], ["eil", "🚨", "Eilmeldungen", "Acil / Son Dakika", "Breaking news"],
+    ["berlin", "🏘️", "Kiez & Berlin", "Mahalleler & Berlin", "Kiez & Berlin"], ["info", "ℹ️", "Info", "Info", "Info"], ["eil", "🚨", "Eilmeldungen", "Acil / Son Dakika", "Breaking news"],
     ["verkehr", "🚇", "Verkehr & BVG", "Trafik & BVG", "Traffic & BVG"], ["deutschland", "🇩🇪", "Deutschland", "Almanya", "Germany"],
     ["welt", "🌍", "Europa & Welt", "Avrupa & Dünya", "Europe & World"], ["tuerkei", "🇹🇷", "Türkei", "Türkiye", "Turkey"],
     ["angebote", "🏷️", "Angebote & Rabatte", "İndirimler & Fırsatlar", "Deals"], ["sponsoren", "🤝", "Sponsoren", "Sponsorlar", "Sponsors"],
