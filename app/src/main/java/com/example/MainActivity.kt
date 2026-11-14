@@ -57,6 +57,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         launchTarget = intent?.getStringExtra("extra_target_screen")
         readShareIntent(intent)
+        readSponsorLink(intent) // 2026-11-14: https://mykiezberlin.com/s/<id>
         KiezNotificationWorker.schedule(applicationContext)
         setContent {
             val viewModel: MyKiezViewModel = viewModel()
@@ -138,6 +139,17 @@ class MainActivity : ComponentActivity() {
         setIntent(intent)
         launchTarget = intent.getStringExtra("extra_target_screen")
         readShareIntent(intent)
+        readSponsorLink(intent)
+    }
+
+    /** 2026-11-14 (owner): shared sponsor link https://mykiezberlin.com/s/<id> opens that sponsor directly. */
+    private fun readSponsorLink(intent: android.content.Intent?) {
+        if (intent?.action != android.content.Intent.ACTION_VIEW) return
+        val uri = intent.data ?: return
+        if (uri.host?.endsWith("mykiezberlin.com") != true) return
+        val segs = uri.pathSegments
+        val id = if (segs.size >= 2 && segs[0] == "s") segs[1] else uri.getQueryParameter("sponsor").orEmpty()
+        if (id.isNotBlank()) com.example.ui.components.SponsorDeepLink.open(id)
     }
 
     private class SharedPayload(val text: String?, val mediaUri: String?, val isVideo: Boolean)
@@ -590,12 +602,18 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     onBack = { viewModel.navigateTo(AppScreen.HOME) }
                 )
             }
+                // 2026-11-14 (owner): ⓘ info window for the open page (texts from help.json)
+                com.example.ui.components.screenHelpTopic(uiState.currentScreen)?.let { topic ->
+                    com.example.ui.components.InfoButton(topic, uiState.language, Modifier.align(Alignment.TopEnd).padding(top = 8.dp, end = 12.dp))
+                }
         }
     }
 }
 
     // Sponsor contact sheet (opens when a sponsor card is tapped)
     com.example.ui.components.SponsorInfoHost(language = uiState.language)
+    // 2026-11-14 (owner): info windows (ⓘ) + first-start tour
+    com.example.ui.components.HelpHost(language = uiState.language)
     // "Fehler melden / Support" form (2026-11-11)
     com.example.ui.components.SupportHost(language = uiState.language)
 

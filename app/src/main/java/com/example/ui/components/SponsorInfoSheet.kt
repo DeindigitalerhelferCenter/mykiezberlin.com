@@ -91,8 +91,8 @@ fun SponsorInfoHost(language: AppLanguage) {
                 ) { Text("📞 " + L("Anrufen", "Ara", "Call"), fontWeight = FontWeight.Bold) }
                 if (wa.isNotBlank()) Button(
                     onClick = { open(wa) }, modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = if (ad.primary == "wa") Color(0xFF1FA855) else MaterialTheme.colorScheme.surfaceVariant,
-                        contentColor = if (ad.primary == "wa") Color.White else MaterialTheme.colorScheme.onSurface)
+                    // 2026-11-14 (owner): WhatsApp always green
+                    colors = ButtonDefaults.buttonColors(containerColor = com.example.ui.theme.WhatsAppGreen, contentColor = Color.White)
                 ) { Text("💬 WhatsApp", fontWeight = FontWeight.Bold) }
             }
             // 2026-11-13: Google Maps directions for customers (only for a real street address)
@@ -102,6 +102,10 @@ fun SponsorInfoHost(language: AppLanguage) {
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A73E8), contentColor = Color.White)
             ) { Text("🗺️ " + L("Route", "Yol tarifi", "Directions"), fontWeight = FontWeight.Bold) }
+            // 2026-11-14 (owner): share – the link leads straight to this sponsor
+            OutlinedButton(onClick = { shareSponsor(context, ad, language) }, modifier = Modifier.fillMaxWidth()) {
+                Text("📤 " + L("Teilen", "Paylaş", "Share"), fontWeight = FontWeight.Bold)
+            }
             if (ad.description.isNotBlank()) Text(ad.description, fontSize = 14.sp)
             // Own pictures/videos of the sponsor (sponsor panel)
             var media by remember(ad.id) { mutableStateOf<List<Pair<String, Boolean>>>(emptyList()) }

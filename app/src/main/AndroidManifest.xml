@@ -49,6 +49,17 @@
                 <data android:mimeType="image/*" />
                 <data android:mimeType="video/*" />
             </intent-filter>
+            <!-- 2026-11-14 (owner): shared sponsor links https://mykiezberlin.com/s/<id> open the app (App Links,
+                 checked via https://mykiezberlin.com/.well-known/assetlinks.json) -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="mykiezberlin.com" />
+                <data android:host="www.mykiezberlin.com" />
+                <data android:pathPrefix="/s/" />
+            </intent-filter>
         </activity>
         <service
             android:name=".data.repository.AdminStoryWatchService"

@@ -117,6 +117,7 @@ fun MansetSliderComponent(
                     fontWeight = FontWeight.Black,
                     color = MaterialTheme.colorScheme.onSurface
                 )
+                InfoButton("news", language) // 2026-11-14 (owner)
                 Surface(
                     shape = RoundedCornerShape(4.dp),
                     color = BerlinRed.copy(alpha = 0.12f)
@@ -205,10 +206,11 @@ fun MansetSliderComponent(
                             .fillMaxSize()
                             .background(
                                 Brush.verticalGradient(
+                                    // 2026-11-14 (owner): picture a bit darker, so the bigger headline is easy to read
                                     colors = listOf(
-                                        Color.Black.copy(alpha = 0.45f),
-                                        Color.Transparent,
-                                        Color.Black.copy(alpha = 0.90f)
+                                        Color.Black.copy(alpha = 0.55f),
+                                        Color.Black.copy(alpha = 0.35f),
+                                        Color.Black.copy(alpha = 0.92f)
                                     ),
                                     startY = 0f,
                                     endY = Float.POSITIVE_INFINITY
@@ -270,12 +272,12 @@ fun MansetSliderComponent(
                     ) {
                         Text(
                             text = slide.localizedHeadline(language),
-                            fontSize = 13.5.sp,
+                            fontSize = 18.sp, // 2026-11-14 (owner): bigger, easier to read
                             fontWeight = FontWeight.Black,
                             color = Color.White,
-                            maxLines = 2,
+                            maxLines = 3,
                             overflow = TextOverflow.Ellipsis,
-                            lineHeight = 17.sp
+                            lineHeight = 22.sp
                         )
                         Spacer(modifier = Modifier.height(3.dp))
                         Text(

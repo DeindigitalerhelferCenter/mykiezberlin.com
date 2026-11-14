@@ -173,6 +173,7 @@ async function loadServerStories() {
       media: Array.isArray(s.media) ? s.media.map((m) => ({ url: `/media/${m.key}`, video: m.type === "video", caption: m.caption || "" })) : [],
       durationHours: s.duration_hours,
       deal: s.deal && s.deal.what ? { what: s.deal.what, price: s.deal.price, old: s.deal.old || "" } : null, // 2026-11-14
+      cats: Array.isArray(s.cats) ? s.cats : [], // 2026-11-14: story folders (story-folders.js)
       approvedAt: s.approved_at,
       status: "approved",
       link: safeUrl(s.link || "https://mykiezberlin.com"),
@@ -268,11 +269,15 @@ async function submitUserStory() {
   form.append("deal_what", document.getElementById("new-story-deal-what")?.value.trim() || "");
   form.append("deal_price", document.getElementById("new-story-deal-price")?.value.trim() || "");
   form.append("deal_old", document.getElementById("new-story-deal-old")?.value.trim() || "");
+  form.append("category", document.getElementById("new-story-category")?.value || ""); // 2026-11-14: story folder ("" = automatic)
   if (file) form.append("file", file);
   form.append("device", mkStoryDevice()); // 2026-11-14: daily limit + trusted devices
 
   try {
-    const res = await fetch("/api/stories", { method: "POST", body: form });
+    // 2026-11-14 (owner): logged-in admin (same browser) may write long texts – the server checks the token
+    let adminToken = "";
+    try { adminToken = sessionStorage.getItem("mykiez_admin_token_v1") || ""; } catch (e) {}
+    const res = await fetch("/api/stories", { method: "POST", body: form, headers: adminToken ? { "x-admin-token": adminToken } : {} });
     if (res.status === 201) {
       const answer = await res.clone().json().catch(() => ({}));
       if (answer.status === "approved") showToast(tr("Danke! Deine Story ist jetzt online.", "Teşekkürler! Hikâyen şimdi yayında."));

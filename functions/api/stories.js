@@ -1,7 +1,8 @@
 // Shared Kiez stories: public list and moderated submissions.
 import { safeLink } from "../_lib/blocklist.js";
 import { aiCheck, cleanDevice, cleanupStoryMedia, dailyLimited, dailyUsed, isTrusted, USER_DAILY_LIMIT } from "../_lib/story-guard.js";
-import { cleanText, cleanupExpiredStories, db, ipHash, isAdmin, json, noDb, rateLimited, sha256Hex, parseDeal, storyDeal, storyMediaList, storyTextKey, validAuthor } from "../_lib/util.js";
+import { STORY_CATS, catsOf, dealFromText, storyCats } from "../_lib/story-cats.js";
+import { cleanLongText, cleanText, cleanupExpiredStories, db, ipHash, isAdmin, json, noDb, rateLimited, sha256Hex, parseDeal, storyDeal, storyMediaList, storyTextKey, validAuthor } from "../_lib/util.js";
 
 const HOUR_MS = 3600000;
 const MAX_HOURS = 720;
@@ -44,15 +45,17 @@ export async function onRequestGet({ request, env, waitUntil }) {
     const used = await dailyUsed(database, await ipHash(request, env), cleanDevice(params.get("device")));
     return json({ used, limit: USER_DAILY_LIMIT, left: Math.max(0, USER_DAILY_LIMIT - used) }, 200, { "cache-control": "no-store" });
   }
+  // 2026-11-14 (owner): list of the story folders for web and app
+  if (params.get("cats")) return json({ cats: STORY_CATS }, 200, { "cache-control": "public, max-age=3600" });
   waitUntil(cleanupExpiredStories(env));
   waitUntil(cleanupStoryMedia(env, database).catch(() => {})); // 2026-11-14: rejected / long-waiting media
   const now = Date.now();
   const { results } = await database
-    .prepare(`SELECT id, headline, subtext, kiez, kind, author, media_key, media_type, media_extra, deal, duration_hours, approved_at, link FROM stories WHERE status = 'approved' AND approved_at <= ? AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT 60`)
+    .prepare(`SELECT id, headline, subtext, kiez, kind, author, media_key, media_type, media_extra, deal, duration_hours, approved_at, link, cats FROM stories WHERE status = 'approved' AND approved_at <= ? AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT 60`)
     .bind(now, now)
     .all();
   // 2026-11-13: "media" = every picture/video of the story in order (old clients keep using media_key)
-  return json({ stories: results.map(({ media_extra, deal, ...r }) => ({ ...r, link: safeLink(r.link), media: storyMediaList({ ...r, media_extra }), deal: parseDeal(deal) })) });
+  return json({ stories: results.map(({ media_extra, deal, cats, ...r }) => ({ ...r, link: safeLink(r.link), media: storyMediaList({ ...r, media_extra }), deal: parseDeal(deal), cats: catsOf({ ...r, cats, deal }) })) });
 }
 
 export async function onRequestPost({ request, env }) {
@@ -60,18 +63,24 @@ export async function onRequestPost({ request, env }) {
   if (!database) return noDb();
 
   const form = await request.formData();
-  const headline = cleanText(form.get("headline"), 120);
-  const subtext = cleanText(form.get("subtext"), 500);
+  // Admin (story planner): no hourly limit, published directly at the planned time.
+  // 2026-11-14 (owner): the admin may write (almost) without limit – title 300, text 10.000 characters, line breaks stay.
+  const admin = await isAdmin(request, env);
+  const headline = cleanText(form.get("headline"), admin ? 300 : 120);
+  const subtext = cleanLongText(form.get("subtext"), admin ? 10000 : 500);
   const kiez = cleanText(form.get("kiez"), 60);
   const kind = KINDS.includes(form.get("kind")) ? form.get("kind") : "news";
   // Name of the person who shares (needed for the weekly Kiez-Stars)
   const author = cleanText(form.get("author"), 40) || "Kiez Community";
-  const deal = storyDeal(form, cleanText); // 2026-11-14: optional offer (users, sponsors, admin)
+  let deal = storyDeal(form, cleanText); // 2026-11-14: optional offer (users, sponsors, admin)
+  // 2026-11-14 (owner): folders – chosen folder + rules (price -> "angebote", Polizei/Sperrung -> "eil" …)
+  const cats = storyCats({ chosen: cleanText(form.get("category"), 20), kind: form.get("kind"), headline, subtext, deal, sponsor: form.get("sponsor") === "1" });
+  if (!deal && cats.includes("angebote") && !cats.includes("wohnen") && !cats.includes("jobs")) deal = dealFromText(headline, subtext);
+  const catsText = cats.join(",");
   const durationHours = USER_DURATIONS.includes(Number(form.get("durationHours"))) ? Number(form.get("durationHours")) : 24;
   if (!headline || !kiez) return json({ error: "missing_fields" }, 400);
 
-  // Admin (story planner): no hourly limit, published directly at the planned time
-  const admin = await isAdmin(request, env);
+  // (admin: see above)
   const ip = await ipHash(request, env);
   // 2026-11-13: real name or nickname required (not only emoji), see validAuthor
   if (!admin && !validAuthor(form.get("author"))) return json({ error: "author_required" }, 400);
@@ -129,8 +138,8 @@ export async function onRequestPost({ request, env }) {
       extra.push({ key, type: video ? "video" : "image", caption: cleanText(form.get(`caption_${i + 2}`), 300) });
     }
     await database
-      .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, ip, created_at, approved_at, link, by_admin, media_hash, text_hash, media_extra, deal) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved', ?, ?, ?, ?, 1, ?, ?, ?, ?)`)
-      .bind(id, headline, subtext, kiez, adminKind, cleanText(form.get("author"), 40) || "My Kiez Berlin", mediaKey, mediaType, hours, ip, now, start, webLink(form.get("link")), mediaHash, textHash, JSON.stringify(extra), deal)
+      .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, ip, created_at, approved_at, link, by_admin, media_hash, text_hash, media_extra, deal, cats) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved', ?, ?, ?, ?, 1, ?, ?, ?, ?, ?)`)
+      .bind(id, headline, subtext, kiez, adminKind, cleanText(form.get("author"), 40) || "My Kiez Berlin", mediaKey, mediaType, hours, ip, now, start, webLink(form.get("link")), mediaHash, textHash, JSON.stringify(extra), deal, catsText)
       .run();
     return json({ id, status: start > now ? "scheduled" : "approved", publishAt: start, durationHours: hours }, 201);
   }
@@ -140,8 +149,8 @@ export async function onRequestPost({ request, env }) {
   const direct = !admin && check === "ok" && (await isTrusted(database, device));
   const created = Date.now();
   await database
-    .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, ip, created_at, media_hash, text_hash, deal, device, ai_check, approved_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-    .bind(id, headline, subtext, kiez, kind, author, mediaKey, mediaType, durationHours, direct ? "approved" : "pending", ip, created, mediaHash, textHash, deal, device, check, direct ? created : 0)
+    .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, ip, created_at, media_hash, text_hash, deal, device, ai_check, approved_at, cats) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    .bind(id, headline, subtext, kiez, kind, author, mediaKey, mediaType, durationHours, direct ? "approved" : "pending", ip, created, mediaHash, textHash, deal, device, check, direct ? created : 0, catsText)
     .run();
   return json({ id, status: direct ? "approved" : "pending" }, 201);
 }

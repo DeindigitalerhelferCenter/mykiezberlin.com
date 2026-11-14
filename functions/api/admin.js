@@ -1,7 +1,8 @@
 // Server-side moderation for all shared content.
 import { isBlockedUrl } from "../_lib/blocklist.js";
-import { cleanText, db, instagramUrl, isAdmin, json, noDb, storyMediaList } from "../_lib/util.js";
+import { cleanLongText, cleanText, db, instagramUrl, isAdmin, json, noDb, storyMediaList } from "../_lib/util.js";
 import { AD_PLACE_KEYS, parseExtra, planRule } from "../_lib/plans.js";
+import { CAT_KEYS } from "../_lib/story-cats.js";
 import { cleanupOldRequests, KEEP_DAYS, REPLY_KINDS, REQUEST_COLUMNS, replyTemplate, resendWelcome, sendReply, shapeRequest } from "../_lib/ad-requests.js";
 import { mailReady } from "../_lib/mail.js";
 import { countTrust } from "../_lib/story-guard.js";
@@ -50,13 +51,13 @@ function storyLink(value) {
 }
 
 async function createStory(database, body) {
-  const headline = cleanText(body.headline, 120);
+  const headline = cleanText(body.headline, 300); // 2026-11-14 (owner): admin almost without limit
   if (!headline) return json({ error: "missing_fields" }, 400);
   const now = Date.now();
   const id = crypto.randomUUID();
   await database
     .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, author, status, duration_hours, created_at, approved_at, link) VALUES (?, ?, ?, ?, ?, 'My Kiez Berlin', 'approved', ?, ?, ?, ?)`)
-    .bind(id, headline, cleanText(body.subtext, 500), cleanText(body.kiez, 60) || "Ganz Berlin", cleanText(body.kind, 30) || "news", Math.min(Number(body.durationHours) || 24, 720), now, now, storyLink(body.link))
+    .bind(id, headline, cleanLongText(body.subtext, 10000), cleanText(body.kiez, 60) || "Ganz Berlin", cleanText(body.kind, 30) || "news", Math.min(Number(body.durationHours) || 24, 720), now, now, storyLink(body.link))
     .run();
   return json({ id }, 201);
 }
@@ -73,7 +74,7 @@ async function createInstagramStory(database, body) {
   const id = crypto.randomUUID();
   await database
     .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, author, status, duration_hours, created_at, approved_at, link) VALUES (?, ?, ?, ?, 'instagram', ?, 'approved', ?, ?, ?, ?)`)
-    .bind(id, headline, cleanText(body.subtext, 500), cleanText(body.kiez, 60) || "Ganz Berlin", account ? `@${account}` : "Instagram", hours, now, now, link)
+    .bind(id, headline, cleanLongText(body.subtext, 10000), cleanText(body.kiez, 60) || "Ganz Berlin", account ? `@${account}` : "Instagram", hours, now, now, link)
     .run();
   return json({ id, link, durationHours: hours }, 201);
 }
@@ -184,13 +185,18 @@ export async function onRequestPost({ request, env }) {
   } else if (action === "extend" && type === "story") {
     await database.prepare(`UPDATE stories SET duration_hours = duration_hours + ? WHERE id = ?`).bind(Math.min(Number(body.hours) || 48, 720), id).run();
   } else if (action === "edit" && type === "story") {
-    await database.prepare(`UPDATE stories SET headline = ?, subtext = ? WHERE id = ?`).bind(cleanText(body.headline, 120), cleanText(body.subtext, 500), id).run();
+    await database.prepare(`UPDATE stories SET headline = ?, subtext = ? WHERE id = ?`).bind(cleanText(body.headline, 300), cleanLongText(body.subtext, 10000), id).run();
   } else if (action === "storyMeta" && type === "story") {
     const kind = cleanText(body.kind, 30);
     const kiez = cleanText(body.kiez, 60);
     if (kind) await database.prepare(`UPDATE stories SET kind = ? WHERE id = ?`).bind(kind, id).run();
     if (kiez) await database.prepare(`UPDATE stories SET kiez = ? WHERE id = ?`).bind(kiez, id).run();
     if (body.link !== undefined) await database.prepare(`UPDATE stories SET link = ? WHERE id = ?`).bind(storyLink(body.link), id).run();
+    // 2026-11-14 (owner): admin chooses the folders by hand ("a,b,c", main folder first; only known keys)
+    if (body.cats !== undefined) {
+      const list = String(body.cats || "").split(",").map((k) => k.trim()).filter((k) => CAT_KEYS.includes(k)).slice(0, 5);
+      await database.prepare(`UPDATE stories SET cats = ? WHERE id = ?`).bind(list.join(","), id).run();
+    }
     // Admin posts are not part of the weekly Kiez-Stars ranking
     if (body.byAdmin) await database.prepare(`UPDATE stories SET by_admin = 1 WHERE id = ?`).bind(id).run();
     const author = cleanText(body.author, 40);

@@ -63,7 +63,7 @@ class KiezNotificationWorker(context: Context, params: WorkerParameters) : Corou
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
             val list = JSONObject(response.body?.string().orEmpty()).optJSONArray("items")
-            return demo + adminRequestItems() + adminPendingStories() + (0 until (list?.length() ?: 0)).map { i ->
+            return demo + adminRequestItems() + adminPendingStories() + followedFolderItems() + (0 until (list?.length() ?: 0)).map { i ->
                 val o = list!!.getJSONObject(i)
                 // Hourly items carry DE / TR / EN text; show the app language
                 val suffix = when (KiezStorageManager.loadLanguage(applicationContext)) {
@@ -87,6 +87,38 @@ class KiezNotificationWorker(context: Context, params: WorkerParameters) : Corou
     }
 
     // Admin only: stories waiting for approval, so the admin does not have to check the list.
+    /** 2026-11-14 (owner): new stories in story folders the user follows (🔔 in the story bar). */
+    private fun followedFolderItems(): List<Item> {
+        val followed = com.example.ui.components.StoryFolders.followedKeys(applicationContext)
+        if (followed.isEmpty()) return emptyList()
+        return try {
+            val since = com.example.ui.components.StoryFolders.lastNotified(applicationContext)
+            val request = Request.Builder().url("https://mykiezberlin.com/api/stories").build()
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return emptyList()
+                val arr = JSONObject(response.body?.string().orEmpty()).optJSONArray("stories") ?: return emptyList()
+                val lang = KiezStorageManager.loadLanguage(applicationContext)
+                var newest = since
+                val out = mutableListOf<Item>()
+                for (i in 0 until arr.length()) {
+                    val o = arr.getJSONObject(i)
+                    val at = o.optLong("approved_at")
+                    if (at <= since) continue
+                    if (at > newest) newest = at
+                    val cats = com.example.ui.components.parseStoryCats(o.optJSONArray("cats"))
+                    val hit = cats.firstOrNull { it in followed } ?: continue
+                    val folder = com.example.ui.components.STORY_FOLDERS.firstOrNull { it.key == hit } ?: continue
+                    out.add(Item("folder-" + o.optString("id"), "folder", "🔔 ${folder.icon} ${folder.label(lang)}", o.optString("headline"), "HOME"))
+                }
+                // first run after following: only remember the time, no flood of old stories
+                com.example.ui.components.StoryFolders.setLastNotified(applicationContext, if (since == 0L) System.currentTimeMillis() else newest)
+                if (since == 0L) emptyList() else out.take(3)
+            }
+        } catch (_: Exception) {
+            emptyList()
+        }
+    }
+
     private fun adminPendingStories(): List<Item> {
         if (!KiezStorageManager.isAdminAuthenticated(applicationContext)) return emptyList()
         // The admin watcher (every minute, loud) already reports them; restart it if Android stopped it.
@@ -136,6 +168,13 @@ class KiezNotificationWorker(context: Context, params: WorkerParameters) : Corou
     private fun mayShow(item: Item): Boolean {
         if (item.kind == "critical" || item.kind == "admin") return true
         val today = LocalDate.now().toString()
+        if (item.kind == "folder") {
+            // 2026-11-14: followed story folders – own quota (at most 6 a day)
+            val usedFolder = if (prefs.getString("folder_day", "") == today) prefs.getInt("folder_count", 0) else 0
+            if (usedFolder >= 6) return false
+            prefs.edit().putString("folder_day", today).putInt("folder_count", usedFolder + 1).apply()
+            return true
+        }
         if (item.kind == "story") {
             // Planned stories of the admin: one notification each time a story goes live (own quota).
             val usedStory = if (prefs.getString(KEY_STORY_DAY, "") == today) prefs.getInt(KEY_STORY_COUNT, 0) else 0

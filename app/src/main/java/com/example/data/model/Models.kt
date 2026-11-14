@@ -151,7 +151,9 @@ data class KiezStory(
     // 2026-11-13: admin stories with several pictures/videos – everything after the first one (mediaUri)
     val extraMedia: List<StoryMedia> = emptyList(),
     // 2026-11-14: offer of the story (also shown under "Özel Mahalle İndirimleri")
-    val deal: com.example.ui.components.StoryDeal? = null
+    val deal: com.example.ui.components.StoryDeal? = null,
+    // 2026-11-14 (owner): story folders from /api/stories ("berlin", "eil", "angebote" …), main folder first
+    val cats: List<String> = emptyList()
 )
 
 /** One further picture/video of a story (admin stories can have many, e.g. a sponsor ad with 4 pictures + 2 videos). */

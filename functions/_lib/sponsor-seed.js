@@ -221,6 +221,78 @@ export const SPONSOR_SEED = [
     extra: { category: { de: "Getränke-Lieferservice", tr: "İçecek teslimatı", en: "Beverage delivery" }, address: "Berlin und Umgebung", hours: "",
       description: "Getränke-Lieferservice für Berlin und Umgebung. Bestellungen per WhatsApp oder Telefon: 0151 265 09 586." },
   },
+  // ---- 2026-11-14 (owner): "NEUE SPONSOREN.zip" + Kundenregister rows 21–26, package Plus ----
+  {
+    id: "tam-et", plan: "m", name: "Tam Et – Halal Fleischerei", kieze: "Reinickendorf",
+    headline_de: "Halal-Fleischerei in Reinickendorf – frisches Fleisch, Marinaden & Grillspieße. Google 4,7★",
+    headline_tr: "Reinickendorf'ta helal kasap – taze et, marine etler ve mangal şişleri. Google 4,7★",
+    headline_en: "Halal butcher in Reinickendorf – fresh meat, marinades & skewers. Google 4.7★",
+    cta_de: "Jetzt anrufen", cta_tr: "Hemen ara", cta_en: "Call now",
+    link_web: "", link_wa: "", link_tel: "0176 71099594", link_ig: "",
+    extra: { category: { de: "Fleischerei · Halal", tr: "Kasap · Helal et", en: "Butcher · Halal" }, address: "Residenzstraße 128, 13409 Berlin", hours: "Mo–Sa 07:00–19:00", contact: "Tamer Cetinkaya", primary: "tel",
+      description: "Halal-Fleischerei in Berlin-Reinickendorf. Inhaber: Tamer Cetinkaya. Google-Bewertung 4,7★ (67 Rezensionen)." },
+  },
+  {
+    id: "gumus-baeckerei", plan: "m", name: "Gümüş Bäckerei", kieze: "Schöneberg",
+    headline_de: "Türkische Bäckerei seit über 30 Jahren: Fladenbrot, Simit, Börek, Lahmacun & Baklava – täglich 05–22 Uhr",
+    headline_tr: "30 yılı aşkın Türk fırını: pide, simit, börek, lahmacun ve baklava – her gün 05–22",
+    headline_en: "Turkish bakery for over 30 years: flatbread, simit, börek, lahmacun & baklava – daily 5am–10pm",
+    cta_de: "Jetzt anrufen", cta_tr: "Hemen ara", cta_en: "Call now",
+    link_web: "https://www.gumusbaeckerei.com", link_wa: "", link_tel: "030 81821002", link_ig: "",
+    extra: { category: { de: "Bäckerei · Imbiss", tr: "Fırın · Lokanta", en: "Bakery · Snack bar" }, address: "Hauptstraße 148, 10827 Berlin", hours: "Täglich 05:00–22:00", primary: "tel",
+      description: "Türkische Bäckerei seit über 30 Jahren. Fladenbrot, Simit, Börek, Lahmacun, Baklava und Frühstück. Filialen: Hauptstraße 148 und Dominicusstraße 43, 10827 Berlin." },
+  },
+  {
+    id: "tugra-gida", plan: "m", name: "Tugra Gida", kieze: "Schöneberg",
+    headline_de: "Türkischer Supermarkt in Schöneberg – Lebensmittel aus der Heimat",
+    headline_tr: "Schöneberg'de Türk süpermarketi – memleketten gıda ürünleri",
+    headline_en: "Turkish supermarket in Schöneberg – groceries from home",
+    cta_de: "Jetzt anrufen", cta_tr: "Hemen ara", cta_en: "Call now",
+    link_web: "", link_wa: "", link_tel: "030 78711191", link_ig: "",
+    extra: { category: { de: "Supermarkt", tr: "Süpermarket", en: "Supermarket" }, address: "Hauptstraße 13, 10827 Berlin", hours: "", primary: "tel",
+      description: "Türkischer Supermarkt in Berlin-Schöneberg. Tugra Gida GmbH, HRB 266954 B, AG Berlin." },
+  },
+  {
+    id: "berlin-pos", plan: "m", name: "Berlin POS Kassensysteme GmbH", kieze: "Schöneberg",
+    headline_de: "Kassensysteme für Gastronomie, Metzgerei, Bäckerei & Supermarkt – Beratung, Verkauf & Reparatur",
+    headline_tr: "Restoran, kasap, fırın ve market için kasa sistemleri – danışmanlık, satış ve tamir",
+    headline_en: "POS systems for restaurants, butchers, bakeries & supermarkets – advice, sales & repair",
+    cta_de: "Beratung anfragen", cta_tr: "Danışmanlık al", cta_en: "Ask for advice",
+    link_web: "https://www.berlin-pos.de", link_wa: "+491637534290", link_tel: "030 54715148", link_ig: "",
+    extra: { category: { de: "Kassensysteme · IT", tr: "Kasa sistemleri · IT", en: "POS systems · IT" }, address: "Hauptstraße 15, 10827 Berlin", hours: "", email: "info@berlin-pos.de", contact: "Mustafa Cihat Gürsoy",
+      description: "Kassensysteme für Metzgerei, Bäckerei, Supermarkt und Gastronomie (Lotus Pecas, Self-Order-Kiosk, VNE Bargeldsystem). Beratung, Vertrieb & Reparatur. Netzwerk in 10 Ländern." },
+  },
+  {
+    id: "orhan-bestattungen", plan: "m", name: "Orhan Islamische Bestattungen & Überführungen", kieze: "Neukölln",
+    headline_de: "Islamische Bestattungen & Überführungen – Tag und Nacht erreichbar, über 25 Jahre Erfahrung",
+    headline_tr: "İslami cenaze ve nakil hizmetleri – gece gündüz ulaşılabilir, 25 yılı aşkın tecrübe",
+    headline_en: "Islamic funerals & repatriation – available day and night, over 25 years of experience",
+    cta_de: "Jetzt anrufen", cta_tr: "Hemen ara", cta_en: "Call now",
+    link_web: "https://orhan-bestattung.com", link_wa: "+4917682138391", link_tel: "030 25931630", link_ig: "",
+    extra: { category: { de: "Islamische Bestattungen", tr: "İslami cenaze hizmetleri", en: "Islamic funerals" }, address: "Flughafenstraße 40, 12053 Berlin", hours: "24/7 – Tag & Nacht", email: "info@orhan-bestattung.com", primary: "tel",
+      description: "Islamische Bestattungen & Überführungen: Erdbestattung, Feuerbestattung, Auslandsüberführung (Türkei, Balkan, arabische Welt). 24/7 erreichbar. Sprachen: DE, TR, EN, AR, BS, HR u. v. m.\nHandy: 0176 82138391" },
+  },
+  // ---- Türkei-Sponsoren (extra.region = "tr", own page "Türkiye Sponsorları") ----
+  {
+    id: "yusuf-car-rental", plan: "m", name: "Yusuf Car Rental", kieze: "",
+    headline_de: "Autovermietung in Antalya: Tages-, Wochen- & Monatsmiete – vom Kleinwagen bis zum Premium-SUV",
+    headline_tr: "Antalya'da araç kiralama: günlük, haftalık ve aylık – ekonomik araçtan premium SUV'a",
+    headline_en: "Car rental in Antalya: daily, weekly & monthly – from economy cars to premium SUVs",
+    cta_de: "WhatsApp schreiben", cta_tr: "WhatsApp yaz", cta_en: "Message on WhatsApp",
+    link_web: "https://yusufcarrental.com", link_wa: "+905350178526", link_tel: "+90 535 017 85 26", link_ig: "",
+    extra: { category: { de: "Autovermietung", tr: "Araç kiralama", en: "Car rental" }, address: "Antalya, Türkiye", hours: "", contact: "Yusuf Sepetci", primary: "wa", region: "tr",
+      description: "Autovermietung in Antalya. Tages-, Wochen- und Monatsmiete mit transparenten TL-Preisen. Klassen: City, Executive, Premium SUV.\nTelefon: +90 535 017 85 26 / +90 224 233 02 33" },
+  },
+  {
+    id: "packpress", plan: "m", name: "PackPress", kieze: "",
+    headline_de: "Bedruckte Verpackungen mit Ihrem Logo: Pizzakartons, Burgerboxen, Tüten, Becher & Dönerpapier",
+    headline_tr: "Logonuzla baskılı ambalaj: pizza kutusu, burger kutusu, poşet, bardak ve döner kağıdı",
+    headline_en: "Packaging printed with your logo: pizza boxes, burger boxes, bags, cups & wrapping paper",
+    cta_de: "Zum Shop", cta_tr: "Mağazaya git", cta_en: "Visit shop",
+    link_web: "https://packpress.de", link_wa: "+4915738173297", link_tel: "+49 157 38173297", link_ig: "",
+    extra: { category: { de: "Verpackungsdruck · B2B", tr: "Ambalaj baskı · B2B", en: "Packaging print · B2B" }, address: "", hours: "Mo–Fr 08:00–18:00", email: "info@packpress.de", region: "tr",
+      description: "PackPress B2B Packaging Solutions: individuell bedruckte Verpackungen für Gastronomie und Handel. Kostenloser Design-Service, DAP-Lieferung (frei Haus) in die EU und die Schweiz." },
+  },
 ];
 
 // One-time corrections for sponsors that are already in the live database (seeds are only inserted once).
@@ -274,6 +346,66 @@ export async function seedSponsors(database) {
   await applyAdnanBekarFix(database);
   await applyAllianzFix(database);
   await applyAquaAdnanFix(database);
+  await applyNeueSponsorenFix(database);
+}
+
+// 2026-11-14 (owner): "NEUE SPONSOREN.zip" – gallery pictures of the new sponsors, 2 offers of Adnan Bekar,
+// Aqua Marinn and Dr. Adnan Gürcan also on the page "Türkiye Sponsorları" (extra.region = "tr"). Runs once.
+const NEUE_GALLERY = [
+  ["g-packpress-1", "packpress", "/assets/sponsors/gallery/packpress-1.webp", "Alles aus einer Hand für Ihren Lieferdienst"],
+  ["g-packpress-2", "packpress", "/assets/sponsors/gallery/packpress-2.webp", "Premium Dönerpapier mit Ihrem Logo"],
+  ["g-packpress-3", "packpress", "/assets/sponsors/gallery/packpress-3.webp", "Unsere Produkte"],
+  ["g-packpress-4", "packpress", "/assets/sponsors/gallery/packpress-4.webp", "XXL Doppel-Burgerbox"],
+  ["g-packpress-5", "packpress", "/assets/sponsors/gallery/packpress-5.webp", "Bäckertüten & Faltenbeutel"],
+  ["g-packpress-6", "packpress", "/assets/sponsors/gallery/packpress-6.webp", "Pizzakartons"],
+  ["g-yusuf-1", "yusuf-car-rental", "/assets/sponsors/gallery/yusuf-car-rental-1.webp", "City"],
+  ["g-yusuf-2", "yusuf-car-rental", "/assets/sponsors/gallery/yusuf-car-rental-2.webp", "Executive"],
+  ["g-yusuf-3", "yusuf-car-rental", "/assets/sponsors/gallery/yusuf-car-rental-3.webp", "Premium SUV"],
+  ["g-yusuf-4", "yusuf-car-rental", "/assets/sponsors/gallery/yusuf-car-rental-4.webp", "Rezervasyondan teslimata net, kontrollü ve hızlı"],
+  ["g-tamet-1", "tam-et", "/assets/sponsors/gallery/tam-et-1.webp", "Residenzstraße 128"],
+  ["g-tamet-2", "tam-et", "/assets/sponsors/gallery/tam-et-2.webp", "Frisch mariniert"],
+  ["g-gumus-1", "gumus-baeckerei", "/assets/sponsors/gallery/gumus-baeckerei-1.webp", "Hauptstraße 148"],
+  ["g-gumus-2", "gumus-baeckerei", "/assets/sponsors/gallery/gumus-baeckerei-2.webp", "Café & Imbiss"],
+  ["g-gumus-3", "gumus-baeckerei", "/assets/sponsors/gallery/gumus-baeckerei-3.webp", "Türkisches Frühstück"],
+  ["g-berlinpos-1", "berlin-pos", "/assets/sponsors/gallery/berlin-pos-1.webp", "Kassen · Kiosk · Bargeldsystem"],
+  ["g-berlinpos-2", "berlin-pos", "/assets/sponsors/gallery/berlin-pos-2.webp", "Hauptstraße 15"],
+  ["g-berlinpos-3", "berlin-pos", "/assets/sponsors/gallery/berlin-pos-3.webp", "Kasse im Einsatz"],
+  ["g-orhan-1", "orhan-bestattungen", "/assets/sponsors/gallery/orhan-bestattungen-1.webp", "Tag & Nacht geöffnet"],
+  ["g-orhan-2", "orhan-bestattungen", "/assets/sponsors/gallery/orhan-bestattungen-2.webp", "Orhan Bestattungen"],
+  ["g-orhan-3", "orhan-bestattungen", "/assets/sponsors/gallery/orhan-bestattungen-3.webp", "Orhan Bestattungen"],
+  ["g-troja-1", "troja-consulting", "/assets/sponsors/gallery/troja-consulting-1.webp", "Miete gesenkt – 4-Zimmer-Altbauwohnung"],
+  ["g-troja-2", "troja-consulting", "/assets/sponsors/gallery/troja-consulting-2.webp", "Angebot"],
+  // existing sponsors without (enough) pictures: photos from their own websites
+  ["g-fightshop-1", "fight-shop-berlin", "/assets/sponsors/gallery/fight-shop-berlin-1.webp", "Sparring-Handschuhe"],
+  ["g-babybeach-1", "babybeach-berlin", "/assets/sponsors/gallery/babybeach-berlin-1.webp", "Vorteile eines Salzraums für Kinder"],
+  ["g-babybeach-2", "babybeach-berlin", "/assets/sponsors/gallery/babybeach-berlin-2.webp", "Salz & Gesundheit"],
+  ["g-schuh-1", "berlin-schuh-schluessel", "/assets/sponsors/gallery/berlin-schuh-schluessel-1.webp", "Im Rathaus-Center Pankow"],
+  ["g-zahnarzt-1", "zahnarzt-bundesplatz", "/assets/sponsors/gallery/zahnarzt-bundesplatz-1.webp", "Zahnersatz"],
+  ["g-zahnarzt-2", "zahnarzt-bundesplatz", "/assets/sponsors/gallery/zahnarzt-bundesplatz-2.webp", "Prophylaxe"],
+  ["g-thevisit-1", "the-visit", "/assets/sponsors/gallery/the-visit-1.webp", "Die Macherei (M40)"],
+  ["g-thevisit-2", "the-visit", "/assets/sponsors/gallery/the-visit-2.webp", "Rösterei & Café"],
+  ["g-exakt-2", "exakt-sicherheit", "/assets/sponsors/gallery/exakt-sicherheit-2.webp", "Schlüsseldienst 24/7"],
+  ["g-schah-2", "schah-hairdesign", "/assets/sponsors/gallery/schah-hairdesign-2.webp", "Haarverlängerung & Balayage"],
+  ["g-tek-2", "terra-verde-tek", "/assets/sponsors/gallery/terra-verde-tek-g2.webp", "Großhandel Beusselstraße"],
+];
+async function applyNeueSponsorenFix(database) {
+  const id = "fix:2026-11-14-neue-sponsoren";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  await ensureSponsorTables(database);
+  const now = Date.now();
+  const steps = NEUE_GALLERY.map(([mid, adId, key, caption], i) =>
+    database.prepare(`INSERT OR IGNORE INTO sponsor_media (id, ad_id, media_key, media_type, caption, status, bytes, created_at, by_admin) VALUES (?, ?, ?, 'image', ?, 'live', 0, ?, 1)`)
+      .bind(mid, adId, key, caption, now - i));
+  for (const adId of ["aqua-marinn", "dr-adnan-guercan"]) {
+    const row = await database.prepare(`SELECT extra FROM ads WHERE id = ?`).bind(adId).first();
+    if (!row) continue;
+    let extra = {};
+    try { extra = JSON.parse(row.extra || "{}") || {}; } catch (e) { extra = {}; }
+    extra.region = "tr";
+    steps.push(database.prepare(`UPDATE ads SET extra = ?, updated_at = ? WHERE id = ?`).bind(JSON.stringify(extra), now, adId));
+  }
+  steps.push(database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now));
+  await database.batch(steps);
 }
 
 // 2026-11-14 (owner): Aqua Marinn – real logo, new banner (logo + 2 pictures), 2 pictures + 4 Instagram posts/reels in the

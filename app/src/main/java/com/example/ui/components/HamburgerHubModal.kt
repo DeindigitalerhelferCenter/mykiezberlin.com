@@ -712,6 +712,18 @@ fun HamburgerHubModal(
             Spacer(modifier = Modifier.height(4.dp))
 
             // Action Buttons: Reset Filters & Dismiss
+            // 2026-11-14 (owner): help – short tour + story folders
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedButton(onClick = { onDismiss(); HelpState.startTour() }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp)) {
+                    Text("❓ " + when (language) { AppLanguage.TURKISH -> "Yardım / Nasıl çalışır?"; AppLanguage.ENGLISH -> "Help / How it works"; else -> "Hilfe / So geht's" }, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+                OutlinedButton(onClick = { onDismiss(); HelpState.open.value = "folders" }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp)) {
+                    Text("📁 " + when (language) { AppLanguage.TURKISH -> "Klasörler"; AppLanguage.ENGLISH -> "Folders"; else -> "Ordner" }, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+            }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

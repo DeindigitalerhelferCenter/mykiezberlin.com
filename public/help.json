@@ -1,0 +1,692 @@
+{
+ "version": 1,
+ "_note": "2026-11-14 (owner): info windows (ⓘ) for web and app. Fields per topic: icon, title, what, free, upload, write, note – each {de, tr, en}. Empty field = not shown.",
+ "tour": [
+  {
+   "icon": "👋",
+   "de": "Willkommen bei My Kiez Berlin! Hier findest du alles aus deinem Kiez: Nachrichten, Stories der Nachbarn, Angebote, Notrufnummern und Betriebe.",
+   "tr": "My Kiez Berlin'e hoş geldin! Mahallenle ilgili her şey burada: haberler, komşuların hikâyeleri, indirimler, acil numaralar ve işletmeler.",
+   "en": "Welcome to My Kiez Berlin! Everything from your neighbourhood: news, neighbours' stories, deals, emergency numbers and businesses."
+  },
+  {
+   "icon": "📸",
+   "de": "Stories: Tippe oben auf „+“ und teile ein Foto, Video oder einen Text aus deinem Kiez. Kostenlos – bis zu 5 Stories am Tag.",
+   "tr": "Hikâyeler: Yukarıdaki „+“ işaretine dokun ve mahallenden fotoğraf, video veya yazı paylaş. Ücretsiz – günde 5 hikâyeye kadar.",
+   "en": "Stories: tap “+” at the top and share a photo, video or text from your Kiez. Free – up to 5 stories a day."
+  },
+  {
+   "icon": "📁",
+   "de": "Ordner: Über den Stories wählst du Themen wie Berlin, Eilmeldungen, Angebote oder Türkei. Mit 🔔 folgst du einem Ordner und bekommst eine Nachricht bei neuen Stories.",
+   "tr": "Klasörler: Hikâyelerin üstünde Berlin, Acil, İndirimler veya Türkiye gibi konuları seçersin. 🔔 ile bir klasörü takip edersen yeni hikâyelerde bildirim alırsın.",
+   "en": "Folders: above the stories you choose topics like Berlin, breaking news, deals or Turkey. Tap 🔔 to follow a folder and get notified about new stories."
+  },
+  {
+   "icon": "ⓘ",
+   "de": "Unsicher? Neben fast jeder Überschrift steht ein ⓘ. Dort steht, was du dort machen kannst, ob es kostenlos ist und was du hochladen darfst.",
+   "tr": "Emin değil misin? Neredeyse her başlığın yanında bir ⓘ var. Orada ne yapabileceğini, ücretsiz olup olmadığını ve neler yükleyebileceğini görürsün.",
+   "en": "Not sure? Next to almost every heading there is an ⓘ. It explains what you can do there, whether it is free and what you may upload."
+  }
+ ],
+ "topics": {
+  "stories": {
+   "icon": "📸",
+   "title": {
+    "de": "Kiez-Stories",
+    "tr": "Mahalle Hikâyeleri",
+    "en": "Kiez stories"
+   },
+   "what": {
+    "de": "Kurze Beiträge mit Foto, Video oder nur Text – aus deinem Kiez für deine Nachbarn. Sie sind 24 oder 48 Stunden sichtbar.",
+    "tr": "Fotoğraflı, videolu veya sadece yazılı kısa paylaşımlar – mahallenden komşularına. 24 veya 48 saat görünür.",
+    "en": "Short posts with a photo, video or just text – from your Kiez for your neighbours. Visible for 24 or 48 hours."
+   },
+   "free": {
+    "de": "Kostenlos. Bis zu 5 Stories pro Tag.",
+    "tr": "Ücretsiz. Günde en fazla 5 hikâye.",
+    "en": "Free. Up to 5 stories per day."
+   },
+   "upload": {
+    "de": "1 Foto (JPG, PNG, WebP bis 5 MB) oder 1 Video (MP4, WebM bis 50 MB). Ohne Bild wird automatisch ein Foto deines Kiezes genommen.",
+    "tr": "1 fotoğraf (JPG, PNG, WebP, en fazla 5 MB) veya 1 video (MP4, WebM, en fazla 50 MB). Resim yoksa mahallenin fotoğrafı otomatik eklenir.",
+    "en": "1 photo (JPG, PNG, WebP up to 5 MB) or 1 video (MP4, WebM up to 50 MB). Without a picture a photo of your Kiez is used."
+   },
+   "write": {
+    "de": "Titel (bis 120 Zeichen), Text (bis 500 Zeichen), Kiez, Ordner und dein Name. Optional ein Angebot mit Preis – dann erscheint die Story auch bei den Angeboten.",
+    "tr": "Başlık (120 karaktere kadar), metin (500 karaktere kadar), mahalle, klasör ve adın. İstersen fiyatlı bir indirim – o zaman hikâye İndirimler'de de görünür.",
+    "en": "Title (up to 120 characters), text (up to 500), Kiez, folder and your name. Optionally an offer with a price – then the story also appears under deals."
+   },
+   "note": {
+    "de": "Jede Story wird geprüft (KI + Redaktion). Nicht erlaubt: Nacktheit, Gewalt, Hass, private Daten anderer, Spam. Gleiche Bilder oder Texte können nicht doppelt geteilt werden.",
+    "tr": "Her hikâye kontrol edilir (KI + editör). Yasak: çıplaklık, şiddet, nefret, başkalarının özel bilgileri, spam. Aynı resim veya yazı iki kez paylaşılamaz.",
+    "en": "Every story is checked (AI + editors). Not allowed: nudity, violence, hate, other people's private data, spam. The same picture or text cannot be shared twice."
+   }
+  },
+  "folders": {
+   "icon": "📁",
+   "title": {
+    "de": "Story-Ordner",
+    "tr": "Hikâye Klasörleri",
+    "en": "Story folders"
+   },
+   "what": {
+    "de": "Stories sind nach Themen sortiert: Kiez & Berlin, Eilmeldungen, Verkehr, Deutschland, Europa & Welt, Türkei, Angebote, Sponsoren, Neu, Events, Sport, Essen, Wohnen, Jobs, Ämter, Verloren & Gefunden.",
+    "tr": "Hikâyeler konulara göre ayrılır: Mahalleler & Berlin, Acil, Trafik, Almanya, Avrupa & Dünya, Türkiye, İndirimler, Sponsorlar, Yeni, Etkinlik, Spor, Yeme-İçme, Emlak, İş, Resmî İşler, Kayıp & Bulundu.",
+    "en": "Stories are sorted by topic: Kiez & Berlin, breaking news, traffic, Germany, Europe & world, Turkey, deals, sponsors, new, events, sport, food, housing, jobs, offices, lost & found."
+   },
+   "free": {
+    "de": "Kostenlos.",
+    "tr": "Ücretsiz.",
+    "en": "Free."
+   },
+   "upload": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   },
+   "write": {
+    "de": "Beim Teilen wählst du einen Ordner oder „Automatisch“. Steht ein Preis im Text, landet die Story zusätzlich bei den Angeboten.",
+    "tr": "Paylaşırken bir klasör veya „Otomatik“ seçersin. Metinde fiyat varsa hikâye ayrıca İndirimler'e de düşer.",
+    "en": "When sharing you pick a folder or “Automatic”. If the text contains a price, the story also goes to deals."
+   },
+   "note": {
+    "de": "🔔 = Ordner folgen. Die App meldet sich dann bei neuen Stories in diesem Ordner.",
+    "tr": "🔔 = klasörü takip et. Uygulama o klasörde yeni hikâye olunca bildirim gönderir.",
+    "en": "🔔 = follow a folder. The app notifies you about new stories in it."
+   }
+  },
+  "stars": {
+   "icon": "🏆",
+   "title": {
+    "de": "Kiez-Stars der Woche",
+    "tr": "Haftanın Mahalle Yıldızları",
+    "en": "Kiez stars of the week"
+   },
+   "what": {
+    "de": "Wer in einer Woche (Montag–Sonntag) die meisten geprüften Stories teilt, steht hier. Ab 3 Stories Bronze, ab 7 Silber, ab 12 Gold.",
+    "tr": "Bir haftada (pazartesi–pazar) en çok onaylı hikâye paylaşanlar burada. 3 hikâyeden itibaren bronz, 7'den gümüş, 12'den altın.",
+    "en": "Whoever shares the most approved stories in a week (Monday–Sunday) is listed here. 3 stories bronze, 7 silver, 12 gold."
+   },
+   "free": {
+    "de": "Kostenlos.",
+    "tr": "Ücretsiz.",
+    "en": "Free."
+   },
+   "upload": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   },
+   "write": {
+    "de": "Gezählt wird der Name, den du bei der Story angibst.",
+    "tr": "Hikâyede yazdığın isim sayılır.",
+    "en": "The name you enter with the story is counted."
+   },
+   "note": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   }
+  },
+  "live": {
+   "icon": "🚨",
+   "title": {
+    "de": "Live-Ticker",
+    "tr": "Canlı Ticker",
+    "en": "Live ticker"
+   },
+   "what": {
+    "de": "Aktuelle Meldungen von Polizei Berlin, Feuerwehr, BVG und S-Bahn – direkt aus den offiziellen Quellen.",
+    "tr": "Berlin Polisi, İtfaiye, BVG ve S-Bahn'dan güncel bildirimler – doğrudan resmî kaynaklardan.",
+    "en": "Current reports from Berlin police, fire brigade, BVG and S-Bahn – straight from the official sources."
+   },
+   "free": {
+    "de": "Kostenlos.",
+    "tr": "Ücretsiz.",
+    "en": "Free."
+   },
+   "upload": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   },
+   "write": {
+    "de": "Nur lesen und teilen. Über „Offizielle Quelle“ öffnest du die Originalmeldung.",
+    "tr": "Sadece okuma ve paylaşma. „Resmî kaynak“ ile orijinal bildirimi açarsın.",
+    "en": "Read and share only. “Official source” opens the original report."
+   },
+   "note": {
+    "de": "Im Notfall immer 110 (Polizei) oder 112 (Feuerwehr) anrufen.",
+    "tr": "Acil durumda her zaman 110 (polis) veya 112 (itfaiye) ara.",
+    "en": "In an emergency always call 110 (police) or 112 (fire brigade)."
+   }
+  },
+  "news": {
+   "icon": "📰",
+   "title": {
+    "de": "Berliner Schlagzeilen",
+    "tr": "Berlin Gazete Manşetleri",
+    "en": "Berlin headlines"
+   },
+   "what": {
+    "de": "Die neuesten Schlagzeilen Berliner Zeitungen (z. B. Tagesspiegel, Berliner Kurier). Ein Tipp öffnet den ganzen Artikel beim Verlag.",
+    "tr": "Berlin gazetelerinin en yeni manşetleri (örn. Tagesspiegel, Berliner Kurier). Dokununca haberin tamamı yayıncının sitesinde açılır.",
+    "en": "The latest headlines of Berlin newspapers (e.g. Tagesspiegel, Berliner Kurier). A tap opens the full article."
+   },
+   "free": {
+    "de": "Kostenlos.",
+    "tr": "Ücretsiz.",
+    "en": "Free."
+   },
+   "upload": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   },
+   "write": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   },
+   "note": {
+    "de": "Hat ein Artikel kein eigenes Bild, zeigen wir ein Foto aus Berlin.",
+    "tr": "Haberin kendi resmi yoksa Berlin'den bir fotoğraf gösteririz.",
+    "en": "If an article has no picture of its own, we show a photo of Berlin."
+   }
+  },
+  "sport": {
+   "icon": "📈",
+   "title": {
+    "de": "Sport, Wetter & Kurse",
+    "tr": "Spor, Hava & Piyasa",
+    "en": "Sport, weather & rates"
+   },
+   "what": {
+    "de": "Wetter für Berlin (7 Tage), Wechselkurse, Gold und Berliner Sport-News.",
+    "tr": "Berlin hava durumu (7 gün), döviz kurları, altın ve Berlin spor haberleri.",
+    "en": "Berlin weather (7 days), exchange rates, gold and Berlin sports news."
+   },
+   "free": {
+    "de": "Kostenlos.",
+    "tr": "Ücretsiz.",
+    "en": "Free."
+   },
+   "upload": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   },
+   "write": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   },
+   "note": {
+    "de": "Kurse sind nur zur Information, keine Anlageberatung.",
+    "tr": "Kurlar sadece bilgi içindir, yatırım tavsiyesi değildir.",
+    "en": "Rates are for information only, not investment advice."
+   }
+  },
+  "deals": {
+   "icon": "🏷️",
+   "title": {
+    "de": "Gutscheine & Angebote",
+    "tr": "Kuponlar & İndirimler",
+    "en": "Coupons & deals"
+   },
+   "what": {
+    "de": "Rabatte und Angebote von Betrieben und aus Stories in deinem Kiez.",
+    "tr": "Mahallendeki işletmelerden ve hikâyelerden indirimler ve kampanyalar.",
+    "en": "Discounts and offers from businesses and stories in your Kiez."
+   },
+   "free": {
+    "de": "Für dich kostenlos. Zeig den Code einfach im Geschäft.",
+    "tr": "Senin için ücretsiz. Kodu dükkânda göstermen yeterli.",
+    "en": "Free for you. Just show the code in the shop."
+   },
+   "upload": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   },
+   "write": {
+    "de": "Eigenes Angebot? Teile eine Story mit Preis (z. B. „Ayran 0,99 € statt 1,50 €“).",
+    "tr": "Kendi kampanyan mı var? Fiyatlı bir hikâye paylaş (örn. „Ayran 0,99 € yerine 1,50 €“).",
+    "en": "Your own offer? Share a story with a price (e.g. “Ayran €0.99 instead of €1.50”)."
+   },
+   "note": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   }
+  },
+  "community": {
+   "icon": "🆓",
+   "title": {
+    "de": "Kostenlose Kleinanzeigen",
+    "tr": "Ücretsiz İlanlar",
+    "en": "Free classifieds"
+   },
+   "what": {
+    "de": "Community: Stories und Berichte der Nachbarn lesen, kommentieren und liken. Dazu kostenlose Kleinanzeigen – verkaufen, verschenken, suchen.",
+    "tr": "Topluluk: komşuların hikâye ve haberlerini oku, yorum yap, beğen. Ayrıca ücretsiz ilanlar – sat, hediye et, ara.",
+    "en": "Community: read, comment on and like neighbours' stories and reports. Plus free classifieds – sell, give away, look for things."
+   },
+   "free": {
+    "de": "Kostenlos. Kleinanzeigen 3 Tage gratis. Zum Schreiben brauchst du ein Konto (E-Mail + Passwort).",
+    "tr": "Ücretsiz. İlanlar 3 gün bedava. Yazmak için hesap gerekir (e-posta + şifre).",
+    "en": "Free. Classifieds 3 days free. To write you need an account (e-mail + password)."
+   },
+   "upload": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   },
+   "write": {
+    "de": "Kommentare, Antworten und Anzeigentexte.",
+    "tr": "Yorumlar, cevaplar ve ilan metinleri.",
+    "en": "Comments, replies and ad texts."
+   },
+   "note": {
+    "de": "Neue Beiträge werden geprüft; vertrauenswürdige Mitglieder erscheinen sofort.",
+    "tr": "Yeni paylaşımlar kontrol edilir; güvenilir üyelerinki hemen yayınlanır.",
+    "en": "New posts are checked; trusted members appear at once."
+   }
+  },
+  "reporter": {
+   "icon": "📣",
+   "title": {
+    "de": "Kiez-Reporter",
+    "tr": "Mahalle Muhabiri",
+    "en": "Kiez reporter"
+   },
+   "what": {
+    "de": "Schreib längere Berichte über das, was in deinem Kiez passiert. Nachbarn können kommentieren.",
+    "tr": "Mahallende olanlar hakkında daha uzun haberler yaz. Komşular yorum yapabilir.",
+    "en": "Write longer reports about what happens in your Kiez. Neighbours can comment."
+   },
+   "free": {
+    "de": "Kostenlos.",
+    "tr": "Ücretsiz.",
+    "en": "Free."
+   },
+   "upload": {
+    "de": "1 Foto oder Video zum Bericht.",
+    "tr": "Habere 1 fotoğraf veya video.",
+    "en": "1 photo or video per report."
+   },
+   "write": {
+    "de": "Titel und Text bis 1.000 Zeichen.",
+    "tr": "Başlık ve 1.000 karaktere kadar metin.",
+    "en": "Title and text up to 1,000 characters."
+   },
+   "note": {
+    "de": "Berichte werden vor dem Erscheinen geprüft.",
+    "tr": "Haberler yayından önce kontrol edilir.",
+    "en": "Reports are checked before they appear."
+   }
+  },
+  "sponsors": {
+   "icon": "🤝",
+   "title": {
+    "de": "Sponsoren & Partner",
+    "tr": "Sponsorlar & Partnerler",
+    "en": "Sponsors & partners"
+   },
+   "what": {
+    "de": "Geprüfte Betriebe aus Berlin. Ein Tipp auf eine Karte zeigt Adresse, Öffnungszeiten, Telefon, WhatsApp, Fotos und Route. Mit 📤 teilst du einen Betrieb mit Freunden.",
+    "tr": "Berlin'den kontrol edilmiş işletmeler. Karta dokununca adres, çalışma saatleri, telefon, WhatsApp, fotoğraflar ve yol tarifi görünür. 📤 ile bir işletmeyi arkadaşlarınla paylaşırsın.",
+    "en": "Checked businesses from Berlin. Tap a card for address, opening hours, phone, WhatsApp, photos and directions. 📤 shares a business with friends."
+   },
+   "free": {
+    "de": "Für Nutzer kostenlos. Betriebe zahlen: Kiez Basic 29 €, Kiez Plus 49 €, Kiez Premium 89 € im Monat.",
+    "tr": "Kullanıcılar için ücretsiz. İşletmeler öder: Kiez Basic 29 €, Kiez Plus 49 €, Kiez Premium 89 € (aylık).",
+    "en": "Free for users. Businesses pay: Kiez Basic €29, Kiez Plus €49, Kiez Premium €89 per month."
+   },
+   "upload": {
+    "de": "Sponsoren laden im Sponsor-Panel eigene Fotos und Videos hoch (je nach Paket pro Tag/Woche).",
+    "tr": "Sponsorlar kendi fotoğraf ve videolarını Sponsor Paneli'nden yükler (pakete göre günlük/haftalık).",
+    "en": "Sponsors upload their own photos and videos in the sponsor panel (per day/week depending on the package)."
+   },
+   "write": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   },
+   "note": {
+    "de": "Falsche Nummer oder Link? Im Fenster eines Betriebs „Fehler melden“ tippen.",
+    "tr": "Yanlış numara veya link mi? İşletme penceresinde „Hata bildir“e dokun.",
+    "en": "Wrong number or link? Tap “Report a problem” in the business window."
+   }
+  },
+  "tuerkei": {
+   "icon": "🇹🇷",
+   "title": {
+    "de": "Sponsoren aus der Türkei",
+    "tr": "Türkiye Sponsorları",
+    "en": "Sponsors from Turkey"
+   },
+   "what": {
+    "de": "Partner von My Kiez Berlin in der Türkei: Hotel, Mietwagen, Ästhetik, Verpackung. Ideal für den Urlaub oder dein Geschäft.",
+    "tr": "My Kiez Berlin'in Türkiye'deki partnerleri: otel, araç kiralama, estetik, ambalaj. Tatil veya işletmen için ideal.",
+    "en": "My Kiez Berlin partners in Turkey: hotel, car rental, aesthetics, packaging."
+   },
+   "free": {
+    "de": "Für Nutzer kostenlos.",
+    "tr": "Kullanıcılar için ücretsiz.",
+    "en": "Free for users."
+   },
+   "upload": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   },
+   "write": {
+    "de": "Kontakt direkt per WhatsApp oder Telefon.",
+    "tr": "İletişim doğrudan WhatsApp veya telefonla.",
+    "en": "Contact directly via WhatsApp or phone."
+   },
+   "note": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   }
+  },
+  "werben": {
+   "icon": "📢",
+   "title": {
+    "de": "Selbst werben",
+    "tr": "Reklam ver",
+    "en": "Advertise"
+   },
+   "what": {
+    "de": "Dein Betrieb in der App und auf der Webseite – mit Bild, Logo, Kontakt-Buttons und eigenen Fotos.",
+    "tr": "İşletmen uygulamada ve web sitesinde – resim, logo, iletişim butonları ve kendi fotoğraflarınla.",
+    "en": "Your business in the app and on the website – with picture, logo, contact buttons and your own photos."
+   },
+   "free": {
+    "de": "Kostenpflichtig: Basic 29 €, Plus 49 €, Premium 89 € im Monat.",
+    "tr": "Ücretli: Basic 29 €, Plus 49 €, Premium 89 € (aylık).",
+    "en": "Paid: Basic €29, Plus €49, Premium €89 per month."
+   },
+   "upload": {
+    "de": "Logo, Bannerbild, Fotos und Videos.",
+    "tr": "Logo, banner resmi, fotoğraflar ve videolar.",
+    "en": "Logo, banner picture, photos and videos."
+   },
+   "write": {
+    "de": "Name, Kurztext, Adresse, Öffnungszeiten, Telefon, WhatsApp, Webseite, Angebot.",
+    "tr": "İsim, kısa metin, adres, çalışma saatleri, telefon, WhatsApp, web sitesi, kampanya.",
+    "en": "Name, short text, address, opening hours, phone, WhatsApp, website, offer."
+   },
+   "note": {
+    "de": "Anfrage über das Formular – wir melden uns.",
+    "tr": "Formu doldur – sana geri dönüyoruz.",
+    "en": "Send the form – we will get back to you."
+   }
+  },
+  "quiz": {
+   "icon": "🎯",
+   "title": {
+    "de": "Kiez-Quiz",
+    "tr": "Mahalle Testi",
+    "en": "Kiez quiz"
+   },
+   "what": {
+    "de": "Ein paar kurze Fragen – und du siehst, welcher Berliner Kiez zu dir passt.",
+    "tr": "Birkaç kısa soru – hangi Berlin mahallesinin sana uyduğunu görürsün.",
+    "en": "A few short questions – and you see which Berlin Kiez suits you."
+   },
+   "free": {
+    "de": "Kostenlos.",
+    "tr": "Ücretsiz.",
+    "en": "Free."
+   },
+   "upload": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   },
+   "write": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   },
+   "note": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   }
+  },
+  "notruf": {
+   "icon": "📞",
+   "title": {
+    "de": "Notruf & wichtige Nummern",
+    "tr": "Acil & Önemli Numaralar",
+    "en": "Emergency & important numbers"
+   },
+   "what": {
+    "de": "110 Polizei, 112 Feuerwehr & Rettung, 116 117 ärztlicher Bereitschaftsdienst und weitere Hilfenummern. Ein Tipp ruft direkt an.",
+    "tr": "110 Polis, 112 İtfaiye & ambulans, 116 117 nöbetçi doktor ve diğer yardım hatları. Dokununca doğrudan arar.",
+    "en": "110 police, 112 fire & rescue, 116 117 on-call doctor and more help lines. A tap calls directly."
+   },
+   "free": {
+    "de": "Notrufe sind kostenlos.",
+    "tr": "Acil aramalar ücretsizdir.",
+    "en": "Emergency calls are free."
+   },
+   "upload": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   },
+   "write": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   },
+   "note": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   }
+  },
+  "telefonbuch": {
+   "icon": "📒",
+   "title": {
+    "de": "Telefonbuch & Branchen",
+    "tr": "Telefon & İş Rehberi",
+    "en": "Phone book & directory"
+   },
+   "what": {
+    "de": "Suche Nummern von Firmen, Ärzten und Handwerkern in Das Örtliche, Gelbe Seiten und 11880.",
+    "tr": "Firma, doktor ve usta numaralarını Das Örtliche, Gelbe Seiten ve 11880'de ara.",
+    "en": "Find numbers of companies, doctors and tradespeople in Das Örtliche, Gelbe Seiten and 11880."
+   },
+   "free": {
+    "de": "Kostenlos.",
+    "tr": "Ücretsiz.",
+    "en": "Free."
+   },
+   "upload": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   },
+   "write": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   },
+   "note": {
+    "de": "Die Suche öffnet die Seite des jeweiligen Anbieters.",
+    "tr": "Arama ilgili sağlayıcının sitesini açar.",
+    "en": "The search opens the provider's website."
+   }
+  },
+  "jobs": {
+   "icon": "💼",
+   "title": {
+    "de": "Kiez-Jobs",
+    "tr": "İş İlanları",
+    "en": "Kiez jobs"
+   },
+   "what": {
+    "de": "Aktuelle Stellen in Berlin (Bundesagentur für Arbeit) und Jobs aus Stories.",
+    "tr": "Berlin'deki güncel iş ilanları (Federal İş Ajansı) ve hikâyelerden işler.",
+    "en": "Current jobs in Berlin (Federal Employment Agency) and jobs from stories."
+   },
+   "free": {
+    "de": "Kostenlos.",
+    "tr": "Ücretsiz.",
+    "en": "Free."
+   },
+   "upload": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   },
+   "write": {
+    "de": "Du suchst Personal? Teile eine Story im Ordner „Jobs“.",
+    "tr": "Eleman mı arıyorsun? „İş İlanları“ klasöründe hikâye paylaş.",
+    "en": "Looking for staff? Share a story in the “Jobs” folder."
+   },
+   "note": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   }
+  },
+  "events": {
+   "icon": "📅",
+   "title": {
+    "de": "Events in Berlin",
+    "tr": "Berlin'de Etkinlikler",
+    "en": "Events in Berlin"
+   },
+   "what": {
+    "de": "Feste, Märkte und Veranstaltungen in Berlin.",
+    "tr": "Berlin'deki şenlikler, pazarlar ve etkinlikler.",
+    "en": "Festivals, markets and events in Berlin."
+   },
+   "free": {
+    "de": "Die Liste ist kostenlos. Eintritt je nach Veranstaltung.",
+    "tr": "Liste ücretsiz. Giriş etkinliğe göre değişir.",
+    "en": "The list is free. Entry depends on the event."
+   },
+   "upload": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   },
+   "write": {
+    "de": "Eigenes Event? Teile eine Story im Ordner „Events“.",
+    "tr": "Kendi etkinliğin mi var? „Etkinlik“ klasöründe hikâye paylaş.",
+    "en": "Your own event? Share a story in the “Events” folder."
+   },
+   "note": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   }
+  },
+  "food": {
+   "icon": "🍽️",
+   "title": {
+    "de": "Gastronomie",
+    "tr": "Yeme & İçme",
+    "en": "Food & drink"
+   },
+   "what": {
+    "de": "Restaurants, Cafés und Imbisse in deinem Kiez.",
+    "tr": "Mahallendeki restoranlar, kafeler ve büfeler.",
+    "en": "Restaurants, cafés and snack bars in your Kiez."
+   },
+   "free": {
+    "de": "Kostenlos.",
+    "tr": "Ücretsiz.",
+    "en": "Free."
+   },
+   "upload": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   },
+   "write": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   },
+   "note": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   }
+  },
+  "tips": {
+   "icon": "🧭",
+   "title": {
+    "de": "Kiez-Guide & Berlin-Tipps",
+    "tr": "Mahalle Rehberi & Berlin Önerileri",
+    "en": "Kiez guide & Berlin tips"
+   },
+   "what": {
+    "de": "Ausflüge, Parks, Museen und Sehenswürdigkeiten – mit Foto und Weg auf Google Maps.",
+    "tr": "Geziler, parklar, müzeler ve görülecek yerler – fotoğraf ve Google Maps yol tarifiyle.",
+    "en": "Trips, parks, museums and sights – with photo and Google Maps directions."
+   },
+   "free": {
+    "de": "Kostenlos.",
+    "tr": "Ücretsiz.",
+    "en": "Free."
+   },
+   "upload": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   },
+   "write": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   },
+   "note": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   }
+  },
+  "kieze": {
+   "icon": "🏘️",
+   "title": {
+    "de": "Kieze",
+    "tr": "Mahalleler",
+    "en": "Neighbourhoods"
+   },
+   "what": {
+    "de": "Alle Berliner Kieze mit Einwohnern, Bürgeramt, Fotos und Betrieben.",
+    "tr": "Tüm Berlin mahalleleri: nüfus, Bürgeramt, fotoğraflar ve işletmeler.",
+    "en": "All Berlin neighbourhoods with population, citizens' office, photos and businesses."
+   },
+   "free": {
+    "de": "Kostenlos.",
+    "tr": "Ücretsiz.",
+    "en": "Free."
+   },
+   "upload": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   },
+   "write": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   },
+   "note": {
+    "de": "",
+    "tr": "",
+    "en": ""
+   }
+  }
+ }
+}

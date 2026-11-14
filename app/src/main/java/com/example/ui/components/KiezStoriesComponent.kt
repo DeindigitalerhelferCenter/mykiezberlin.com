@@ -62,6 +62,9 @@ fun KiezStoriesBar(
 ) {
     // Only display approved stories in the public bar
     val visibleStories = stories.filter { it.status == "approved" }
+    // 2026-11-14 (owner): story folders – only the chosen folder ("" = all)
+    val folder by StoryFolders.selected
+    val shownStories = if (folder.isBlank()) visibleStories else visibleStories.filter { folder in it.folders() }
 
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
@@ -71,6 +74,7 @@ fun KiezStoriesBar(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = when (language) {
                     AppLanguage.TURKISH -> "Mahalle Hikâyeleri"
@@ -81,6 +85,8 @@ fun KiezStoriesBar(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            InfoButton("stories", language) // 2026-11-14
+            }
             Text(
                 text = when (language) {
                     AppLanguage.TURKISH -> "+ Durum Paylaş"
@@ -93,6 +99,8 @@ fun KiezStoriesBar(
                 modifier = Modifier.clickable { onAddStoryClick() }
             )
         }
+
+        StoryFolderChips(visibleStories, language) // 2026-11-14 (owner): folders + follow
 
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
@@ -130,12 +138,12 @@ fun KiezStoriesBar(
             }
 
             // Visible approved stories with sequential index support
-            itemsIndexed(visibleStories) { index, story ->
+            itemsIndexed(shownStories) { index, story ->
                 StoryAvatarItem(
                     story = story,
                     onClick = {
                         if (onStoryClickWithList != null) {
-                            onStoryClickWithList(story, visibleStories, index)
+                            onStoryClickWithList(story, shownStories, index)
                         } else {
                             onStoryClick(story)
                         }
@@ -1568,19 +1576,27 @@ fun StoryCreateDialog(
                     )
                 }
 
+                // 2026-11-14 (owner): story folder ("Automatisch" = the server sorts by text; a price -> also "Angebote")
+                StoryFolderPicker(language)
+
+                // 2026-11-14 (owner): the admin may write (almost) without limit – long titles and texts with paragraphs
+                val isAdminWriter = com.example.data.repository.KiezStorageManager.isAdminAuthenticated(LocalContext.current)
                 OutlinedTextField(
                     value = headline,
-                    onValueChange = { headline = it },
+                    onValueChange = { headline = if (isAdminWriter) it.take(300) else it },
                     label = { Text(if (language == AppLanguage.TURKISH) "Kısa Başlık (Maks 2 Satır)" else "Kurzer Titel (Max 2 Zeilen)") },
-                    singleLine = true,
+                    singleLine = !isAdminWriter,
+                    maxLines = if (isAdminWriter) 4 else 1,
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 OutlinedTextField(
                     value = subtext,
-                    onValueChange = { subtext = it },
+                    onValueChange = { subtext = if (isAdminWriter) it.take(10000) else it },
                     label = { Text(if (language == AppLanguage.TURKISH) "Detaylı Metin (DEVAM OKU ile okunur)" else "Ausführlicher Text (für DEVAM OKU)") },
-                    maxLines = 4,
+                    minLines = if (isAdminWriter) 4 else 1,
+                    maxLines = if (isAdminWriter) 14 else 4,
+                    supportingText = if (isAdminWriter) ({ Text("Admin: ${subtext.length} / 10.000", fontSize = 11.sp) }) else null,
                     modifier = Modifier.fillMaxWidth()
                 )
 

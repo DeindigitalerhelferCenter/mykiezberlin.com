@@ -166,10 +166,10 @@ private fun SponsorLabel(text: String) {
 private fun SponsorButton(text: String, main: Boolean, modifier: Modifier, onClick: () -> Unit) {
     Box(
         modifier = modifier.clip(RoundedCornerShape(10.dp))
-            .background(if (main) BerlinRed else MaterialTheme.colorScheme.surfaceVariant)
+            .background(if (main) BerlinRed else if (text.contains("WhatsApp")) com.example.ui.theme.WhatsAppGreen else MaterialTheme.colorScheme.surfaceVariant) // 2026-11-14: WhatsApp green
             .clickable { onClick() }.padding(vertical = 7.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(text, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (main) Color.White else MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(text, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (main || text.contains("WhatsApp")) Color.White else MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }

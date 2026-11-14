@@ -112,14 +112,57 @@ async function sbahnAlerts() {
 
 // Press items keep only the headline and a link to the publisher: no photo, no teaser.
 function headline(item, source) {
-  return { title: item.title, link: item.link, publishedAt: item.publishedAt, summary: "", image: "", source };
+  // 2026-11-14: picture of the feed item is kept (was always empty)
+  return { title: item.title, link: item.link, publishedAt: item.publishedAt, summary: "", image: /^https:\/\//.test(item.image || "") ? item.image : "", source };
+}
+
+// 2026-11-14 (owner: "always the same Berlin picture"): the feeds often carry no picture. Then the real picture of the
+// article (og:image) is read once and remembered; if there is none, one of 33 Berlin photos (Wikimedia Commons,
+// public/assets/tips) is used – a different one per headline. imageFallback = true for those.
+const OG_CACHE = new Map();
+const BERLIN_PHOTOS = ["botanischer-garten", "brandenburger-tor", "britzer-garten", "checkpoint-charlie", "east-side-gallery", "fernsehturm",
+  "gaerten-der-welt", "gendarmenmarkt", "gleisdreieck", "greenwichpromenade", "humboldthain", "koepenick", "koernerpark", "mauer-gedenkstaette",
+  "mauerpark", "molecule-man", "museumsinsel", "naturkundemuseum", "rathaus-schoeneberg", "reichstag", "schloss-charlottenburg", "schoenhausen",
+  "technikmuseum", "tempelhofer-feld", "tiergarten-park", "tierpark", "treptower-park", "viktoriapark", "volkspark-friedrichshain", "zitadelle-spandau", "zoo-berlin"];
+function berlinPhoto(text, used) {
+  let h = 0;
+  for (const c of String(text)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  for (let k = 0; k < BERLIN_PHOTOS.length; k++) {
+    const name = BERLIN_PHOTOS[(h + k) % BERLIN_PHOTOS.length];
+    if (!used.has(name)) { used.add(name); return `https://mykiezberlin.com/assets/tips/${name}.webp`; }
+  }
+  return `https://mykiezberlin.com/assets/tips/${BERLIN_PHOTOS[h % BERLIN_PHOTOS.length]}.webp`;
+}
+async function ogImage(link) {
+  if (!/^https:\/\//.test(link || "")) return "";
+  if (OG_CACHE.has(link)) return OG_CACHE.get(link);
+  let img = "";
+  try {
+    const res = await fetch(link, { headers: { "user-agent": "Mozilla/5.0 (compatible; MyKiezBerlin/1.0; +https://mykiezberlin.com)" }, signal: AbortSignal.timeout(4000), cf: { cacheTtl: 3600 } });
+    if (res.ok) {
+      const html = (await res.text()).slice(0, 200000);
+      const m = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+      img = m && /^https:\/\//.test(m[1]) ? m[1].replace(/&amp;/g, "&") : "";
+    }
+  } catch (e) {
+    img = "";
+  }
+  if (OG_CACHE.size > 300) OG_CACHE.clear();
+  OG_CACHE.set(link, img);
+  return img;
+}
+async function withPictures(items) {
+  await Promise.allSettled(items.map(async (n) => { if (!n.image) n.image = await ogImage(n.link); }));
+  const used = new Set();
+  items.forEach((n) => { if (!n.image) { n.image = berlinPhoto(n.title, used); n.imageFallback = true; } });
+  return items;
 }
 
 async function press() {
   const lists = await Promise.allSettled(PRESS.map(async ([name, url]) => parseRss(await fetchText(url), 10).map((i) => headline(i, name))));
   const items = lists.flatMap((l) => (l.status === "fulfilled" ? l.value : []));
   if (!items.length) throw new Error("press unavailable");
-  return items.sort((a, b) => (b.publishedAt || 0) - (a.publishedAt || 0)).slice(0, 18);
+  return withPictures(items.sort((a, b) => (b.publishedAt || 0) - (a.publishedAt || 0)).slice(0, 18));
 }
 
 async function sport() {

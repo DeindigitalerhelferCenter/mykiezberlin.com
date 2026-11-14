@@ -301,8 +301,8 @@ function renderPlannerRows() {
         <div style="display: flex; gap: 4px; justify-content: center;"><button class="chip-btn" onclick="plannerMove(${row.key}, -1)">↑</button><button class="chip-btn" onclick="plannerMove(${row.key}, 1)">↓</button></div>
       </div>
       <div style="flex: 1; display: grid; gap: 5px;">
-        ${input(row, "headline", "Başlık *", 'maxlength="120"')}
-        <textarea class="form-control" rows="3" maxlength="500" placeholder="Metin" oninput="plannerSet(${row.key}, 'subtext', this.value)">${adminEsc(row.subtext)}</textarea>
+        ${input(row, "headline", "Başlık *", 'maxlength="300"')}
+        <textarea class="form-control" rows="6" maxlength="10000" placeholder="Metin (admin: 10.000 karaktere kadar)" oninput="plannerSet(${row.key}, 'subtext', this.value)">${adminEsc(row.subtext)}</textarea>
         <div style="display: flex; gap: 5px;">${input(row, "kiez", "Kiez", 'style="flex: 1;"')}${input(row, "kind", "Kategori", 'list="planner-kinds" style="flex: 1;"')}</div>
         ${input(row, "link", "Web linki (isteğe bağlı) https://…")}
         <div style="display: flex; gap: 5px; flex-wrap: wrap;" title="2026-11-14: doluysa story 'Özel Kiez İndirimleri' bölümünde de görünür">🏷️ ${input(row, "deal_what", "İndirim: ne? (örn. Ayran 1 L)", 'maxlength="80" style="flex: 2; min-width: 160px;"')}${input(row, "deal_price", "Yeni fiyat (0,99 €)", 'maxlength="30" style="flex: 1; min-width: 90px;"')}${input(row, "deal_old", "Eski fiyat (isteğe bağlı)", 'maxlength="30" style="flex: 1; min-width: 90px;"')}</div>

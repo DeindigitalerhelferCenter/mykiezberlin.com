@@ -1,5 +1,5 @@
 // Imports a story with its media into the moderation queue.
-import { cleanText, db, isAdmin, json, noDb } from "../_lib/util.js";
+import { cleanLongText, cleanText, db, isAdmin, json, noDb } from "../_lib/util.js";
 
 const MEDIA_TYPES = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "video/mp4": "mp4", "video/webm": "webm" };
 
@@ -10,7 +10,7 @@ export async function onRequestPost({ request, env }) {
 
   const form = await request.formData();
   const sourceId = cleanText(form.get("sourceId"), 60);
-  const headline = cleanText(form.get("headline"), 120);
+  const headline = cleanText(form.get("headline"), 300); // 2026-11-14: admin only, almost without limit
   if (!sourceId || !headline) return json({ error: "missing_fields" }, 400);
 
   const id = `import-${sourceId}`;
@@ -31,7 +31,7 @@ export async function onRequestPost({ request, env }) {
 
   await database
     .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)`)
-    .bind(id, headline, cleanText(form.get("subtext"), 500), cleanText(form.get("kiez"), 60) || "Ganz Berlin", cleanText(form.get("kind"), 20) || "news", cleanText(form.get("author"), 60) || "Kiez Community", mediaKey, mediaType, Math.min(Number(form.get("durationHours")) || 24, 720), Date.now())
+    .bind(id, headline, cleanLongText(form.get("subtext"), 10000), cleanText(form.get("kiez"), 60) || "Ganz Berlin", cleanText(form.get("kind"), 20) || "news", cleanText(form.get("author"), 60) || "Kiez Community", mediaKey, mediaType, Math.min(Number(form.get("durationHours")) || 24, 720), Date.now())
     .run();
   return json({ id, status: "pending" }, 201);
 }

@@ -179,8 +179,10 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
         val link = Regex("""https?://\S+""").find(clean)?.value.orEmpty()
         val withoutLink = if (link.isNotBlank()) clean.replace(link, "").trim() else clean
         val lines = withoutLink.lines().map { it.trim() }.filter { it.isNotBlank() }
-        val headline = lines.firstOrNull().orEmpty().take(120)
-        val subtext = lines.drop(1).joinToString("\n").take(500)
+        // 2026-11-14 (owner): admin texts are (almost) not limited
+        val adminShare = _uiState.value.isAdminAuthenticated
+        val headline = lines.firstOrNull().orEmpty().take(if (adminShare) 300 else 120)
+        val subtext = lines.drop(1).joinToString("\n").take(if (adminShare) 10000 else 500)
         val localMedia = mediaUri?.let { KiezStorageManager.copyMediaToInternalStorage(app, it, isVideo) ?: it }
         _shareDraft.value = ShareDraft(headline, subtext, link, localMedia, isVideo)
         _uiState.update { it.copy(showAddStoryDialog = true, currentScreen = AppScreen.HOME) }
@@ -1025,7 +1027,8 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                 fileName = fileName,
                 mimeType = mimeType,
                 author = author.ifBlank { "Kiez-User" },
-                device = storyDeviceId()
+                device = storyDeviceId(),
+                adminToken = if (isAdminPost) KiezStorageManager.getAdminToken(app) else ""
             )
             val serverId = upload.id
             val tr = _uiState.value.language == com.example.data.model.AppLanguage.TURKISH

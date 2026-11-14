@@ -120,6 +120,9 @@ fun BusinessesScreen(
                                 onAddStoryClick = onAddStoryClick
                             )
                         }
+                        if (showHomeExtras) item(key = "home_clock") { // 2026-11-14 (owner): clock + weather on the home page
+                            com.example.ui.components.HomeClockWeather(language = language, onWeatherClick = { onNavigateToScreen(com.example.ui.viewmodel.AppScreen.SPORTS_AND_MARKETS) })
+                        }
                         if (showHomeExtras) item(key = "kiez_stars") {
                             com.example.ui.components.HomeKiezStarsSmall(language = language, onShareStory = onAddStoryClick) // 2026-11-13: small window, comes and goes
                         }
@@ -173,6 +176,9 @@ fun BusinessesScreen(
                                 onStoryClick = onStoryClick,
                                 onAddStoryClick = onAddStoryClick
                             )
+                        }
+                        if (showHomeExtras) item(key = "home_clock") { // 2026-11-14 (owner): clock + weather on the home page
+                            com.example.ui.components.HomeClockWeather(language = language, onWeatherClick = { onNavigateToScreen(com.example.ui.viewmodel.AppScreen.SPORTS_AND_MARKETS) })
                         }
                         if (showHomeExtras) item(key = "kiez_stars") {
                             com.example.ui.components.HomeKiezStarsSmall(language = language, onShareStory = onAddStoryClick) // 2026-11-13: small window, comes and goes
@@ -256,6 +262,9 @@ fun BusinessesScreen(
                                 onStoryClick = onStoryClick,
                                 onAddStoryClick = onAddStoryClick
                             )
+                        }
+                        if (showHomeExtras) item(key = "home_clock") { // 2026-11-14 (owner): clock + weather on the home page
+                            com.example.ui.components.HomeClockWeather(language = language, onWeatherClick = { onNavigateToScreen(com.example.ui.viewmodel.AppScreen.SPORTS_AND_MARKETS) })
                         }
                         if (showHomeExtras) item(key = "kiez_stars") {
                             com.example.ui.components.HomeKiezStarsSmall(language = language, onShareStory = onAddStoryClick) // 2026-11-13: small window, comes and goes

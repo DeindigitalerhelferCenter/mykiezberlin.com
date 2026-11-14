@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.aistudio.mykiezberlin.bkrztx",
+      "sha256_cert_fingerprints": ["34:DE:7B:77:49:7E:2E:99:B0:2B:AE:B3:64:D5:23:20:95:47:1D:A2:B3:CC:94:02:88:78:F7:07:7D:99:C6:9F"]
+    }
+  }
+]

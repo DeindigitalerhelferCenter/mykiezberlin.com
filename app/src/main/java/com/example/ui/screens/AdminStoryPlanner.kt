@@ -82,8 +82,8 @@ private suspend fun aiFill(context: Context, row: PlanRow, force: Boolean) {
     row.ai = "busy"
     try {
         val r = withContext(Dispatchers.IO) { com.example.data.repository.StoryAiClient.analyze(context, uri, row.isVideo) }
-        if ((force || row.headline.isBlank()) && r.headline.isNotBlank()) row.headline = r.headline.take(120)
-        if ((force || row.subtext.isBlank()) && r.subtext.isNotBlank()) row.subtext = r.subtext.take(500)
+        if ((force || row.headline.isBlank()) && r.headline.isNotBlank()) row.headline = r.headline.take(300)
+        if ((force || row.subtext.isBlank()) && r.subtext.isNotBlank()) row.subtext = r.subtext.take(10000)
         if ((force || row.link.isBlank()) && r.link.isNotBlank()) row.link = r.link
         if (r.kiez.isNotBlank() && (force || row.kiez.isBlank() || row.kiez == "Ganz Berlin")) row.kiez = r.kiez
         if (r.kind.isNotBlank() && (force || row.kind.isBlank() || row.kind == "news")) row.kind = r.kind
@@ -360,10 +360,10 @@ private fun PlanRowCard(index: Int, row: PlanRow, onAi: () -> Unit, onRemove: ()
             Row { Text("↑", color = Color.White, modifier = Modifier.clickable { onMove(-1) }.padding(6.dp)); Text("↓", color = Color.White, modifier = Modifier.clickable { onMove(1) }.padding(6.dp)) }
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            PlannerField(row.headline, { row.headline = it.take(120) }, "Başlık *")
+            PlannerField(row.headline, { row.headline = it.take(300) }, "Başlık *")
             OutlinedTextField(
-                value = row.subtext, onValueChange = { row.subtext = it.take(500) }, label = { Text("Metin", fontSize = 11.sp) },
-                minLines = 2, maxLines = 6, modifier = Modifier.fillMaxWidth(),
+                value = row.subtext, onValueChange = { row.subtext = it.take(10000) }, label = { Text("Metin", fontSize = 11.sp) },
+                minLines = 3, maxLines = 14, modifier = Modifier.fillMaxWidth(), // 2026-11-14: long admin texts
                 colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedLabelColor = PlannerGold, unfocusedLabelColor = Color(0xFF8B949E))
             )
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {

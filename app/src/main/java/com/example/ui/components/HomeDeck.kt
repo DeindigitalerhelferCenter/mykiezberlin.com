@@ -136,6 +136,7 @@ fun HomeDeckSection(language: AppLanguage, onNavigateToScreen: (AppScreen) -> Un
             if (i % 2 == 0) HomeSponsorPlace(sponsors.getOrNull(i / 2), language) // after box 1, 3, 5
         }
         AllSponsorsButton(language, onOpenWerben)
+        TurkeySponsorsButton(language) // 2026-11-14 (owner)
     }
 }
 
@@ -152,6 +153,7 @@ fun HomeKiezStarsSmall(language: AppLanguage, onShareStory: () -> Unit) {
     ) {
         Row(Modifier.fillMaxWidth().clickable { open = !open }.padding(horizontal = 14.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("🏆 " + (if (tr) "Haftanın Mahalle Yıldızları" else "Kiez-Stars der Woche"), fontWeight = FontWeight.ExtraBold, fontSize = 15.sp, modifier = Modifier.weight(1f))
+            InfoButton("stars", language) // 2026-11-14
             Text(if (open) "▴" else "▾", fontSize = 16.sp)
         }
         if (open) KiezStarsCard(language = language, onShareStory = onShareStory)
@@ -177,6 +179,7 @@ fun AllSponsorsButton(language: AppLanguage, onOpenWerben: () -> Unit) {
             Text((if (tr) "🤝 Tüm sponsorlar" else "🤝 Alle Sponsoren") + " (${ads.size}) →", fontWeight = FontWeight.Bold)
         }
         OutlinedButton(onClick = onOpenWerben, shape = RoundedCornerShape(12.dp)) { Text(if (tr) "Reklam ver" else "Selbst werben", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
+        InfoButton("sponsors", language) // 2026-11-14
     }
     if (open) AllSponsorsDialog(ads, language) { open = false }
 }

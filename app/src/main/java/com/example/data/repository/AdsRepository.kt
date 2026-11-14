@@ -53,7 +53,9 @@ data class ServerAd(
     val fax: String = "",
     val primary: String = "",
     // 2026-11-13: long text from the sponsor panel (/sponsor)
-    val description: String = ""
+    val description: String = "",
+    // 2026-11-14: "tr" = also on the page "Türkiye Sponsorları"
+    val region: String = ""
 ) {
     /** Best link for a tap: web, Instagram, WhatsApp, phone – in that order. */
     val primaryLink: String
@@ -184,8 +186,17 @@ object AdsRepository {
             contact = o.optString("contact"),
             fax = o.optString("fax"),
             primary = o.optString("primary"),
-            description = o.optString("description")
+            description = o.optString("description"),
+            region = o.optString("region")
         )
+    }
+
+    /** 2026-11-14: share link opened the app – find that sponsor (loaded lists first, then the full list). */
+    fun findAdAsync(id: String, done: (ServerAd?) -> Unit) {
+        scope.launch {
+            val known = (_pageAds.value + _sliderAds.value + _homeAds.value).firstOrNull { it.id == id }
+            done(known ?: fetch("list")?.firstOrNull { it.id == id } ?: fetch("page")?.firstOrNull { it.id == id })
+        }
     }
 
     /** Anonymous daily counters, the same as the web (no cookies, no personal data). */

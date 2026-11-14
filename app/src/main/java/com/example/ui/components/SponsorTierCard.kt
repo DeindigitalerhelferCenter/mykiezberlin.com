@@ -145,6 +145,8 @@ fun SponsorTierCard(ad: ServerAd, language: AppLanguage, size: String = ad.size,
                             pickText(language, "Anzeige", "Reklam", "Ad"), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF222222),
                             modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(LabelGold).padding(horizontal = 6.dp, vertical = 1.dp)
                         )
+                        // 2026-11-14 (owner): share button on every sponsor card
+                        Text("📤", fontSize = 17.sp, modifier = Modifier.clip(RoundedCornerShape(50)).clickable { shareSponsor(context, ad, language) }.padding(horizontal = 9.dp, vertical = 5.dp))
                         if (onHide != null) Text("✕", fontSize = 13.sp, modifier = Modifier.clickable { onHide() }.padding(2.dp))
                     }
                     if (headline.isNotBlank()) Text(headline, fontSize = if (lk == "s") 12.sp else 13.sp, maxLines = if (compact) 1 else if (lk == "s") 2 else 3, overflow = TextOverflow.Ellipsis)
@@ -173,11 +175,11 @@ fun SponsorTierCard(ad: ServerAd, language: AppLanguage, size: String = ad.size,
                     buttons.forEach { (text, isRoute, link) ->
                         Box(
                             Modifier.weight(1f).clip(RoundedCornerShape(10.dp))
-                                .background(if (isRoute) RouteBlue else MaterialTheme.colorScheme.surfaceVariant)
+                                .background(if (isRoute) RouteBlue else if (link.startsWith("https://wa.me/")) com.example.ui.theme.WhatsAppGreen else MaterialTheme.colorScheme.surfaceVariant) // 2026-11-14: WhatsApp green
                                 .clickable { open(link) }.padding(vertical = 8.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(text, fontSize = 11.5.sp, fontWeight = FontWeight.Bold, color = if (isRoute) Color.White else MaterialTheme.colorScheme.onSurface,
+                            Text(text, fontSize = 11.5.sp, fontWeight = FontWeight.Bold, color = if (isRoute || link.startsWith("https://wa.me/")) Color.White else MaterialTheme.colorScheme.onSurface,
                                 maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
                         }
                     }

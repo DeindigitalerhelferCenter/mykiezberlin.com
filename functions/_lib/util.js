@@ -107,6 +107,8 @@ const MIGRATIONS = [
   // 2026-11-14 (owner): device id of the sender (daily limit, trusted devices) and the result of the AI check
   `ALTER TABLE stories ADD COLUMN device TEXT DEFAULT ''`,
   `ALTER TABLE stories ADD COLUMN ai_check TEXT DEFAULT ''`,
+  // 2026-11-14 (owner): story folders, comma list, main folder first (see _lib/story-cats.js)
+  `ALTER TABLE stories ADD COLUMN cats TEXT DEFAULT ''`,
 ];
 
 /** Offer of a story from the form fields deal_what / deal_price / deal_old (empty when not filled). */
@@ -173,6 +175,11 @@ export async function cleanupExpiredStories(env) {
 export const noDb = () => json({ error: "db_unbound" }, 503);
 
 // Plain text only: user content is stored without markup.
+/** 2026-11-14: like cleanText, but line breaks stay (long admin texts with paragraphs). */
+export function cleanLongText(value, max) {
+  return String(value ?? "").replace(/[<>]/g, "").replace(/\r\n?/g, "\n").replace(/[ \t\f\v]+/g, " ").replace(/ *\n */g, "\n").replace(/\n{3,}/g, "\n\n").trim().slice(0, max);
+}
+
 export function cleanText(value, max) {
   return String(value ?? "").replace(/[<>]/g, "").replace(/\s+/g, " ").trim().slice(0, max);
 }

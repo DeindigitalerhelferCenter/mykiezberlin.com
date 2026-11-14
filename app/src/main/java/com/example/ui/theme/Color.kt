@@ -14,6 +14,7 @@ val BerlinBlue = Color(0xFF2563EB)
 val BerlinBlueLight = Color(0xFFEFF6FF)
 
 val BerlinGreen = Color(0xFF16A34A)
+val WhatsAppGreen = Color(0xFF25D366) // 2026-11-14 (owner): every WhatsApp button green
 val BerlinGreenLight = Color(0xFFDCFCE7)
 
 val BerlinYellow = Color(0xFFF59E0B)

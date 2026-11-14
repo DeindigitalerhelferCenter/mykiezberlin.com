@@ -72,6 +72,8 @@ export async function onRequestGet({ request, env }) {
         email: extra.email || "", contact: extra.contact || "", fax: extra.fax || "", primary: extra.primary || "",
         // 2026-11-13: long text from the sponsor panel
         description: extra.description || "",
+        // 2026-11-14: "tr" = also on the page "Türkiye Sponsorları"
+        region: extra.region || "",
       };
     });
   return json({ ads }, 200, { "cache-control": "no-store" });
