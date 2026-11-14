@@ -635,8 +635,8 @@ object SampleData {
             priceRange = "€",
             imageUrl = "https://mykiezberlin.com/assets/places/mustafas.webp", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             isSponsored = false,
-            phone = "+49 30 69532940",
-            website = "https://mustafas.de",
+            phone = "",
+            website = "",
             openingHours = "Täglich: 10:00 - 02:00 Uhr",
             popularDishes = listOf("Gemüse Kebab mit Feta & Zitrone", "Dürüm Kebab Spezial", "Falafel im Brot")
         ),
@@ -652,8 +652,8 @@ object SampleData {
             priceRange = "€€",
             imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             isSponsored = true,
-            phone = "+49 30 44048641",
-            website = "https://cafe-anna-blume.de",
+            phone = "+49 30 44048749",
+            website = "https://www.cafe-anna-blume.de",
             openingHours = "Mo-So: 08:30 - 20:00 Uhr",
             popularDishes = listOf("Große Frühstücksetagere für Zwei", "Schoko-Himbeer-Torte", "Rührei mit Kräutern")
         ),
@@ -908,6 +908,10 @@ object SampleData {
     )
 
     // Local Businesses with real photos matching Screen 8
+    /** 2026-11-14 (owner): sample businesses / deals that look invented (generic names, fake numbers) - kept in the code,
+     *  but never shown, so nobody calls a wrong number or looks for a shop that does not exist. */
+    val HIDDEN_SAMPLE_IDS = setOf("kiez_friseur", "brotzeit", "kiez_fitness", "kiez_apotheke", "rechtbox", "wedding_doener", "silberfisch_fshain", "simondach_barber", "kant_konditorei", "winterfeldt_markt", "tempelhof_sport", "deal_kiez_fitness", "deal_kiez_friseur_active", "schloss_apotheke")
+
     val businesses = listOf(
         LocalBusiness(
             id = "kiez_friseur",
@@ -1012,18 +1016,18 @@ object SampleData {
             description = "Echter Berliner Kiez-Döner mit hausgemachtem Brot, frischen Kräutern und saftigem Kalb- & Hähnchenfleisch."
         ),
         LocalBusiness(
-            id = "cafe_pfoertner",
+            id = "cafe_pfoertner", // 2026-11-14: checked (Top10 Berlin / Kauperts / Time Out); unknown = empty
             name = "Café Pförtner",
             category = "Gastronomie · Café & Frühstück",
             rating = 4.8,
             reviewsCount = 185,
             kiezName = "Wedding",
             distance = "750 m",
-            address = "Uferstraße 8, 13357 Berlin",
+            address = "Uferstraße 8-11, 13357 Berlin",
             imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
-            phone = "+49 30 45678912",
+            phone = "+49 30 50369854",
             whatsapp = "+4915126509586",
-            website = "https://cafe-pfoertner.de",
+            website = "https://www.pfoertner.co",
             openingHours = "Mo-Sa: 09:00 - 18:00 Uhr",
             description = "Kult-Café in den Uferhallen mit italienischer Pasta, Spezialitätenkaffee und hausgemachten Kuchen in historischem Bus-Ambiente."
         ),
@@ -1076,7 +1080,7 @@ object SampleData {
             description = "Traditionsreiche Berliner Konditorei mit feinsten Torten, Petit Fours, Croissants und Kaffee-Spezialitäten."
         ),
         LocalBusiness(
-            id = "schwarzes_cafe",
+            id = "schwarzes_cafe", // 2026-11-14: checked (Top10 Berlin / Kauperts / Time Out); unknown = empty
             name = "Schwarzes Café",
             category = "Gastronomie · Café & Restaurant",
             rating = 4.6,
@@ -1108,8 +1112,8 @@ object SampleData {
             description = "Frisches Bio-Brot, Kiez-Käse, Oliven und Spezialitäten direkt am beliebten Winterfeldtplatz."
         ),
         LocalBusiness(
-            id = "arminius_markthalle",
-            name = "Arminius Markthalle Kiez-Restaurant",
+            id = "arminius_markthalle", // 2026-11-14: checked (Top10 Berlin / Kauperts / Time Out); unknown = empty
+            name = "Arminiusmarkthalle",
             category = "Gastronomie · Restaurant & Markt",
             rating = 4.8,
             reviewsCount = 380,
@@ -1117,14 +1121,14 @@ object SampleData {
             distance = "500 m",
             address = "Arminiusstraße 2, 10551 Berlin",
             imageUrl = "https://mykiezberlin.com/assets/kieze/moabit-2.webp", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
-            phone = "+49 30 39876543",
+            phone = "",
             whatsapp = "+4915126509586",
-            website = "https://arminiusmarkthalle.com",
+            website = "",
             openingHours = "Mo-Sa: 10:00 - 22:00 Uhr",
             description = "Historische Markthalle Moabit mit vielfältigen Essensständen, Craft Beer und geselligem Kiez-Flair."
         ),
         LocalBusiness(
-            id = "anna_blume_kiez",
+            id = "anna_blume_kiez", // 2026-11-14: checked (Top10 Berlin / Kauperts / Time Out); unknown = empty
             name = "Café Anna Blume",
             category = "Gastronomie · Café & Frühstück",
             rating = 4.9,
@@ -1133,17 +1137,17 @@ object SampleData {
             distance = "300 m",
             address = "Kollwitzstraße 83, 10435 Berlin",
             imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
-            isSponsored = true,
+            isSponsored = false,
             hasCoupon = true,
             couponText = "%20 İndirim (Frühstückset)",
-            phone = "+49 30 44048641",
+            phone = "+49 30 44048749",
             whatsapp = "+4915126509586",
-            website = "https://cafe-annablume.de",
+            website = "https://www.cafe-anna-blume.de",
             openingHours = "Mo-So: 08:30 - 20:00 Uhr",
             description = "Berühmtes Café und Blumengeschäft mit dreistöckigen Frühstücks-Etagèren, Bio-Rührei und eigener Tortenmanufaktur."
         ),
         LocalBusiness(
-            id = "mustafas_kiez",
+            id = "mustafas_kiez", // 2026-11-14: checked (Top10 Berlin / Kauperts / Time Out); unknown = empty
             name = "Mustafa's Gemüse Kebap",
             category = "Imbiss & Döner",
             rating = 4.8,
@@ -1152,14 +1156,14 @@ object SampleData {
             distance = "250 m",
             address = "Mehringdamm 32, 10961 Berlin",
             imageUrl = "https://mykiezberlin.com/assets/places/mustafas.webp", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
-            phone = "+49 30 69532100",
+            phone = "",
             whatsapp = "+4915126509586",
-            website = "https://mustafas.de",
+            website = "",
             openingHours = "Mo-So: 10:00 - 02:00 Uhr",
             description = "Der weltbekannte Berliner Gemüse-Döner mit gebratenem Gemüse, frischem Schafskäse und Zitronenspritzer."
         ),
         LocalBusiness(
-            id = "azzam_kiez",
+            id = "azzam_kiez", // 2026-11-14: checked (Top10 Berlin / Kauperts / Time Out); unknown = empty
             name = "Azzam Hummus & Falafel",
             category = "Gastronomie · Restaurant",
             rating = 4.8,
@@ -1168,9 +1172,9 @@ object SampleData {
             distance = "350 m",
             address = "Sonnenallee 54, 12045 Berlin",
             imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
-            phone = "+49 30 62725678",
+            phone = "",
             whatsapp = "+4915126509586",
-            website = "https://azzam-berlin.de",
+            website = "",
             openingHours = "Mo-So: 09:00 - 23:00 Uhr",
             description = "Legendäre orientalische Küche auf der Sonnenallee: Hausgemachter cremiger Hummus, warme Fatteh und knusprige Falafel."
         ),
@@ -1206,7 +1210,7 @@ object SampleData {
             openingHours = "Mo-Fr: 08:30 - 19:30, Sa: 09:00 - 16:00",
             description = "Persönliche Beratung, Kiez-Botendienst und große Auswahl an Naturheilmitteln im Herzen von Steglitz."
         )
-    )
+    ).filterNot { it.id in HIDDEN_SAMPLE_IDS } // 2026-11-14 (owner): invented sample businesses are not shown
 
     // Deals with real photos matching Screen 9
     fun isDealActive(deal: Deal): Boolean {
@@ -1247,7 +1251,7 @@ object SampleData {
     )
 
     val deals: List<Deal>
-        get() = rawDeals.filter { isDealActive(it) }
+        get() = rawDeals.filter { isDealActive(it) && it.id !in HIDDEN_SAMPLE_IDS }
 
     // Quiz Questions with real photos matching Screen 5
     val quizQuestions = listOf(
