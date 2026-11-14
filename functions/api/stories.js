@@ -1,7 +1,7 @@
 // Shared Kiez stories: public list and moderated submissions.
 import { safeLink } from "../_lib/blocklist.js";
 import { aiCheck, cleanDevice, cleanupStoryMedia, dailyLimited, dailyUsed, isTrusted, USER_DAILY_LIMIT } from "../_lib/story-guard.js";
-import { STORY_CATS, catsOf, dealFromText, storyCats } from "../_lib/story-cats.js";
+import { STORY_CATS, aiStoryCats, catsOf, dealFromText, storyCats } from "../_lib/story-cats.js";
 import { cleanLongText, cleanText, cleanupExpiredStories, db, ipHash, isAdmin, json, noDb, rateLimited, sha256Hex, parseDeal, storyDeal, storyMediaList, storyTextKey, validAuthor } from "../_lib/util.js";
 
 const HOUR_MS = 3600000;
@@ -74,7 +74,12 @@ export async function onRequestPost({ request, env }) {
   const author = cleanText(form.get("author"), 40) || "Kiez Community";
   let deal = storyDeal(form, cleanText); // 2026-11-14: optional offer (users, sponsors, admin)
   // 2026-11-14 (owner): folders – chosen folder + rules (price -> "angebote", Polizei/Sperrung -> "eil" …)
-  const cats = storyCats({ chosen: cleanText(form.get("category"), 20), kind: form.get("kind"), headline, subtext, deal, sponsor: form.get("sponsor") === "1" });
+  const chosenCat = cleanText(form.get("category"), 20);
+  // 2026-11-14 (owner): "automatic" -> the AI reads the story and picks the folders; word rules only as fallback
+  const aiCats = chosenCat ? [] : await aiStoryCats(env, headline, subtext).catch(() => []);
+  const cats = aiCats.length
+    ? [...aiCats, ...(deal ? ["angebote"] : []), ...(form.get("sponsor") === "1" ? ["sponsoren"] : [])].filter((k, i, a) => a.indexOf(k) === i).slice(0, 5)
+    : storyCats({ chosen: chosenCat, kind: form.get("kind"), headline, subtext, deal, sponsor: form.get("sponsor") === "1" });
   if (!deal && cats.includes("angebote") && !cats.includes("wohnen") && !cats.includes("jobs")) deal = dealFromText(headline, subtext);
   const catsText = cats.join(",");
   const durationHours = USER_DURATIONS.includes(Number(form.get("durationHours"))) ? Number(form.get("durationHours")) : 24;

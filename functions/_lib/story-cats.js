@@ -34,7 +34,8 @@ const KIND_MAP = {
 const RULES = [
   ["eil", /\b(eilmeldung|polizei|feuerwehr|sperrung|gesperrt|brand|unfall|evakuier|warnung|vermisst|acil|son dakika|kaza|yangın)\b/i],
   ["verkehr", /\b(bvg|s-bahn|u-bahn|ubahn|sbahn|tram|bus(se)?|ersatzverkehr|stau|baustelle|verkehr|trafik|[usm]\d{1,2}|ringbahn)\b/i],
-  ["angebote", /(\d+[.,]\d{2}\s*(€|eur)|€\s*\d+|\d+\s*%\s*(rabatt|off|indirim)|\brabatt\b|\bangebot\b|\bindirim\b|\bkampanya\b|\bsale\b|\bstatt\b)/i],
+  // 2026-11-14: "statt" alone is no offer ("findet … statt") – only "statt" next to a price counts
+  ["angebote", /(\d+[.,]\d{2}\s*(€|eur)|\d+\s*(?:€|eur\b)|€\s*\d+|\d+\s*%\s*(rabatt|off|indirim)|\brabatt\b|\bangebot\b|\bindirim\b|\bkampanya\b|\bsale\b)/i],
   ["neue", /\b(neu(e|er|es)?|neueröffnung|eröffnung|eröffnet|yeni açılış|yeni|new opening)\b/i],
   ["events", /\b(event|konzert|festival|party|veranstaltung|markt|weihnachtsmarkt|etkinlik|konser|düğün|fest)\b/i],
   ["sport", /\b(hertha|union|alba|eisbären|fußball|fussball|bundesliga|spor|maç|turnier|marathon)\b/i],
@@ -60,6 +61,34 @@ export function storyCats({ chosen = "", kind = "", headline = "", subtext = "",
   if (sponsor) add("sponsoren");
   if (!out.length) add("berlin");
   return out.slice(0, 5);
+}
+
+// 2026-11-14 (owner: "read the story and put it into the right folder"): Workers AI reads title + text and picks
+// 1–3 folders. Used when the sender chose "automatic"; the word rules stay as fallback (AI not reachable / unsure).
+const AI_FOLDER_MODELS = ["@cf/meta/llama-4-scout-17b-16e-instruct", "@cf/mistralai/mistral-small-3.1-24b-instruct"];
+export async function aiStoryCats(env, headline, subtext) {
+  if (!env || !env.AI) return [];
+  const list = STORY_CATS.map((c) => `${c.key} = ${c.de}`).join("; ");
+  const prompt = `Ordne diesen Beitrag der Berliner Nachbarschafts-App "My Kiez Berlin" 1 bis 3 Ordnern zu, wichtigster zuerst.
+Ordner: ${list}.
+Regeln: "angebote" nur bei einem echten Preis oder Rabatt. "sponsoren" nur bei Werbung eines Geschäfts. "eil" nur bei akuten Warnungen/Störungen.
+Antworte NUR mit JSON: {"cats":["key1","key2"]}
+
+Titel: ${String(headline).slice(0, 300)}
+Text: ${String(subtext).slice(0, 1500)}`;
+  for (const model of AI_FOLDER_MODELS) {
+    try {
+      const r = await env.AI.run(model, { messages: [{ role: "user", content: prompt }], max_tokens: 60, temperature: 0 });
+      const raw = typeof r?.response === "string" ? r.response : JSON.stringify(r?.response ?? r);
+      const m = String(raw).match(/\{[\s\S]*\}/);
+      if (!m) continue;
+      const cats = (JSON.parse(m[0]).cats || []).map((k) => String(k).trim()).filter((k) => CAT_KEYS.includes(k));
+      if (cats.length) return [...new Set(cats)].slice(0, 3);
+    } catch (e) {
+      // next model
+    }
+  }
+  return [];
 }
 
 /** Stored text "a,b,c" -> list; empty -> computed from the story. */

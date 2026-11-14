@@ -338,6 +338,28 @@ export async function seedSponsors(database) {
   await applyAquaAdnanFix(database);
   await applyNeueSponsorenFix(database);
   await applyTugraInfoFix(database);
+  await applyStoryFolderFix(database);
+}
+
+// 2026-11-14 (owner approved the table): the 20 stories that were online were read one by one and put into the right folders.
+const STORY_FOLDER_FIX = [
+  ["Guten Abend Berlin%", "berlin"], ["Original Berliner Honig%", "angebote,essen"], ["Heute in der Geschichte%", "info,tuerkei"],
+  ["Hadith des Tages%", "info"], ["Angebot: Monster Energy%", "angebote"], ["Herbststürme%", "eil,deutschland"],
+  ["Eisbären Berlin%", "sport,berlin"], ["Technik-Panne%", "welt"], ["Berliner Behörden bestatten%", "berlin"],
+  ["Zeit für dich%", "info"], ["ALBA Berlin%", "sport,berlin"], ["Volkstrauertag: Geschlossen%", "aemter,info"],
+  ["Zugriffsprobleme bei Microsoft%", "eil,welt"], ["Einladung zur Gedenkveranstaltung%", "events,berlin"],
+  ["Friseur für Damen%", "sponsoren,berlin"], ["Wettervorhersage Berlin%", "info,berlin"], ["Unser tiefes Beileid%", "tuerkei"],
+  ["Berlin Handel%", "sponsoren,angebote"], ["Das Dungeon ist ein Gym%", "sport,berlin"], ["Toplu Sabah Namaz%", "info"],
+];
+async function applyStoryFolderFix(database) {
+  const id = "fix:2026-11-14-story-folders";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  const now = Date.now();
+  await database.batch([
+    ...STORY_FOLDER_FIX.map(([like, cats]) =>
+      database.prepare(`UPDATE stories SET cats = ? WHERE headline LIKE ? AND status = 'approved' AND approved_at > ?`).bind(cats, like, now - 30 * 86400000)),
+    database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now),
+  ]);
 }
 
 // 2026-11-14 (owner): "Tugra Gida" removed completely (no own photo, owner decision); "Info" stories get their own folder
