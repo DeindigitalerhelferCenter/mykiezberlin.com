@@ -66,16 +66,26 @@ export function storyCats({ chosen = "", kind = "", headline = "", subtext = "",
 // 2026-11-14 (owner: "read the story and put it into the right folder"): Workers AI reads title + text and picks
 // 1–3 folders. Used when the sender chose "automatic"; the word rules stay as fallback (AI not reachable / unsure).
 const AI_FOLDER_MODELS = ["@cf/meta/llama-4-scout-17b-16e-instruct", "@cf/mistralai/mistral-small-3.1-24b-instruct"];
-export async function aiStoryCats(env, headline, subtext) {
+/** 2026-11-14: only the German part – admin stories carry a Turkish translation after "🇹🇷", which made the AI pick "tuerkei". */
+export function germanPart(text) {
+  return String(text || "").split(/🇹🇷/u)[0].split(" · ")[0].trim();
+}
+
+export async function aiStoryCats(env, headline, subtext, kiez = "") {
   if (!env || !env.AI) return [];
   const list = STORY_CATS.map((c) => `${c.key} = ${c.de}`).join("; ");
+  const title = germanPart(headline) || String(headline || "");
+  const body = String(subtext || "").split(/🇹🇷/u)[0].trim() || String(subtext || ""); // text: only cut the Turkish part
   const prompt = `Ordne diesen Beitrag der Berliner Nachbarschafts-App "My Kiez Berlin" 1 bis 3 Ordnern zu, wichtigster zuerst.
 Ordner: ${list}.
 Regeln: "angebote" nur bei einem echten Preis oder Rabatt. "sponsoren" nur bei Werbung eines Geschäfts. "eil" nur bei akuten Warnungen/Störungen.
+"tuerkei" NUR wenn es um ein Ereignis oder einen Ort IN der Türkei geht – nicht, weil der Text türkisch ist oder die türkische Gemeinde in Berlin betrifft.
+Ereignisse in Berlin (auch Moscheen, Vereine, Geschäfte in Berlin) gehören zu "berlin". Eröffnungen und Neues zusätzlich zu "neue".
 Antworte NUR mit JSON: {"cats":["key1","key2"]}
 
-Titel: ${String(headline).slice(0, 300)}
-Text: ${String(subtext).slice(0, 1500)}`;
+Kiez: ${String(kiez || "").slice(0, 60)}
+Titel: ${title.slice(0, 300)}
+Text: ${body.slice(0, 1500)}`;
   for (const model of AI_FOLDER_MODELS) {
     try {
       const r = await env.AI.run(model, { messages: [{ role: "user", content: prompt }], max_tokens: 60, temperature: 0 });

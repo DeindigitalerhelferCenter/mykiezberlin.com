@@ -76,7 +76,7 @@ export async function onRequestPost({ request, env }) {
   // 2026-11-14 (owner): folders – chosen folder + rules (price -> "angebote", Polizei/Sperrung -> "eil" …)
   const chosenCat = cleanText(form.get("category"), 20);
   // 2026-11-14 (owner): "automatic" -> the AI reads the story and picks the folders; word rules only as fallback
-  const aiCats = chosenCat ? [] : await aiStoryCats(env, headline, subtext).catch(() => []);
+  const aiCats = chosenCat ? [] : await aiStoryCats(env, headline, subtext, kiez).catch(() => []);
   const cats = aiCats.length
     ? [...aiCats, ...(deal ? ["angebote"] : []), ...(form.get("sponsor") === "1" ? ["sponsoren"] : [])].filter((k, i, a) => a.indexOf(k) === i).slice(0, 5)
     : storyCats({ chosen: chosenCat, kind: form.get("kind"), headline, subtext, deal, sponsor: form.get("sponsor") === "1" });

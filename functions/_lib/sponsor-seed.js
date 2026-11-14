@@ -339,6 +339,19 @@ export async function seedSponsors(database) {
   await applyNeueSponsorenFix(database);
   await applyTugraInfoFix(database);
   await applyStoryFolderFix(database);
+  await applyMosqueFolderFix(database);
+}
+
+// 2026-11-14 (owner): test story "Yeni Aziziye Camii" (Rudow, Neukölln) – the AI had chosen "tuerkei" because of the
+// Turkish translation; correct folders: events, berlin, neue. Runs once.
+async function applyMosqueFolderFix(database) {
+  const id = "fix:2026-11-14-aziziye";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  const now = Date.now();
+  await database.batch([
+    database.prepare(`UPDATE stories SET cats = 'events,berlin,neue' WHERE headline LIKE 'Einladung zur Eröffnung der Yeni Aziziye Camii%' AND approved_at > ?`).bind(now - 7 * 86400000),
+    database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now),
+  ]);
 }
 
 // 2026-11-14 (owner approved the table): the 20 stories that were online were read one by one and put into the right folders.
