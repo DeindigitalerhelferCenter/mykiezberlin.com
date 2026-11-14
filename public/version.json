@@ -9,8 +9,8 @@
     "en": "New: safer links, previews for pictures and videos, “Report a problem / Support” and contact sheet for sponsors."
   },
   "beta": {
-    "versionCode": 32,
-    "versionName": "1.31",
+    "versionCode": 33,
+    "versionName": "1.32",
     "apkUrl": "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin-test.apk",
     "notes": {
       "de": "Testversion – nur für das Admin-Handy.",
