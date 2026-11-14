@@ -1,17 +1,17 @@
 {
-  "versionCode": 18,
-  "versionName": "1.17",
+  "versionCode": 35,
+  "versionName": "1.34",
   "apkUrl": "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin.com.apk",
   "mandatory": false,
   "notes": {
-    "de": "Neu: mehr Sicherheit bei Links, Vorschau für Bilder und Videos, „Fehler melden / Support“ und Kontaktfenster für Sponsoren.",
-    "tr": "Yeni: linklerde daha fazla güvenlik, resim ve video önizlemesi, „Hata bildir / Destek“ ve sponsorlar için iletişim penceresi.",
-    "en": "New: safer links, previews for pictures and videos, “Report a problem / Support” and contact sheet for sponsors."
+    "de": "Neu: 7 neue Sponsoren, Sponsoren aus der Türkei, Teilen-Button für jeden Betrieb, Uhr & Wetter, Story-Ordner mit Benachrichtigung, Info-Fenster (ⓘ) und größere Schlagzeilen.",
+    "tr": "Yeni: 7 yeni sponsor, Türkiye sponsorları, her işletme için paylaş butonu, saat & hava durumu, bildirimli hikâye klasörleri, bilgi pencereleri (ⓘ) ve daha büyük manşetler.",
+    "en": "New: 7 new sponsors, sponsors from Turkey, share button for every business, clock & weather, story folders with notifications, info windows (ⓘ) and bigger headlines."
   },
   "beta": {
-    "versionCode": 33,
-    "versionName": "1.32",
-    "apkUrl": "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin-test.apk",
+    "versionCode": 35,
+    "versionName": "1.34",
+    "apkUrl": "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin.com.apk",
     "notes": {
       "de": "Testversion – nur für das Admin-Handy.",
       "tr": "Test sürümü – sadece admin telefonu için.",
