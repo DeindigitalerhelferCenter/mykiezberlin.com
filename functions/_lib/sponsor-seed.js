@@ -200,6 +200,27 @@ export const SPONSOR_SEED = [
     extra: { category: { de: "Medizinische Ästhetik", tr: "Medikal estetik", en: "Medical aesthetics" }, address: "Nisbetiye Mah., Aytar Cad. Burç Apt. No:36/6, 34340 Beşiktaş / İstanbul, Türkiye", hours: "Mo–Fr 09:30–18:30", email: "iletisim@dradnangurcan.com", primary: "wa",
       description: "Medizinische Ästhetik seit 2004 (vom Gesundheitsministerium zertifiziert). Botox, Filler, Mesotherapie, PRP und Behandlung von Haarausfall. Gast bei CNN Türk „Uzmanı Anlatıyor“." },
   },
+  // 2026-11-14 (owner): "The Visit" and "Berlin Handel" (before only in the old app sponsor list) – package Plus
+  {
+    id: "the-visit", plan: "m", name: "The Visit Coffee Roastery", kieze: "Kreuzberg",
+    headline_de: "Handgerösteter Specialty Coffee in Berlin-Kreuzberg – Rösterei & Café",
+    headline_tr: "Berlin-Kreuzberg'de el yapımı kavrulmuş specialty kahve – kavurma evi & kafe",
+    headline_en: "Hand-roasted specialty coffee in Berlin-Kreuzberg – roastery & café",
+    cta_de: "Website ansehen", cta_tr: "Siteye git", cta_en: "Visit website",
+    link_web: "https://thevisitcoffeeroastery.pages.dev/", link_wa: "", link_tel: "", link_ig: IG("@thevisitcoffee"),
+    extra: { category: { de: "Café · Kaffeerösterei", tr: "Kafe · Kahve kavurma evi", en: "Café · Coffee roastery" }, address: "Die Macherei (M40), Hallesches Ufer 40, 10963 Berlin", hours: "Täglich 08–22 Uhr (Eröffnung bald)", email: "info@thevisitcoffee.de",
+      description: "Handgerösteter Specialty Coffee in Berlin-Kreuzberg. Neuer Standort in der Macherei (M40) am Halleschen Ufer – eröffnet bald, dann täglich 08–22 Uhr." },
+  },
+  {
+    id: "berlin-handel", plan: "m", name: "Berlin Handel", kieze: "",
+    headline_de: "Getränke-Lieferservice für Berlin & Umgebung – Bestellung per WhatsApp",
+    headline_tr: "Berlin ve çevresine içecek teslimatı – WhatsApp ile sipariş",
+    headline_en: "Beverage delivery for Berlin & surroundings – order via WhatsApp",
+    cta_de: "WhatsApp bestellen", cta_tr: "WhatsApp ile sipariş", cta_en: "Order on WhatsApp",
+    link_web: "", link_wa: "+4915126509586", link_tel: "+49 151 26509586", link_ig: "",
+    extra: { category: { de: "Getränke-Lieferservice", tr: "İçecek teslimatı", en: "Beverage delivery" }, address: "Berlin und Umgebung", hours: "",
+      description: "Getränke-Lieferservice für Berlin und Umgebung. Bestellungen per WhatsApp oder Telefon: 0151 265 09 586." },
+  },
 ];
 
 // One-time corrections for sponsors that are already in the live database (seeds are only inserted once).
