@@ -68,7 +68,8 @@ fun AdminScreen(
     ) -> Unit,
     onLogout: () -> Unit = {},
     onBack: () -> Unit,
-    onAdminStoryLink: (String) -> Unit = {}
+    onAdminStoryLink: (String) -> Unit = {},
+    onOpenWebAdmin: () -> Unit = {}
 ) {
     val context = LocalContext.current
     var showStoryPlanner by remember { mutableStateOf(false) }
@@ -207,6 +208,15 @@ fun AdminScreen(
                     // Account & security: password, recovery code, story alarm (2026-11-11)
                     IconButton(onClick = { showAccount = true }) {
                         Text("🔐", fontSize = 18.sp)
+                    }
+                    // 2026-11-17 (owner): the full web admin inside the app (sponsor media, statistics, ended sponsors …)
+                    FilledTonalButton(
+                        onClick = onOpenWebAdmin,
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(end = 4.dp)
+                    ) {
+                        Text("🌐 Web", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }
                     // Story planner: many stories with their own start / end time
                     FilledTonalButton(

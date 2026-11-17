@@ -41,6 +41,8 @@ enum class AppScreen {
     KIEZ_MATCH,
     COMMUNITY,
     WERBEN,
+    // 2026-11-17 (owner): the web admin panel inside the app (sponsor media, statistics, ended sponsors …)
+    WEB_ADMIN,
     KIEZ_BETRIEBE,
     TELEFONBUCH // 2026-11-14: own page for the Berlin phone book (before only at the end of "Notruf")
 }

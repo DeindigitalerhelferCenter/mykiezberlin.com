@@ -287,7 +287,7 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
             androidx.compose.animation.AnimatedVisibility(visible = headerShown) { Column {
             // Real-time In-App Live Alert Heads-up Banner (S-Bahn, BVG, Feuerwehr, Polizei)
             // Full-page web screens need the room; the ticker stays one tap away.
-            if (uiState.currentScreen != AppScreen.KIEZ_MATCH && uiState.currentScreen != AppScreen.COMMUNITY && uiState.currentScreen != AppScreen.WERBEN) {
+            if (uiState.currentScreen != AppScreen.KIEZ_MATCH && uiState.currentScreen != AppScreen.COMMUNITY && uiState.currentScreen != AppScreen.WERBEN && uiState.currentScreen != AppScreen.WEB_ADMIN) {
                 InAppAlertBannerComponent(
                     alert = uiState.activeAlertBanner,
                     isLiveAvailable = uiState.isLiveAlertsAvailable,
@@ -298,7 +298,7 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
             }
 
             // Sponsor on every page change, sized by its package (home and the business lists have their own sponsors)
-            if (uiState.currentScreen !in setOf(AppScreen.HOME, AppScreen.BUSINESSES, AppScreen.KIEZ_BETRIEBE, AppScreen.KIEZ_MATCH, AppScreen.COMMUNITY, AppScreen.WERBEN, AppScreen.ADMIN)) {
+            if (uiState.currentScreen !in setOf(AppScreen.HOME, AppScreen.BUSINESSES, AppScreen.KIEZ_BETRIEBE, AppScreen.KIEZ_MATCH, AppScreen.COMMUNITY, AppScreen.WERBEN, AppScreen.ADMIN, AppScreen.WEB_ADMIN)) {
                 com.example.ui.components.PageSponsorSlot(
                     screenKey = uiState.currentScreen.name,
                     language = uiState.language,
@@ -426,6 +426,13 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                         AppLanguage.ENGLISH -> "en"
                         else -> "de"
                     }
+                )
+
+                // 2026-11-17 (owner): web admin inside the app – the app's admin session is handed over, no second login
+                AppScreen.WEB_ADMIN -> com.example.ui.screens.KiezWebScreen(
+                    url = "https://mykiezberlin.com/admin.html",
+                    onBack = { viewModel.navigateTo(AppScreen.ADMIN) },
+                    adminToken = com.example.data.repository.KiezStorageManager.getAdminToken(androidx.compose.ui.platform.LocalContext.current)
                 )
 
                 AppScreen.COMMUNITY -> com.example.ui.screens.KiezWebScreen(
@@ -571,7 +578,8 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                         viewModel.setAdminAuthenticated(false)
                     },
                     onBack = { viewModel.navigateTo(AppScreen.HOME) },
-                    onAdminStoryLink = { viewModel.setAdminStoryLink(it) }
+                    onAdminStoryLink = { viewModel.setAdminStoryLink(it) },
+                    onOpenWebAdmin = { viewModel.navigateTo(AppScreen.WEB_ADMIN) }
                 )
 
                 AppScreen.LIVE_BULLETIN -> BerlinLiveBulletinScreen(
