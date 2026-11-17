@@ -219,7 +219,7 @@ export async function onRequestPost({ request, env }) {
     if (action === "adminMediaBig") {
       await database.prepare(`CREATE TABLE IF NOT EXISTS media_optimized (id TEXT, old_key TEXT, new_key TEXT, old_bytes INTEGER, new_bytes INTEGER, created_at INTEGER)`).run();
       const { results } = await database
-        .prepare(`SELECT m.id, m.ad_id, m.media_key, m.bytes, a.name FROM sponsor_media m LEFT JOIN ads a ON a.id = m.ad_id WHERE m.media_type = 'image' AND m.media_key LIKE 'ads/%' AND m.media_key NOT LIKE '%-opt.%' AND m.id NOT IN (SELECT id FROM media_optimized) ORDER BY m.created_at DESC LIMIT 300`)
+        .prepare(`SELECT m.id, m.ad_id, m.media_key, m.bytes, a.name FROM sponsor_media m LEFT JOIN ads a ON a.id = m.ad_id WHERE m.media_type = 'image' AND m.media_key LIKE 'ads/%' AND m.media_key NOT LIKE '%-opt%' ORDER BY m.created_at DESC LIMIT 300`)
         .all();
       const big = [];
       for (const m of results) {
@@ -240,7 +240,8 @@ export async function onRequestPost({ request, env }) {
       // 2026-11-17: a real photo is never below 8 KB – tiny files are empty/white pictures (broken original)
       if (bin.length < 8 * 1024 && (Number(row.bytes) || 0) > 100 * 1024) return json({ error: "looks_empty" }, 422);
       const ext = m[1] === "image/webp" ? "webp" : "jpg";
-      const key = String(row.media_key).replace(/\.[a-z0-9]+$/i, "") + `-opt.${ext}`;
+      // 2026-11-17: always a NEW file name – /media is cached 30 days, an old (white) -opt file must never come back
+      const key = String(row.media_key).replace(/\.[a-z0-9]+$/i, "") + `-opt-${Date.now().toString(36)}.${ext}`;
       await env.BUCKET.put(key, bin, { httpMetadata: { contentType: m[1] } });
       await database.prepare(`CREATE TABLE IF NOT EXISTS media_optimized (id TEXT, old_key TEXT, new_key TEXT, old_bytes INTEGER, new_bytes INTEGER, created_at INTEGER)`).run();
       await database.prepare(`INSERT INTO media_optimized (id, old_key, new_key, old_bytes, new_bytes, created_at) VALUES (?, ?, ?, ?, ?, ?)`).bind(row.id, row.media_key, key, Number(row.bytes) || 0, bin.length, Date.now()).run();
