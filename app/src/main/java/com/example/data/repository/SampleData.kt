@@ -1010,7 +1010,7 @@ object SampleData {
             imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             isSponsored = true,
             phone = "+49 30 45021234",
-            whatsapp = "+4915126509586",
+            whatsapp = "+4917640556109",
             website = "https://wedding-grill.de",
             openingHours = "Mo-So: 10:00 - 02:00 Uhr",
             description = "Echter Berliner Kiez-Döner mit hausgemachtem Brot, frischen Kräutern und saftigem Kalb- & Hähnchenfleisch."
@@ -1026,7 +1026,7 @@ object SampleData {
             address = "Uferstraße 8-11, 13357 Berlin",
             imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             phone = "+49 30 50369854",
-            whatsapp = "+4915126509586",
+            whatsapp = "+4917640556109",
             website = "https://www.pfoertner.co",
             openingHours = "Mo-Sa: 09:00 - 18:00 Uhr",
             description = "Kult-Café in den Uferhallen mit italienischer Pasta, Spezialitätenkaffee und hausgemachten Kuchen in historischem Bus-Ambiente."
@@ -1042,7 +1042,7 @@ object SampleData {
             address = "Grünberger Str. 34, 10245 Berlin",
             imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             phone = "+49 30 29364400",
-            whatsapp = "+4915126509586",
+            whatsapp = "+4917640556109",
             website = "https://silberfisch-berlin.de",
             openingHours = "Mo-Sa: 11:00 - 19:30 Uhr",
             description = "Liebevoll kuratierte Kiez-Boutique mit Berliner Design, Schmuck, Wohnaccessoires und Postkarten."
@@ -1058,7 +1058,7 @@ object SampleData {
             address = "Simon-Dach-Straße 22, 10245 Berlin",
             imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             phone = "+49 30 29778899",
-            whatsapp = "+4915126509586",
+            whatsapp = "+4917640556109",
             website = "https://simondach-barber.de",
             openingHours = "Mo-Sa: 10:00 - 20:00 Uhr",
             description = "Klassische Bartpflege, Nassrasur mit heißem Tuch und moderne Haarschnitte direkt am Boxhagener Kiez."
@@ -1074,7 +1074,7 @@ object SampleData {
             address = "Kantstraße 64, 10627 Berlin",
             imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             phone = "+49 30 3241100",
-            whatsapp = "+4915126509586",
+            whatsapp = "+4917640556109",
             website = "https://kant-konditorei.de",
             openingHours = "Di-So: 07:30 - 18:30 Uhr",
             description = "Traditionsreiche Berliner Konditorei mit feinsten Torten, Petit Fours, Croissants und Kaffee-Spezialitäten."
@@ -1090,7 +1090,7 @@ object SampleData {
             address = "Kantstraße 148, 10623 Berlin",
             imageUrl = "https://mykiezberlin.com/assets/places/schwarzes_cafe.webp", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             phone = "+49 30 3138038",
-            whatsapp = "+4915126509586",
+            whatsapp = "+4917640556109",
             website = "https://schwarzescafe-berlin.de",
             openingHours = "Rund um die Uhr (24/7)",
             description = "Legendäre Berliner Institution seit den 1970ern. Frühstück zu jeder Tages- und Nachtzeit und internationale Küche."
@@ -1106,7 +1106,7 @@ object SampleData {
             address = "Winterfeldtstraße 45, 10781 Berlin",
             imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             phone = "+49 30 2168900",
-            whatsapp = "+4915126509586",
+            whatsapp = "+4917640556109",
             website = "https://winterfeldt-kiez.de",
             openingHours = "Mo-Sa: 08:00 - 19:00 Uhr",
             description = "Frisches Bio-Brot, Kiez-Käse, Oliven und Spezialitäten direkt am beliebten Winterfeldtplatz."
@@ -1122,7 +1122,7 @@ object SampleData {
             address = "Arminiusstraße 2, 10551 Berlin",
             imageUrl = "https://mykiezberlin.com/assets/kieze/moabit-2.webp", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             phone = "",
-            whatsapp = "+4915126509586",
+            whatsapp = "+4917640556109",
             website = "",
             openingHours = "Mo-Sa: 10:00 - 22:00 Uhr",
             description = "Historische Markthalle Moabit mit vielfältigen Essensständen, Craft Beer und geselligem Kiez-Flair."
@@ -1141,7 +1141,7 @@ object SampleData {
             hasCoupon = true,
             couponText = "%20 İndirim (Frühstückset)",
             phone = "+49 30 44048749",
-            whatsapp = "+4915126509586",
+            whatsapp = "+4917640556109",
             website = "https://www.cafe-anna-blume.de",
             openingHours = "Mo-So: 08:30 - 20:00 Uhr",
             description = "Berühmtes Café und Blumengeschäft mit dreistöckigen Frühstücks-Etagèren, Bio-Rührei und eigener Tortenmanufaktur."
@@ -1157,7 +1157,7 @@ object SampleData {
             address = "Mehringdamm 32, 10961 Berlin",
             imageUrl = "https://mykiezberlin.com/assets/places/mustafas.webp", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             phone = "",
-            whatsapp = "+4915126509586",
+            whatsapp = "+4917640556109",
             website = "",
             openingHours = "Mo-So: 10:00 - 02:00 Uhr",
             description = "Der weltbekannte Berliner Gemüse-Döner mit gebratenem Gemüse, frischem Schafskäse und Zitronenspritzer."
@@ -1173,7 +1173,7 @@ object SampleData {
             address = "Sonnenallee 54, 12045 Berlin",
             imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             phone = "",
-            whatsapp = "+4915126509586",
+            whatsapp = "+4917640556109",
             website = "",
             openingHours = "Mo-So: 09:00 - 23:00 Uhr",
             description = "Legendäre orientalische Küche auf der Sonnenallee: Hausgemachter cremiger Hummus, warme Fatteh und knusprige Falafel."
@@ -1189,7 +1189,7 @@ object SampleData {
             address = "Tempelhofer Damm 90, 12101 Berlin",
             imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             phone = "+49 30 78912300",
-            whatsapp = "+4915126509586",
+            whatsapp = "+4917640556109",
             website = "https://tempelhof-sport.de",
             openingHours = "Mo-Sa: 10:00 - 19:00 Uhr",
             description = "Fahrradreparatur, Verleih für das Tempelhofer Feld, Inline-Skates und Outdoor-Equipment."
@@ -1205,7 +1205,7 @@ object SampleData {
             address = "Schloßstraße 42, 12165 Berlin",
             imageUrl = "", // 2026-11-14 (owner): real photo (Wikimedia Commons) or none – no stock photos
             phone = "+49 30 7914422",
-            whatsapp = "+4915126509586",
+            whatsapp = "+4917640556109",
             website = "https://schloss-apotheke-steglitz.de",
             openingHours = "Mo-Fr: 08:30 - 19:30, Sa: 09:00 - 16:00",
             description = "Persönliche Beratung, Kiez-Botendienst und große Auswahl an Naturheilmitteln im Herzen von Steglitz."
@@ -1593,8 +1593,8 @@ object SampleData {
             ctaTr = "WhatsApp ile sipariş",
             ctaEn = "Order on WhatsApp",
             linkWeb = "",
-            linkWa = "https://wa.me/4915126509586",
-            linkTel = "+4915126509586",
+            linkWa = "https://wa.me/4917640556109",
+            linkTel = "+4917640556109",
             category = "handel",
             priority = 6
         )
@@ -1613,7 +1613,7 @@ object SampleData {
             jobType = "Teilzeit / Vollzeit",
             salary = "14,50 € - 17,00 € / Std.",
             description = "Wir suchen begeisterte Baristi für unser Team in Kreuzberg. Leidenschaft für Specialty Coffee und kundenorientiertes Arbeiten erwünscht.",
-            contactWa = "+4915126509586",
+            contactWa = "+4917640556109",
             contactPhone = "+49 30 61284455",
             contactEmail = "jobs@thevisitcoffee.de",
             isUrgent = true
@@ -1626,7 +1626,7 @@ object SampleData {
             jobType = "Vollzeit",
             salary = "2.300 € - 2.600 € / Monat",
             description = "Für unseren Standort am Hermannplatz suchen wir engagierte Verkäufer für die Obst- und Gemüseabteilung und die Kasse.",
-            contactWa = "+4915126509586",
+            contactWa = "+4917640556109",
             contactPhone = "+49 30 6214589",
             contactEmail = "kontakt@bolu.berlin",
             isUrgent = false
@@ -1639,8 +1639,8 @@ object SampleData {
             jobType = "Vollzeit / Minijob",
             salary = "15,00 € / Std. + Trinkgeld",
             description = "Getränke-Auslieferung im Stadtgebiet Berlin mit Firmenfahrzeug. Zuverlässigkeit und Ortskenntnisse von Vorteil.",
-            contactWa = "+4915126509586",
-            contactPhone = "+49 151 26509586",
+            contactWa = "+4917640556109",
+            contactPhone = "+49 176 40556109",
             contactEmail = "service@berlin-handel.de",
             isUrgent = true
         ),
@@ -1652,7 +1652,7 @@ object SampleData {
             jobType = "Vollzeit",
             salary = "2.400 € / Monat + Provision",
             description = "Moderner Barbershop sucht talentierte Friseure für Bartpflege, Fade-Cuts und klassische Haarschnitte.",
-            contactWa = "+4915126509586",
+            contactWa = "+4917640556109",
             contactPhone = "+49 30 4678123",
             contactEmail = "info@kiezbarber.de",
             isUrgent = false
@@ -1665,7 +1665,7 @@ object SampleData {
             jobType = "Vollzeit",
             salary = "2.500 € - 2.800 € / Monat",
             description = "Erfahrener Grillmeister oder Koch für traditionelle anatolische Küche und Holzkohlegrill gesucht.",
-            contactWa = "+4915126509586",
+            contactWa = "+4917640556109",
             contactPhone = "+49 30 6142373",
             contactEmail = "karriere@hasir.de",
             isUrgent = false
@@ -1807,7 +1807,7 @@ object SampleData {
             code = "KIEZCHECK10",
             description = "Gilt vor Ort beim Kauf von mindestens einer Packung Kaffeebohnen nach Wahl.",
             validUntil = "31.12.2026",
-            whatsapp = "+4915126509586",
+            whatsapp = "+4917640556109",
             address = "Adalbertstraße 9, 10999 Berlin"
         ),
         KiezCoupon(
@@ -1819,7 +1819,7 @@ object SampleData {
             code = "ANNABLUME26",
             description = "Bestelle eine Frühstücksetagere und erhalte einen Cappuccino oder Filterkaffee gratis dazu.",
             validUntil = "30.11.2026",
-            whatsapp = "+4915126509586",
+            whatsapp = "+4917640556109",
             address = "Kollwitzstraße 83, 10435 Berlin"
         ),
         KiezCoupon(
@@ -1831,7 +1831,7 @@ object SampleData {
             code = "BOLU5SPAR",
             description = "Gültig für den gesamten Frische-Einkauf in der Neuköllner Filiale.",
             validUntil = "15.12.2026",
-            whatsapp = "+4915126509586",
+            whatsapp = "+4917640556109",
             address = "Karl-Marx-Straße 102, 12043 Berlin"
         ),
         KiezCoupon(
@@ -1843,7 +1843,7 @@ object SampleData {
             code = "BURGERFREE",
             description = "Zeige diesen Gutschein an der Kasse am Schlesischen Tor.",
             validUntil = "31.12.2026",
-            whatsapp = "+4915126509586",
+            whatsapp = "+4917640556109",
             address = "Oberbaumstraße 8, 10997 Berlin"
         )
     )

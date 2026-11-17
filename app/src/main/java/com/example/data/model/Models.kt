@@ -65,7 +65,7 @@ data class FoodSpot(
     val website: String = "https://mykiezberlin.com/gastronomie",
     val openingHours: String = "Mo-So: 11:00 - 23:00 Uhr",
     val popularDishes: List<String> = emptyList(),
-    val whatsapp: String = "+4915126509586"
+    val whatsapp: String = "+4917640556109"
 )
 
 data class KiezEvent(
@@ -98,7 +98,7 @@ data class LocalBusiness(
     val imageUrl: String,
     val isSponsored: Boolean = false,
     val phone: String = "+49 30 61284455",
-    val whatsapp: String = "+4915126509586",
+    val whatsapp: String = "+4917640556109",
     val website: String = "https://mykiezberlin.com/unternehmen",
     val instagram: String = "",
     val openingHours: String = "Mo-Sa: 09:00 - 19:00 Uhr",
@@ -121,7 +121,7 @@ data class Deal(
     val code: String,
     val imageUrl: String,
     val isRedeemed: Boolean = false,
-    val whatsapp: String = "+4915126509586",
+    val whatsapp: String = "+4917640556109",
     val address: String = "Berlin"
 )
 
@@ -136,7 +136,7 @@ data class KiezStory(
     val timeAgo: String,
     val source: String = "",
     val link: String = "https://mykiezberlin.com",
-    val whatsapp: String = "+4915126509586",
+    val whatsapp: String = "+4917640556109",
     val mediaResId: Int? = null,
     val mediaUri: String? = null,
     val isVideo: Boolean = false,
@@ -220,7 +220,7 @@ data class KiezCoupon(
     val code: String,
     val description: String,
     val validUntil: String,
-    val whatsapp: String = "+4915126509586",
+    val whatsapp: String = "+4917640556109",
     val address: String = "Berlin"
 )
 

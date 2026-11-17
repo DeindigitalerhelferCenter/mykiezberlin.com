@@ -812,7 +812,7 @@ function renderPortalTab(container) {
         <div class="ext-row"><div class="card-title" style="font-size: 15px;">${esc(a.title)}</div><span class="card-tag">${esc(a.pricePerWeek)}</span></div>
         <div class="card-desc">${esc(a.description)}</div>
       </div>`).join("")}
-    <a class="btn-primary ext-cta" href="https://wa.me/4915126509586" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i> ${esc(tr("Anfrage per WhatsApp", "WhatsApp ile başvur"))}</a>`;
+    <a class="btn-primary ext-cta" href="https://wa.me/4917640556109" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i> ${esc(tr("Anfrage per WhatsApp", "WhatsApp ile başvur"))}</a>`;
 }
 
 function renderProfileTab(container) {

@@ -155,6 +155,8 @@ fun HomeDeckSection(language: AppLanguage, onNavigateToScreen: (AppScreen) -> Un
             if (i % 2 == 0) HomeSponsorPlace(sponsors.getOrNull(i / 2), language) // after box 1, 3, 5
         }
         AllSponsorsButton(language, onOpenWerben)
+        // 2026-11-17 (owner): own social media + "Mitmachen · Paylaş" (WhatsApp glows green)
+        SocialBox(Modifier.padding(horizontal = 16.dp))
         TurkeySponsorsButton(language) // 2026-11-14 (owner)
     }
 }

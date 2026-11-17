@@ -251,7 +251,7 @@ fun DealsScreen(
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Button(
                                 onClick = {
-                                    val waIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/4915126509586?text=Hallo,%20ich%20möchte%20den%20Gutschein%20${activeRedeemDeal.code}%20von%20${activeRedeemDeal.businessName}%20einlösen."))
+                                    val waIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/4917640556109?text=Hallo,%20ich%20möchte%20den%20Gutschein%20${activeRedeemDeal.code}%20von%20${activeRedeemDeal.businessName}%20einlösen."))
                                     context.startActivity(waIntent)
                                 },
                                 modifier = Modifier.weight(1f),

@@ -142,7 +142,7 @@ object KiezStorageManager {
                         timeAgo = obj.optString("timeAgo", "gerade eben"),
                         source = obj.optString("source", ""),
                         link = obj.optString("link", "https://mykiezberlin.com"),
-                        whatsapp = obj.optString("whatsapp", "+4915126509586"),
+                        whatsapp = obj.optString("whatsapp", "+4917640556109"),
                         mediaResId = mediaRes,
                         mediaUri = mediaUri,
                         isVideo = obj.optBoolean("isVideo", false),

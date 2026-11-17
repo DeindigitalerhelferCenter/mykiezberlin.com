@@ -527,7 +527,7 @@ fun BusinessesScreen(
                                     address = addressInput,
                                     imageUrl = "" /* 2026-11-14: no stock photo */,
                                     phone = if (phoneInput.isBlank()) "+49 30 123456" else phoneInput,
-                                    whatsapp = if (waInput.isBlank()) "+4915126509586" else waInput,
+                                    whatsapp = if (waInput.isBlank()) "+4917640556109" else waInput,
                                     description = if (descInput.isBlank()) "Neuer Betrieb im Kiez." else descInput
                                 )
                                 onAddBusiness(newBiz)

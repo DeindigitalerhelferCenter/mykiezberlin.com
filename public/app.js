@@ -821,7 +821,7 @@ function renderJobsTab(container) {
       <div class="card-desc">Suche motivierte Unterstützung für unser Kiez-Café am Wasser. Attraktives Gehalt + Trinkgeld.</div>
       <div class="card-footer">
         <span class="card-tag">Gastro</span>
-        <a href="https://wa.me/4915126509586" target="_blank" style="color: var(--berlin-green); font-weight: 800; text-decoration: none;">💬 WhatsApp Bewerbung</a>
+        <a href="https://wa.me/4917640556109" target="_blank" style="color: var(--berlin-green); font-weight: 800; text-decoration: none;">💬 WhatsApp Bewerbung</a>
       </div>
     </div>
     <div class="card-item" style="padding: 16px;">
@@ -830,7 +830,7 @@ function renderJobsTab(container) {
       <div class="card-desc">Traditioneller Herren- und Damensalon sucht Verstärkung. Festanstellung mit übertariflicher Bezahlung.</div>
       <div class="card-footer">
         <span class="card-tag">Beauty</span>
-        <a href="https://wa.me/4915126509586" target="_blank" style="color: var(--berlin-green); font-weight: 800; text-decoration: none;">💬 WhatsApp Bewerbung</a>
+        <a href="https://wa.me/4917640556109" target="_blank" style="color: var(--berlin-green); font-weight: 800; text-decoration: none;">💬 WhatsApp Bewerbung</a>
       </div>
     </div>
   `;

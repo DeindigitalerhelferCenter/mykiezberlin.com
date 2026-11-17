@@ -1054,6 +1054,10 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     }
                 }
 
+                // 2026-11-17 (owner): own social media in the "Mehr" sheet
+                Spacer(modifier = Modifier.height(12.dp))
+                com.example.ui.components.SocialButtonsRow()
+
                 val context = LocalContext.current
                 val apkUrl = "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin.com.apk"
 

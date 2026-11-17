@@ -374,7 +374,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                                         address = item.optString("address", "Berlin"),
                                         imageUrl = item.optString("imageUrl", ""),
                                         phone = item.optString("phone", item.optString("contact", "")),
-                                        whatsapp = item.optString("whatsapp", "+4915126509586"),
+                                        whatsapp = item.optString("whatsapp", "+4917640556109"),
                                         website = item.optString("website", "https://mykiezberlin.com"),
                                         description = item.optString("description", "")
                                     )
@@ -483,7 +483,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                                         address = item.optString("address", "Berlin"),
                                         imageUrl = item.optString("imageUrl", ""),
                                         phone = item.optString("phone", item.optString("contact", "")),
-                                        whatsapp = item.optString("whatsapp", "+4915126509586"),
+                                        whatsapp = item.optString("whatsapp", "+4917640556109"),
                                         website = item.optString("website", "https://mykiezberlin.com"),
                                         description = item.optString("description", "")
                                     )
@@ -687,7 +687,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
             val json = org.json.JSONObject().apply {
                 put("company", companyName)
                 put("email", email)
-                put("phone", "+4915126509586")
+                put("phone", "+4917640556109")
                 put("packageName", selectedPkg)
                 put("kiez", kiez)
                 put("notes", "B2B Buchung aus App")
@@ -1377,7 +1377,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
             jobType = type,
             salary = salary.ifBlank { "Nach Vereinbarung" },
             description = desc,
-            contactWa = contactWa.ifBlank { "+4915126509586" },
+            contactWa = contactWa.ifBlank { "+4917640556109" },
             contactPhone = "+49 30 123456"
         )
         _uiState.update {
@@ -1388,7 +1388,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                 put("title", title)
                 put("company", company)
                 put("kiez", kiez)
-                put("contact", contactWa.ifBlank { "+4915126509586" })
+                put("contact", contactWa.ifBlank { "+4917640556109" })
                 put("description", desc)
                 put("salary", salary)
                 put("jobType", type)
