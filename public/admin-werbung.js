@@ -202,7 +202,8 @@ async function saveAdForm(id) {
   const file = document.getElementById("ad-file")?.files[0];
   if (file) {
     const form = new FormData();
-    form.append("file", file);
+    // 2026-11-17 (owner): pictures are made smaller automatically before upload (image-shrink.js)
+    form.append("file", window.mkShrinkImage ? await window.mkShrinkImage(file) : file);
     const res = await fetch("/api/admin-ad-image", { method: "POST", headers: { "x-admin-token": sessionStorage.getItem(ADMIN_TOKEN_KEY) || "" }, body: form });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) { alert(`Bild-Upload fehlgeschlagen: ${data.error || res.status}`); return; }

@@ -136,48 +136,100 @@
   }
 
   // big old pictures -> smaller WebP in this browser, then uploaded again (original stays in R2)
+  // 2026-11-17 (owner: "automatic, I cannot do this by hand"): shrinkList is used by the button and by autoShrink,
+  // which runs by itself a few seconds after the admin page opens.
+  var FAIL_KEY = "mk_shrink_failed_v1";
+  var shrinking = false;
+  function failedIds() { try { return JSON.parse(localStorage.getItem(FAIL_KEY) || "{}") || {}; } catch (e) { return {}; } }
+  function shrinkOne(m) {
+    return fetch(m.url).then(function (r) { if (!r.ok) throw new Error("load"); return r.blob(); }).then(function (blob) {
+      return new Promise(function (resolve, reject) {
+        var url = URL.createObjectURL(blob), img = new Image();
+        img.onload = function () {
+          // 2026-11-17: pictures the browser cannot decode (broken JPEG) are skipped, never replaced by a white one
+          (img.decode ? img.decode() : Promise.resolve()).then(function () { return window.mkShrinkCanvas(img); })
+            .then(function (b) { URL.revokeObjectURL(url); resolve(b); }, function (e) { URL.revokeObjectURL(url); reject(e); });
+        };
+        img.onerror = function () { URL.revokeObjectURL(url); reject(new Error("image")); };
+        img.src = url;
+      });
+    }).then(function (small) {
+      if (!small || small.size >= (m.bytes || Infinity)) throw new Error("not smaller");
+      return new Promise(function (resolve) { var fr = new FileReader(); fr.onload = function () { resolve({ data: fr.result, size: small.size }); }; fr.readAsDataURL(small); });
+    }).then(function (r) {
+      return panel("adminMediaReplace", { id: m.id, data: r.data }).then(function (j2) {
+        if (!j2.ok) throw new Error(j2.error || "save");
+        return (m.bytes || 0) - r.size;
+      });
+    });
+  }
+  function shrinkList(list, show, finish) {
+    if (shrinking) return;
+    shrinking = true;
+    var done = 0, saved = 0, failed = 0, bad = failedIds();
+    var step = function (i) {
+      if (i >= list.length) {
+        shrinking = false;
+        try { localStorage.setItem(FAIL_KEY, JSON.stringify(bad)); } catch (e) {}
+        finish(done, saved, failed);
+        return;
+      }
+      var m = list[i];
+      show(i + 1, list.length, m);
+      shrinkOne(m).then(function (s) { done++; saved += s; delete bad[m.id]; }, function () { failed++; bad[m.id] = Date.now(); }).then(function () { step(i + 1); });
+    };
+    step(0);
+  }
+  function bigList() {
+    return panel("adminMediaBig").then(function (j) {
+      var bad = failedIds(), week = Date.now() - 7 * DAY;
+      // a picture that failed in this browser is tried again after 7 days at the earliest
+      return (j.media || []).filter(function (m) { return !(bad[m.id] > week); });
+    });
+  }
+  function statusLine() {
+    var b = document.getElementById("admin-sponsor-media");
+    return b ? b.querySelector(".opt") : null;
+  }
+
   function optimize(out) {
     if (!window.mkShrinkCanvas) { out.textContent = "image-shrink.js fehlt"; return; }
+    if (shrinking) { out.textContent = "⏳ Küçültme zaten çalışıyor · läuft schon"; return; }
     out.innerHTML = "🔎 Büyük resimler aranıyor…";
-    panel("adminMediaBig").then(function (j) {
-      var list = j.media || [];
+    bigList().then(function (list) {
       if (!list.length) { out.innerHTML = '<span style="color:#3fb950">✓ 300 KB üzerinde resim yok · keine großen Bilder</span>'; return; }
       var total = list.reduce(function (n, m) { return n + (m.bytes || 0); }, 0);
       out.innerHTML = list.length + " büyük resim (" + kb(total) + "). <button type=\"button\" style=\"" + BTN + "\">▶️ Hepsini küçült</button>";
       out.querySelector("button").onclick = function () {
-        var done = 0, saved = 0, failed = 0;
-        var step = function (i) {
-          if (i >= list.length) {
-            out.innerHTML = '<span style="color:#3fb950">✓ ' + done + " resim küçültüldü, " + kb(saved) + " tasarruf" + (failed ? " · " + failed + " hata" : "") + "</span>";
-            if (isOpen()) mediaSection();
-            return;
-          }
-          var m = list[i];
-          out.textContent = "⏳ " + (i + 1) + " / " + list.length + " · " + (m.name || m.ad_id);
-          fetch(m.url).then(function (r) { if (!r.ok) throw new Error("load"); return r.blob(); }).then(function (blob) {
-            return new Promise(function (resolve, reject) {
-              var url = URL.createObjectURL(blob), img = new Image();
-              img.onload = function () {
-                // 2026-11-17: pictures the browser cannot decode (broken JPEG) are skipped, never replaced by a white one
-                (img.decode ? img.decode() : Promise.resolve()).then(function () { return window.mkShrinkCanvas(img); })
-                  .then(function (b) { URL.revokeObjectURL(url); resolve(b); }, function (e) { URL.revokeObjectURL(url); reject(e); });
-              };
-              img.onerror = function () { URL.revokeObjectURL(url); reject(new Error("image")); };
-              img.src = url;
-            });
-          }).then(function (small) {
-            if (!small || small.size >= (m.bytes || Infinity)) throw new Error("not smaller");
-            return new Promise(function (resolve) { var fr = new FileReader(); fr.onload = function () { resolve({ data: fr.result, size: small.size }); }; fr.readAsDataURL(small); });
-          }).then(function (r) {
-            return panel("adminMediaReplace", { id: m.id, data: r.data }).then(function (j2) {
-              if (!j2.ok) throw new Error(j2.error || "save");
-              done++; saved += (m.bytes || 0) - r.size;
-            });
-          }).catch(function () { failed++; }).then(function () { step(i + 1); });
-        };
-        step(0);
+        shrinkList(list, function (n, all, m) {
+          var o = statusLine() || out;
+          o.textContent = "⏳ " + n + " / " + all + " · " + (m.name || m.ad_id);
+        }, function (done, saved, failed) {
+          var o = statusLine() || out;
+          o.innerHTML = '<span style="color:#3fb950">✓ ' + done + " resim küçültüldü, " + kb(saved) + " tasarruf" + (failed ? " · " + failed + " atlandı" : "") + "</span>";
+          if (isOpen()) mediaSection();
+        });
       };
     });
+  }
+
+  // runs by itself once per admin page visit, a few seconds after the page opened
+  var autoStarted = false;
+  function autoShrink() {
+    if (autoStarted || !window.mkShrinkCanvas || !token()) return;
+    autoStarted = true;
+    setTimeout(function () {
+      bigList().then(function (list) {
+        if (!list.length) return;
+        shrinkList(list, function (n, all) {
+          var o = statusLine();
+          if (o) o.textContent = "🗜️ Otomatik küçültme · automatisch: " + n + " / " + all;
+        }, function (done, saved, failed) {
+          var o = statusLine();
+          if (o) o.innerHTML = '<span style="color:#3fb950">✓ Otomatik: ' + done + " resim küçültüldü, " + kb(saved) + " tasarruf" + (failed ? " · " + failed + " atlandı" : "") + "</span>";
+        });
+      });
+    }, 5000);
   }
 
   // ---------------- 2. ended / paused sponsors ----------------
@@ -302,7 +354,7 @@
   if (typeof base === "function") {
     window.renderAdminDashboard = function () {
       var r = base.apply(this, arguments);
-      try { setTimeout(function () { statsHelp(); refresh(); }, 0); } catch (x) {}
+      try { setTimeout(function () { statsHelp(); refresh(); autoShrink(); }, 0); } catch (x) {}
       return r;
     };
   }
