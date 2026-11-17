@@ -341,6 +341,7 @@ export async function seedSponsors(database) {
   await applyStoryFolderFix(database);
   await applyMosqueFolderFix(database);
   await applyOwnFirmsFix(database);
+  await applyOwnFirmsByNameFix(database);
 }
 
 // 2026-11-14 (owner): test story "Yeni Aziziye Camii" (Rudow, Neukölln) – the AI had chosen "tuerkei" because of the
@@ -614,6 +615,23 @@ async function applyOwnFirmsFix(database) {
     ops.push(database.prepare(`UPDATE ads SET extra = ?, updated_at = ? WHERE id = ?`).bind(JSON.stringify(extra), now, adId));
   }
   ops.push(database.prepare(`UPDATE ads SET active = 1, end_at = 0, updated_at = ? WHERE id = 'terra-verde-tek'`).bind(now));
+  ops.push(database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now));
+  await database.batch(ops);
+}
+
+// 2026-11-17 (owner): the Terra Verde TEK that is online is an ad made in the admin panel (own id), so "own" is set
+// by name for every Terra Verde / The Visit ad. Nothing else is changed (plan, pictures, dates stay). Runs once.
+async function applyOwnFirmsByNameFix(database) {
+  const id = "fix:2026-11-17-ownfirms-name";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  const now = Date.now();
+  const { results } = await database.prepare(`SELECT id, extra FROM ads WHERE name LIKE 'Terra Verde%' OR name LIKE 'The Visit%'`).all();
+  const ops = results.map((row) => {
+    let extra = {};
+    try { extra = JSON.parse(row.extra || "{}") || {}; } catch (e) { extra = {}; }
+    extra.own = true;
+    return database.prepare(`UPDATE ads SET extra = ?, updated_at = ? WHERE id = ?`).bind(JSON.stringify(extra), now, row.id);
+  });
   ops.push(database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now));
   await database.batch(ops);
 }

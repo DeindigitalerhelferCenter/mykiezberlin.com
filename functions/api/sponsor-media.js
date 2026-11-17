@@ -5,7 +5,7 @@
 //      Uploads are online at once; the admin sees them in the admin panel and can hide or delete them.
 import { cleanText, db, isAdmin, json, noDb } from "../_lib/util.js";
 import { mediaQuota, parseExtra } from "../_lib/plans.js";
-import { ensureSponsorTables, sponsorFromToken } from "../_lib/sponsor-panel.js";
+import { ensureSponsorTables, MEDIA_ORDER, sponsorFromToken } from "../_lib/sponsor-panel.js";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
@@ -18,7 +18,7 @@ export async function onRequestGet({ request, env }) {
   const adId = cleanText(new URL(request.url).searchParams.get("ad"), 40);
   if (!adId) return json({ media: [] });
   const { results } = await database
-    .prepare(`SELECT id, media_key, media_type, caption, created_at FROM sponsor_media WHERE ad_id = ? AND status = 'live' ORDER BY created_at DESC LIMIT 30`)
+    .prepare(`SELECT id, media_key, media_type, caption, created_at FROM sponsor_media WHERE ad_id = ? AND status = 'live' ORDER BY ${MEDIA_ORDER} LIMIT 100`) // 2026-11-17: own order, more pictures
     .bind(adId)
     .all();
   return json({ media: results.map((m) => ({ ...m, url: m.media_key.startsWith("/") || m.media_key.startsWith("https://") ? m.media_key : `/media/${m.media_key}` /* 2026-11-14: instagram posts */ })) }, 200, { "cache-control": "public, max-age=60" });

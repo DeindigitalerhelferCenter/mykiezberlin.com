@@ -13,7 +13,7 @@ import { cleanText, db, ipHash, isAdmin, json, noDb } from "../_lib/util.js";
 import { isBlockedUrl } from "../_lib/blocklist.js";
 import { mediaQuota, parseExtra, planRule } from "../_lib/plans.js";
 import { sendMail } from "../_lib/mail.js";
-import { adsForEmail, createSponsorToken, ensureSponsorTables, panelUrl, sponsorFromToken, TOKEN_DAYS } from "../_lib/sponsor-panel.js";
+import { adsForEmail, createSponsorToken, ensureSponsorTables, MEDIA_ORDER, moveSponsorMedia, panelUrl, sponsorFromToken, TOKEN_DAYS } from "../_lib/sponsor-panel.js";
 
 const MAX_DESCRIPTION = 5000; // "text without limit" for people – a hard cap only against abuse
 
@@ -196,7 +196,7 @@ export async function onRequestPost({ request, env }) {
       const where = `${adId ? "m.ad_id = ? AND " : ""}m.created_at > ?`;
       const args = adId ? [adId, since] : [since];
       const { results } = await database
-        .prepare(`SELECT m.id, m.ad_id, m.media_key, m.media_type, m.caption, m.status, m.created_at, m.by_admin, m.bytes, a.name FROM sponsor_media m LEFT JOIN ads a ON a.id = m.ad_id WHERE ${where} ORDER BY m.created_at DESC LIMIT ? OFFSET ?`)
+        .prepare(`SELECT m.id, m.ad_id, m.media_key, m.media_type, m.caption, m.status, m.created_at, m.by_admin, m.bytes, a.name FROM sponsor_media m LEFT JOIN ads a ON a.id = m.ad_id WHERE ${where} ORDER BY ${adId ? "COALESCE(NULLIF(m.sort, 0), m.created_at) DESC" : "m.created_at DESC"} LIMIT ? OFFSET ?`)
         .bind(...args, limit + 1, offset)
         .all();
       return json({ media: results.slice(0, limit), more: results.length > limit });
@@ -259,6 +259,12 @@ export async function onRequestPost({ request, env }) {
       await database.prepare(`UPDATE ads SET extra = ?, updated_at = ? WHERE id = ?`).bind(JSON.stringify(extra), now, ad.id).run();
       return json({ ok: true, mailed, offer_next: extra.offer_next || 0, offer_stop: !!extra.offer_stop });
     }
+    // 2026-11-17 (owner): admin changes the order of a sponsor's pictures/videos
+    if (action === "adminMove") {
+      const row = await database.prepare(`SELECT ad_id FROM sponsor_media WHERE id = ?`).bind(cleanText(body.id, 60)).first();
+      if (!row) return json({ error: "not_found" }, 404);
+      return (await moveSponsorMedia(database, row.ad_id, cleanText(body.id, 60), String(body.to || ""))) ? json({ ok: true }) : json({ error: "not_found" }, 404);
+    }
     if (action === "adminActivate") {
       // paused or ended sponsor back online (end date removed; the admin can set a new one in the ad form)
       const r = await database.prepare(`UPDATE ads SET active = 1, end_at = 0, updated_at = ? WHERE id = ?`).bind(Date.now(), cleanText(body.adId, 40)).run();
@@ -272,13 +278,20 @@ export async function onRequestPost({ request, env }) {
   if (!ad) return json({ error: "unauthorized" }, 401);
   if (action === "me") {
     const { results } = await database
-      .prepare(`SELECT id, media_key, media_type, caption, status, created_at FROM sponsor_media WHERE ad_id = ? ORDER BY created_at DESC LIMIT 100`)
+      .prepare(`SELECT id, media_key, media_type, caption, status, created_at FROM sponsor_media WHERE ad_id = ? ORDER BY ${MEDIA_ORDER} LIMIT 200`)
       .bind(ad.id)
       .all();
     const stats = await database.prepare(`SELECT SUM(imp) AS imp, SUM(clk) AS clk FROM ad_stats WHERE ad_id = ? AND day >= ?`).bind(ad.id, new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10)).first();
     return json({ ad: shape(ad), media: results, quota: await usage(database, ad), stats: { days: 30, views: stats?.imp || 0, clicks: stats?.clk || 0 } });
   }
   if (action === "update") return applyUpdate(database, ad, body.fields);
+  // 2026-11-17 (owner): the sponsor changes the order of his own pictures/videos
+  if (action === "moveMedia") {
+    const row = await database.prepare(`SELECT id FROM sponsor_media WHERE id = ? AND ad_id = ?`).bind(cleanText(body.id, 60), ad.id).first();
+    if (!row) return json({ error: "not_found" }, 404);
+    await moveSponsorMedia(database, ad.id, row.id, String(body.to || ""));
+    return json({ ok: true });
+  }
   if (action === "deleteMedia") {
     const row = await database.prepare(`SELECT * FROM sponsor_media WHERE id = ? AND ad_id = ?`).bind(cleanText(body.id, 60), ad.id).first();
     if (!row) return json({ error: "not_found" }, 404);

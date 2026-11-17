@@ -95,7 +95,7 @@
         grid = target.querySelector(".mk-mgrid");
       }
       if (!j.media.length && !offset) grid.innerHTML = '<span style="color:#8b949e">–</span>';
-      grid.insertAdjacentHTML("beforeend", j.media.map(fig).join(""));
+      grid.insertAdjacentHTML("beforeend", j.media.map(function (m) { return fig(m, !!adId); }).join(""));
       bindFigs(grid, function () { page(target, adId, days, 0); });
       var more = target.querySelector(".more");
       more.innerHTML = j.more ? '<button type="button" style="' + BTN + '">⬇️ Daha fazla yükle · Mehr laden</button>' : "";
@@ -104,7 +104,7 @@
   }
 
   function src(m) { return m.media_key.charAt(0) === "/" || m.media_key.indexOf("https://") === 0 ? m.media_key : "/media/" + m.media_key; }
-  function fig(m) {
+  function fig(m, movable) {
     var u = src(m);
     var pic = m.media_type === "instagram"
       ? '<a href="' + e(u) + '" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;width:100%;aspect-ratio:1;background:linear-gradient(135deg,#feda75,#d62976,#4f5bd5);color:#fff;font-weight:800">Instagram</a>'
@@ -114,7 +114,10 @@
     return '<figure data-id="' + e(m.id) + '" style="margin:0;background:#0d1117;border-radius:12px;overflow:hidden;' + (m.status === "hidden" ? "opacity:.45" : "") + '">' + pic +
       '<figcaption style="padding:6px 8px;font-size:11.5px"><b>' + e(m.name || m.ad_id) + "</b><br>" + e(m.caption || "") + '<br><span style="color:#8b949e">' + new Date(m.created_at).toLocaleString("de-DE") + (m.bytes ? " · " + kb(m.bytes) : "") + (m.status === "hidden" ? " · gizli" : "") + "</span>" +
       '<div style="display:flex;gap:4px;margin-top:6px"><button type="button" data-s="' + (m.status === "hidden" ? "live" : "hidden") + '" style="' + BTN + ';flex:1;padding:5px">' + (m.status === "hidden" ? "👁 Göster" : "🙈 Gizle") + '</button>' +
-      '<button type="button" data-s="delete" style="' + BTN + ';padding:5px" title="Kalıcı sil · endgültig löschen">🗑️</button></div></figcaption></figure>';
+      '<button type="button" data-s="delete" style="' + BTN + ';padding:5px" title="Kalıcı sil · endgültig löschen">🗑️</button></div>' +
+      // 2026-11-17 (owner): order of the pictures (same order in web and app) – only inside one sponsor
+      (movable ? '<div style="display:flex;gap:4px;margin-top:4px">' + [["first", "⏮", "En öne"], ["up", "◀", "Bir öne"], ["down", "▶", "Bir arkaya"], ["last", "⏭", "En arkaya"]].map(function (b) { return '<button type="button" data-to="' + b[0] + '" title="' + b[2] + '" style="' + BTN + ';flex:1;padding:4px">' + b[1] + "</button>"; }).join("") + "</div>" : "") +
+      "</figcaption></figure>";
   }
   function bindFigs(grid, reload) {
     grid.querySelectorAll("button[data-s]").forEach(function (b) {
@@ -124,6 +127,11 @@
         if (b.dataset.s === "delete" && !confirm("Kalıcı olarak silinsin mi? · Endgültig löschen?")) return;
         panel("adminMedia", { id: b.closest("figure").dataset.id, status: b.dataset.s }).then(reload);
       };
+    });
+    grid.querySelectorAll("button[data-to]").forEach(function (b) {
+      if (b.dataset.bound) return;
+      b.dataset.bound = "1";
+      b.onclick = function () { b.disabled = true; panel("adminMove", { id: b.closest("figure").dataset.id, to: b.dataset.to }).then(reload); };
     });
   }
 

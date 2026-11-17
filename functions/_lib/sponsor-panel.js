@@ -13,6 +13,33 @@ export async function ensureSponsorTables(database) {
     database.prepare(`CREATE INDEX IF NOT EXISTS idx_sponsor_media_ad ON sponsor_media(ad_id, created_at)`),
     database.prepare(`CREATE TABLE IF NOT EXISTS sponsor_login_requests (ip TEXT, created_at INTEGER)`),
   ]);
+  // 2026-11-17 (owner): own order of the pictures/videos (admin or sponsor moves them). 0 = not moved -> by upload time.
+  if (!sortReady) {
+    await database.prepare(`ALTER TABLE sponsor_media ADD COLUMN sort INTEGER DEFAULT 0`).run().catch(() => {});
+    sortReady = true;
+  }
+}
+
+let sortReady = false;
+
+/** Order of sponsor pictures everywhere (web, app, panels): moved ones by their place, the rest newest first. */
+export const MEDIA_ORDER = "COALESCE(NULLIF(sort, 0), created_at) DESC";
+
+/**
+ * 2026-11-17 (owner): moves one picture/video of a sponsor. to = "first" | "up" (one to the front) | "down" | "last".
+ * All pictures of the sponsor get a new place number; nothing is deleted. New uploads still come first.
+ */
+export async function moveSponsorMedia(database, adId, id, to) {
+  const { results } = await database.prepare(`SELECT id FROM sponsor_media WHERE ad_id = ? ORDER BY ${MEDIA_ORDER}`).bind(adId).all();
+  const ids = results.map((r) => r.id);
+  const i = ids.indexOf(id);
+  if (i < 0) return false;
+  ids.splice(i, 1);
+  const j = to === "first" ? 0 : to === "last" ? ids.length : to === "up" ? Math.max(0, i - 1) : Math.min(ids.length, i + 1);
+  ids.splice(j, 0, id);
+  const base = Date.now();
+  await database.batch(ids.map((x, n) => database.prepare(`UPDATE sponsor_media SET sort = ? WHERE id = ?`).bind(base - n, x)));
+  return true;
 }
 
 export async function createSponsorToken(database, adId, email) {
