@@ -1006,6 +1006,14 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                     val uri = android.net.Uri.parse(mediaUri)
                     val cr = app.contentResolver
                     mimeType = cr.getType(uri) ?: "image/jpeg"
+                    if (mimeType.startsWith("video/")) {
+                        // 2026-11-17 (owner): videos are made smaller (720p) before upload, max. 3 minutes
+                        val v = com.example.util.VideoShrink.prepare(app, uri)
+                        if (v.error != null) { giveStoryBack(newStory, v.error); return@launch }
+                        fileBytes = v.bytes
+                        mimeType = v.mimeType
+                        fileName = "story_${System.currentTimeMillis()}.mp4"
+                    } else {
                     val inputStream = cr.openInputStream(uri)
                     fileBytes = inputStream?.readBytes()
                     inputStream?.close()
@@ -1016,6 +1024,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                         fileBytes = small
                         mimeType = "image/jpeg"
                         fileName = "story_${System.currentTimeMillis()}.jpg"
+                    }
                     }
                 } catch (_: Exception) {}
             }
@@ -1300,7 +1309,12 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                 try {
                     val uri = android.net.Uri.parse(mediaUri)
                     mimeType = app.contentResolver.getType(uri) ?: if (isVideo) "video/mp4" else "image/jpeg"
-                    fileBytes = app.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                    fileBytes = if (mimeType.startsWith("video/")) {
+                        // 2026-11-17 (owner): admin videos are made smaller (720p) too
+                        val v = com.example.util.VideoShrink.prepare(app, uri)
+                        if (v.error != null) _uiState.update { it.copy(storySubmissionFeedback = v.error) }
+                        v.bytes
+                    } else app.contentResolver.openInputStream(uri)?.use { it.readBytes() }
                     val ext = when {
                         mimeType.contains("png") -> "png"
                         mimeType.contains("webp") -> "webp"

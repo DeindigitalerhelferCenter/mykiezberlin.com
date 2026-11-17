@@ -122,6 +122,11 @@ private fun pickDateTime(context: Context, initial: Long, onPicked: (Long) -> Un
 
 /** Pictures over 4.5 MB are reduced to 1920 px (server limit 5 MB); videos are sent unchanged (max 50 MB). */
 private fun readMedia(context: Context, uri: Uri, isVideo: Boolean): Pair<ByteArray, String>? {
+    // 2026-11-17 (owner): videos are made smaller (720p, max. 3 minutes) before upload
+    if (isVideo) {
+        val v = kotlinx.coroutines.runBlocking { com.example.util.VideoShrink.prepare(context, uri) }
+        return v.bytes?.let { it to v.mimeType }
+    }
     val type = context.contentResolver.getType(uri) ?: if (isVideo) "video/mp4" else "image/jpeg"
     val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return null
     if (isVideo || bytes.size <= 4_500_000) return bytes to type
@@ -164,7 +169,8 @@ private fun uploadPlanned(context: Context, token: String, row: PlanRow): String
     val overlay = row.overlay()
     if (row.uri != null && row.isVideo && overlay != null) builder.addFormDataPart("overlay_1", overlay.toJson().toString())
     if (row.uri != null) {
-        val media = (if (!row.isVideo && overlay != null) readMediaWithText(context, row.uri, overlay) else readMedia(context, row.uri, row.isVideo)) ?: return "Datei nicht lesbar"
+        val media = (if (!row.isVideo && overlay != null) readMediaWithText(context, row.uri, overlay) else readMedia(context, row.uri, row.isVideo))
+            ?: return if (row.isVideo) "Video zu lang (max. 3 Min.) oder zu groß · Video çok uzun (en fazla 3 dk) veya çok büyük" else "Datei nicht lesbar"
         if (row.isVideo && media.first.size > 50_000_000) return "Video größer als 50 MB"
         val ext = when (media.second) { "image/png" -> "png"; "image/webp" -> "webp"; "video/mp4" -> "mp4"; "video/webm" -> "webm"; else -> "jpg" }
         builder.addFormDataPart("file", "story.$ext", media.first.toRequestBody(media.second.toMediaType()))

@@ -696,6 +696,8 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                         (if (uiState.language == AppLanguage.TURKISH) "⚠️ Lütfen metni kontrol et" else "⚠️ Bitte Text prüfen")
                     else if (feedback == "LIMIT")
                         (if (uiState.language == AppLanguage.TURKISH) "⚠️ Günlük sınır doldu" else "⚠️ Tageslimit erreicht")
+                    else if (feedback == "VIDEO_LONG")
+                        (if (uiState.language == AppLanguage.TURKISH) "⚠️ Video çok uzun" else "⚠️ Video zu lang")
                     else if (feedback == "TOO_MANY" || feedback == "NETWORK" || feedback == "FILE")
                         (if (uiState.language == AppLanguage.TURKISH) "⚠️ Gönderilemedi" else "⚠️ Nicht gesendet")
                     else
@@ -725,6 +727,10 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     } else if (feedback == "TOO_MANY") {
                         if (uiState.language == AppLanguage.TURKISH) "Kısa sürede çok fazla gönderi. Yazdıkların formda duruyor – biraz sonra tekrar dene."
                         else "Zu viele Beiträge in kurzer Zeit. Dein Text bleibt im Formular – bitte später erneut senden."
+                    } else if (feedback == "VIDEO_LONG") {
+                        // 2026-11-17 (owner): videos up to 3 minutes; the app makes them smaller (720p) by itself
+                        if (uiState.language == AppLanguage.TURKISH) "Video en fazla 3 dakika olabilir. Uygulama videoyu kendisi küçültür. Yazdıkların formda duruyor – lütfen daha kısa bir video seç."
+                        else "Ein Video darf höchstens 3 Minuten lang sein. Die App macht es selbst kleiner. Dein Text bleibt im Formular – bitte ein kürzeres Video wählen."
                     } else if (feedback == "FILE") {
                         if (uiState.language == AppLanguage.TURKISH) "Dosya uygun değil (resim 5 MB'a, video 50 MB'a kadar). Yazdıkların formda duruyor – başka dosya seç."
                         else "Die Datei passt nicht (Bild bis 5 MB, Video bis 50 MB). Dein Text bleibt im Formular – bitte andere Datei wählen."

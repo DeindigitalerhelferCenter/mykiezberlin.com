@@ -16,8 +16,8 @@ android {
     applicationId = "com.aistudio.mykiezberlin.bkrztx"
     minSdk = 24
     targetSdk = 36
-    versionCode = 39
-    versionName = "1.38"
+    versionCode = 40
+    versionName = "1.39"
         // Only for one-off test builds: gradle assembleRelease -PgoalDemo
         buildConfigField("boolean", "GOAL_DEMO", project.hasProperty("goalDemo").toString())
 
@@ -103,6 +103,10 @@ dependencies {
   implementation(libs.androidx.room.runtime)
   implementation(libs.coil.compose)
   implementation(libs.coil.video) // video frames as preview pictures (admin, 2026-11-11)
+  // 2026-11-17 (owner): videos made smaller (720p) in the app before upload – util/VideoShrink.kt
+  implementation("androidx.media3:media3-transformer:1.5.0")
+  implementation("androidx.media3:media3-effect:1.5.0")
+  implementation("androidx.media3:media3-common:1.5.0")
   implementation(libs.converter.moshi)
   implementation(libs.firebase.ai)
   // Uncomment to use Firestore:
