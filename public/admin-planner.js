@@ -96,7 +96,8 @@ function plannerFrame(row) {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(row.file);
     const done = (canvasSource, w, h) => {
-      const scale = Math.min(1, 1024 / Math.max(w, h));
+      // 2026-11-17: tall screenshots stay readable – short side at least 768 px, long side at most 2048 px
+      const scale = Math.min(1, Math.max(1024 / Math.max(w, h), Math.min(768 / Math.min(w, h), 2048 / Math.max(w, h))));
       const canvas = document.createElement("canvas");
       canvas.width = Math.round(w * scale);
       canvas.height = Math.round(h * scale);
@@ -130,7 +131,8 @@ async function plannerAiFill(row, force) {
     form.set("image", await plannerFrame(row), "frame.jpg");
     const res = await fetch("/api/story-ai", { method: "POST", headers: { "x-admin-token": plannerToken() }, body: form });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error === "ai_unbound" ? "KI nicht verbunden" : data.error || `HTTP ${res.status}`);
+    if (!res.ok) throw new Error(data.error === "ai_unbound" ? "KI nicht verbunden" : data.error === "ai_empty" ? "Kein Text erkannt · metin bulunamadı – ✨ erneut" : data.error || `HTTP ${res.status}`);
+    if (!data.headline && !data.subtext) throw new Error("Kein Text erkannt · metin bulunamadı – ✨ erneut");
     // Only empty fields – what the admin typed stays (✨ button = overwrite)
     if (force || !row.headline.trim()) row.headline = data.headline || row.headline;
     if (force || !row.subtext.trim()) row.subtext = data.subtext || row.subtext;

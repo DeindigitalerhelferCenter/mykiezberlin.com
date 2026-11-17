@@ -19,7 +19,10 @@ Regeln:
 - text_de / text_tr: 2–3 Sätze mit den wichtigsten Fakten vom Bild (was, wann, wo). Nichts erfinden.
 - place: Berliner Kiez oder Ort vom Bild, sonst "".
 - kind: eines von ${KINDS.join(", ")}.
-- link: Webadresse, die auf dem Bild steht (mit https://), sonst "".`;
+- link: Webadresse, die auf dem Bild steht (mit https://), sonst "".
+- 2026-11-17: headline_de, headline_tr, text_de und text_tr dürfen NIE leer sein – egal welches Bild.
+  Steht kaum oder kein Text auf dem Bild (Foto, Screenshot, Produkt, Person, Ort), beschreibe sachlich und kurz,
+  was zu sehen ist. Steht der Text auf Türkisch oder einer anderen Sprache, übersetze ihn ins Deutsche und Türkische.`;
 
 function toBase64(buffer) {
   let binary = "";
@@ -74,6 +77,22 @@ async function toTurkish(env, text) {
   }
 }
 
+// 2026-11-17 (owner: always translated): German text when the model only gave Turkish
+async function toGerman(env, text) {
+  if (!text) return "";
+  try {
+    const r = await env.AI.run("@cf/meta/m2m100-1.2b", { text, source_lang: "turkish", target_lang: "german" });
+    return clean(r && r.translated_text, 400);
+  } catch (e) {
+    return "";
+  }
+}
+
+// true when the model gave at least a headline or a text in one language
+function hasText(d) {
+  return !!(d && [d.headline_de, d.headline_tr, d.text_de, d.text_tr].some((v) => clean(v, 400)));
+}
+
 function webLink(value) {
   let v = clean(value, 300);
   if (!v) return "";
@@ -105,18 +124,25 @@ export async function onRequestPost({ request, env }) {
       const result = await env.AI.run(model, { messages, max_tokens: 700, temperature: 0.2 });
       raw = typeof result?.response === "string" ? result.response : JSON.stringify(result?.response ?? result);
       used = model;
-      if (parseJson(raw)) break;
+      if (hasText(parseJson(raw))) break; // 2026-11-17: empty answer -> try the next model
     } catch (e) {
       lastError = String(e && e.message || e).slice(0, 200);
     }
   }
   const data = parseJson(raw);
   if (!data) return json({ error: "ai_failed", detail: lastError || String(raw || "").slice(0, 200) }, 502);
+  // 2026-11-17: never "ok" with empty fields – the admin sees a clear message instead
+  if (!hasText(data)) return json({ error: "ai_empty" }, 422);
 
-  const hDe = clean(data.headline_de, 70);
+  let hDe = clean(data.headline_de, 70);
   let hTr = clean(data.headline_tr, 70);
-  const tDe = clean(data.text_de, 400);
+  let tDe = clean(data.text_de, 400);
   let tTr = clean(data.text_tr, 400);
+  if (!hDe || !tDe) {
+    const [h, t] = await Promise.all([hDe ? hDe : toGerman(env, hTr), tDe ? tDe : toGerman(env, tTr)]);
+    hDe = clean(h, 70) || hDe;
+    tDe = clean(t, 400) || tDe;
+  }
   if (!hTr || !tTr) {
     const [h, t] = await Promise.all([hTr ? hTr : toTurkish(env, hDe), tTr ? tTr : toTurkish(env, tDe)]);
     hTr = clean(h, 70);

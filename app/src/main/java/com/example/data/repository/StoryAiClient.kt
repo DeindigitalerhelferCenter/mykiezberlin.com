@@ -33,7 +33,8 @@ object StoryAiClient {
 
     fun analyze(context: Context, uri: Uri, isVideo: Boolean): StoryAiResult {
         val frame = (if (isVideo) videoFrame(context, uri) else picture(context, uri)) ?: throw IllegalStateException("Bild nicht lesbar")
-        val scaled = scale(frame, 1024)
+        // 2026-11-17: tall screenshots stay readable – short side at least 768 px, long side at most 2048 px
+        val scaled = scaleReadable(frame)
         val out = ByteArrayOutputStream()
         scaled.compress(Bitmap.CompressFormat.JPEG, 85, out)
         val body = MultipartBody.Builder().setType(MultipartBody.FORM)
@@ -45,8 +46,13 @@ object StoryAiClient {
         client.newCall(request).execute().use { resp ->
             val json = JSONObject(resp.body?.string().orEmpty().ifBlank { "{}" })
             if (!resp.isSuccessful) {
-                throw IllegalStateException(if (json.optString("error") == "ai_unbound") "KI nicht verbunden" else json.optString("error").ifBlank { "HTTP ${resp.code}" })
+                throw IllegalStateException(when (json.optString("error")) {
+                    "ai_unbound" -> "KI nicht verbunden"
+                    "ai_empty" -> "Kein Text erkannt · metin bulunamadı – ✨ erneut"
+                    else -> json.optString("error").ifBlank { "HTTP ${resp.code}" }
+                })
             }
+            if (json.optString("headline").isBlank() && json.optString("subtext").isBlank()) throw IllegalStateException("Kein Text erkannt · metin bulunamadı – ✨ erneut")
             return StoryAiResult(
                 headline = json.optString("headline"),
                 subtext = json.optString("subtext"),
@@ -61,7 +67,7 @@ object StoryAiClient {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
         var sample = 1
-        while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= 1024) sample *= 2
+        while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= 2048 && minOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= 768) sample *= 2
         return context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = sample }) }
     }
 
@@ -76,6 +82,13 @@ object StoryAiClient {
         } finally {
             try { retriever.release() } catch (_: Exception) {}
         }
+    }
+
+    private fun scaleReadable(bmp: Bitmap): Bitmap {
+        val long = maxOf(bmp.width, bmp.height).toFloat()
+        val short = minOf(bmp.width, bmp.height).toFloat()
+        val factor = minOf(1f, maxOf(1024f / long, minOf(768f / short, 2048f / long)))
+        return if (factor >= 1f) bmp else Bitmap.createScaledBitmap(bmp, (bmp.width * factor).toInt(), (bmp.height * factor).toInt(), true)
     }
 
     private fun scale(bmp: Bitmap, max: Int): Bitmap {
