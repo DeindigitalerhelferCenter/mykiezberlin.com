@@ -181,6 +181,7 @@ function plannerExtrasHtml(row) {
         : `<img src="${x.preview}" alt="" onclick="mkAdminMedia('${x.preview}', false)" style="width: 70px; height: 96px; object-fit: cover; border-radius: 6px; cursor: zoom-in;">`}
       <div>#${n + 2}</div>
       <input class="form-control" style="font-size: 11px; padding: 2px 4px;" placeholder="Metin" value="${adminEsc(x.caption || "")}" oninput="plannerExtraCaption(${row.key}, ${n}, this.value)">
+      <button class="chip-btn" style="padding: 1px 6px; margin-top: 2px; ${x.overlay ? "border-color: #2ea043;" : ""}" title="Resim/video üzerine yazı" onclick="plannerTextEdit(${row.key}, ${n})">✍️${x.overlay ? " ✓" : ""}</button>
       <div style="display: flex; gap: 2px; justify-content: center; margin-top: 2px;">
         <button class="chip-btn" style="padding: 1px 6px;" onclick="plannerExtraMove(${row.key}, ${n}, -1)">←</button>
         <button class="chip-btn" style="padding: 1px 6px;" onclick="plannerExtraMove(${row.key}, ${n}, 1)">→</button>
@@ -298,6 +299,7 @@ function renderPlannerRows() {
       <div style="width: 84px; flex: none; text-align: center;">
         ${row.preview ? (row.isVideo ? `<div style="position: relative; width: 84px; height: 120px; flex: none; cursor: pointer;" onclick="mkAdminMedia('${row.preview}', true)"><video src="${row.preview}#t=0.5" preload="metadata" muted playsinline style="width: 84px; height: 120px; object-fit: cover; border-radius: 8px; background: #000;"></video><span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 26px;">▶️</span></div>` : `<img src="${row.preview}" alt="" onclick="mkAdminMedia('${row.preview}', false)" style="width: 84px; height: 120px; object-fit: cover; border-radius: 8px; cursor: zoom-in;">`) : `<div style="width: 84px; height: 120px; border-radius: 8px; background: #E30613; display: flex; align-items: center; justify-content: center; font-weight: 800;">Aa</div>`}
         <div style="margin-top: 4px;">#${i + 1}</div>
+        ${row.file ? `<button class="chip-btn" style="margin: 3px 0; ${row.overlay ? "border-color: #2ea043;" : ""}" title="Resim/video üzerine yazı (2026-11-17)" onclick="plannerTextEdit(${row.key}, -1)">✍️ Yazı${row.overlay ? " ✓" : ""}</button>` : ""}
         <div style="display: flex; gap: 4px; justify-content: center;"><button class="chip-btn" onclick="plannerMove(${row.key}, -1)">↑</button><button class="chip-btn" onclick="plannerMove(${row.key}, 1)">↓</button></div>
       </div>
       <div style="flex: 1; display: grid; gap: 5px;">
@@ -364,13 +366,15 @@ async function plannerUploadAll() {
       form.set("author", "My Kiez Berlin");
       form.set("publishAt", String(row.start));
       form.set("endAt", String(row.end));
-      if (row.file) form.set("file", await plannerPrepareFile(row.file));
+      if (row.file) form.set("file", await plannerFileWithText(row));
+      if (row.file && row.isVideo && row.overlay) form.set("overlay_1", JSON.stringify(row.overlay)); // 2026-11-17: text on top of the video
       // 2026-11-13: further pictures/videos of the same story (only with a first picture/video)
       if (row.file && row.extras && row.extras.length) {
         for (let n = 0; n < row.extras.length; n++) {
           const x = row.extras[n];
           if (x.isVideo && x.file.size > 50 * 1024 * 1024) throw new Error(`Ek video ${n + 2}: 50 MB'den büyük`);
-          form.append("file", await plannerPrepareFile(x.file));
+          form.append("file", await plannerFileWithText(x));
+          if (x.isVideo && x.overlay) form.set(`overlay_${n + 2}`, JSON.stringify(x.overlay));
           form.set(`caption_${n + 2}`, (x.caption || "").trim());
         }
       }
@@ -443,4 +447,114 @@ async function plannerAction(id, action) {
   else if (!res.ok) alert("İşlem başarısız (" + res.status + ")");
   else if (action === "publishNow") alert("✅ Story şimdi yayında · jetzt online");
   loadPlannedList();
+}
+
+// ---- 2026-11-17 (owner): any text on top of a picture/video of the story (paste, drag, size, colour, box).
+// Pictures: the text is burned into the picture before upload. Videos: the text is sent as data (overlay_N)
+// and web + app draw it on top of the video (story-text.js / StoryTextOverlay in the app).
+async function plannerFileWithText(item) {
+  if (item.overlay && !item.isVideo && typeof mkBurnStoryText === "function") return mkBurnStoryText(item.file, item.overlay);
+  return plannerPrepareFile(item.file);
+}
+
+function plannerTextItem(key, n) {
+  const row = plannerRows.find((r) => r.key === key);
+  if (!row) return null;
+  return n < 0 ? row : (row.extras || [])[n] || null;
+}
+
+function plannerTextEdit(key, n) {
+  const item = plannerTextItem(key, n);
+  if (!item || !item.file) return;
+  const o = Object.assign({ t: "", x: 0.5, y: 0.82, s: 0.07, c: "#ffffff", b: "box" }, item.overlay || {});
+  const old = document.getElementById("planner-text-modal");
+  if (old) old.remove();
+  const box = document.createElement("div");
+  box.id = "planner-text-modal";
+  box.style.cssText = "position: fixed; inset: 0; z-index: 99999; background: rgba(0,0,0,.85); display: flex; align-items: flex-start; justify-content: center; padding: 12px; overflow: auto;";
+  const pos = [["⬆️ Üst", 0.12], ["⏺️ Orta", 0.5], ["⬇️ Alt", 0.85]];
+  box.innerHTML = `
+    <div style="background: #161b22; border: 1px solid #30363d; border-radius: 14px; padding: 14px; max-width: 520px; width: 100%; color: #e6edf3; font-size: 13px;">
+      <b style="font-size: 15px;">✍️ ${item.isVideo ? "Video" : "Resim"} üzerine yazı</b>
+      <div style="color: #8b949e; margin: 4px 0 8px;">Yazıyı yapıştır, sonra ${item.isVideo ? "videonun" : "resmin"} üzerinde fareyle / parmakla istediğin yere sürükle.${item.isVideo ? " Video değişmez; yazı web ve uygulamada videonun üstünde gösterilir." : " Yazı resmin içine kaydedilir."}</div>
+      <div style="display: flex; justify-content: center; background: #000; border-radius: 10px; padding: 4px;">
+        <div id="ptx-stage" style="position: relative; display: inline-block; touch-action: none; cursor: move; line-height: 0;"></div>
+      </div>
+      <textarea id="ptx-t" class="form-control" rows="3" maxlength="400" placeholder="Metni buraya yaz veya yapıştır" style="margin-top: 8px;"></textarea>
+      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 8px;">
+        <label style="display: flex; gap: 6px; align-items: center;">Boyut <input id="ptx-s" type="range" min="3" max="15" step="0.5"></label>
+        <label style="display: flex; gap: 6px; align-items: center;">Renk <input id="ptx-c" type="color"></label>
+        <label style="display: flex; gap: 6px; align-items: center;"><input id="ptx-b" type="checkbox"> Arkasında koyu kutu</label>
+      </div>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;">
+        ${pos.map((p) => `<button type="button" class="chip-btn" data-y="${p[1]}">${p[0]}</button>`).join("")}
+        ${["#ffffff", "#ffd700", "#e30613", "#000000"].map((c) => `<button type="button" class="chip-btn" data-c="${c}" style="width: 30px; background: ${c};" title="${c}">&nbsp;</button>`).join("")}
+      </div>
+      <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; flex-wrap: wrap;">
+        <button type="button" class="chip-btn" id="ptx-del">🗑️ Yazıyı kaldır</button>
+        <button type="button" class="chip-btn" id="ptx-cancel">Vazgeç</button>
+        <button type="button" class="btn-primary" id="ptx-ok">💾 Kaydet</button>
+      </div>
+    </div>`;
+  document.body.appendChild(box);
+  const stage = box.querySelector("#ptx-stage");
+  const media = document.createElement(item.isVideo ? "video" : "img");
+  media.src = item.preview;
+  media.style.cssText = "display: block; max-width: 100%; max-height: 55vh; border-radius: 8px; user-select: none; -webkit-user-drag: none;";
+  if (item.isVideo) { media.muted = true; media.loop = true; media.autoplay = true; media.playsInline = true; }
+  media.draggable = false;
+  const canvas = document.createElement("canvas");
+  canvas.style.cssText = "position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none;";
+  stage.appendChild(media);
+  stage.appendChild(canvas);
+  const t = box.querySelector("#ptx-t"), sz = box.querySelector("#ptx-s"), col = box.querySelector("#ptx-c"), bg = box.querySelector("#ptx-b");
+  t.value = o.t;
+  sz.value = String(Math.round(o.s * 200) / 2);
+  col.value = o.c;
+  bg.checked = o.b !== "none";
+  const redraw = () => {
+    const w = media.clientWidth, h = media.clientHeight;
+    if (!w || !h) return;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (typeof mkDrawStoryText === "function") mkDrawStoryText(ctx, o.t ? o : Object.assign({}, o, { t: "Metin" }), canvas.width, canvas.height);
+  };
+  media.addEventListener(item.isVideo ? "loadedmetadata" : "load", redraw);
+  t.oninput = () => { o.t = t.value; redraw(); };
+  sz.oninput = () => { o.s = Number(sz.value) / 100; redraw(); };
+  col.oninput = () => { o.c = col.value; redraw(); };
+  bg.onchange = () => { o.b = bg.checked ? "box" : "none"; redraw(); };
+  box.querySelectorAll("[data-y]").forEach((b) => { b.onclick = () => { o.y = Number(b.dataset.y); o.x = 0.5; redraw(); }; });
+  box.querySelectorAll("[data-c]").forEach((b) => { b.onclick = () => { o.c = b.dataset.c; col.value = o.c; redraw(); }; });
+  let dragging = false;
+  const move = (ev) => {
+    const r = stage.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    o.x = Math.min(0.95, Math.max(0.05, (ev.clientX - r.left) / r.width));
+    o.y = Math.min(0.95, Math.max(0.05, (ev.clientY - r.top) / r.height));
+    redraw();
+  };
+  stage.addEventListener("pointerdown", (ev) => { dragging = true; try { stage.setPointerCapture(ev.pointerId); } catch (x) {} move(ev); });
+  stage.addEventListener("pointermove", (ev) => { if (dragging) move(ev); });
+  stage.addEventListener("pointerup", () => { dragging = false; });
+  window.addEventListener("resize", redraw);
+  const close = () => { window.removeEventListener("resize", redraw); box.remove(); };
+  box.querySelector("#ptx-cancel").onclick = close;
+  box.querySelector("#ptx-del").onclick = () => { item.overlay = null; plannerTextChanged(key); close(); };
+  box.querySelector("#ptx-ok").onclick = () => {
+    const text = String(o.t || "").trim();
+    item.overlay = text ? { t: text, x: o.x, y: o.y, s: o.s, c: o.c, b: o.b } : null;
+    plannerTextChanged(key);
+    close();
+  };
+  setTimeout(() => t.focus(), 50);
+}
+
+function plannerTextChanged(key) {
+  const row = plannerRows.find((r) => r.key === key);
+  if (row && row.status === "ok") row.status = "";
+  renderPlannerRows();
 }

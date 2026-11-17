@@ -73,6 +73,16 @@ private class PlanRow(val key: Int, val uri: Uri?, val isVideo: Boolean) {
     var status by mutableStateOf("") // "" | busy | ok | error
     var error by mutableStateOf("")
     var ai by mutableStateOf("") // "" | busy | ok | error (KI reads the picture)
+    // 2026-11-17 (owner): text on top of the picture/video (picture: burned in before upload, video: sent as overlay_1)
+    var ovOpen by mutableStateOf(false)
+    var ovText by mutableStateOf("")
+    var ovX by mutableFloatStateOf(0.5f)
+    var ovY by mutableFloatStateOf(0.82f)
+    var ovSize by mutableFloatStateOf(0.07f)
+    var ovColor by mutableStateOf("#ffffff")
+    var ovBox by mutableStateOf(true)
+    fun overlay(): com.example.data.model.StoryOverlay? =
+        if (ovText.isBlank()) null else com.example.data.model.StoryOverlay(ovText.trim().take(400), ovX, ovY, ovSize, ovColor, ovBox)
     var aiError by mutableStateOf("")
 }
 
@@ -123,6 +133,18 @@ private fun readMedia(context: Context, uri: Uri, isVideo: Boolean): Pair<ByteAr
     return out.toByteArray() to "image/jpeg"
 }
 
+/** 2026-11-17: picture with the admin text burned in (max. 1920 px, JPEG 90) – same look as on the web. */
+private fun readMediaWithText(context: Context, uri: Uri, overlay: com.example.data.model.StoryOverlay): Pair<ByteArray, String>? {
+    val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return null
+    val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return null
+    val scale = minOf(1f, 1920f / maxOf(bmp.width, bmp.height))
+    val small = if (scale < 1f) Bitmap.createScaledBitmap(bmp, (bmp.width * scale).toInt(), (bmp.height * scale).toInt(), true) else bmp
+    val done = com.example.ui.components.burnStoryText(small, overlay)
+    val out = ByteArrayOutputStream()
+    done.compress(Bitmap.CompressFormat.JPEG, 90, out)
+    return out.toByteArray() to "image/jpeg"
+}
+
 private fun uploadPlanned(context: Context, token: String, row: PlanRow): String? {
     val builder = MultipartBody.Builder().setType(MultipartBody.FORM)
         .addFormDataPart("planned", "1")
@@ -139,8 +161,10 @@ private fun uploadPlanned(context: Context, token: String, row: PlanRow): String
             .addFormDataPart("deal_price", row.dealPrice.trim())
             .addFormDataPart("deal_old", row.dealOld.trim())
     }
+    val overlay = row.overlay()
+    if (row.uri != null && row.isVideo && overlay != null) builder.addFormDataPart("overlay_1", overlay.toJson().toString())
     if (row.uri != null) {
-        val media = readMedia(context, row.uri, row.isVideo) ?: return "Datei nicht lesbar"
+        val media = (if (!row.isVideo && overlay != null) readMediaWithText(context, row.uri, overlay) else readMedia(context, row.uri, row.isVideo)) ?: return "Datei nicht lesbar"
         if (row.isVideo && media.first.size > 50_000_000) return "Video größer als 50 MB"
         val ext = when (media.second) { "image/png" -> "png"; "image/webp" -> "webp"; "video/mp4" -> "mp4"; "video/webm" -> "webm"; else -> "jpg" }
         builder.addFormDataPart("file", "story.$ext", media.first.toRequestBody(media.second.toMediaType()))
@@ -376,6 +400,7 @@ private fun PlanRowCard(index: Int, row: PlanRow, onAi: () -> Unit, onRemove: ()
                 PlannerField(row.dealPrice, { row.dealPrice = it.take(30) }, "Preis · Fiyat", Modifier.weight(1f))
                 PlannerField(row.dealOld, { row.dealOld = it.take(30) }, "Alter Preis · Eski", Modifier.weight(1f))
             }
+            if (row.uri != null) PlannerTextEditor(row)
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 OutlinedButton(onClick = { pickDateTime(context, row.start) { row.start = it; if (row.end <= it) row.end = it + 24 * HOUR } }, modifier = Modifier.weight(1f), contentPadding = PaddingValues(4.dp)) {
                     Text("▶️ " + fmt(row.start), color = Color.White, fontSize = 11.sp)
@@ -437,5 +462,60 @@ private fun PlannedCard(s: PlannedStory, onReschedule: (Long, Long) -> Unit, onA
             confirmButton = { TextButton(onClick = { confirmDelete = false; onAction("delete") }) { Text("Sil") } },
             dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Vazgeç") } }
         )
+    }
+}
+
+/** 2026-11-17 (owner): any text on top of the picture/video – paste, position (top/middle/bottom, left/right), size, colour, box. */
+@Composable
+private fun PlannerTextEditor(row: PlanRow) {
+    val context = LocalContext.current
+    OutlinedButton(onClick = { row.ovOpen = !row.ovOpen }, contentPadding = PaddingValues(6.dp), modifier = Modifier.fillMaxWidth()) {
+        Text((if (row.ovText.isNotBlank()) "✍️ Yazı ✓ · " else "✍️ ") + (if (row.isVideo) "Video" else "Resim") + " üzerine yazı " + (if (row.ovOpen) "▴" else "▾"), color = if (row.ovText.isNotBlank()) Color(0xFF2EA043) else Color.White, fontSize = 12.sp)
+    }
+    if (!row.ovOpen) return
+    // picture size for the preview (video: 9:16 until it is known)
+    val aspect = remember(row.uri) {
+        if (row.isVideo || row.uri == null) 9f / 16f else runCatching {
+            val o = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            context.contentResolver.openInputStream(row.uri)?.use { BitmapFactory.decodeStream(it, null, o) }
+            if (o.outWidth > 0 && o.outHeight > 0) o.outWidth.toFloat() / o.outHeight else 9f / 16f
+        }.getOrDefault(9f / 16f)
+    }
+    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).border(1.dp, PlannerBorder, RoundedCornerShape(8.dp)).padding(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Box(Modifier.fillMaxWidth().height(220.dp).clip(RoundedCornerShape(8.dp)).background(Color.Black), contentAlignment = Alignment.Center) {
+            Box(Modifier.aspectRatio(aspect)) {
+                if (row.isVideo) com.example.ui.components.MediaPreview(row.uri!!, true, Modifier.fillMaxSize())
+                else AsyncImage(model = row.uri, contentDescription = null, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize())
+                com.example.ui.components.StoryTextOverlay(row.overlay() ?: com.example.data.model.StoryOverlay("Metin", row.ovX, row.ovY, row.ovSize, row.ovColor, row.ovBox), 0f)
+            }
+        }
+        OutlinedTextField(
+            value = row.ovText, onValueChange = { row.ovText = it.take(400) }, label = { Text("Metni yaz veya yapıştır", fontSize = 11.sp) },
+            minLines = 2, maxLines = 6, modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedLabelColor = PlannerGold, unfocusedLabelColor = Color(0xFF8B949E))
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+            listOf("⬆️" to 0.12f, "⏺️" to 0.5f, "⬇️" to 0.85f).forEach { (label, y) ->
+                OutlinedButton(onClick = { row.ovY = y }, contentPadding = PaddingValues(2.dp), modifier = Modifier.weight(1f)) { Text(label, fontSize = 12.sp) }
+            }
+            listOf("⬅️" to 0.3f, "↔️" to 0.5f, "➡️" to 0.7f).forEach { (label, x) ->
+                OutlinedButton(onClick = { row.ovX = x }, contentPadding = PaddingValues(2.dp), modifier = Modifier.weight(1f)) { Text(label, fontSize = 12.sp) }
+            }
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Boyut", color = Color.White, fontSize = 11.sp)
+            Slider(value = row.ovSize, onValueChange = { row.ovSize = it }, valueRange = 0.03f..0.15f, modifier = Modifier.weight(1f).padding(horizontal = 6.dp))
+        }
+        Row(Modifier.padding(start = 2.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+            listOf("#ffffff", "#ffd700", "#e30613", "#000000").forEach { c ->
+                val col = Color(android.graphics.Color.parseColor(c))
+                Box(Modifier.size(28.dp).clip(RoundedCornerShape(6.dp)).background(col).border(if (row.ovColor == c) 3.dp else 1.dp, if (row.ovColor == c) PlannerGold else PlannerBorder, RoundedCornerShape(6.dp)).clickable { row.ovColor = c })
+            }
+            Spacer(Modifier.weight(1f))
+            Checkbox(checked = row.ovBox, onCheckedChange = { row.ovBox = it })
+            Text("Koyu kutu", color = Color.White, fontSize = 11.sp)
+        }
+        Text(if (row.isVideo) "Video değişmez; yazı web ve uygulamada videonun üstünde gösterilir." else "Yazı yüklemeden önce resmin içine kaydedilir.", color = Color(0xFF8B949E), fontSize = 10.sp)
+        if (row.ovText.isNotBlank()) TextButton(onClick = { row.ovText = "" }, contentPadding = PaddingValues(2.dp)) { Text("🗑️ Yazıyı kaldır", color = PlannerRed, fontSize = 11.sp) }
     }
 }

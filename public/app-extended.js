@@ -170,7 +170,7 @@ async function loadServerStories() {
       isVideo: s.media_type === "video",
       videoUri: s.media_type === "video" ? `/media/${s.media_key}` : "",
       // 2026-11-13: admin stories with several pictures/videos (story-multi.js shows them one after another)
-      media: Array.isArray(s.media) ? s.media.map((m) => ({ url: `/media/${m.key}`, video: m.type === "video", caption: m.caption || "" })) : [],
+      media: Array.isArray(s.media) ? s.media.map((m) => ({ url: `/media/${m.key}`, video: m.type === "video", caption: m.caption || "", overlay: m.overlay || null })) : [],
       durationHours: s.duration_hours,
       deal: s.deal && s.deal.what ? { what: s.deal.what, price: s.deal.price, old: s.deal.old || "" } : null, // 2026-11-14
       cats: Array.isArray(s.cats) ? s.cats : [], // 2026-11-14: story folders (story-folders.js)

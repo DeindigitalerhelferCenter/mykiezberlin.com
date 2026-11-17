@@ -2,7 +2,7 @@
 import { safeLink } from "../_lib/blocklist.js";
 import { aiCheck, cleanDevice, cleanupStoryMedia, dailyLimited, dailyUsed, isTrusted, USER_DAILY_LIMIT } from "../_lib/story-guard.js";
 import { STORY_CATS, aiStoryCats, catsOf, dealFromText, storyCats } from "../_lib/story-cats.js";
-import { cleanLongText, cleanText, cleanupExpiredStories, db, ipHash, isAdmin, json, noDb, rateLimited, sha256Hex, parseDeal, storyDeal, storyMediaList, storyTextKey, validAuthor } from "../_lib/util.js";
+import { cleanLongText, cleanOverlay, cleanText, cleanupExpiredStories, db, ipHash, isAdmin, json, noDb, rateLimited, sha256Hex, parseDeal, storyDeal, storyMediaList, storyTextKey, validAuthor } from "../_lib/util.js";
 
 const HOUR_MS = 3600000;
 const MAX_HOURS = 720;
@@ -51,11 +51,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
   waitUntil(cleanupStoryMedia(env, database).catch(() => {})); // 2026-11-14: rejected / long-waiting media
   const now = Date.now();
   const { results } = await database
-    .prepare(`SELECT id, headline, subtext, kiez, kind, author, media_key, media_type, media_extra, deal, duration_hours, approved_at, link, cats FROM stories WHERE status = 'approved' AND approved_at <= ? AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT 60`)
+    .prepare(`SELECT id, headline, subtext, kiez, kind, author, media_key, media_type, media_extra, overlay, deal, duration_hours, approved_at, link, cats FROM stories WHERE status = 'approved' AND approved_at <= ? AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT 60`)
     .bind(now, now)
     .all();
   // 2026-11-13: "media" = every picture/video of the story in order (old clients keep using media_key)
-  return json({ stories: results.map(({ media_extra, deal, cats, ...r }) => ({ ...r, link: safeLink(r.link), media: storyMediaList({ ...r, media_extra }), deal: parseDeal(deal), cats: catsOf({ ...r, cats, deal }) })) });
+  return json({ stories: results.map(({ media_extra, overlay, deal, cats, ...r }) => ({ ...r, link: safeLink(r.link), media: storyMediaList({ ...r, media_extra, overlay }), deal: parseDeal(deal), cats: catsOf({ ...r, cats, deal }) })) });
 }
 
 export async function onRequestPost({ request, env }) {
@@ -140,12 +140,16 @@ export async function onRequestPost({ request, env }) {
       if (x.size > (video ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES)) continue;
       const key = `stories/${id}-${i + 2}.${ext}`;
       await env.BUCKET.put(key, await x.arrayBuffer(), { httpMetadata: { contentType: x.type } });
-      extra.push({ key, type: video ? "video" : "image", caption: cleanText(form.get(`caption_${i + 2}`), 300) });
+      const ov = video ? cleanOverlay(form.get(`overlay_${i + 2}`)) : null; // 2026-11-17: text on top of a video
+      extra.push({ key, type: video ? "video" : "image", caption: cleanText(form.get(`caption_${i + 2}`), 300), ...(ov ? { overlay: ov } : {}) });
     }
     await database
       .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, ip, created_at, approved_at, link, by_admin, media_hash, text_hash, media_extra, deal, cats) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved', ?, ?, ?, ?, 1, ?, ?, ?, ?, ?)`)
       .bind(id, headline, subtext, kiez, adminKind, cleanText(form.get("author"), 40) || "My Kiez Berlin", mediaKey, mediaType, hours, ip, now, start, webLink(form.get("link")), mediaHash, textHash, JSON.stringify(extra), deal, catsText)
       .run();
+    // 2026-11-17 (owner): text on top of the first video (pictures already carry the text inside the picture)
+    const mainOverlay = mediaType === "video" ? cleanOverlay(form.get("overlay_1")) : null;
+    if (mainOverlay) await database.prepare(`UPDATE stories SET overlay = ? WHERE id = ?`).bind(JSON.stringify(mainOverlay), id).run().catch(() => {});
     return json({ id, status: start > now ? "scheduled" : "approved", publishAt: start, durationHours: hours }, 201);
   }
 

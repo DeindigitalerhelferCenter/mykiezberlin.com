@@ -109,7 +109,32 @@ const MIGRATIONS = [
   `ALTER TABLE stories ADD COLUMN ai_check TEXT DEFAULT ''`,
   // 2026-11-14 (owner): story folders, comma list, main folder first (see _lib/story-cats.js)
   `ALTER TABLE stories ADD COLUMN cats TEXT DEFAULT ''`,
+  // 2026-11-17 (owner): text the admin puts on top of the first video (pictures get the text burned in).
+  // JSON { t, x, y, s, c, b } – see cleanOverlay
+  `ALTER TABLE stories ADD COLUMN overlay TEXT DEFAULT ''`,
 ];
+
+/**
+ * 2026-11-17 (owner): text on top of a story video. x/y = centre of the text (0..1 of the frame),
+ * s = font size as part of the frame width (0.03..0.15), c = text colour #rrggbb, b = "box" (dark box) | "none".
+ * Returns null when there is no text.
+ */
+export function cleanOverlay(value) {
+  let o = value;
+  if (typeof o === "string") { try { o = JSON.parse(o || "null"); } catch (e) { return null; } }
+  if (!o || typeof o !== "object") return null;
+  const t = String(o.t || "").replace(/[<>]/g, "").replace(/\r/g, "").slice(0, 400).trim();
+  if (!t) return null;
+  const num = (v, min, max, d) => { const n = Number(v); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : d; };
+  return {
+    t,
+    x: num(o.x, 0.05, 0.95, 0.5),
+    y: num(o.y, 0.05, 0.95, 0.5),
+    s: num(o.s, 0.03, 0.15, 0.07),
+    c: /^#[0-9a-f]{6}$/i.test(String(o.c || "")) ? String(o.c) : "#ffffff",
+    b: o.b === "none" ? "none" : "box",
+  };
+}
 
 /** Offer of a story from the form fields deal_what / deal_price / deal_old (empty when not filled). */
 export function storyDeal(form, clean) {
@@ -125,10 +150,10 @@ export function parseDeal(text) {
 // All R2 keys of one story (main picture/video + the extra ones of admin stories)
 export function storyMediaList(row) {
   const list = [];
-  if (row && row.media_key) list.push({ key: row.media_key, type: row.media_type || "image", caption: "" });
+  if (row && row.media_key) list.push({ key: row.media_key, type: row.media_type || "image", caption: "", overlay: cleanOverlay(row.overlay) });
   try {
     const extra = JSON.parse((row && row.media_extra) || "[]");
-    if (Array.isArray(extra)) extra.forEach((m) => { if (m && m.key) list.push({ key: String(m.key), type: m.type === "video" ? "video" : "image", caption: String(m.caption || "") }); });
+    if (Array.isArray(extra)) extra.forEach((m) => { if (m && m.key) list.push({ key: String(m.key), type: m.type === "video" ? "video" : "image", caption: String(m.caption || ""), overlay: cleanOverlay(m.overlay) }); });
   } catch (e) {
     // broken JSON: only the main media
   }

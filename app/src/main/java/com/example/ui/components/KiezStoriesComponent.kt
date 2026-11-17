@@ -314,6 +314,9 @@ fun StoryViewerDialog(
     val currentExtra = if (mediaIndex > 0) baseStory.extraMedia.getOrNull(mediaIndex - 1) else null
     val story = if (currentExtra != null) baseStory.copy(mediaUri = currentExtra.uri, isVideo = currentExtra.isVideo) else baseStory
     val mediaCaption = currentExtra?.caption.orEmpty()
+    // 2026-11-17 (owner): admin text on top of the video (StoryTextOverlay.kt), placed over the visible video picture
+    val mediaOverlay = if (currentExtra != null) currentExtra.overlay else baseStory.mediaOverlay
+    var videoAspect by remember(story.mediaUri) { mutableFloatStateOf(0f) }
     val context = LocalContext.current
     val downloadScope = androidx.compose.runtime.rememberCoroutineScope()
     var progress by remember(currentIndex, mediaIndex) { mutableFloatStateOf(0f) }
@@ -499,6 +502,7 @@ fun StoryViewerDialog(
                                     )
                                     setVideoURI(Uri.parse(story.mediaUri))
                                     setOnPreparedListener { mp ->
+                                        if (mp.videoHeight > 0) videoAspect = mp.videoWidth.toFloat() / mp.videoHeight
                                         mp.isLooping = true
                                         mp.start()
                                     }
@@ -509,6 +513,7 @@ fun StoryViewerDialog(
                             },
                             modifier = Modifier.fillMaxSize()
                         )
+                        if (mediaOverlay != null) StoryTextOverlay(mediaOverlay, videoAspect)
                     } else if (story.id.startsWith("inst_story_")) {
                         val brand = getInstitutionBrand(story.id, story.author)
                         Box(

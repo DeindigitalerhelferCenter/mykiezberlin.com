@@ -26,8 +26,10 @@
     var r = baseRender.apply(this, arguments);
     var list = items(story);
     window.mkStoryDurationMs = 0;
+    window.mkStoryMediaIndex = 0; // 2026-11-17: read by story-text-view.js (text on top of videos)
     if (!list) return r;
     if (index >= list.length) index = list.length - 1;
+    window.mkStoryMediaIndex = index;
     var m = list[index];
     var view = document.querySelector("#story-modal-overlay .story-content-view");
     if (view) {

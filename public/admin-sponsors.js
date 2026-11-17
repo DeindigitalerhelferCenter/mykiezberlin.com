@@ -87,6 +87,8 @@
     // 2026-11-13: all sponsors incl. paused ones (admin API), public list only as fallback
     panel("adminAds").then(function (j) { return j && j.ads ? j : fetch("/api/ads?place=page").then(function (r) { return r.json(); }); }).then(function (d) {
       var ads = d.ads || [];
+      // 2026-11-17 (owner): ended / paused sponsors are shown in their own window below (admin-sponsors-plus.js)
+      if (typeof window.mkAdminActiveOnly === "function") ads = window.mkAdminActiveOnly(ads);
       body.style.color = "#e6edf3";
       body.innerHTML = '<p style="color:#8b949e;margin:0 0 10px">Link erstellen → per WhatsApp/E-Mail an den Sponsor schicken (30 Tage gültig). Sponsor ändert Texte, Adresse, Bilder & Videos selbst. · Link oluştur → sponsora WhatsApp/e-posta ile gönder (30 gün geçerli).</p>' +
         ads.map(function (a) {
@@ -142,6 +144,8 @@
 
   // ---------- 3. sponsor media ----------
   function media() {
+    // 2026-11-17 (owner): closed by default, grouped per sponsor, paged – see admin-sponsors-plus.js
+    if (typeof window.mkSponsorMediaV2 === "function") { section("admin-sponsor-media", "📸 Sponsor-Medien · Sponsor medyası"); window.mkSponsorMediaV2(); return; }
     var body = section("admin-sponsor-media", "📸 Sponsor-Medien · Sponsor medyası");
     if (!body) return;
     panel("adminList").then(function (j) {

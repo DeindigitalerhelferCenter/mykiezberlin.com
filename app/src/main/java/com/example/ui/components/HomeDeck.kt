@@ -66,21 +66,40 @@ private fun pickDeck(count: Int): List<DeckBox> {
     return out
 }
 
-/** Weighted draw without repeats; place 1 prefers Premium. */
+/** Sponsor that was on place 1 last time (in memory while the app runs). */
+private object HomeFirstSponsor { var last: String = "" }
+
+private fun weightedPick(cand: List<ServerAd>): ServerAd {
+    val total = cand.sumOf { it.weight.coerceAtLeast(1) }
+    var r = (Math.random() * total)
+    var pick = cand.first()
+    for (a in cand) { r -= a.weight.coerceAtLeast(1); if (r <= 0) { pick = a; break } }
+    return pick
+}
+
+/**
+ * Weighted draw without repeats.
+ * 2026-11-17 (owner): place 1 is no longer reserved for Premium (with one active Premium sponsor it was always the
+ * same one). Premium still wins more often through its weight; the sponsor of place 1 last time is not on place 1
+ * again. One place (2 or 3) is kept for our own firms (ad.own) – they still count for views and the monthly goal.
+ */
 fun pickHomeSponsors(ads: List<ServerAd>, places: Int = 3): List<ServerAd> {
-    var pool = ads.filter { it.size == "large" || it.size == "banner" || it.size == "medium" }
+    val all = ads.filter { it.size == "large" || it.size == "banner" || it.size == "medium" }
+    var pool = all
     val out = mutableListOf<ServerAd>()
-    repeat(places) { n ->
-        if (pool.isEmpty()) return out
-        val premium = pool.filter { it.size == "large" || it.size == "banner" }
-        val cand = if (n == 0 && premium.isNotEmpty()) premium else pool
-        val total = cand.sumOf { it.weight.coerceAtLeast(1) }
-        var r = (Math.random() * total)
-        var pick = cand.first()
-        for (a in cand) { r -= a.weight.coerceAtLeast(1); if (r <= 0) { pick = a; break } }
+    for (n in 0 until places) {
+        if (pool.isEmpty()) break
+        val cand = if (n == 0 && HomeFirstSponsor.last.isNotBlank()) pool.filter { it.id != HomeFirstSponsor.last }.ifEmpty { pool } else pool
+        val pick = weightedPick(cand)
         out.add(pick)
         pool = pool.filter { it.id != pick.id }
     }
+    val own = all.filter { it.own }
+    if (own.isNotEmpty() && out.none { it.own }) {
+        val mine = weightedPick(own)
+        if (out.size < places) out.add(mine) else if (places > 1) out[1 + (Math.random() * (places - 1)).toInt().coerceAtMost(places - 2)] = mine
+    }
+    out.firstOrNull()?.let { HomeFirstSponsor.last = it.id }
     return out
 }
 
@@ -190,7 +209,8 @@ private fun AllSponsorsDialog(ads: List<ServerAd>, language: AppLanguage, onClos
     var kiez by remember { mutableStateOf("") }
     val kieze = remember(ads) { ads.flatMap { it.kieze.split(",") }.map { it.trim() }.filter { it.isNotBlank() }.distinct().sorted() }
     val shown = remember(ads, kiez) {
-        ads.filter { kiez.isBlank() || it.kieze.contains(kiez, true) }.sortedWith(compareBy({ tierRank(it) }, { it.name.lowercase() }))
+        // 2026-11-17 (owner): same package -> mixed order every time (before A-Z, the same sponsor was always first)
+        ads.filter { kiez.isBlank() || it.kieze.contains(kiez, true) }.shuffled().sortedWith(compareBy { tierRank(it) })
     }
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {

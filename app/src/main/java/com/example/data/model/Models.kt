@@ -150,6 +150,8 @@ data class KiezStory(
     val createdAtMillis: Long = System.currentTimeMillis(),
     // 2026-11-13: admin stories with several pictures/videos – everything after the first one (mediaUri)
     val extraMedia: List<StoryMedia> = emptyList(),
+    // 2026-11-17 (owner): text on top of the first video (admin story planner)
+    val mediaOverlay: StoryOverlay? = null,
     // 2026-11-14: offer of the story (also shown under "Özel Mahalle İndirimleri")
     val deal: com.example.ui.components.StoryDeal? = null,
     // 2026-11-14 (owner): story folders from /api/stories ("berlin", "eil", "angebote" …), main folder first
@@ -157,7 +159,29 @@ data class KiezStory(
 )
 
 /** One further picture/video of a story (admin stories can have many, e.g. a sponsor ad with 4 pictures + 2 videos). */
-data class StoryMedia(val uri: String, val isVideo: Boolean, val caption: String = "")
+data class StoryMedia(val uri: String, val isVideo: Boolean, val caption: String = "", val overlay: StoryOverlay? = null)
+
+/** 2026-11-17 (owner): admin text on top of a story video (pictures carry the text inside). See StoryTextOverlay.kt. */
+data class StoryOverlay(val text: String, val x: Float = 0.5f, val y: Float = 0.82f, val size: Float = 0.07f, val color: String = "#ffffff", val box: Boolean = true) {
+    fun toJson(): org.json.JSONObject = org.json.JSONObject().put("t", text).put("x", x.toDouble()).put("y", y.toDouble()).put("s", size.toDouble()).put("c", color).put("b", if (box) "box" else "none")
+}
+
+fun parseStoryOverlay(o: org.json.JSONObject?): StoryOverlay? {
+    if (o == null) return null
+    val t = o.optString("t", "").trim()
+    if (t.isBlank()) return null
+    return StoryOverlay(
+        text = t,
+        x = o.optDouble("x", 0.5).toFloat().coerceIn(0.05f, 0.95f),
+        y = o.optDouble("y", 0.5).toFloat().coerceIn(0.05f, 0.95f),
+        size = o.optDouble("s", 0.07).toFloat().coerceIn(0.03f, 0.15f),
+        color = o.optString("c", "#ffffff").takeIf { Regex("^#[0-9a-fA-F]{6}$").matches(it) } ?: "#ffffff",
+        box = o.optString("b", "box") != "none"
+    )
+}
+
+/** Overlay of the first picture/video of /api/stories "media". */
+fun parseMainStoryOverlay(arr: org.json.JSONArray?): StoryOverlay? = parseStoryOverlay(arr?.optJSONObject(0)?.optJSONObject("overlay"))
 
 /** Reads the "media" list of /api/stories (first entry = media_key, the rest are the extra pictures/videos). */
 fun parseExtraStoryMedia(arr: org.json.JSONArray?): List<StoryMedia> {
@@ -167,7 +191,7 @@ fun parseExtraStoryMedia(arr: org.json.JSONArray?): List<StoryMedia> {
         val m = arr.optJSONObject(i) ?: continue
         val key = m.optString("key", "")
         if (key.isBlank()) continue
-        out.add(StoryMedia("https://mykiezberlin.com/media/$key", m.optString("type", "") == "video", m.optString("caption", "")))
+        out.add(StoryMedia("https://mykiezberlin.com/media/$key", m.optString("type", "") == "video", m.optString("caption", ""), parseStoryOverlay(m.optJSONObject("overlay"))))
     }
     return out
 }

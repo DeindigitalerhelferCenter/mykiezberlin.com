@@ -163,7 +163,8 @@ export async function onRequestPost({ request, env }) {
     // 2026-11-13: all sponsors incl. paused ones, and a quick package change (Basic/Plus/Premium)
     if (action === "adminAds") {
       const { results } = await database.prepare(`SELECT * FROM ads ORDER BY active DESC, name`).all();
-      return json({ ads: results.map((a) => ({ ...shape(a), link_wa: a.link_wa, active: a.active ? 1 : 0 })) });
+      // 2026-11-17: offer state for ended / paused sponsors (reminder + renewal offer)
+      return json({ ads: results.map((a) => { const x = parseExtra(a.extra); return { ...shape(a), link_wa: a.link_wa, active: a.active ? 1 : 0, start_at: a.start_at || 0, updated_at: a.updated_at || 0, own: !!x.own, offer_log: Array.isArray(x.offer_log) ? x.offer_log : [], offer_next: x.offer_next || 0, offer_stop: !!x.offer_stop }; }), now: Date.now() });
     }
     if (action === "adminPlan") {
       const plan = ["s", "m", "l"].includes(body.plan) ? body.plan : "";
@@ -175,6 +176,93 @@ export async function onRequestPost({ request, env }) {
       const ad = await database.prepare(`SELECT * FROM ads WHERE id = ?`).bind(cleanText(body.adId, 40)).first();
       if (!ad) return json({ error: "not_found" }, 404);
       return applyUpdate(database, ad, body.fields);
+    }
+    // ---------- 2026-11-17 (owner): sponsor media grouped per sponsor, paged (the list grows a lot) ----------
+    if (action === "adminMediaGroups") {
+      const week = Date.now() - 7 * 86400000;
+      const { results } = await database
+        .prepare(`SELECT m.ad_id, a.name, COUNT(*) AS total, SUM(CASE WHEN m.status = 'hidden' THEN 1 ELSE 0 END) AS hidden,
+                  SUM(CASE WHEN m.created_at > ? THEN 1 ELSE 0 END) AS week, MAX(m.created_at) AS last
+                  FROM sponsor_media m LEFT JOIN ads a ON a.id = m.ad_id GROUP BY m.ad_id ORDER BY last DESC`)
+        .bind(week)
+        .all();
+      return json({ groups: results });
+    }
+    if (action === "adminMediaOf") {
+      const limit = Math.min(Math.max(Number(body.limit) || 24, 1), 60);
+      const offset = Math.max(Number(body.offset) || 0, 0);
+      const since = body.days ? Date.now() - Math.min(Number(body.days) || 7, 365) * 86400000 : 0;
+      const adId = cleanText(body.adId, 40);
+      const where = `${adId ? "m.ad_id = ? AND " : ""}m.created_at > ?`;
+      const args = adId ? [adId, since] : [since];
+      const { results } = await database
+        .prepare(`SELECT m.id, m.ad_id, m.media_key, m.media_type, m.caption, m.status, m.created_at, m.by_admin, m.bytes, a.name FROM sponsor_media m LEFT JOIN ads a ON a.id = m.ad_id WHERE ${where} ORDER BY m.created_at DESC LIMIT ? OFFSET ?`)
+        .bind(...args, limit + 1, offset)
+        .all();
+      return json({ media: results.slice(0, limit), more: results.length > limit });
+    }
+    // ---------- 2026-11-17 (owner): big sponsor pictures made smaller (they slowed down web and app) ----------
+    // adminMediaBig -> pictures in R2 that are bigger than 300 KB; adminMediaReplace {id, data} -> the admin browser
+    // sends a smaller WebP/JPEG (data URL). The original file stays in R2, the row only points to the new file.
+    if (action === "adminMediaBig") {
+      const { results } = await database
+        .prepare(`SELECT m.id, m.ad_id, m.media_key, m.bytes, a.name FROM sponsor_media m LEFT JOIN ads a ON a.id = m.ad_id WHERE m.media_type = 'image' AND m.media_key LIKE 'ads/%' AND m.media_key NOT LIKE '%-opt.%' ORDER BY m.created_at DESC LIMIT 300`)
+        .all();
+      const big = [];
+      for (const m of results) {
+        let bytes = Number(m.bytes) || 0;
+        if (!bytes && env.BUCKET) { const head = await env.BUCKET.head(m.media_key).catch(() => null); bytes = head ? head.size : 0; }
+        if (bytes > 300 * 1024) big.push({ ...m, bytes, url: `/media/${m.media_key}` });
+      }
+      return json({ media: big });
+    }
+    if (action === "adminMediaReplace") {
+      if (!env.BUCKET) return json({ error: "r2_unbound" }, 503);
+      const row = await database.prepare(`SELECT * FROM sponsor_media WHERE id = ?`).bind(cleanText(body.id, 60)).first();
+      if (!row || row.media_type !== "image" || !String(row.media_key).startsWith("ads/")) return json({ error: "not_found" }, 404);
+      const m = String(body.data || "").match(/^data:(image\/(?:webp|jpeg));base64,([A-Za-z0-9+/=]+)$/);
+      if (!m) return json({ error: "bad_request" }, 400);
+      const bin = Uint8Array.from(atob(m[2]), (c) => c.charCodeAt(0));
+      if (bin.length > 1.5 * 1024 * 1024) return json({ error: "file_too_large" }, 413);
+      const ext = m[1] === "image/webp" ? "webp" : "jpg";
+      const key = String(row.media_key).replace(/\.[a-z0-9]+$/i, "") + `-opt.${ext}`;
+      await env.BUCKET.put(key, bin, { httpMetadata: { contentType: m[1] } });
+      await database.prepare(`CREATE TABLE IF NOT EXISTS media_optimized (id TEXT, old_key TEXT, new_key TEXT, old_bytes INTEGER, new_bytes INTEGER, created_at INTEGER)`).run();
+      await database.prepare(`INSERT INTO media_optimized (id, old_key, new_key, old_bytes, new_bytes, created_at) VALUES (?, ?, ?, ?, ?, ?)`).bind(row.id, row.media_key, key, Number(row.bytes) || 0, bin.length, Date.now()).run();
+      await database.prepare(`UPDATE sponsor_media SET media_key = ?, bytes = ? WHERE id = ?`).bind(key, bin.length, row.id).run();
+      return json({ ok: true, key, bytes: bin.length });
+    }
+    // ---------- 2026-11-17 (owner): ended / paused sponsors – reminder for the admin and a renewal offer ----------
+    // adminOffer {adId, email, subject, text} -> mail from info@ (only after the admin read and approved the text)
+    // adminOfferLater {adId, days} -> reminder again after N days; days = 0 -> never remind again
+    if (action === "adminOffer" || action === "adminOfferLater") {
+      const ad = await database.prepare(`SELECT * FROM ads WHERE id = ?`).bind(cleanText(body.adId, 40)).first();
+      if (!ad) return json({ error: "not_found" }, 404);
+      const extra = parseExtra(ad.extra);
+      const now = Date.now();
+      let mailed = false;
+      if (action === "adminOffer") {
+        const to = cleanText(body.email, 120);
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return json({ error: "email_invalid" }, 400);
+        const subject = cleanText(body.subject, 160) || `My Kiez Berlin – ${ad.name}`;
+        const text = cleanLongText(body.text, 5000);
+        if (!text) return json({ error: "missing_fields" }, 400);
+        mailed = await sendMail(env, { to, subject, text });
+        if (!mailed) return json({ error: "mail_failed" }, 502);
+        extra.offer_log = [...(Array.isArray(extra.offer_log) ? extra.offer_log : []), { at: now, to }].slice(-20);
+        extra.offer_next = now + 30 * 86400000; // "from time to time": the reminder comes back after 30 days
+      } else {
+        const days = Math.min(Math.max(Number(body.days) || 0, 0), 365);
+        if (days === 0) extra.offer_stop = true;
+        else { extra.offer_next = now + days * 86400000; delete extra.offer_stop; }
+      }
+      await database.prepare(`UPDATE ads SET extra = ?, updated_at = ? WHERE id = ?`).bind(JSON.stringify(extra), now, ad.id).run();
+      return json({ ok: true, mailed, offer_next: extra.offer_next || 0, offer_stop: !!extra.offer_stop });
+    }
+    if (action === "adminActivate") {
+      // paused or ended sponsor back online (end date removed; the admin can set a new one in the ad form)
+      const r = await database.prepare(`UPDATE ads SET active = 1, end_at = 0, updated_at = ? WHERE id = ?`).bind(Date.now(), cleanText(body.adId, 40)).run();
+      return r.meta && r.meta.changes === 0 ? json({ error: "not_found" }, 404) : json({ ok: true });
     }
     return json({ error: "bad_request" }, 400);
   }

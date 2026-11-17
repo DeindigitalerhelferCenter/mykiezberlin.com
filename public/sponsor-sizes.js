@@ -105,7 +105,10 @@
   }
   window.mkSponsorGridHtml = function () {
     if (!allAds.length) return "";
-    var list = allAds.slice().sort(function (a, b) { return rank(a) - rank(b) || String(a.name).localeCompare(String(b.name)); });
+    // 2026-11-17 (owner): same package -> mixed order on every page load (before A-Z)
+    var mix = {};
+    allAds.forEach(function (a) { mix[a.id] = Math.random(); });
+    var list = allAds.slice().sort(function (a, b) { return rank(a) - rank(b) || mix[a.id] - mix[b.id]; });
     // 2026-11-13: counted only when really seen on screen (sponsor-seen.js), no longer on render
     setTimeout(function () { if (window.mkSeenIn) window.mkSeenIn(); else trackImp(list.map(function (a) { return a.id; })); }, 300);
     return '<div class="mk-sz-grid">' + list.map(function (a) { return window.mkSponsorCardHtml(a, a.size); }).join("") + "</div>";

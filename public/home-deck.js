@@ -104,19 +104,38 @@
   }
 
   // sponsor places: weighted draw without repeats (weight from the server = monthly goal + catch-up)
+  // 2026-11-17 (owner): place 1 is no longer reserved for Premium (with only one active Premium sponsor the same
+  // sponsor was always on top). All Premium + Plus sponsors take part, Premium still wins more often through its
+  // weight, and the sponsor that was on place 1 last time is not on place 1 again. One place is kept for our own
+  // firms (ad.own: Terra Verde TEK, The Visit) – they still count for views and the monthly goal.
+  var FIRST_KEY = "mk_home_first_sponsor";
+  function weightedPick(cand) {
+    var total = cand.reduce(function (s, a) { return s + Math.max(1, a.weight || 1); }, 0);
+    var r = Math.random() * total, pick = cand[0];
+    for (var i = 0; i < cand.length; i++) { r -= Math.max(1, cand[i].weight || 1); if (r <= 0) { pick = cand[i]; break; } }
+    return pick;
+  }
   function pickSponsors() {
     var ads = (window.mkAllAds || []).filter(function (a) { return a.size === "large" || a.size === "banner" || a.size === "medium"; });
     var out = [];
     var pool = ads.slice();
+    var lastFirst = "";
+    try { lastFirst = localStorage.getItem(FIRST_KEY) || ""; } catch (x) {}
     for (var n = 0; n < SPONSOR_PLACES && pool.length; n++) {
       var cand = pool;
-      if (n === 0) { var prem = pool.filter(function (a) { return a.size === "large" || a.size === "banner"; }); if (prem.length) cand = prem; }
-      var total = cand.reduce(function (s, a) { return s + Math.max(1, a.weight || 1); }, 0);
-      var r = Math.random() * total, pick = cand[0];
-      for (var i = 0; i < cand.length; i++) { r -= Math.max(1, cand[i].weight || 1); if (r <= 0) { pick = cand[i]; break; } }
+      if (n === 0 && lastFirst) { var other = pool.filter(function (a) { return a.id !== lastFirst; }); if (other.length) cand = other; }
+      var pick = weightedPick(cand);
       out.push(pick);
       pool = pool.filter(function (a) { return a !== pick; });
     }
+    // one of our own firms is always among the sponsor places (place 2 or 3, place 1 stays fair)
+    var own = ads.filter(function (a) { return a.own; });
+    if (own.length && !out.some(function (a) { return a.own; })) {
+      var mine = weightedPick(own);
+      if (out.length < SPONSOR_PLACES) out.push(mine);
+      else out[1 + Math.floor(Math.random() * (SPONSOR_PLACES - 1))] = mine;
+    }
+    try { if (out[0]) localStorage.setItem(FIRST_KEY, out[0].id); } catch (x) {}
     return out;
   }
 
@@ -154,7 +173,10 @@
   function renderSponsorsPage(container) {
     var ads = (window.mkAllAds || []).slice();
     var order = { large: 0, banner: 0, medium: 1, small: 2 };
-    ads.sort(function (a, b) { return (order[a.size] || 1) - (order[b.size] || 1) || String(a.name).localeCompare(String(b.name)); });
+    // 2026-11-17 (owner): same package -> mixed order on every page load (before A-Z, the same sponsor was always first)
+    var mix = {};
+    ads.forEach(function (a) { mix[a.id] = Math.random(); });
+    ads.sort(function (a, b) { return (order[a.size] || 1) - (order[b.size] || 1) || mix[a.id] - mix[b.id]; });
     var kieze = [], cats = [];
     ads.forEach(function (a) {
       String(a.kieze || "").split(",").map(function (k) { return k.trim(); }).filter(Boolean).forEach(function (k) { if (kieze.indexOf(k) < 0) kieze.push(k); });

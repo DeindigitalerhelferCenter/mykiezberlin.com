@@ -340,6 +340,7 @@ export async function seedSponsors(database) {
   await applyTugraInfoFix(database);
   await applyStoryFolderFix(database);
   await applyMosqueFolderFix(database);
+  await applyOwnFirmsFix(database);
 }
 
 // 2026-11-14 (owner): test story "Yeni Aziziye Camii" (Rudow, Neukölln) – the AI had chosen "tuerkei" because of the
@@ -594,4 +595,25 @@ async function applyPlanFix(database) {
     database.prepare(`UPDATE ads SET plan = 's', priority = 10, updated_at = ? WHERE id = 'grz-haustechnik'`).bind(now),
     database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now),
   ]);
+}
+
+// 2026-11-17 (owner): Terra Verde TEK and The Visit Coffee Roastery belong to My Kiez Berlin. They are marked "own"
+// (one home place is kept for them, they still count for views and the monthly goal) and Terra Verde TEK, which was
+// not online any more, is active again without an end date. Runs once.
+async function applyOwnFirmsFix(database) {
+  const id = "fix:2026-11-17-ownfirms";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  const now = Date.now();
+  const ops = [];
+  for (const adId of ["terra-verde-tek", "the-visit"]) {
+    const row = await database.prepare(`SELECT extra FROM ads WHERE id = ?`).bind(adId).first();
+    if (!row) continue;
+    let extra = {};
+    try { extra = JSON.parse(row.extra || "{}") || {}; } catch (e) { extra = {}; }
+    extra.own = true;
+    ops.push(database.prepare(`UPDATE ads SET extra = ?, updated_at = ? WHERE id = ?`).bind(JSON.stringify(extra), now, adId));
+  }
+  ops.push(database.prepare(`UPDATE ads SET active = 1, end_at = 0, updated_at = ? WHERE id = 'terra-verde-tek'`).bind(now));
+  ops.push(database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now));
+  await database.batch(ops);
 }

@@ -55,7 +55,9 @@ data class ServerAd(
     // 2026-11-13: long text from the sponsor panel (/sponsor)
     val description: String = "",
     // 2026-11-14: "tr" = also on the page "Türkiye Sponsorları"
-    val region: String = ""
+    val region: String = "",
+    // 2026-11-17 (owner): our own firms (Terra Verde TEK, The Visit) – one home place is kept for them
+    val own: Boolean = false
 ) {
     /** Best link for a tap: web, Instagram, WhatsApp, phone – in that order. */
     val primaryLink: String
@@ -171,6 +173,7 @@ object AdsRepository {
             plan = o.optString("plan"),
             size = o.optString("size").ifBlank { "medium" },
             weight = o.optInt("weight", 1),
+            own = o.optBoolean("own", false),
             logo = o.optString("logo").let { if (it.startsWith("/")) "https://mykiezberlin.com$it" else it },
             kieze = o.optString("kieze"),
             categoryDe = o.optJSONObject("category")?.optString("de").orEmpty(),

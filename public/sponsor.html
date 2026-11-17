@@ -106,6 +106,7 @@ progress{width:100%;margin-top:8px}
     <p class="muted" data-i="rules"></p>
   </section>
 </main>
+<script src="image-shrink.js?v=1"></script>
 <script>
 (function () {
   "use strict";
@@ -202,6 +203,11 @@ progress{width:100%;margin-top:8px}
   $("mbtn").onclick = function () {
     var file = $("mfile").files[0];
     if (!file) { msg("mmsg", errText({ error: "missing_file" }), false); return; }
+    // 2026-11-17 (owner): pictures are made smaller before upload (max. 1600 px, WebP) – faster web and app
+    $("mbtn").disabled = true;
+    (window.mkShrinkImage ? window.mkShrinkImage(file) : Promise.resolve(file)).then(function (small) { send(small); });
+  };
+  function send(file) {
     var fd = new FormData(); fd.append("file", file); fd.append("caption", $("mcap").value);
     var xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/sponsor-media"); xhr.setRequestHeader("x-sponsor-token", token);
@@ -214,7 +220,7 @@ progress{width:100%;margin-top:8px}
       else msg("mmsg", errText(xhr.status === 0 ? { error: "offline" } : j), false);
     };
     xhr.send(fd);
-  };
+  }
 
   apply();
   if (token) load(); else showLogin();

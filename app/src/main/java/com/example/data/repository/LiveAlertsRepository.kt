@@ -226,7 +226,7 @@ object LiveAlertsRepository {
                             durationHours = o.optInt("duration_hours", 24),
                             status = "approved",
                             createdAtMillis = approvedAt,
-                            extraMedia = com.example.data.model.parseExtraStoryMedia(o.optJSONArray("media")),
+                            extraMedia = com.example.data.model.parseExtraStoryMedia(o.optJSONArray("media")), mediaOverlay = com.example.data.model.parseMainStoryOverlay(o.optJSONArray("media")),
                             deal = com.example.ui.components.parseStoryDeal(o.optJSONObject("deal")),
                             cats = com.example.ui.components.parseStoryCats(o.optJSONArray("cats"))
                         )
@@ -483,7 +483,7 @@ object LiveAlertsRepository {
                             // 2026-11-14: result of the AI check (ok -> green "KI OK", flag -> red with the reason)
                             modNote = o.optString("ai_check", "").let { c -> when { c == "ok" -> "✅ KI OK"; c.startsWith("flag") -> "⚠️ KI: " + c.removePrefix("flag:").ifBlank { "prüfen" }; else -> "Server" } },
                             createdAtMillis = approvedAt,
-                            extraMedia = com.example.data.model.parseExtraStoryMedia(o.optJSONArray("media")),
+                            extraMedia = com.example.data.model.parseExtraStoryMedia(o.optJSONArray("media")), mediaOverlay = com.example.data.model.parseMainStoryOverlay(o.optJSONArray("media")),
                             deal = com.example.ui.components.parseStoryDeal(o.optJSONObject("deal")),
                             cats = com.example.ui.components.parseStoryCats(o.optJSONArray("cats"))
                         )

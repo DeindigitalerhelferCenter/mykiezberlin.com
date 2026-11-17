@@ -74,6 +74,8 @@ export async function onRequestGet({ request, env }) {
         description: extra.description || "",
         // 2026-11-14: "tr" = also on the page "Türkiye Sponsorları"
         region: extra.region || "",
+        // 2026-11-17 (owner): our own firms (Terra Verde TEK, The Visit) – one home place is kept for them
+        own: !!extra.own,
       };
     });
   return json({ ads }, 200, { "cache-control": "no-store" });
