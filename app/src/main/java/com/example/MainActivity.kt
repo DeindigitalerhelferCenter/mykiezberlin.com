@@ -698,11 +698,13 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                         (if (uiState.language == AppLanguage.TURKISH) "⚠️ Günlük sınır doldu" else "⚠️ Tageslimit erreicht")
                     else if (feedback == "VIDEO_LONG")
                         (if (uiState.language == AppLanguage.TURKISH) "⚠️ Video çok uzun" else "⚠️ Video zu lang")
+                    else if (feedback == "BLOCKED")
+                        (if (uiState.language == AppLanguage.TURKISH) "⛔ Yayınlanmadı" else "⛔ Nicht veröffentlicht")
                     else if (feedback == "TOO_MANY" || feedback == "NETWORK" || feedback == "FILE")
                         (if (uiState.language == AppLanguage.TURKISH) "⚠️ Gönderilemedi" else "⚠️ Nicht gesendet")
                     else
                         if (feedback == "Veröffentlicht") (if (uiState.language == AppLanguage.TURKISH) "Hikâye Yayında! 🎉" else "Story ist online! 🎉")
-                        else (if (uiState.language == AppLanguage.TURKISH) "Hikâye gönderildi ⏳" else "Story eingereicht ⏳"),
+                        else (if (uiState.language == AppLanguage.TURKISH) "Teşekkür ederiz! 💛" else "Vielen Dank! 💛"),
                     fontWeight = FontWeight.Bold
                 )
             },
@@ -727,6 +729,9 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     } else if (feedback == "TOO_MANY") {
                         if (uiState.language == AppLanguage.TURKISH) "Kısa sürede çok fazla gönderi. Yazdıkların formda duruyor – biraz sonra tekrar dene."
                         else "Zu viele Beiträge in kurzer Zeit. Dein Text bleibt im Formular – bitte später erneut senden."
+                    } else if (feedback == "BLOCKED") {
+                        if (uiState.language == AppLanguage.TURKISH) "Bu içerik kurallarımıza uygun değil (ör. 18+, küfür/hakaret, nefret veya şiddet) ve yayınlanmayacak."
+                        else "Dieser Inhalt passt nicht zu unseren Regeln (z. B. 18+, Beleidigung, Hass oder Gewalt) und wird nicht veröffentlicht."
                     } else if (feedback == "VIDEO_LONG") {
                         // 2026-11-17 (owner): videos up to 3 minutes; the app makes them smaller (720p) by itself
                         if (uiState.language == AppLanguage.TURKISH) "Video en fazla 3 dakika olabilir. Uygulama videoyu kendisi küçültür. Yazdıkların formda duruyor – lütfen daha kısa bir video seç."
@@ -743,10 +748,11 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                         else
                             "Deine Story wurde erfolgreich veröffentlicht und ist jetzt live im Story-Bereich sichtbar!"
                     } else {
+                        // 2026-11-17 (owner): thank-you after every story
                         if (uiState.language == AppLanguage.TURKISH)
-                            "Hikâyen alındı. Kısa bir kontrolden sonra herkes görebilecek."
+                            "Hikâyen bize ulaştı, en kısa zamanda değerlendirilip yayınlanacak. – My Kiez Berlin"
                         else
-                            "Deine Story ist eingegangen. Nach einer kurzen Prüfung sehen sie alle."
+                            "Deine Story ist bei uns eingegangen und wird so schnell wie möglich geprüft und veröffentlicht. – My Kiez Berlin"
                     }
                 )
             },

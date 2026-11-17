@@ -155,11 +155,14 @@ export async function onRequestPost({ request, env }) {
 
   // 2026-11-14: AI check first (users only). Trusted device + AI "ok" -> online at once, otherwise the admin decides.
   const check = admin ? "" : await aiCheck(env, headline, subtext, mediaBytes, file && typeof file !== "string" ? file.type : "");
+  // 2026-11-17 (owner): 18+, insults, hate, gore are never published – saved as "rejected" (admin can still see it)
+  const blocked = !admin && String(check).startsWith("block:");
   const direct = !admin && check === "ok" && (await isTrusted(database, device));
   const created = Date.now();
   await database
     .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, ip, created_at, media_hash, text_hash, deal, device, ai_check, approved_at, cats) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-    .bind(id, headline, subtext, kiez, kind, author, mediaKey, mediaType, durationHours, direct ? "approved" : "pending", ip, created, mediaHash, textHash, deal, device, check, direct ? created : 0, catsText)
+    .bind(id, headline, subtext, kiez, kind, author, mediaKey, mediaType, durationHours, blocked ? "rejected" : direct ? "approved" : "pending", ip, created, mediaHash, textHash, deal, device, check, direct ? created : 0, catsText)
     .run();
+  if (blocked) return json({ error: "content_blocked", id }, 422);
   return json({ id, status: direct ? "approved" : "pending" }, 201);
 }

@@ -281,7 +281,12 @@ async function submitUserStory() {
     if (res.status === 201) {
       const answer = await res.clone().json().catch(() => ({}));
       if (answer.status === "approved") showToast(tr("Danke! Deine Story ist jetzt online.", "Teşekkürler! Hikâyen şimdi yayında."));
-      else showToast(tr("Danke! Deine Story wird geprüft und dann veröffentlicht.", "Teşekkürler! Hikâyeniz onaylandıktan sonra yayınlanacak."));
+      // 2026-11-17 (owner): thank-you after every story
+      else mkStoryNotice(
+        tr("Vielen Dank! 💛", "Teşekkür ederiz! 💛"),
+        tr("Deine Story ist bei uns eingegangen und wird so schnell wie möglich geprüft und veröffentlicht. – My Kiez Berlin",
+          "Hikâyen bize ulaştı, en kısa zamanda değerlendirilip yayınlanacak. – My Kiez Berlin")
+      );
     } else if (res.status === 429) {
       const answer = await res.clone().json().catch(() => ({}));
       if (answer.error === "daily_limit") {
@@ -290,6 +295,14 @@ async function submitUserStory() {
           tr("Du kannst " + (answer.limit || 5) + " Stories pro Tag teilen. Dein Text bleibt hier – morgen kannst du ihn senden.", "Günde " + (answer.limit || 5) + " hikâye paylaşabilirsin. Yazdıkların burada duruyor – yarın gönderebilirsin.")
         );
       } else showToast(tr("Zu viele Beiträge. Bitte versuche es später.", "Çok fazla gönderi. Lütfen sonra deneyin."));
+      return;
+    } else if (res.status === 422) {
+      // 2026-11-17 (owner): 18+, insults, hate or gore – refused at once
+      mkStoryNotice(
+        tr("Nicht veröffentlicht", "Yayınlanmadı"),
+        tr("Dieser Inhalt passt nicht zu unseren Regeln (z. B. 18+, Beleidigung, Hass oder Gewalt) und wird nicht veröffentlicht.",
+          "Bu içerik kurallarımıza uygun değil (ör. 18+, küfür/hakaret, nefret veya şiddet) ve yayınlanmayacak.")
+      );
       return;
     } else if (res.status === 409) {
       // 2026-11-13: same picture/video or same text was already uploaded

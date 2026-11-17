@@ -1052,6 +1052,11 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                 _uiState.update { it.copy(storySubmissionFeedback = if (upload.status == "approved") "Veröffentlicht" else "Wird vor der Veröffentlichung geprüft") }
                 refreshStoryQuota()
             }
+            if (upload.code == 422) {
+                // 2026-11-17 (owner): 18+, insults, hate or gore – refused at once, never published
+                giveStoryBack(newStory, "BLOCKED")
+                return@launch
+            }
             if (upload.code == 409 || upload.code == 400) {
                 // Server refused: same picture/text already uploaded (409) or name missing (400) – back into the form
                 giveStoryBack(newStory, if (upload.code == 409) "DUPLICATE" else "AUTHOR")

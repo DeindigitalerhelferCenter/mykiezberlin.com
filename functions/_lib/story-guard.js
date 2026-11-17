@@ -72,9 +72,11 @@ const PROMPT = `Du prüfst Beiträge für die öffentliche Berliner Nachbarschaf
 NICHT erlaubt: Nacktheit oder Sexuelles, Gewalt oder Blut, Hass, Beleidigung oder Hetze, Drogen- oder Waffenverkauf, Glücksspiel,
 private Daten anderer Menschen (Ausweis, Telefonnummer einer Privatperson, Autokennzeichen groß im Bild), Betrug oder Spam.
 Normale Fotos aus dem Kiez, Werbung von Geschäften, Veranstaltungen und Nachrichten sind erlaubt.
-Antworte NUR mit JSON: {"ok":true,"reason":""} oder {"ok":false,"reason":"kurzer Grund auf Deutsch"}`;
+Antworte NUR mit JSON: {"ok":true,"reason":"","block":false} oder {"ok":false,"reason":"kurzer Grund auf Deutsch","block":true|false}
+"block":true NUR bei eindeutig: Nacktheit/Sexuelles/Pornografie, Beleidigung/Schimpfwörter/Fluchen (auch Türkisch), Hass/Hetze, grausamer Gewalt oder Blut.
+Bei allem anderen, was nicht erlaubt oder unklar ist (Politik, Spam, private Daten …): "block":false (dann entscheidet der Admin).`;
 
-/** "ok", "flag:<reason>" or "" (AI not reachable / not sure -> the admin decides as before). */
+/** "ok", "flag:<reason>", "block:<reason>" (2026-11-17: 18+, insults, hate, gore -> refused at once) or "" (AI not reachable). */
 export async function aiCheck(env, headline, subtext, bytes, mime) {
   if (!env.AI) return "";
   const content = [{ type: "text", text: `${PROMPT}\n\nTitel: ${headline}\nText: ${subtext}` }];
@@ -89,7 +91,7 @@ export async function aiCheck(env, headline, subtext, bytes, mime) {
       if (!m) continue;
       const d = JSON.parse(m[0]);
       if (d.ok === true) return "ok";
-      if (d.ok === false) return "flag:" + String(d.reason || "").replace(/[<>]/g, "").slice(0, 120);
+      if (d.ok === false) return (d.block === true ? "block:" : "flag:") + String(d.reason || "").replace(/[<>]/g, "").slice(0, 120);
     } catch (e) {
       // next model
     }
