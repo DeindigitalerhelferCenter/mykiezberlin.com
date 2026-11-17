@@ -97,10 +97,13 @@ fun burnStoryText(src: Bitmap, overlay: StoryOverlay): Bitmap {
     var textW = 0f
     for (i in 0 until layout.lineCount) textW = maxOf(textW, layout.getLineWidth(i))
     val textH = layout.height.toFloat()
-    val cx = overlay.x * w
-    val cy = overlay.y * h
+    // 2026-11-17: the text block always stays inside the picture (like the preview); before, x = 0.7 cut words off
+    val pad = px * 0.45f
+    val halfW = textW / 2f + (if (overlay.box) pad else 0f)
+    val halfH = textH / 2f + (if (overlay.box) pad * 0.6f else 0f)
+    val cx = (overlay.x * w).coerceIn(minOf(halfW, w / 2f), maxOf(w - halfW, w / 2f))
+    val cy = (overlay.y * h).coerceIn(minOf(halfH, h / 2f), maxOf(h - halfH, h / 2f))
     if (overlay.box) {
-        val pad = px * 0.45f
         val box = RectF(cx - textW / 2f - pad, cy - textH / 2f - pad * 0.6f, cx + textW / 2f + pad, cy + textH / 2f + pad * 0.6f)
         canvas.drawRoundRect(box, px * 0.35f, px * 0.35f, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = android.graphics.Color.argb(140, 0, 0, 0) })
     }

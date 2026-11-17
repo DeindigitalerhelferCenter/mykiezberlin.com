@@ -34,6 +34,12 @@
     var rows = wrap(ctx, o.t, w * 0.9);
     var lh = px * 1.25;
     var cx = (o.x == null ? 0.5 : o.x) * w, cy = (o.y == null ? 0.5 : o.y) * h;
+    // 2026-11-17: the text block always stays inside the picture (x = 0.7 with long lines cut words off)
+    var maxRow = 0;
+    rows.forEach(function (r) { maxRow = Math.max(maxRow, ctx.measureText(r).width); });
+    var hw = maxRow / 2 + (o.b !== "none" ? px * 0.45 : 0), hh = (rows.length * lh) / 2 + (o.b !== "none" ? px * 0.27 : 0);
+    cx = Math.min(Math.max(cx, Math.min(hw, w / 2)), Math.max(w - hw, w / 2));
+    cy = Math.min(Math.max(cy, Math.min(hh, h / 2)), Math.max(h - hh, h / 2));
     var top = cy - (rows.length * lh) / 2;
     if (o.b !== "none") {
       var bw = 0;
