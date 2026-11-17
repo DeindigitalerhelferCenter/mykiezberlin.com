@@ -157,7 +157,11 @@
           fetch(m.url).then(function (r) { if (!r.ok) throw new Error("load"); return r.blob(); }).then(function (blob) {
             return new Promise(function (resolve, reject) {
               var url = URL.createObjectURL(blob), img = new Image();
-              img.onload = function () { window.mkShrinkCanvas(img).then(function (b) { URL.revokeObjectURL(url); resolve(b); }); };
+              img.onload = function () {
+                // 2026-11-17: pictures the browser cannot decode (broken JPEG) are skipped, never replaced by a white one
+                (img.decode ? img.decode() : Promise.resolve()).then(function () { return window.mkShrinkCanvas(img); })
+                  .then(function (b) { URL.revokeObjectURL(url); resolve(b); }, function (e) { URL.revokeObjectURL(url); reject(e); });
+              };
               img.onerror = function () { URL.revokeObjectURL(url); reject(new Error("image")); };
               img.src = url;
             });

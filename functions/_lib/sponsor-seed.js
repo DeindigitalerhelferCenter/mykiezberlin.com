@@ -342,6 +342,7 @@ export async function seedSponsors(database) {
   await applyMosqueFolderFix(database);
   await applyOwnFirmsFix(database);
   await applyOwnFirmsByNameFix(database);
+  await applyRestoreOptimizedFix(database);
 }
 
 // 2026-11-14 (owner): test story "Yeni Aziziye Camii" (Rudow, Neukölln) – the AI had chosen "tuerkei" because of the
@@ -632,6 +633,23 @@ async function applyOwnFirmsByNameFix(database) {
     extra.own = true;
     return database.prepare(`UPDATE ads SET extra = ?, updated_at = ? WHERE id = ?`).bind(JSON.stringify(extra), now, row.id);
   });
+  ops.push(database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now));
+  await database.batch(ops);
+}
+
+// 2026-11-17 (owner): "Büyük resimleri küçült" made 102 pictures white – the originals (JPEGs without end marker)
+// could not be drawn in the browser. Every picture goes back to its original file (still in R2, nothing was deleted).
+// The white -opt files stay in R2 unused. Runs once.
+async function applyRestoreOptimizedFix(database) {
+  const id = "fix:2026-11-17-restore-opt";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  const now = Date.now();
+  await database.prepare(`CREATE TABLE IF NOT EXISTS media_optimized (id TEXT, old_key TEXT, new_key TEXT, old_bytes INTEGER, new_bytes INTEGER, created_at INTEGER)`).run();
+  const { results } = await database.prepare(`SELECT id, old_key, new_key, old_bytes FROM media_optimized`).all();
+  const ops = results.map((r) => database
+    .prepare(`UPDATE sponsor_media SET media_key = ?, bytes = ? WHERE id = ? AND media_key = ?`)
+    .bind(r.old_key, Number(r.old_bytes) || 0, r.id, r.new_key));
+  ops.push(database.prepare(`UPDATE media_optimized SET new_key = new_key || ' (restored)' WHERE new_key NOT LIKE '% (restored)'`));
   ops.push(database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now));
   await database.batch(ops);
 }

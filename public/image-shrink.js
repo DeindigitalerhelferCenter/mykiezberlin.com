@@ -28,6 +28,18 @@
     });
   }
 
+  // 2026-11-17: true when the canvas is one flat colour (picture could not be drawn – e.g. JPEG without end marker)
+  function flat(c) {
+    try {
+      var s = document.createElement("canvas"); s.width = 24; s.height = 24;
+      var x = s.getContext("2d"); x.drawImage(c, 0, 0, 24, 24);
+      var d = x.getImageData(0, 0, 24, 24).data, min = 255, max = 0;
+      for (var i = 0; i < d.length; i += 4) { var v = (d[i] + d[i + 1] + d[i + 2]) / 3; if (v < min) min = v; if (v > max) max = v; }
+      return max - min < 6;
+    } catch (e) { return true; }
+  }
+  window.mkCanvasIsFlat = flat;
+
   window.mkShrinkCanvas = function (img) {
     var w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
     var k = Math.min(1, MAX_SIDE / Math.max(w, h));
@@ -38,6 +50,7 @@
     ctx.fillStyle = "#fff"; // transparent PNGs get a white background in JPEG
     ctx.fillRect(0, 0, c.width, c.height);
     ctx.drawImage(img, 0, 0, c.width, c.height);
+    if (flat(c)) return Promise.reject(new Error("empty")); // never upload a white picture
     return encode(c);
   };
 
@@ -46,7 +59,8 @@
     return load(file).then(function (r) {
       var w = r.img.naturalWidth, h = r.img.naturalHeight;
       if (file.size < SMALL && Math.max(w, h) <= MAX_SIDE) { URL.revokeObjectURL(r.url); return file; }
-      return window.mkShrinkCanvas(r.img).then(function (blob) {
+      var ready = r.img.decode ? r.img.decode() : Promise.resolve();
+      return ready.then(function () { return window.mkShrinkCanvas(r.img); }).then(function (blob) {
         URL.revokeObjectURL(r.url);
         if (!blob || blob.size >= file.size) return file; // never bigger than before
         var ext = blob.type === "image/webp" ? "webp" : "jpg";

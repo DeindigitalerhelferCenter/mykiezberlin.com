@@ -204,9 +204,22 @@ export async function onRequestPost({ request, env }) {
     // ---------- 2026-11-17 (owner): big sponsor pictures made smaller (they slowed down web and app) ----------
     // adminMediaBig -> pictures in R2 that are bigger than 300 KB; adminMediaReplace {id, data} -> the admin browser
     // sends a smaller WebP/JPEG (data URL). The original file stays in R2, the row only points to the new file.
+    // 2026-11-17: every made-smaller picture back to its original file
+    if (action === "adminMediaRestore") {
+      await database.prepare(`CREATE TABLE IF NOT EXISTS media_optimized (id TEXT, old_key TEXT, new_key TEXT, old_bytes INTEGER, new_bytes INTEGER, created_at INTEGER)`).run();
+      const { results } = await database.prepare(`SELECT id, old_key, new_key, old_bytes FROM media_optimized`).all();
+      let n = 0;
+      for (const r of results) {
+        const key = String(r.new_key).replace(/ \(restored\)$/, "");
+        const res = await database.prepare(`UPDATE sponsor_media SET media_key = ?, bytes = ? WHERE id = ? AND media_key = ?`).bind(r.old_key, Number(r.old_bytes) || 0, r.id, key).run();
+        n += (res.meta && res.meta.changes) || 0;
+      }
+      return json({ ok: true, restored: n });
+    }
     if (action === "adminMediaBig") {
+      await database.prepare(`CREATE TABLE IF NOT EXISTS media_optimized (id TEXT, old_key TEXT, new_key TEXT, old_bytes INTEGER, new_bytes INTEGER, created_at INTEGER)`).run();
       const { results } = await database
-        .prepare(`SELECT m.id, m.ad_id, m.media_key, m.bytes, a.name FROM sponsor_media m LEFT JOIN ads a ON a.id = m.ad_id WHERE m.media_type = 'image' AND m.media_key LIKE 'ads/%' AND m.media_key NOT LIKE '%-opt.%' ORDER BY m.created_at DESC LIMIT 300`)
+        .prepare(`SELECT m.id, m.ad_id, m.media_key, m.bytes, a.name FROM sponsor_media m LEFT JOIN ads a ON a.id = m.ad_id WHERE m.media_type = 'image' AND m.media_key LIKE 'ads/%' AND m.media_key NOT LIKE '%-opt.%' AND m.id NOT IN (SELECT id FROM media_optimized) ORDER BY m.created_at DESC LIMIT 300`)
         .all();
       const big = [];
       for (const m of results) {
@@ -224,6 +237,8 @@ export async function onRequestPost({ request, env }) {
       if (!m) return json({ error: "bad_request" }, 400);
       const bin = Uint8Array.from(atob(m[2]), (c) => c.charCodeAt(0));
       if (bin.length > 1.5 * 1024 * 1024) return json({ error: "file_too_large" }, 413);
+      // 2026-11-17: a real photo is never below 8 KB – tiny files are empty/white pictures (broken original)
+      if (bin.length < 8 * 1024 && (Number(row.bytes) || 0) > 100 * 1024) return json({ error: "looks_empty" }, 422);
       const ext = m[1] === "image/webp" ? "webp" : "jpg";
       const key = String(row.media_key).replace(/\.[a-z0-9]+$/i, "") + `-opt.${ext}`;
       await env.BUCKET.put(key, bin, { httpMetadata: { contentType: m[1] } });
