@@ -6,6 +6,7 @@ import { CAT_KEYS } from "../_lib/story-cats.js";
 import { cleanupOldRequests, KEEP_DAYS, REPLY_KINDS, REQUEST_COLUMNS, replyTemplate, resendWelcome, sendReply, shapeRequest } from "../_lib/ad-requests.js";
 import { mailReady } from "../_lib/mail.js";
 import { countTrust } from "../_lib/story-guard.js";
+import { telegramDeleteStory } from "../_lib/telegram.js";
 
 const TABLES = { story: "stories", post: "reporter_posts", comment: "reporter_comments", submission: "submissions" };
 
@@ -182,6 +183,7 @@ export async function onRequestPost({ request, env }) {
   } else if (action === "reject") {
     await database.prepare(`UPDATE ${table} SET status = 'rejected' WHERE id = ?`).bind(id).run();
     if (type === "story") await countTrust(database, id, "rejected").catch(() => {});
+    if (type === "story") await telegramDeleteStory(env, database, id); // 2026-11-19: also out of the Telegram channel
   } else if (action === "extend" && type === "story") {
     await database.prepare(`UPDATE stories SET duration_hours = duration_hours + ? WHERE id = ?`).bind(Math.min(Number(body.hours) || 48, 720), id).run();
   } else if (action === "edit" && type === "story") {
@@ -216,6 +218,7 @@ export async function onRequestPost({ request, env }) {
       // 2026-11-13: admin stories can have several pictures/videos
       for (const m of type === "story" ? storyMediaList(row) : row?.media_key ? [{ key: row.media_key }] : []) await env.BUCKET.delete(m.key).catch(() => {});
     }
+    if (type === "story") await telegramDeleteStory(env, database, id); // 2026-11-19: also out of the Telegram channel
     await database.prepare(`DELETE FROM ${table} WHERE id = ?`).bind(id).run();
   } else {
     return json({ error: "bad_action" }, 400);

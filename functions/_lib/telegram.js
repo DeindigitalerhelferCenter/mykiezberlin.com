@@ -38,16 +38,20 @@ async function call(env, method, body) {
     body: JSON.stringify({ chat_id: env.TELEGRAM_CHAT_ID, parse_mode: "HTML", ...body }),
   });
   const data = await res.json().catch(() => ({}));
-  return Boolean(res.ok && data && data.ok);
+  if (!(res.ok && data && data.ok)) return false;
+  // 2026-11-19 (owner): remember the Telegram message id, so a story deleted on the site is deleted in the channel too
+  return (data.result && data.result.message_id) || true;
 }
 
 /** Posts one story; picture / video with caption, otherwise text. Falls back to text when the media fails. */
 export async function postStory(env, story) {
   const text = caption(story);
   const media = story.media_key ? `${SITE}/media/${story.media_key}` : "";
-  if (media && story.media_type === "video" && (await call(env, "sendVideo", { video: media, caption: text, supports_streaming: true }))) return true;
-  if (media && story.media_type !== "video" && (await call(env, "sendPhoto", { photo: media, caption: text }))) return true;
-  return call(env, "sendMessage", { text, disable_web_page_preview: false });
+  let r = false;
+  if (media && story.media_type === "video") r = await call(env, "sendVideo", { video: media, caption: text, supports_streaming: true });
+  if (!r && media && story.media_type !== "video") r = await call(env, "sendPhoto", { photo: media, caption: text });
+  if (!r) r = await call(env, "sendMessage", { text, disable_web_page_preview: false });
+  return r; // false, true or the message id
 }
 
 async function ensureTables(database) {
@@ -55,6 +59,7 @@ async function ensureTables(database) {
     database.prepare(`CREATE TABLE IF NOT EXISTS telegram_state (key TEXT PRIMARY KEY, value TEXT)`),
     database.prepare(`CREATE TABLE IF NOT EXISTS telegram_sent (story_id TEXT PRIMARY KEY, sent_at INTEGER, ok INTEGER)`),
   ]);
+  await database.prepare(`ALTER TABLE telegram_sent ADD COLUMN message_id INTEGER`).run().catch(() => {}); // 2026-11-19: exists already -> ignored
 }
 
 /** Called with waitUntil from GET /api/stories. Never throws. */
@@ -82,9 +87,28 @@ export async function telegramSweep(env, database) {
       // mark first, so a slow Telegram answer never leads to a double post
       await database.prepare(`INSERT OR IGNORE INTO telegram_sent (story_id, sent_at, ok) VALUES (?, ?, 0)`).bind(story.id, now).run();
       const ok = await postStory(env, story).catch(() => false);
-      if (ok) await database.prepare(`UPDATE telegram_sent SET ok = 1 WHERE story_id = ?`).bind(story.id).run();
+      if (ok) await database.prepare(`UPDATE telegram_sent SET ok = 1, message_id = ? WHERE story_id = ?`).bind(typeof ok === "number" ? ok : null, story.id).run();
     }
   } catch (e) {
     // Telegram must never break the story list
+  }
+}
+
+/**
+ * 2026-11-19 (owner): a story the admin deletes or rejects on the site is deleted in the Telegram channel too.
+ * Stories that simply run out stay in the channel (archive). A bot may delete its own channel posts
+ * with the "Post Messages" right (Telegram allows this for 48 h after posting). Never throws.
+ */
+export async function telegramDeleteStory(env, database, storyId) {
+  try {
+    if (!telegramReady(env) || !database || !storyId) return false;
+    await ensureTables(database);
+    const row = await database.prepare(`SELECT message_id FROM telegram_sent WHERE story_id = ?`).bind(storyId).first();
+    if (!row || !row.message_id) return false;
+    const done = await call(env, "deleteMessage", { message_id: row.message_id });
+    await database.prepare(`UPDATE telegram_sent SET ok = ? WHERE story_id = ?`).bind(done ? 2 : 3, storyId).run(); // 2 deleted, 3 delete failed
+    return Boolean(done);
+  } catch (e) {
+    return false;
   }
 }
