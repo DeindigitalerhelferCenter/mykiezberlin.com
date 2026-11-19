@@ -32,6 +32,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
@@ -216,30 +218,29 @@ fun AdminScreen(
                     FilledTonalButton(
                         onClick = onOpenWebAdmin,
                         shape = RoundedCornerShape(8.dp),
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                        modifier = Modifier.padding(end = 4.dp)
+                        contentPadding = PaddingValues(0.dp),
+                        modifier = Modifier.padding(end = 4.dp).width(40.dp).height(36.dp)
                     ) {
-                        Text("🌐 Web", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        // 2026-11-19: icon only – with the text the title had no room left ("Ad")
+                        Text("🌐", fontSize = 15.sp, modifier = Modifier.semantics { contentDescription = "Web-Admin" })
                     }
                     // Story planner: many stories with their own start / end time
                     FilledTonalButton(
                         onClick = { showStoryPlanner = true },
                         shape = RoundedCornerShape(8.dp),
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                        modifier = Modifier.padding(end = 4.dp)
+                        contentPadding = PaddingValues(0.dp),
+                        modifier = Modifier.padding(end = 4.dp).width(40.dp).height(36.dp)
                     ) {
-                        Text("📅 Plan", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text("📅", fontSize = 15.sp, modifier = Modifier.semantics { contentDescription = "Story-Planer" })
                     }
                     // Small + Story button
                     FilledTonalButton(
                         onClick = { showAdminCreateStoryDialog = true },
                         shape = RoundedCornerShape(8.dp),
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                        modifier = Modifier.padding(end = 4.dp)
+                        contentPadding = PaddingValues(0.dp),
+                        modifier = Modifier.padding(end = 4.dp).width(40.dp).height(36.dp)
                     ) {
-                        Icon(imageVector = Icons.Default.Add, contentDescription = null, modifier = Modifier.size(14.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(if (language == AppLanguage.TURKISH) "+ Story" else "+ Story", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Icon(imageVector = Icons.Default.Add, contentDescription = "+ Story", modifier = Modifier.size(18.dp))
                     }
 
                     // Logout Button with Confirmation
