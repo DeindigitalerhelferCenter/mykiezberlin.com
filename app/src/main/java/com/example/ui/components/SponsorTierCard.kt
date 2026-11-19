@@ -185,14 +185,18 @@ fun SponsorTierCard(ad: ServerAd, language: AppLanguage, size: String = ad.size,
                     }
                 }
             }
-            Spacer(Modifier.height(if (SHOW_TIER_BADGE) 26.dp else 10.dp))
-        }
-        if (SHOW_TIER_BADGE) {
-            Text(
-                tier.label, fontSize = 10.5.sp, fontWeight = FontWeight.ExtraBold, color = Color.White,
-                modifier = Modifier.align(Alignment.BottomEnd).padding(end = 10.dp, bottom = 6.dp)
-                    .clip(RoundedCornerShape(50)).background(tier.color).padding(horizontal = 9.dp, vertical = 2.dp)
-            )
+            // 2026-11-19 (owner): the badge was drawn over the card and covered the Route button
+            // (fixed 26 dp space was too small). It now has its own row under the buttons, right aligned.
+            if (SHOW_TIER_BADGE) {
+                Row(Modifier.fillMaxWidth().padding(start = 12.dp, end = 10.dp, top = 6.dp, bottom = 8.dp), horizontalArrangement = Arrangement.End) {
+                    Text(
+                        tier.label, fontSize = 10.5.sp, fontWeight = FontWeight.ExtraBold, color = Color.White,
+                        modifier = Modifier.clip(RoundedCornerShape(50)).background(tier.color).padding(horizontal = 9.dp, vertical = 2.dp)
+                    )
+                }
+            } else {
+                Spacer(Modifier.height(10.dp))
+            }
         }
     }
 }
