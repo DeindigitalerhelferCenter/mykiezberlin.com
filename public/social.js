@@ -14,6 +14,9 @@
     // 2026-11-19 (owner): TikTok open; YouTube opens tonight – "" shows a grey "bald / yakında" button
     tiktok: "https://www.tiktok.com/@mykiezberlin",
     youtube: "",
+    // 2026-11-19 (owner): Telegram channel + WhatsApp channel – the buttons appear as soon as a link is filled in
+    telegram: "",
+    waChannel: "",
   };
 
   var css = document.createElement("style");
@@ -40,6 +43,8 @@
       '<a class="mk-s-btn mk-s-tt" href="' + S.tiktok + '" target="_blank" rel="noopener"><i class="bi bi-tiktok"></i> TikTok</a>' +
       (S.youtube ? '<a class="mk-s-btn mk-s-yt" href="' + S.youtube + '" target="_blank" rel="noopener"><i class="bi bi-youtube"></i> YouTube</a>'
         : '<span class="mk-s-btn mk-s-yt mk-s-soon" title="YouTube – bald · yakında"><i class="bi bi-youtube"></i> YouTube · ' + (lang() === "tr" ? "yakında" : "bald") + "</span>") +
+      (S.telegram ? '<a class="mk-s-btn mk-s-tg" href="' + S.telegram + '" target="_blank" rel="noopener"><i class="bi bi-telegram"></i> Telegram</a>' : "") +
+      (S.waChannel ? '<a class="mk-s-btn mk-s-wac" href="' + S.waChannel + '" target="_blank" rel="noopener"><i class="bi bi-megaphone-fill"></i> ' + (lang() === "tr" ? "WhatsApp Kanalı" : "WhatsApp-Kanal") + "</a>" : "") +
       "</div>";
   }
 
@@ -57,6 +62,7 @@
     ".mk-sr-b{flex:none;width:36px;height:36px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff!important;font-size:17px;text-decoration:none;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.22);cursor:pointer;padding:0}" +
     ".mk-sr-b.wa{background:#25D366}.mk-sr-b.ig{background:radial-gradient(circle at 30% 107%,#fdf497 0%,#fd5949 45%,#d6249f 60%,#285AEB 90%)}" +
     ".mk-sr-b.fb{background:#1877F2}.mk-sr-b.tt{background:#010101}.mk-sr-b.yt{background:#FF0000}.mk-sr-b.yt.soon{opacity:.45;cursor:default}" +
+    ".mk-sr-b.tg{background:#229ED9}.mk-sr-b.wac{background:#128C7E}.mk-s-tg{background:#229ED9}.mk-s-wac{background:#128C7E}" +
     ".mk-sr-b.inf{background:#0F766E;font-weight:900;font-family:Georgia,serif;font-style:italic}" +
     ".mk-spin{animation:mkSpin .45s cubic-bezier(.4,0,.2,1)}@keyframes mkSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}" +
     "@media (prefers-reduced-motion:reduce){.mk-spin{animation:none}}" +
@@ -82,6 +88,8 @@
       b("tt", S.tiktok, "bi-tiktok", "TikTok") +
       (S.youtube ? b("yt", S.youtube, "bi-youtube", "YouTube")
         : '<span class="mk-sr-b yt soon" title="YouTube – ' + (tr ? "yakında" : "bald") + '" aria-label="YouTube – ' + (tr ? "yakında" : "bald") + '"><i class="bi bi-youtube"></i></span>') +
+      (S.telegram ? b("tg", S.telegram, "bi-telegram", "Telegram") : "") +
+      (S.waChannel ? b("wac", S.waChannel, "bi-megaphone-fill", tr ? "WhatsApp Kanalı" : "WhatsApp-Kanal") : "") +
       '<button type="button" class="mk-sr-b inf" data-mk-sr-info title="' + (tr ? "Bilgi – Paylaş" : "Info – Mitmachen") + '" aria-label="Info">i</button>' +
       "</div>";
   }

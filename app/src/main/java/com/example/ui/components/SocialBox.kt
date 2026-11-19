@@ -67,6 +67,9 @@ object MkSocial {
     // 2026-11-19 (owner): TikTok is open; YouTube opens tonight – "" shows a grey "bald / yakında" button
     const val TIKTOK = "https://www.tiktok.com/@mykiezberlin"
     const val YOUTUBE = ""
+    // 2026-11-19 (owner): Telegram channel + WhatsApp channel – the buttons appear as soon as a link is filled in
+    const val TELEGRAM = ""
+    const val WA_CHANNEL = ""
 
     /** Opens the link in the Facebook / Instagram / WhatsApp / TikTok / YouTube app when installed, else in the browser. */
     fun open(context: Context, url: String) {
@@ -74,7 +77,8 @@ object MkSocial {
         val pkg = when {
             url.contains("instagram.com") -> "com.instagram.android"
             url.contains("facebook.com") -> "com.facebook.katana"
-            url.contains("wa.me") -> "com.whatsapp"
+            url.contains("wa.me") || url.contains("whatsapp.com/channel") -> "com.whatsapp"
+            url.contains("t.me/") || url.contains("telegram.me") -> "org.telegram.messenger"
             url.contains("tiktok.com") -> "com.zhiliaoapp.musically"
             url.contains("youtube.com") || url.contains("youtu.be") -> "com.google.android.youtube"
             else -> null
@@ -119,6 +123,10 @@ fun SocialButtonsRow() {
             SocialButton("♪  TikTok", Brush.linearGradient(listOf(Color(0xFF010101), Color(0xFF25F4EE).copy(alpha = 0.55f), Color(0xFFFE2C55))), Modifier.weight(1f)) { MkSocial.open(context, MkSocial.TIKTOK) }
             if (MkSocial.YOUTUBE.isNotBlank()) SocialButton("▶  YouTube", Brush.linearGradient(listOf(Color(0xFFFF0000), Color(0xFFCC0000))), Modifier.weight(1f)) { MkSocial.open(context, MkSocial.YOUTUBE) }
             else SocialButton("▶  YouTube · bald", Brush.linearGradient(listOf(Color(0xFF9CA3AF), Color(0xFF9CA3AF))), Modifier.weight(1f)) { }
+        }
+        if (MkSocial.TELEGRAM.isNotBlank() || MkSocial.WA_CHANNEL.isNotBlank()) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (MkSocial.TELEGRAM.isNotBlank()) SocialButton("✈  Telegram", Brush.linearGradient(listOf(Color(0xFF229ED9), Color(0xFF229ED9))), Modifier.weight(1f)) { MkSocial.open(context, MkSocial.TELEGRAM) }
+            if (MkSocial.WA_CHANNEL.isNotBlank()) SocialButton("📣  WhatsApp-Kanal", Brush.linearGradient(listOf(Color(0xFF128C7E), Color(0xFF128C7E))), Modifier.weight(1f)) { MkSocial.open(context, MkSocial.WA_CHANNEL) }
         }
     }
 }
@@ -170,6 +178,8 @@ fun SocialRoundRow(modifier: Modifier = Modifier) {
         SocialBubble("f", Brush.linearGradient(listOf(Color(0xFF1877F2), Color(0xFF1877F2))), "Facebook", symbolSize = 20) { MkSocial.open(context, MkSocial.FACEBOOK) }
         SocialBubble("♪", Brush.linearGradient(listOf(Color(0xFF010101), Color(0xFF333333))), "TikTok", symbolSize = 19) { MkSocial.open(context, MkSocial.TIKTOK) }
         SocialBubble("▶", Brush.linearGradient(listOf(Color(0xFFFF0000), Color(0xFFCC0000))), if (MkSocial.YOUTUBE.isBlank()) "YouTube – bald" else "YouTube", enabled = MkSocial.YOUTUBE.isNotBlank(), symbolSize = 14) { MkSocial.open(context, MkSocial.YOUTUBE) }
+        if (MkSocial.TELEGRAM.isNotBlank()) SocialBubble("✈", Brush.linearGradient(listOf(Color(0xFF229ED9), Color(0xFF229ED9))), "Telegram", symbolSize = 17) { MkSocial.open(context, MkSocial.TELEGRAM) }
+        if (MkSocial.WA_CHANNEL.isNotBlank()) SocialBubble("📣", Brush.linearGradient(listOf(Color(0xFF128C7E), Color(0xFF128C7E))), "WhatsApp-Kanal", symbolSize = 16) { MkSocial.open(context, MkSocial.WA_CHANNEL) }
         SocialBubble("i", Brush.linearGradient(listOf(Color(0xFF0F766E), Color(0xFF0F766E))), "Info – Mitmachen · Paylaş", symbolSize = 18) { info = true }
     }
     if (info) {

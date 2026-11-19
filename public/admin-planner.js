@@ -61,7 +61,7 @@ function renderPlannerSection() {
       <b>⚡ Otomatik dağıt (toplu)</b>
       <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: end;">
         <label style="display: grid; gap: 2px;">Başlangıç günü<input id="planner-day" type="date" class="form-control" value="${today}"></label>
-        <label style="display: grid; gap: 2px; flex: 1; min-width: 220px;">Saatler (virgülle, dakikaya kadar)<input id="planner-times" class="form-control" value="09:00, 12:00, 15:00, 18:00, 21:00"></label>
+        <label style="display: grid; gap: 2px; flex: 1; min-width: 220px;">Saatler (virgülle, dakikaya kadar)<input id="planner-times" class="form-control" value="07:30, 12:00, 18:00, 20:30"></label>
         <label style="display: grid; gap: 2px; width: 110px;">Süre (saat)<input id="planner-hours" type="number" min="1" max="720" class="form-control" value="24"></label>
         <button class="chip-btn active" onclick="plannerDistribute()">Dağıt</button>
       </div>

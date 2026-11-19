@@ -66,7 +66,10 @@ fun KiezWebScreen(url: String, onBack: () -> Unit, adminToken: String = "") {
                         val scheme = target.scheme.orEmpty()
                         val host = target.host.orEmpty()
                         val external = scheme in listOf("tel", "mailto", "whatsapp", "intent") ||
-                            host.endsWith("stripe.com") || host == "wa.me" || host.endsWith("instagram.com")
+                            host.endsWith("stripe.com") || host == "wa.me" || host.endsWith("instagram.com") ||
+                            // 2026-11-19: own social channels open in their apps, not inside the page
+                            host.endsWith("tiktok.com") || host.endsWith("facebook.com") || host == "t.me" || host.endsWith("whatsapp.com") ||
+                            host.endsWith("youtube.com") || host == "youtu.be"
                         if (!external) return false
                         return try {
                             view.context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, target))

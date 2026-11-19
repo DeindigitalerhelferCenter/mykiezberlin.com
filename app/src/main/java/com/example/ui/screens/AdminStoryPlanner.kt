@@ -238,7 +238,7 @@ fun AdminStoryPlanner(onDismiss: () -> Unit) {
     var tab by remember { mutableIntStateOf(0) }
     // Auto distribution
     var dayStart by remember { mutableLongStateOf(Calendar.getInstance().apply { set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0) }.timeInMillis) }
-    var times by remember { mutableStateOf("09:00, 12:00, 15:00, 18:00, 21:00") }
+    var times by remember { mutableStateOf("07:30, 12:00, 18:00, 20:30") } // 2026-11-19 (owner): best Berlin times
     var hours by remember { mutableStateOf("24") }
     var allKiez by remember { mutableStateOf("") }
     var allKind by remember { mutableStateOf("") }

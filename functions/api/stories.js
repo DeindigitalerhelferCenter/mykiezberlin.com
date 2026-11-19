@@ -1,5 +1,6 @@
 // Shared Kiez stories: public list and moderated submissions.
 import { safeLink } from "../_lib/blocklist.js";
+import { telegramSweep } from "../_lib/telegram.js";
 import { aiCheck, cleanDevice, cleanupStoryMedia, dailyLimited, dailyUsed, isTrusted, USER_DAILY_LIMIT } from "../_lib/story-guard.js";
 import { STORY_CATS, aiStoryCats, catsOf, dealFromText, storyCats } from "../_lib/story-cats.js";
 import { cleanLongText, cleanOverlay, cleanText, cleanupExpiredStories, db, ipHash, isAdmin, json, noDb, rateLimited, sha256Hex, parseDeal, storyDeal, storyMediaList, storyTextKey, validAuthor } from "../_lib/util.js";
@@ -49,6 +50,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   if (params.get("cats")) return json({ cats: STORY_CATS }, 200, { "cache-control": "public, max-age=3600" });
   waitUntil(cleanupExpiredStories(env));
   waitUntil(cleanupStoryMedia(env, database).catch(() => {})); // 2026-11-14: rejected / long-waiting media
+  waitUntil(telegramSweep(env, database)); // 2026-11-19 (owner): new live stories -> Telegram channel
   const now = Date.now();
   const { results } = await database
     .prepare(`SELECT id, headline, subtext, kiez, kind, author, media_key, media_type, media_extra, overlay, deal, duration_hours, approved_at, link, cats FROM stories WHERE status = 'approved' AND approved_at <= ? AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT 60`)
