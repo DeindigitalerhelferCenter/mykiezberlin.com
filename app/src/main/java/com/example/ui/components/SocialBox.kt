@@ -68,7 +68,7 @@ object MkSocial {
     const val TIKTOK = "https://www.tiktok.com/@mykiezberlin"
     const val YOUTUBE = ""
     // 2026-11-19 (owner): Telegram channel + WhatsApp channel – the buttons appear as soon as a link is filled in
-    const val TELEGRAM = ""
+    const val TELEGRAM = "https://t.me/mykiezberlin"
     const val WA_CHANNEL = ""
 
     /** Opens the link in the Facebook / Instagram / WhatsApp / TikTok / YouTube app when installed, else in the browser. */

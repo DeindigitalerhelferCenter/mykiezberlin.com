@@ -15,7 +15,7 @@
     tiktok: "https://www.tiktok.com/@mykiezberlin",
     youtube: "",
     // 2026-11-19 (owner): Telegram channel + WhatsApp channel – the buttons appear as soon as a link is filled in
-    telegram: "",
+    telegram: "https://t.me/mykiezberlin",
     waChannel: "",
   };
 
