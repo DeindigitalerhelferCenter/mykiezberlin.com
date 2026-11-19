@@ -165,7 +165,30 @@
     container.innerHTML = parts.join("");
     if (typeof window.mkRegisterAds === "function" && window.mkAllAds) window.mkRegisterAds(window.mkAllAds);
     setTimeout(function () { if (window.mkSeenIn) window.mkSeenIn(container); }, 300);
+    setTimeout(function () { markSoloBoxes(container); }, 50);
+    setTimeout(function () { markSoloBoxes(container); }, 800); // again after story-folders.js / social.js added their parts
   };
+
+  // 2026-11-19 (owner): a box that stands alone in its row (next block is full width) left half the row empty.
+  // Such a box now takes the full width (PC only, two-column grid).
+  function markSoloBoxes(container) {
+    if (!container || !window.matchMedia || !window.matchMedia("(min-width:768px)").matches) return;
+    var kids = Array.prototype.slice.call(container.children);
+    kids.forEach(function (k) { k.classList.remove("mk-deck-solo"); });
+    // a block made full width can leave the next block alone -> repeat until nothing changes
+    for (var pass = 0; pass < 12; pass++) { if (!soloPass(container, kids)) break; }
+  }
+  function soloPass(container, kids) {
+    var changed = false;
+    kids.forEach(function (k) {
+      if (changed || k.classList.contains("mk-deck-solo")) return;
+      if (!k.classList.contains("mk-deck-box") && !k.classList.contains("ext-manset") && !k.classList.contains("ext-quick")) return;
+      var top = k.offsetTop;
+      var partner = kids.some(function (o) { return o !== k && o.offsetHeight > 0 && Math.abs(o.offsetTop - top) < 4; });
+      if (!partner && k.offsetWidth < container.clientWidth * 0.7) { k.classList.add("mk-deck-solo"); changed = true; }
+    });
+    return changed;
+  }
 
   // ---- page "Alle Sponsoren": every sponsor (Premium → Plus → Basic), filter by Kiez and category
   var filterKiez = "all", filterCat = "all";
@@ -216,6 +239,16 @@
        (big empty windows); Premium takes the full width and is the biggest card */
     "@media(min-width:768px){.main-content>.mk-deck-box,.main-content>.mk-deck-sponsor{align-self:start;margin:0}" +
     ".main-content>.mk-deck-sponsor-l,.main-content>.mk-deck-all{grid-column:1/-1}" +
-    ".mk-deck-sponsor-l .mk-sp.mk-sz-l{min-height:300px}.mk-deck-sponsor-l .mk-sz-l .mk-sz-pic{flex:0 0 min(55%,700px)}}";
+    ".mk-deck-sponsor-l .mk-sp.mk-sz-l{min-height:300px}.mk-deck-sponsor-l .mk-sz-l .mk-sz-pic{flex:0 0 min(55%,700px)}}" +
+    /* 2026-11-19 (owner): tall Plus/Basic cards in one column left ~600 px empty space next to the short boxes.
+       On the PC every home sponsor card now takes the full width, picture left + text right (low card). */
+    "@media(min-width:768px){.main-content>.mk-deck-sponsor{grid-column:1/-1}" +
+    ".mk-deck-sponsor .mk-sp.mk-sz-m,.mk-deck-sponsor .mk-sp.mk-sz-s{flex-direction:row;align-items:stretch}" +
+    ".mk-deck-sponsor .mk-sz-m .mk-sz-pic,.mk-deck-sponsor .mk-sz-s .mk-sz-pic{flex:0 0 min(42%,520px);margin:0;border-radius:0;align-self:stretch;display:flex;align-items:center;justify-content:center}" +
+    ".mk-deck-sponsor .mk-sz-m .mk-sz-pic img,.mk-deck-sponsor .mk-sz-s .mk-sz-pic img{height:auto!important;object-fit:contain!important;aspect-ratio:1200/630}}" +
+    /* 2026-11-19: dark #111 picture box showed a black strip under the banner when the text side was taller */
+    "@media(min-width:768px){.mk-deck-sponsor .mk-sz-m .mk-sz-pic,.mk-deck-sponsor .mk-sz-s .mk-sz-pic{background:transparent;align-self:center}" +
+    ".main-content>.mk-deck-box.mk-deck-solo,.main-content>.ext-manset.mk-deck-solo,.main-content>.mk-i-manset{grid-column:1/-1}" +
+    ".main-content>.ext-quick.mk-deck-solo{grid-column:1/-1;grid-template-columns:repeat(6,1fr)}}";
   document.head.appendChild(css);
 })();

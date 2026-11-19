@@ -167,10 +167,11 @@
       base.apply(this, arguments);
       if (!container) return;
       loadWeather();
-      container.insertAdjacentHTML("afterbegin", '<div id="mk-clock" class="mk-clock"></div>');
+      // 2026-11-19: renderHomeTab can be wrapped twice (social.js wraps it again) -> add clock + button only once
+      if (!container.querySelector("#mk-clock")) container.insertAdjacentHTML("afterbegin", '<div id="mk-clock" class="mk-clock"></div>');
       paintClock();
       var all = container.querySelector(".mk-deck-all");
-      var trb = turkeyButton();
+      var trb = container.querySelector(".mk-tr-btn") ? "" : turkeyButton();
       if (trb) {
         if (all) all.insertAdjacentHTML("afterend", trb);
         else container.insertAdjacentHTML("beforeend", trb);
