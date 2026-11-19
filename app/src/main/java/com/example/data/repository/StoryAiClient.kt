@@ -20,7 +20,9 @@ data class StoryAiResult(
     val subtext: String,
     val kiez: String,
     val kind: String,
-    val link: String
+    val link: String,
+    // 2026-11-19: date printed on the picture (YYYY-MM-DD, today or later), "" when there is none
+    val date: String = ""
 )
 
 /**
@@ -58,7 +60,8 @@ object StoryAiClient {
                 subtext = json.optString("subtext"),
                 kiez = json.optString("kiez"),
                 kind = json.optString("kind"),
-                link = json.optString("link")
+                link = json.optString("link"),
+                date = json.optString("date")
             )
         }
     }

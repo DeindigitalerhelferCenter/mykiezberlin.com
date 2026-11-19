@@ -71,11 +71,26 @@ export function germanPart(text) {
   return String(text || "").split(/🇹🇷/u)[0].split(" · ")[0].trim();
 }
 
+/** 2026-11-19: German text after the 🇩🇪 marker (up to a following 🇹🇷), "" when there is no marker. */
+export function germanAfterFlag(text) {
+  const t = String(text || "");
+  const i = t.search(/🇩🇪/u);
+  if (i < 0) return "";
+  return t.slice(i).replace(/🇩🇪/u, "").split(/🇹🇷/u)[0].trim();
+}
+
 export async function aiStoryCats(env, headline, subtext, kiez = "") {
   if (!env || !env.AI) return [];
   const list = STORY_CATS.map((c) => `${c.key} = ${c.de}`).join("; ");
-  const title = germanPart(headline) || String(headline || "");
-  const body = String(subtext || "").split(/🇹🇷/u)[0].trim() || String(subtext || ""); // text: only cut the Turkish part
+  let title = germanPart(headline) || String(headline || "");
+  let body = String(subtext || "").split(/🇹🇷/u)[0].trim() || String(subtext || ""); // text: only cut the Turkish part
+  // 2026-11-19: new order from /api/story-ai = Turkish first, German after "🇩🇪" (headline "TR · DE")
+  const de = germanAfterFlag(subtext);
+  if (de) {
+    body = de;
+    const parts = String(headline || "").split(" · ");
+    title = (parts.length > 1 ? parts[parts.length - 1] : parts[0]).trim() || title;
+  }
   const prompt = `Ordne diesen Beitrag der Berliner Nachbarschafts-App "My Kiez Berlin" 1 bis 3 Ordnern zu, wichtigster zuerst.
 Ordner: ${list}.
 Regeln: "angebote" nur bei einem echten Preis oder Rabatt. "sponsoren" nur bei Werbung eines Geschäfts. "eil" nur bei akuten Warnungen/Störungen.

@@ -13,8 +13,9 @@ kiezData.kieze.forEach((k) => String(k.postalCodes || "").split(/[^\d]+/).filter
 
 const PROMPT = `Du bist Redakteur der Berliner Lokal-App "My Kiez Berlin". Lies ALLES, was auf dem Bild steht (Überschriften, Datum, Uhrzeit, Ort, Preise, Webadressen) und beschreibe, was zu sehen ist.
 Antworte NUR mit JSON, ohne Erklärung, genau in dieser Form:
-{"headline_de":"…","headline_tr":"…","text_de":"…","text_tr":"…","place":"…","kind":"…","link":"…"}
+{"headline_de":"…","headline_tr":"…","text_de":"…","text_tr":"…","place":"…","kind":"…","link":"…","date":"…"}
 Regeln:
+- date: das Datum der Veranstaltung / des Angebots, das auf dem Bild steht, als JJJJ-MM-TT (fehlt das Jahr, nimm ${new Date().getFullYear()}). Steht kein Datum auf dem Bild: "".
 - headline_de / headline_tr: kurze Schlagzeile (max. 60 Zeichen), Deutsch bzw. Türkisch.
 - text_de / text_tr: 2–3 Sätze mit den wichtigsten Fakten vom Bild (was, wann, wo). Nichts erfinden.
 - place: Berliner Kiez oder Ort vom Bild, sonst "".
@@ -148,13 +149,30 @@ export async function onRequestPost({ request, env }) {
     hTr = clean(h, 70);
     tTr = clean(t, 400);
   }
-  // Story fields: headline max 120, text max 500 – German first, then Turkish
-  const headline = fit([hDe, hTr].filter(Boolean).join(" · "), 120);
-  const half = 245;
-  const subtext = [tDe && fit(tDe, half), tTr && "🇹🇷 " + fit(tTr, half)].filter(Boolean).join("\n\n").slice(0, 500);
+  // Story fields: headline max 120, text max 500.
+  // 2026-11-19 (owner, "very important"): Turkish FIRST, German after it (was German first).
+  // The German part is marked with 🇩🇪 so _lib/story-cats.js still finds it for the folder choice.
+  const headline = fit([hTr, hDe].filter(Boolean).join(" · "), 120);
+  const half = 240;
+  const subtext = [tTr && "🇹🇷 " + fit(tTr, half), tDe && "🇩🇪 " + fit(tDe, half)].filter(Boolean).join("\n\n").slice(0, 500);
   const kind = KINDS.includes(String(data.kind || "").toLowerCase()) ? String(data.kind).toLowerCase() : "news";
   return json({
     headline, subtext, kiez: matchKiez(clean(data.place, 60), [data.place, data.text_de, data.headline_de, raw].join(" ")), place: clean(data.place, 60), kind, link: webLink(data.link),
     headline_de: hDe, headline_tr: hTr, text_de: tDe, text_tr: tTr, model: used,
+    date: pictureDate(data.date),
   });
+}
+
+// 2026-11-19 (owner): date printed on the picture -> the planner moves the story to that day.
+// Only today or later counts (a past date keeps today), and not more than one year ahead.
+function pictureDate(value) {
+  const m = String(value || "").match(/(\d{4})-(\d{1,2})-(\d{1,2})/) || String(value || "").match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+  if (!m) return "";
+  const [y, mo, d] = m[1].length === 4 ? [+m[1], +m[2], +m[3]] : [+m[3], +m[2], +m[1]];
+  if (mo < 1 || mo > 12 || d < 1 || d > 31) return "";
+  const berlinToday = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" }); // YYYY-MM-DD
+  const iso = `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  const oneYearLater = `${+berlinToday.slice(0, 4) + 1}${berlinToday.slice(4)}`;
+  if (iso < berlinToday || iso > oneYearLater) return "";
+  return iso;
 }

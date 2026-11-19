@@ -9,6 +9,22 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -48,13 +64,19 @@ object MkSocial {
     const val PHONE = "+49 176 40556109"
     const val MAIL = "info@mykiezberlin.com"
     val WHATSAPP = "https://wa.me/$WA_NUMBER?text=" + Uri.encode("Hallo My Kiez Berlin! · Merhaba My Kiez Berlin!")
+    // 2026-11-19 (owner): TikTok is open; YouTube opens tonight – "" shows a grey "bald / yakında" button
+    const val TIKTOK = "https://www.tiktok.com/@mykiezberlin"
+    const val YOUTUBE = ""
 
-    /** Opens the link in the Facebook / Instagram / WhatsApp app when installed, else in the browser. */
+    /** Opens the link in the Facebook / Instagram / WhatsApp / TikTok / YouTube app when installed, else in the browser. */
     fun open(context: Context, url: String) {
+        if (url.isBlank()) return
         val pkg = when {
             url.contains("instagram.com") -> "com.instagram.android"
             url.contains("facebook.com") -> "com.facebook.katana"
             url.contains("wa.me") -> "com.whatsapp"
+            url.contains("tiktok.com") -> "com.zhiliaoapp.musically"
+            url.contains("youtube.com") || url.contains("youtu.be") -> "com.google.android.youtube"
             else -> null
         }
         val uri = Uri.parse(url)
@@ -92,6 +114,70 @@ fun SocialButtonsRow() {
             SocialButton("📸 Instagram", Brush.linearGradient(listOf(Color(0xFFFEDA75), Color(0xFFFA7E1E), Color(0xFFD62976), Color(0xFF962FBF), Color(0xFF4F5BD5))), Modifier.weight(1f)) { MkSocial.open(context, MkSocial.INSTAGRAM) }
             SocialButton("f  Facebook", Brush.linearGradient(listOf(Color(0xFF1877F2), Color(0xFF1877F2))), Modifier.weight(1f)) { MkSocial.open(context, MkSocial.FACEBOOK) }
         }
+        // 2026-11-19 (owner): TikTok + YouTube (YouTube grey until the channel is open)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            SocialButton("♪  TikTok", Brush.linearGradient(listOf(Color(0xFF010101), Color(0xFF25F4EE).copy(alpha = 0.55f), Color(0xFFFE2C55))), Modifier.weight(1f)) { MkSocial.open(context, MkSocial.TIKTOK) }
+            if (MkSocial.YOUTUBE.isNotBlank()) SocialButton("▶  YouTube", Brush.linearGradient(listOf(Color(0xFFFF0000), Color(0xFFCC0000))), Modifier.weight(1f)) { MkSocial.open(context, MkSocial.YOUTUBE) }
+            else SocialButton("▶  YouTube · bald", Brush.linearGradient(listOf(Color(0xFF9CA3AF), Color(0xFF9CA3AF))), Modifier.weight(1f)) { }
+        }
+    }
+}
+
+/** One round social bubble: brand colour + white symbol; spins 360° before the app opens (owner 2026-11-19). */
+@Composable
+private fun SocialBubble(symbol: String, background: Brush, description: String, enabled: Boolean = true, symbolSize: Int = 17, onOpen: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    val angle = remember { Animatable(0f) }
+    Box(
+        Modifier
+            .size(38.dp)
+            .graphicsLayer { rotationZ = angle.value; alpha = if (enabled) 1f else 0.45f }
+            .shadow(3.dp, CircleShape)
+            .clip(CircleShape)
+            .background(background)
+            .border(2.dp, Color.White, CircleShape)
+            .semantics { contentDescription = description }
+            .clickable(enabled = enabled) {
+                scope.launch {
+                    angle.snapTo(0f)
+                    angle.animateTo(360f, tween(450, easing = FastOutSlowInEasing))
+                    onOpen()
+                    angle.snapTo(0f)
+                }
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(symbol, color = Color.White, fontWeight = FontWeight.Black, fontSize = symbolSize.sp)
+    }
+}
+
+/**
+ * 2026-11-19 (owner): round social buttons right above the story circles, always visible at the top of the home page.
+ * WhatsApp · Instagram · Facebook · TikTok · YouTube (grey until open) · ⓘ (opens the "Mitmachen · Paylaş" text).
+ * The full box at the end of the page stays.
+ */
+@Composable
+fun SocialRoundRow(modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    var info by remember { mutableStateOf(false) }
+    Row(
+        modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        SocialBubble("✆", Brush.linearGradient(listOf(Color(0xFF25D366), Color(0xFF1EBE5A))), "WhatsApp") { MkSocial.open(context, MkSocial.WHATSAPP) }
+        SocialBubble("◎", Brush.linearGradient(listOf(Color(0xFFFEDA75), Color(0xFFFA7E1E), Color(0xFFD62976), Color(0xFF962FBF), Color(0xFF4F5BD5))), "Instagram", symbolSize = 19) { MkSocial.open(context, MkSocial.INSTAGRAM) }
+        SocialBubble("f", Brush.linearGradient(listOf(Color(0xFF1877F2), Color(0xFF1877F2))), "Facebook", symbolSize = 20) { MkSocial.open(context, MkSocial.FACEBOOK) }
+        SocialBubble("♪", Brush.linearGradient(listOf(Color(0xFF010101), Color(0xFF333333))), "TikTok", symbolSize = 19) { MkSocial.open(context, MkSocial.TIKTOK) }
+        SocialBubble("▶", Brush.linearGradient(listOf(Color(0xFFFF0000), Color(0xFFCC0000))), if (MkSocial.YOUTUBE.isBlank()) "YouTube – bald" else "YouTube", enabled = MkSocial.YOUTUBE.isNotBlank(), symbolSize = 14) { MkSocial.open(context, MkSocial.YOUTUBE) }
+        SocialBubble("i", Brush.linearGradient(listOf(Color(0xFF0F766E), Color(0xFF0F766E))), "Info – Mitmachen · Paylaş", symbolSize = 18) { info = true }
+    }
+    if (info) {
+        AlertDialog(
+            onDismissRequest = { info = false },
+            confirmButton = { TextButton(onClick = { info = false }) { Text("OK") } },
+            text = { Column(Modifier.verticalScroll(rememberScrollState())) { SocialBox() } }
+        )
     }
 }
 

@@ -84,6 +84,25 @@ private class PlanRow(val key: Int, val uri: Uri?, val isVideo: Boolean) {
     fun overlay(): com.example.data.model.StoryOverlay? =
         if (ovText.isBlank()) null else com.example.data.model.StoryOverlay(ovText.trim().take(400), ovX, ovY, ovSize, ovColor, ovBox)
     var aiError by mutableStateOf("")
+    var aiDate by mutableStateOf("") // 2026-11-19: "dd.MM.yyyy" when the day came from the picture
+}
+
+/**
+ * 2026-11-19 (owner): a date printed on the picture moves the story to that day (same clock time, same duration).
+ * The server only sends today or later; no date -> the day stays. Same as plannerDateFromPicture on the web.
+ */
+private fun dateFromPicture(row: PlanRow, iso: String) {
+    val m = Regex("""^(\d{4})-(\d{2})-(\d{2})$""").find(iso.trim()) ?: return
+    if (row.start <= 0L) return
+    val length = if (row.end > row.start) row.end - row.start else 24 * 3600_000L
+    val cal = java.util.Calendar.getInstance().apply {
+        timeInMillis = row.start
+        set(m.groupValues[1].toInt(), m.groupValues[2].toInt() - 1, m.groupValues[3].toInt())
+    }
+    if (cal.timeInMillis < System.currentTimeMillis()) return
+    row.start = cal.timeInMillis
+    row.end = row.start + length
+    row.aiDate = "${m.groupValues[3]}.${m.groupValues[2]}.${m.groupValues[1]}"
 }
 
 /** Fills empty fields from the picture / video frame (force = overwrite, the ✨ button). */
@@ -97,6 +116,7 @@ private suspend fun aiFill(context: Context, row: PlanRow, force: Boolean) {
         if ((force || row.link.isBlank()) && r.link.isNotBlank()) row.link = r.link
         if (r.kiez.isNotBlank() && (force || row.kiez.isBlank() || row.kiez == "Ganz Berlin")) row.kiez = r.kiez
         if (r.kind.isNotBlank() && (force || row.kind.isBlank() || row.kind == "news")) row.kind = r.kind
+        dateFromPicture(row, r.date)
         row.ai = "ok"
     } catch (e: Exception) {
         row.ai = "error"
@@ -424,7 +444,7 @@ private fun PlanRowCard(index: Int, row: PlanRow, onAi: () -> Unit, onRemove: ()
                         row.ai == "busy" -> "✨ KI resmi okuyor…"
                         row.ai == "error" -> "KI: ${row.aiError}"
                         else -> "${maxOf(1L, (row.end - row.start + HOUR - 1) / HOUR)} saat yayında"
-                    },
+                    } + (if (row.aiDate.isNotBlank() && row.status != "error") " · 📅 Tarih resimden: ${row.aiDate}" else ""),
                     color = Color(0xFF8B949E), fontSize = 11.sp, modifier = Modifier.weight(1f)
                 )
                 if (row.uri != null) TextButton(onClick = onAi, enabled = row.ai != "busy", contentPadding = PaddingValues(4.dp)) {

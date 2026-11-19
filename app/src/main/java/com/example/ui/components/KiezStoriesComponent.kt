@@ -102,6 +102,8 @@ fun KiezStoriesBar(
 
         StoryFolderChips(visibleStories, language) // 2026-11-14 (owner): folders + follow
 
+        SocialRoundRow() // 2026-11-19 (owner): own social media as round buttons right above the story circles
+
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)

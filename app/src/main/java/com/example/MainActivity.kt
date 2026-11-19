@@ -436,7 +436,9 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                 )
 
                 AppScreen.COMMUNITY -> com.example.ui.screens.KiezWebScreen(
-                    url = "https://mykiezberlin.com/community/?lang=" + if (uiState.language == AppLanguage.TURKISH) "tr" else "de",
+                    // 2026-11-19: theme=light|dark – the page follows the app's day/night switch, not the phone's system theme
+                    url = "https://mykiezberlin.com/community/?lang=" + (if (uiState.language == AppLanguage.TURKISH) "tr" else "de") +
+                        "&theme=" + (if (uiState.isDarkMode) "dark" else "light"),
                     onBack = { viewModel.navigateTo(AppScreen.HOME) }
                 )
 

@@ -31,3 +31,6 @@ textarea { min-height: 84px; resize: vertical; }
 .foot a { color: var(--muted); font-size: 13px; }
 .toast { position: fixed; left: 12px; right: 12px; bottom: 16px; z-index: 50; max-width: 460px; margin: 0 auto; padding: 12px; border-radius: 10px; background: #14171a; color: #fff; text-align: center; opacity: 0; pointer-events: none; transition: opacity .2s; }
 .toast.show { opacity: 1; }
+/* 2026-11-19: theme chosen in the app (?theme=light|dark) wins over the phone's system theme */
+:root[data-mk-theme="light"] { --bg: #f4f5f7; --card: #fff; --text: #14171a; --muted: #5f6b76; --line: #dfe3e8; color-scheme: light; }
+:root[data-mk-theme="dark"] { --bg: #0f1216; --card: #1a1f25; --text: #eef1f4; --muted: #9aa5b1; --line: #2c343d; color-scheme: dark; }

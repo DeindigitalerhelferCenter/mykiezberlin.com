@@ -184,18 +184,21 @@ fun AdminScreen(
             TopAppBar(
                 title = {
                     Column {
+                        // 2026-11-19: the long title was squeezed into one letter per line ("M / y") next to the
+                        // Web / Plan / Story buttons -> short title, one line each
                         Text(
-                            text = if (language == AppLanguage.TURKISH) "My Kiez Berlin Admin" else "My Kiez Berlin Admin",
+                            text = "Admin",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
+                            fontSize = 16.sp,
+                            maxLines = 1,
+                            softWrap = false
                         )
                         Text(
-                            text = if (language == AppLanguage.TURKISH)
-                                "Onay Bekleyen: ${pendingStories.size} · Yayında: ${approvedStories.size}"
-                            else
-                                "Zu prüfen: ${pendingStories.size} · Online: ${approvedStories.size}",
+                            text = "⏳ ${pendingStories.size} · ✅ ${approvedStories.size}",
                             fontSize = 11.sp,
-                            color = Color(0xFFA9B3BC)
+                            color = Color(0xFFA9B3BC),
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                 },
@@ -256,7 +259,8 @@ fun AdminScreen(
                     titleContentColor = Color.White
                 )
             )
-        }
+        },
+        containerColor = Color(0xFF141B22) // 2026-11-19: no white strip under the dark admin list
     ) { paddingValues ->
         // ENTIRE ADMIN DASHBOARD IN ONE SINGLE LAZYCOLUMN - NOTHING IS FIXED!
         // When admin scrolls, header and menus scroll up naturally, giving 100% of the screen to stories!

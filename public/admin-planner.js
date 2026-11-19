@@ -122,6 +122,20 @@ function plannerFrame(row) {
   });
 }
 
+// 2026-11-19 (owner): a date printed on the picture moves the story to that day (same clock time, same duration).
+// The server only sends today or a later date; no date on the picture -> the day stays as it is.
+function plannerDateFromPicture(row, iso) {
+  const m = String(iso || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m || !row.start) return;
+  const length = row.end > row.start ? row.end - row.start : 24 * 3600000;
+  const d = new Date(row.start);
+  d.setFullYear(+m[1], +m[2] - 1, +m[3]);
+  if (d.getTime() < Date.now()) return; // today and the time is already over -> keep the planned start
+  row.start = d.getTime();
+  row.end = row.start + length;
+  row.aiDate = `${m[3]}.${m[2]}.${m[1]}`;
+}
+
 async function plannerAiFill(row, force) {
   if (!row || !row.file || !plannerRows.includes(row)) return;
   row.ai = "busy";
@@ -139,6 +153,7 @@ async function plannerAiFill(row, force) {
     if (force || !row.link.trim()) row.link = data.link || row.link;
     if (data.kiez && (force || !row.kiez.trim() || row.kiez === "Ganz Berlin")) row.kiez = data.kiez;
     if (data.kind && (force || !row.kind.trim() || row.kind === "news")) row.kind = data.kind;
+    plannerDateFromPicture(row, data.date);
     row.ai = "ok";
   } catch (e) {
     row.ai = "error";
@@ -316,7 +331,7 @@ function renderPlannerRows() {
           <label style="display: grid; gap: 2px; flex: 1;">⏹️ Bitiş<input type="datetime-local" class="form-control" value="${toLocalInput(row.end)}" onchange="plannerSet(${row.key}, 'end', this.value)"></label>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="color: #8b949e;">${row.status === "ok" ? "✅ Planlandı" : row.status === "error" ? `❌ ${adminEsc(row.error || "Hata")}` : row.status === "busy" ? "⏳ Yükleniyor…" : row.ai === "busy" ? "✨ KI resmi okuyor…" : row.ai === "error" ? `KI: ${adminEsc(row.aiError || "Fehler")} · ` + `${Math.max(1, Math.ceil((row.end - row.start) / 3600000))} saat yayında` : `${Math.max(1, Math.ceil((row.end - row.start) / 3600000))} saat yayında`}</span>
+          <span style="color: #8b949e;">${row.status === "ok" ? "✅ Planlandı" : row.status === "error" ? `❌ ${adminEsc(row.error || "Hata")}` : row.status === "busy" ? "⏳ Yükleniyor…" : row.ai === "busy" ? "✨ KI resmi okuyor…" : row.ai === "error" ? `KI: ${adminEsc(row.aiError || "Fehler")} · ` + `${Math.max(1, Math.ceil((row.end - row.start) / 3600000))} saat yayında` : `${Math.max(1, Math.ceil((row.end - row.start) / 3600000))} saat yayında`}${row.aiDate ? ` · 📅 Tarih resimden: ${adminEsc(row.aiDate)}` : ""}</span>
           <span style="display: flex; gap: 5px;">
             ${row.file ? `<button class="chip-btn" title="Resimden yeniden doldur" onclick="plannerAiButton(${row.key})">${row.ai === "busy" ? "⏳ KI…" : row.ai === "ok" ? "✨ KI ✓" : row.ai === "error" ? `✨ KI ✗` : "✨ KI"}</button>` : ""}
             <button class="chip-btn" onclick="plannerStartNow(${row.key})">▶️ Şimdi</button>

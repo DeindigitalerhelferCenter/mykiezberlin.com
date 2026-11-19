@@ -5,7 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Community &amp; Kleinanzeigen – My Kiez Berlin</title>
   <meta name="description" content="Beiträge, Antworten und kostenlose Kleinanzeigen aus den Berliner Kiezen.">
-  <link rel="stylesheet" href="community.css">
+  <link rel="stylesheet" href="community.css?v=2">
+  <script>
+    // 2026-11-19: ?theme=light|dark (sent by the app) wins over the phone's system theme; kept for this visit
+    (function () { try { var t = new URLSearchParams(location.search).get("theme"); if (t === "light" || t === "dark") sessionStorage.setItem("mk_theme", t); else t = sessionStorage.getItem("mk_theme"); if (t === "light" || t === "dark") document.documentElement.setAttribute("data-mk-theme", t); } catch (e) {} })();
+  </script>
 </head>
 <body>
   <header class="top">
