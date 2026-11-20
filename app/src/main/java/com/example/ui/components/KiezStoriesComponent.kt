@@ -1599,11 +1599,12 @@ fun StoryCreateDialog(
 
                 OutlinedTextField(
                     value = subtext,
-                    onValueChange = { subtext = if (isAdminWriter) it.take(10000) else it },
+                    onValueChange = { subtext = if (isAdminWriter) it.take(10000) else it.take(1500) },
                     label = { Text(if (language == AppLanguage.TURKISH) "Detaylı Metin (DEVAM OKU ile okunur)" else "Ausführlicher Text (für DEVAM OKU)") },
-                    minLines = if (isAdminWriter) 4 else 1,
-                    maxLines = if (isAdminWriter) 14 else 4,
-                    supportingText = if (isAdminWriter) ({ Text("Admin: ${subtext.length} / 10.000", fontSize = 11.sp) }) else null,
+                    minLines = if (isAdminWriter) 4 else 2,
+                    maxLines = if (isAdminWriter) 14 else 8,
+                    // 2026-11-20 (owner): users up to 1500 characters, with counter
+                    supportingText = if (isAdminWriter) ({ Text("Admin: ${subtext.length} / 10.000", fontSize = 11.sp) }) else ({ Text("${subtext.length} / 1500", fontSize = 11.sp) }),
                     modifier = Modifier.fillMaxWidth()
                 )
 

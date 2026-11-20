@@ -824,7 +824,7 @@ function openCreateStoryModal() {
         <button class="btn-icon-circle" onclick="document.getElementById('create-story-modal').remove()"><i class="bi bi-x-lg"></i></button>
       </div>
       <div class="form-group"><label class="form-label">${esc(tr("Titel", "Başlık"))}</label><input id="new-story-headline" class="form-control" maxlength="120"></div>
-      <div class="form-group"><label class="form-label">${esc(tr("Beschreibung", "Açıklama"))}</label><textarea id="new-story-subtext" class="form-control" rows="3" maxlength="500"></textarea></div>
+      <div class="form-group"><label class="form-label">${esc(tr("Beschreibung", "Açıklama"))}</label><textarea id="new-story-subtext" class="form-control" rows="5" maxlength="1500" oninput="var c=document.getElementById('new-story-subtext-count');if(c)c.textContent=this.value.length+' / '+this.maxLength"></textarea><div id="new-story-subtext-count" style="font-size:11px;opacity:.7;text-align:right">0 / 1500</div></div>
       <div class="form-group"><label class="form-label">${esc(tr("Story-Art", "Hikâye türü"))}</label><select id="new-story-kind" class="form-control">${STORY_KINDS.map((k) => `<option value="${k}">${esc(kinds[k])}</option>`).join("")}</select></div>
       <div class="form-group"><label class="form-label">Kiez</label><select id="new-story-kiez" class="form-control">${kiezOptions}<option value="Ganz Berlin">Ganz Berlin</option></select></div>
       <div class="form-group"><label class="form-label">${esc(tr("Laufzeit", "Süre"))}</label><select id="new-story-duration" class="form-control"><option value="24">24 h</option><option value="48">48 h</option></select></div>

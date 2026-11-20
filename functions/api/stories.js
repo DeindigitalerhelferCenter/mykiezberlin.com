@@ -69,7 +69,8 @@ export async function onRequestPost({ request, env }) {
   // 2026-11-14 (owner): the admin may write (almost) without limit – title 300, text 10.000 characters, line breaks stay.
   const admin = await isAdmin(request, env);
   const headline = cleanText(form.get("headline"), admin ? 300 : 120);
-  const subtext = cleanLongText(form.get("subtext"), admin ? 10000 : 500);
+  // 2026-11-20 (owner): users may write 3x more (1500 instead of 500) and everybody reads the full text.
+  const subtext = cleanLongText(form.get("subtext"), admin ? 10000 : 1500);
   const kiez = cleanText(form.get("kiez"), 60);
   const kind = KINDS.includes(form.get("kind")) ? form.get("kind") : "news";
   // Name of the person who shares (needed for the weekly Kiez-Stars)

@@ -232,10 +232,54 @@ object LiveAlertsRepository {
                         )
                     )
                 }
+                // 2026-11-20 (owner): "Kiez-Redaktion" topic stories (web: topic-stories.js) also in the app, at the end
+                result.addAll(fetchTopicStories().filter { t -> result.none { it.id == t.id } })
                 return@withContext result
             }
         } catch (e: Exception) {
             Log.d(TAG, "Remote stories notice: ${e.message}")
+        }
+        emptyList()
+    }
+
+    /** 2026-11-20 (owner): /api/topic-stories – current Berlin topics + berlin.de events by the "Kiez-Redaktion". */
+    suspend fun fetchTopicStories(): List<KiezStory> = withContext(Dispatchers.IO) {
+        try {
+            val req = Request.Builder()
+                .url("https://mykiezberlin.com/api/topic-stories")
+                .header("User-Agent", "MyKiezBerlin-Android/2.0")
+                .build()
+            httpClient.newCall(req).execute().use { resp ->
+                if (!resp.isSuccessful) return@withContext emptyList()
+                val arr = JSONObject(resp.body?.string() ?: "{}").optJSONArray("stories") ?: return@withContext emptyList()
+                val now = System.currentTimeMillis()
+                return@withContext (0 until arr.length()).mapNotNull { i ->
+                    val o = arr.optJSONObject(i) ?: return@mapNotNull null
+                    val id = o.optString("id", "")
+                    if (id.isBlank() || o.optString("headline", "").isBlank()) return@mapNotNull null
+                    val image = o.optString("image", "")
+                    KiezStory(
+                        id = id,
+                        headline = o.optString("headline", ""),
+                        subtext = o.optString("subtext", ""),
+                        kind = o.optString("kind", "event"),
+                        headlineColor = "rot",
+                        kiez = o.optString("kiez", "Berlin"),
+                        author = o.optString("author", "Kiez-Redaktion"),
+                        timeAgo = "",
+                        source = "Kiez-Redaktion",
+                        link = LinkGuard.safe(o.optString("link", "")).ifBlank { "https://mykiezberlin.com" },
+                        mediaUri = if (image.startsWith("https://mykiezberlin.com/")) image else null,
+                        isVideo = false,
+                        durationHours = 24,
+                        status = "approved",
+                        createdAtMillis = now,
+                        cats = com.example.ui.components.parseStoryCats(o.optJSONArray("cats"))
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, "Topic stories notice: ${e.message}")
         }
         emptyList()
     }
