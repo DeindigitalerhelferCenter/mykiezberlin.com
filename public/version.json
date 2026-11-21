@@ -1,16 +1,16 @@
 {
-  "versionCode": 35,
-  "versionName": "1.34",
+  "versionCode": 50,
+  "versionName": "1.49",
   "apkUrl": "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin.com.apk",
   "mandatory": false,
   "notes": {
-    "de": "Neu: 7 neue Sponsoren, Sponsoren aus der Türkei, Teilen-Button für jeden Betrieb, Uhr & Wetter, Story-Ordner mit Benachrichtigung, Info-Fenster (ⓘ) und größere Schlagzeilen.",
-    "tr": "Yeni: 7 yeni sponsor, Türkiye sponsorları, her işletme için paylaş butonu, saat & hava durumu, bildirimli hikâye klasörleri, bilgi pencereleri (ⓘ) ve daha büyük manşetler.",
-    "en": "New: 7 new sponsors, sponsors from Turkey, share button for every business, clock & weather, story folders with notifications, info windows (ⓘ) and bigger headlines."
+    "de": "Neu: Kiez-Suche (alles in deinem Kiez), News-Storys mit Text im Bild, Sponsoren-Storys, Angebote auf einen Blick, Kleinanzeigen mit Bildern, Black Friday für Betriebe, freundlichere Story-Prüfung mit Verbesserungsvorschlägen.",
+    "tr": "Yeni: Mahalle araması (mahallendeki her şey), resmin içinde metinli haber hikâyeleri, sponsor hikâyeleri, indirimler tek bakışta, resimli ilanlar, işletmeler için Black Friday, öneri veren daha anlayışlı hikâye kontrolü.",
+    "en": "New: Kiez search (everything in your Kiez), news stories with text in the picture, sponsor stories, deals at a glance, classifieds with pictures, Black Friday for businesses, friendlier story check with suggestions."
   },
   "beta": {
-    "versionCode": 48,
-    "versionName": "1.47",
+    "versionCode": 50,
+    "versionName": "1.49",
     "apkUrl": "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin-test.apk",
     "notes": {
       "de": "Testversion – nur für das Admin-Handy.",
