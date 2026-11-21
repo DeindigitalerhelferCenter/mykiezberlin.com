@@ -6,7 +6,8 @@
 //   JSON {action:"edit", slot, id, title_de, text_de, title_tr, text_tr}
 //   JSON {action:"refresh"} -> builds the current list again (only not yet published topics are lost)
 import { cleanLongText, cleanText, db, isAdmin, json, noDb } from "../_lib/util.js";
-import { berlinSlot, buildList, ensureCurrentSlot, ensureNews, getSlot, publishItems, saveItems, TEMPLATE_COUNT } from "../_lib/news-auto.js";
+import { berlinSlot, buildList, ensureCurrentSlot, ensureNews, getSlot, newsParts, publishItems, saveItems, TEMPLATE_COUNT } from "../_lib/news-auto.js";
+import { renderNewsImage } from "../_lib/news-image.js";
 import { readFlags } from "./flags.js";
 
 const BG_TYPES = { "image/jpeg": "jpg", "image/png": "png" }; // 2026-11-22: the picture renderer reads JPEG + PNG
@@ -15,7 +16,7 @@ export async function onRequestGet({ request, env }) {
   if (!(await isAdmin(request, env))) return json({ error: "unauthorized" }, 401);
   const database = await db(env);
   if (!database) return noDb();
-  await ensureCurrentSlot(env, database);
+  await ensureCurrentSlot(env, database, { write: 3 }); // 2026-11-21: admin view also writes 3 texts per call
   const day = (berlinSlot().slot || new Date().toISOString().slice(0, 10)).slice(0, 10);
   const { results } = await database.prepare(`SELECT slot FROM news_slots WHERE slot LIKE ? ORDER BY slot DESC LIMIT 9`).bind(`${day}%`).all();
   const slots = [];
@@ -47,6 +48,33 @@ export async function onRequestPost({ request, env }) {
     return json({ ok: true, slot: cur, count: items.length });
   }
 
+  // 2026-11-21 (owner): big preview – the real picture of one topic with the chosen colour / own background and language
+  if (body.action === "preview") {
+    const s = await getSlot(database, slot);
+    const it = s && s.items.find((x) => x.id === body.id);
+    if (!it) return json({ error: "not_found" }, 404);
+    const lang = ["tr-de", "tr-en", "de", "tr"].includes(body.lang) ? body.lang : "tr-de";
+    let background = null;
+    const file = form && form.get("background");
+    if (file && typeof file !== "string" && file.size > 0 && BG_TYPES[file.type] && file.size <= 5 * 1024 * 1024) {
+      background = { bytes: new Uint8Array(await file.arrayBuffer()), mime: file.type };
+    }
+    const row = await database.prepare(`SELECT value FROM news_state WHERE id = 'theme'`).first().catch(() => null);
+    const tpl = Number(body.template) || 0;
+    const theme = tpl ? tpl - 1 : ((row ? Number(row.value) : -1) + 1) % TEMPLATE_COUNT; // rotating: the next colour
+    let logo = null;
+    try {
+      const r = await fetch(`${origin}/assets/images/mykiez_logo.png`);
+      if (r.ok) logo = { bytes: new Uint8Array(await r.arrayBuffer()), mime: "image/png" };
+    } catch (e) { logo = null; }
+    try {
+      const png = await renderNewsImage(newsParts(it, lang), { theme, logo, background });
+      return new Response(png, { headers: { "content-type": "image/png", "cache-control": "no-store" } });
+    } catch (e) {
+      return json({ error: "render_failed", detail: String((e && e.message) || e).slice(0, 120) }, 500);
+    }
+  }
+
   if (body.action === "edit") {
     const s = await getSlot(database, slot);
     const it = s && s.items.find((x) => x.id === body.id);
@@ -75,7 +103,7 @@ export async function onRequestPost({ request, env }) {
       await env.BUCKET.put(backgroundKey, await file.arrayBuffer(), { httpMetadata: { contentType: file.type } });
     }
     const res = await publishItems(env, database, slot, ids, {
-      lang: body.lang, template: Number(body.template) || 0, backgroundKey, origin,
+      lang: body.lang, template: Number(body.template) || 0, backgroundKey, origin, again: body.again === "1" || body.again === true,
       gapMinutes: Math.min(120, Math.max(0, Number(body.gapMinutes) || 0)),
     });
     return json({ ok: true, ...res });

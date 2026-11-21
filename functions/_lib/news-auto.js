@@ -73,6 +73,10 @@ export async function collectNews() {
     rss("https://www.berlin.de/polizei/polizeimeldungen/index.php/rss", "Polizei Berlin", 8),
     rss("https://www.tagesspiegel.de/contentexport/feed/berlin", "Tagesspiegel"),
     rss("https://www.berliner-zeitung.de/feed.xml", "Berliner Zeitung"),
+    // 2026-11-21 (owner): more Berlin sources (checked: RSS works)
+    rss("https://www.morgenpost.de/berlin/rss", "Berliner Morgenpost"),
+    rss("https://taz.de/!p4649;rss/", "taz Berlin"),
+    rss("https://www.berliner-kurier.de/feed.xml", "Berliner Kurier"),
   ]);
   const since = Date.now() - 12 * 3600000;
   const seen = new Set();
@@ -150,6 +154,52 @@ async function aiPick(env, news) {
 
 const cut = (s, n) => String(s || "").replace(/\s+/g, " ").trim().slice(0, n);
 
+// 2026-11-21 (owner): the list was never made – the background work (waitUntil, max. 30 s) was cut while it
+// read 6 sources, asked the AI and wrote all texts; the slot stayed claimed with an EMPTY list for ever.
+// Now in steps: 1) pickList (sources + AI choice, short texts), saved at once; 2) writeSome writes the long
+// texts of 2 topics per step; an empty or half list is taken up again by the next request.
+export async function pickList(env) {
+  const news = await collectNews();
+  const picked = await aiPick(env, news);
+  let items;
+  if (picked) {
+    items = picked.map((p) => {
+      const n = news[Number(p.i)];
+      if (!n) return null;
+      return {
+        urgent: !!p.urgent || isUrgent(n), source: n.source, url: n.url, teaser: cut(n.teaser, 400),
+        title_de: cut(p.de_title || n.title, 90), text_de: cut(p.de_text, 420), title_tr: cut(p.tr_title, 90), text_tr: cut(p.tr_text, 420), title_en: "", text_en: "", orig: cut(n.title, 160), written: false,
+      };
+    }).filter(Boolean).slice(0, NEWS_TOPICS + 3);
+  } else {
+    items = news.slice(0, NEWS_TOPICS + 3).map((n) => ({ urgent: isUrgent(n), source: n.source, url: n.url, title_de: cut(n.title, 90), text_de: "", title_tr: "", text_tr: "", orig: cut(n.title, 160), noAi: true, written: true }));
+  }
+  const urgent = items.filter((x) => x.urgent).slice(0, 3);
+  const normal = items.filter((x) => !x.urgent).slice(0, NEWS_TOPICS);
+  return [...urgent, ...normal].map((x, i) => ({ ...x, id: `n${i + 1}`, published: "" }));
+}
+
+/** Writes the long TR/DE/EN texts of up to `max` topics that are not written yet. Returns how many are still open. */
+export async function writeSome(env, items, max = 2) {
+  const todo = items.filter((x) => x.written === false).slice(0, max);
+  for (const it of todo) {
+    const article = await articleText(it.url).catch(() => "");
+    const w = await aiWrite(env, [{ source: it.source, title: it.orig, teaser: it.teaser || "", article }]).catch(() => null);
+    const x = w && w[0];
+    if (x) {
+      if (x.tr_title) it.title_tr = cut(x.tr_title, 90);
+      if (x.tr_text) it.text_tr = cut(x.tr_text, 420);
+      if (x.de_title) it.title_de = cut(x.de_title, 90);
+      if (x.de_text) it.text_de = cut(x.de_text, 420);
+      if (x.en_title) it.title_en = cut(x.en_title, 90);
+      if (x.en_text) it.text_en = cut(x.en_text, 420);
+    }
+    it.written = true; // also when the AI failed: the short texts from step 1 stay
+    delete it.teaser;
+  }
+  return items.filter((x) => x.written === false).length;
+}
+
 /** Builds one list: urgent items first (not counted), then NEWS_TOPICS items. */
 export async function buildList(env) {
   const news = await collectNews();
@@ -200,17 +250,33 @@ export async function saveItems(database, slot, items) {
 }
 
 /** Makes the list of the current slot if it does not exist yet. Returns the slot or null outside 06–22. */
-export async function ensureCurrentSlot(env, database) {
+export async function ensureCurrentSlot(env, database, opts = {}) {
   await ensureNews(database);
   const { slot } = berlinSlot();
   if (!slot) return null;
-  const have = await getSlot(database, slot);
-  if (have) return have;
-  // claim the slot first, so two requests do not build it twice
-  const claim = await database.prepare(`INSERT OR IGNORE INTO news_slots (slot, created_at, items) VALUES (?, ?, '[]')`).bind(slot, Date.now()).run();
-  if (!claim.meta || !claim.meta.changes) return getSlot(database, slot);
-  const items = await buildList(env).catch(() => []);
+  const now = Date.now();
+  let have = await getSlot(database, slot);
+  if (!have) {
+    // claim the slot first, so two requests do not build it twice
+    const claim = await database.prepare(`INSERT OR IGNORE INTO news_slots (slot, created_at, items) VALUES (?, ?, '[]')`).bind(slot, now).run();
+    if (!claim.meta || !claim.meta.changes) return getSlot(database, slot);
+    have = { slot, created_at: now, items: [], auto_done: 0 };
+  } else if (!have.items.length) {
+    // 2026-11-21: empty list (the work before was cut) -> try again after 2 minutes, one request at a time
+    if (now - have.created_at < 2 * 60000) return have;
+    const again = await database.prepare(`UPDATE news_slots SET created_at = ? WHERE slot = ? AND created_at = ? AND items = '[]'`).bind(now, slot, have.created_at).run();
+    if (!again.meta || !again.meta.changes) return have;
+  } else {
+    // list is there: write the long texts step by step
+    if (have.items.some((x) => x.written === false)) {
+      await writeSome(env, have.items, opts.write || 2);
+      await saveItems(database, slot, have.items);
+    }
+    return have;
+  }
+  const items = await pickList(env).catch(() => []);
   await saveItems(database, slot, items);
+  if (items.length && opts.write) { await writeSome(env, items, opts.write); await saveItems(database, slot, items); }
   return getSlot(database, slot);
 }
 
@@ -239,7 +305,7 @@ export async function publishItems(env, database, slot, ids, opts = {}) {
     if (obj) background = { bytes: new Uint8Array(await obj.arrayBuffer()), mime: (obj.httpMetadata && obj.httpMetadata.contentType) || "image/jpeg" };
   }
   for (const it of s.items) {
-    if (!ids.includes(it.id) || it.published) continue;
+    if (!ids.includes(it.id) || (it.published && !opts.again)) continue; // 2026-11-21: opts.again = share once more
     const p = newsParts(it, lang);
     const id = crypto.randomUUID();
     // 2026-11-22 (owner): own choice of the admin, otherwise the next colour (server counter, not "n" – was always red)
@@ -264,6 +330,7 @@ export async function publishItems(env, database, slot, ids, opts = {}) {
       .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, ip, created_at, approved_at, link, by_admin, media_hash, text_hash, media_extra, deal, cats, overlay) VALUES (?, ?, ?, ?, ?, ?, ?, 'image', 24, 'approved', '', ?, ?, ?, 1, '', '', '[]', '', ?, ?)`)
       .bind(id, p.title1, subtext.slice(0, 2000), "Ganz Berlin", it.urgent ? "warn" : "news", "My Kiez Berlin", mediaKey, now, start, it.url || "", it.urgent ? "eil,berlin" : /tagesschau$/.test(it.source) ? "deutschland" : "berlin", overlay ? JSON.stringify(overlay) : null)
       .run();
+    it.shares = [...(it.shares || (it.published ? [it.published] : [])), id];
     it.published = id;
     n++;
   }
@@ -381,12 +448,17 @@ export async function newsSweep(env, database, origin) {
   try {
     await ensureNews(database);
     const last = await database.prepare(`SELECT value FROM news_state WHERE id = 'sweep'`).first();
-    if (last && Date.now() - last.value < 5 * 60000) return;
+    // 2026-11-21: every minute while the current list is not complete, else every 5 minutes
+    const cur = berlinSlot().slot ? await getSlot(database, berlinSlot().slot) : null;
+    const busy = !cur || !cur.items.length || cur.items.some((x) => x.written === false);
+    if (last && Date.now() - last.value < (busy ? 60000 : 5 * 60000)) return;
     await database.prepare(`INSERT INTO news_state (id, value) VALUES ('sweep', ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value`).bind(Date.now()).run();
-    await upgradeOldNews(env, database, origin).catch(() => {});
-    await redrawNews(env, database, origin).catch(() => {}); // 2026-11-22: once for the older pictures
     const s = await ensureCurrentSlot(env, database);
-    if (!s || s.auto_done) return;
+    if (!busy) {
+      await upgradeOldNews(env, database, origin).catch(() => {});
+      await redrawNews(env, database, origin).catch(() => {}); // 2026-11-22: once for the older pictures
+    }
+    if (!s || s.auto_done || s.items.some((x) => x.written === false)) return;
     const flags = await readFlags(database);
     if (!flags.newsAuto || !s.items.length) return;
     const ids = [...s.items.filter((x) => x.urgent).map((x) => x.id), ...s.items.filter((x) => !x.urgent).slice(0, AUTO_COUNT).map((x) => x.id)];

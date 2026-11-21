@@ -1,6 +1,7 @@
 // Shared Kiez stories: public list and moderated submissions.
 import { safeLink } from "../_lib/blocklist.js";
 import { telegramSweep } from "../_lib/telegram.js";
+import { metaSweep } from "../_lib/meta-social.js";
 import { aiReview, reviewVerdict, swearHit, swearReview, cleanDevice, cleanupStoryMedia, dailyLimited, dailyUsed, isTrusted, USER_DAILY_LIMIT } from "../_lib/story-guard.js";
 import { STORY_CATS, aiStoryCats, catsOf, dealFromText, storyCats } from "../_lib/story-cats.js";
 import { VIP_MAX_FILES, vipFromRequest } from "../_lib/story-vip.js";
@@ -56,6 +57,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   waitUntil(cleanupExpiredStories(env));
   waitUntil(cleanupStoryMedia(env, database).catch(() => {})); // 2026-11-14: rejected / long-waiting media
   waitUntil(telegramSweep(env, database)); // 2026-11-19 (owner): new live stories -> Telegram channel
+  waitUntil(metaSweep(env, database)); // 2026-11-21 (owner): admin stories -> Facebook + Instagram (needs META_PAGE_TOKEN)
   waitUntil(newsSweep(env, database, new URL(request.url).origin)); // 2026-11-22 (owner): news lists every 2 h (+ auto mode)
   const now = Date.now();
   const { results } = await database

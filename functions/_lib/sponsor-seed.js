@@ -269,9 +269,21 @@ export const SPONSOR_SEED = [
     headline_tr: "Antalya'da araç kiralama: günlük, haftalık ve aylık – ekonomik araçtan premium SUV'a",
     headline_en: "Car rental in Antalya: daily, weekly & monthly – from economy cars to premium SUVs",
     cta_de: "WhatsApp schreiben", cta_tr: "WhatsApp yaz", cta_en: "Message on WhatsApp",
-    link_web: "https://yusufcarrental.com", link_wa: "+905350178526", link_tel: "+90 535 017 85 26", link_ig: "",
+    // 2026-11-21 (owner): new number +90 532 617 05 64, the old ones removed
+    link_web: "https://yusufcarrental.com", link_wa: "+905326170564", link_tel: "+90 532 617 05 64", link_ig: "",
     extra: { category: { de: "Autovermietung", tr: "Araç kiralama", en: "Car rental" }, address: "Antalya, Türkiye", hours: "", contact: "Yusuf Sepetci", primary: "wa", region: "tr",
-      description: "Autovermietung in Antalya. Tages-, Wochen- und Monatsmiete mit transparenten TL-Preisen. Klassen: City, Executive, Premium SUV.\nTelefon: +90 535 017 85 26 / +90 224 233 02 33" },
+      description: "Autovermietung in Antalya. Tages-, Wochen- und Monatsmiete mit transparenten TL-Preisen. Klassen: City, Executive, Premium SUV.\nTelefon / WhatsApp: +90 532 617 05 64" },
+  },
+  // ---- 2026-11-21 (owner): MAXAT Event Location, package Plus ("Yusuf Car Rental -- MAXAT.zip", cover = MAXAT - 004) ----
+  {
+    id: "maxat", plan: "m", name: "MAXAT Event Location", kieze: "Wedding",
+    headline_de: "Eventlocation in Wedding für bis zu 70 Personen: Geburtstag, Weihnachts- & Firmenfeier – ab 800 €",
+    headline_tr: "Wedding'de 70 kişiye kadar salon kiralama: doğum günü, yılbaşı ve şirket kutlaması – 800 €'dan itibaren",
+    headline_en: "Event location in Wedding for up to 70 guests: birthdays, Christmas & company parties – from €800",
+    cta_de: "WhatsApp schreiben", cta_tr: "WhatsApp yaz", cta_en: "Message on WhatsApp",
+    link_web: "", link_wa: "+491633135709", link_tel: "+49 163 3135709", link_ig: "",
+    extra: { category: { de: "Eventlocation · Raumvermietung", tr: "Salon kiralama · Etkinlik mekânı", en: "Event location · Venue hire" }, address: "Prinzenallee 86 B, 13359 Berlin", hours: "Mietzeit bis 4 Uhr morgens", primary: "wa",
+      description: "Eventlocation mitten in Berlin-Wedding für bis zu 70 Personen: Geburtstagsfeier, Weihnachtsfeier, Silvester, Firmenfeier.\nPreise (inkl. Reinigung, zzgl. 19 % MwSt.): Mo–Do 800 €, Fr & So 1.000 €, Sa 1.300 € (außer Feiertage).\nRaucherbereich · unter 18 Jahren bis 22 Uhr · sonst bis 4 Uhr morgens (Mietzeit).\nTelefon / WhatsApp: +49 163 3135709" },
   },
   {
     id: "packpress", plan: "m", name: "PackPress", kieze: "",
@@ -343,6 +355,42 @@ export async function seedSponsors(database) {
   await applyOwnFirmsFix(database);
   await applyOwnFirmsByNameFix(database);
   await applyRestoreOptimizedFix(database);
+  await applyMaxatYusufFix(database);
+}
+
+// 2026-11-21 (owner): MAXAT – all 8 pictures + 2 videos in its gallery / story folder; Yusuf Car Rental – only the new
+// number +90 532 617 05 64 (old numbers removed from the live row). Runs once.
+const MAXAT_MEDIA = [
+  ["g-maxat-1", "/assets/sponsors/gallery/maxat-1.webp", "image", "Eventlocation für Ihre Feiern 2026 · Kutlamalarınız için salon"],
+  ["g-maxat-2", "/assets/sponsors/gallery/maxat-2.webp", "image", "Prinzenallee 86 B, 13359 Berlin · +49 163 3135709"],
+  ["g-maxat-3", "/assets/sponsors/gallery/maxat-3.webp", "image", "Mitten in Berlin · Berlin'in ortasında"],
+  ["g-maxat-4", "/assets/sponsors/gallery/maxat-4.webp", "image", "Bis zu 70 Personen · 70 kişiye kadar"],
+  ["g-maxat-5", "/assets/sponsors/gallery/maxat-5.webp", "image", "Buchen Sie uns · Rezervasyon: +49 163 3135709"],
+  ["g-maxat-6", "/assets/sponsors/gallery/maxat-6.webp", "image", "Preisliste: Mo–Do 800 €, Fr & So 1.000 €, Sa 1.300 €"],
+  ["g-maxat-7", "/assets/sponsors/gallery/maxat-7.webp", "image", "MAXAT Lounge"],
+  ["g-maxat-8", "/assets/sponsors/gallery/maxat-8.webp", "image", "Cocktails & Feiern · Kokteyller ve kutlamalar"],
+  ["v-maxat-1", "/assets/sponsors/gallery/maxat-video-1.mp4", "video", "MAXAT Event Location"],
+  ["v-maxat-2", "/assets/sponsors/gallery/maxat-video-2.mp4", "video", "MAXAT Event Location"],
+];
+async function applyMaxatYusufFix(database) {
+  const id = "fix:2026-11-21-maxat-yusuf";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  await ensureSponsorTables(database);
+  const now = Date.now();
+  const ops = MAXAT_MEDIA.map(([mid, key, type, caption], i) =>
+    database.prepare(`INSERT OR IGNORE INTO sponsor_media (id, ad_id, media_key, media_type, caption, status, bytes, created_at, by_admin) VALUES (?, 'maxat', ?, ?, ?, 'live', 0, ?, 1)`)
+      .bind(mid, key, type, caption, now + i));
+  const y = SPONSOR_SEED.find((x) => x.id === "yusuf-car-rental");
+  const row = await database.prepare(`SELECT extra FROM ads WHERE id = 'yusuf-car-rental'`).first();
+  if (y && row) {
+    let extra = {};
+    try { extra = JSON.parse(row.extra || "{}") || {}; } catch (e) { extra = {}; }
+    extra.description = y.extra.description;
+    ops.push(database.prepare(`UPDATE ads SET link_wa = ?, link_tel = ?, extra = ?, updated_at = ? WHERE id = 'yusuf-car-rental'`)
+      .bind(y.link_wa, y.link_tel, JSON.stringify(extra), now));
+  }
+  ops.push(database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now));
+  await database.batch(ops);
 }
 
 // 2026-11-14 (owner): test story "Yeni Aziziye Camii" (Rudow, Neukölln) – the AI had chosen "tuerkei" because of the
