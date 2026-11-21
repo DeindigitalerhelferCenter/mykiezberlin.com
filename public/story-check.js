@@ -5,6 +5,9 @@
 (function () {
   "use strict";
   if (typeof submitUserStory !== "function") return;
+  // 2026-11-22 (owner, later): too slow – no check before sending any more (the server refuses only clear swear words)
+  var CHECK_BEFORE_SEND = false;
+  if (!CHECK_BEFORE_SEND) return;
   var baseSubmit = submitUserStory;
   var skipOnce = false;
 

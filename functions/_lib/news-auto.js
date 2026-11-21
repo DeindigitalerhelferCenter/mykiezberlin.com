@@ -214,6 +214,15 @@ export async function ensureCurrentSlot(env, database) {
   return getSlot(database, slot);
 }
 
+/** 2026-11-22 (owner): colours change by themselves – the next of the 6 themes, kept on the server (never the same twice). */
+export async function nextTheme(database) {
+  await ensureNews(database);
+  const row = await database.prepare(`SELECT value FROM news_state WHERE id = 'theme'`).first().catch(() => null);
+  const next = ((row ? Number(row.value) : -1) + 1) % TEMPLATE_COUNT;
+  await database.prepare(`INSERT INTO news_state (id, value) VALUES ('theme', ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value`).bind(next).run();
+  return next;
+}
+
 /** Publishes items of a slot as admin stories. Picture: background key (R2) or a template; text on top (overlay). */
 export async function publishItems(env, database, slot, ids, opts = {}) {
   const s = await getSlot(database, slot);
@@ -233,13 +242,15 @@ export async function publishItems(env, database, slot, ids, opts = {}) {
     if (!ids.includes(it.id) || it.published) continue;
     const p = newsParts(it, lang);
     const id = crypto.randomUUID();
-    const theme = (opts.template ? Number(opts.template) - 1 : n) % TEMPLATE_COUNT;
+    // 2026-11-22 (owner): own choice of the admin, otherwise the next colour (server counter, not "n" – was always red)
+    const theme = opts.template ? (Number(opts.template) - 1) % TEMPLATE_COUNT : await nextTheme(database);
+    it.theme = theme; it.lang = lang; if (opts.backgroundKey) it.bg = opts.backgroundKey; // for a later redraw
     // the picture with all text inside; if drawing fails: template + text layer (older way)
     let mediaKey = "";
     let overlay = null;
     try {
       const png = await renderNewsImage(p, { theme, logo, background });
-      mediaKey = `stories/news-${id}.png`;
+      mediaKey = `stories/news-${id}-v2.png`; // 2026-11-22: "-v2" = new text fitting
       await env.BUCKET.put(mediaKey, png, { httpMetadata: { contentType: "image/png" } });
     } catch (e) {
       it.renderError = String((e && e.message) || e).slice(0, 120);
@@ -295,14 +306,57 @@ export async function upgradeOldNews(env, database, origin) {
     const src = (parts.find((x) => /^Quelle: /.test(x)) || "").replace(/^Quelle: /, "");
     const texts = parts.filter((x) => x && !/^Quelle: /.test(x));
     try {
-      const png = await renderNewsImage({ title1: r.headline, title2: "", text1: texts[1] || "", text2: texts[0] || "", sourceLabel: "Kaynak / Quelle", source: src, url: r.link, urgent: r.kind === "warn" }, { theme: 1, logo });
-      const key = `stories/news-${r.id}.png`;
+      const png = await renderNewsImage({ title1: r.headline, title2: "", text1: texts[1] || "", text2: texts[0] || "", sourceLabel: "Kaynak / Quelle", source: src, url: r.link, urgent: r.kind === "warn" }, { theme: await nextTheme(database), logo }); // 2026-11-22: was always 1 (red)
+      const key = `stories/news-${r.id}-v2.png`;
       await env.BUCKET.put(key, png, { httpMetadata: { contentType: "image/png" } });
       await database.prepare(`UPDATE stories SET media_key = ?, overlay = NULL WHERE id = ?`).bind(key, r.id).run();
     } catch (e) {
       return; // drawing not possible here – keep the old picture
     }
   }
+}
+
+/** 2026-11-22 (owner): live news pictures from before get the new colours + text fitting once (a few per sweep). */
+export async function redrawNews(env, database, origin, limit = 2) {
+  if (!env.BUCKET) return 0;
+  const { results } = await database
+    .prepare(`SELECT id, headline, subtext, link, kind, media_key FROM stories WHERE status = 'approved' AND media_key LIKE 'stories/news-%.png' AND media_key NOT LIKE '%-v2.png' AND media_key NOT LIKE 'stories/news-render-check%' AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT ?`)
+    .bind(Date.now(), limit)
+    .all();
+  if (!results.length) return 0;
+  // the full texts (both languages) are in the slot lists
+  const { results: slots } = await database.prepare(`SELECT items FROM news_slots WHERE created_at > ?`).bind(Date.now() - 4 * 86400000).all();
+  const byStory = new Map();
+  for (const s of slots) { try { for (const it of JSON.parse(s.items || "[]")) if (it.published) byStory.set(it.published, it); } catch (e) { /* skip */ } }
+  const logo = await assetBytes(origin, "/assets/images/mykiez_logo.png", "image/png");
+  let done = 0;
+  for (const r of results) {
+    const it = byStory.get(r.id);
+    let p;
+    let background = null;
+    if (it) {
+      p = newsParts(it, it.lang || "tr-de");
+      if (it.bg) {
+        const obj = await env.BUCKET.get(it.bg).catch(() => null);
+        if (obj) background = { bytes: new Uint8Array(await obj.arrayBuffer()), mime: (obj.httpMetadata && obj.httpMetadata.contentType) || "image/jpeg" };
+      }
+    } else {
+      const parts = String(r.subtext || "").split("\n\n");
+      const srcLine = parts.find((x) => /^(Kaynak|Quelle)[^:]*: /.test(x)) || "";
+      const texts = parts.filter((x) => x && x !== srcLine);
+      p = { title1: r.headline, title2: "", text1: texts[0] || "", text2: texts[1] || "", sourceLabel: "Kaynak / Quelle", source: srcLine.replace(/^[^:]*: /, ""), url: r.link, urgent: r.kind === "warn" };
+    }
+    try {
+      const png = await renderNewsImage(p, { theme: await nextTheme(database), logo, background });
+      const key = `stories/news-${r.id}-v2.png`;
+      await env.BUCKET.put(key, png, { httpMetadata: { contentType: "image/png" } });
+      await database.prepare(`UPDATE stories SET media_key = ?, overlay = NULL WHERE id = ?`).bind(key, r.id).run();
+      done++;
+    } catch (e) {
+      return done; // drawing not possible here – keep the old picture
+    }
+  }
+  return done;
 }
 
 /** R2 key of a template picture (copied once from /assets/news/tpl-N.webp into R2). */
@@ -330,6 +384,7 @@ export async function newsSweep(env, database, origin) {
     if (last && Date.now() - last.value < 5 * 60000) return;
     await database.prepare(`INSERT INTO news_state (id, value) VALUES ('sweep', ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value`).bind(Date.now()).run();
     await upgradeOldNews(env, database, origin).catch(() => {});
+    await redrawNews(env, database, origin).catch(() => {}); // 2026-11-22: once for the older pictures
     const s = await ensureCurrentSlot(env, database);
     if (!s || s.auto_done) return;
     const flags = await readFlags(database);

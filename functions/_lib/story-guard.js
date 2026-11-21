@@ -5,6 +5,47 @@
 //     the admin, none rejected) go online at once when the AI check is fine; everybody else waits for the admin.
 import { storyMediaList } from "./util.js";
 
+// 2026-11-22 (owner): back to the fast way. No AI before sending. Only clear swear words (DE/TR/EN) are refused
+// at once (no AI, milliseconds). Everything else: trusted device / trusted account -> online, others -> admin.
+// The AI review still runs in the background and is only a note for the admin (sure + heavy -> back to the admin).
+const SWEAR_EXACT = [
+  // DE
+  "idiot", "idioten", "vollidiot", "fotze", "spast", "spasti", "schlampe", "penner", "kanake", "kanaken", "drecksau", "hure", "huren", "schwuchtel", "missgeburt",
+  // TR
+  "amk", "aq", "piç", "ibne", "kahpe", "salak", "yavsak", "serefsiz", "orospu", "pezevenk", "gerizekali", "gerizekalı",
+  // EN
+  "bitch", "asshole", "cunt", "whore", "slut", "retard", "bastard", "dickhead", "motherfucker", "faggot", "nigger", "nigga",
+];
+const SWEAR_START = [
+  "arschloch", "arschlöcher", "arschgeige", "wichser", "hurensohn", "fick", "missgeburt", "vollidiot",
+  "orospu", "siktir", "sikerim", "sikeyim", "siktiğim", "siktigim", "amına", "amcık", "amcik", "yavşak", "şerefsiz", "pezevenk", "gerizekalı", "götveren", "ananı",
+  "fuck", "motherfuck", "bullshit", "asshole",
+];
+const fold = (s) => String(s || "").toLowerCase().normalize("NFC").replace(/i̇/g, "i");
+const SW_EXACT = new Set(SWEAR_EXACT.map(fold));
+const SW_START = SWEAR_START.map(fold);
+
+/** The first clear swear word in the text (as written by the user) or "". */
+export function swearHit(...texts) {
+  for (const t of texts) {
+    const words = String(t || "").split(/[^\p{L}]+/u).filter(Boolean);
+    for (const w of words) {
+      const f = fold(w);
+      if (SW_EXACT.has(f) || SW_START.some((s) => f.startsWith(s))) return w;
+    }
+  }
+  return "";
+}
+
+/** The answer for a refused story (same shape as the AI review, so web + app show the word). */
+export function swearReview(word) {
+  return {
+    severity: "heavy", confidence: 1,
+    reason_de: "Bitte ohne Schimpfwörter oder Beleidigungen.", reason_tr: "Lütfen küfür ve hakaret olmadan yaz.",
+    image_problem: "", issues: [{ text: word, why_de: "Schimpfwort", why_tr: "Küfür / hakaret", suggestion: "" }],
+  };
+}
+
 export const USER_DAILY_LIMIT = 5; // stories per user and 24 hours (admin not counted)
 export const TRUST_APPROVED = 3; // approved stories needed before a device publishes directly
 const PENDING_MAX_MS = 14 * 24 * 3600000; // waiting longer than 14 days -> rejected, media removed

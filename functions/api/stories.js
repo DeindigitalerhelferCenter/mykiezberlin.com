@@ -1,7 +1,7 @@
 // Shared Kiez stories: public list and moderated submissions.
 import { safeLink } from "../_lib/blocklist.js";
 import { telegramSweep } from "../_lib/telegram.js";
-import { aiReview, reviewVerdict, cleanDevice, cleanupStoryMedia, dailyLimited, dailyUsed, isTrusted, USER_DAILY_LIMIT } from "../_lib/story-guard.js";
+import { aiReview, reviewVerdict, swearHit, swearReview, cleanDevice, cleanupStoryMedia, dailyLimited, dailyUsed, isTrusted, USER_DAILY_LIMIT } from "../_lib/story-guard.js";
 import { STORY_CATS, aiStoryCats, catsOf, dealFromText, storyCats } from "../_lib/story-cats.js";
 import { VIP_MAX_FILES, vipFromRequest } from "../_lib/story-vip.js";
 import { newsSweep } from "../_lib/news-auto.js";
@@ -66,7 +66,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   return json({ stories: results.map(({ media_extra, overlay, deal, cats, ...r }) => ({ ...r, link: safeLink(r.link), media: storyMediaList({ ...r, media_extra, overlay }), deal: parseDeal(deal), cats: catsOf({ ...r, cats, deal }) })) });
 }
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, waitUntil }) {
   const database = await db(env);
   if (!database) return noDb();
 
@@ -105,6 +105,9 @@ export async function onRequestPost({ request, env }) {
   // 2026-11-14: at most USER_DAILY_LIMIT stories per user (IP or device) in 24 hours
   const device = cleanDevice(form.get("device"));
   if (!big && (await dailyLimited(database, ip, device))) return json({ error: "daily_limit", limit: USER_DAILY_LIMIT }, 429);
+  // 2026-11-22 (owner): clear swear words are refused at once (no AI, nothing saved) – the text stays in the form
+  const swear = admin ? "" : swearHit(headline, subtext, author);
+  if (swear) return json({ error: "content_blocked", word: swear, review: swearReview(swear) }, 422);
 
   const id = crypto.randomUUID();
   let mediaKey = "";
@@ -167,18 +170,33 @@ export async function onRequestPost({ request, env }) {
 
   // 2026-11-14: AI check first (users only). Trusted device + AI "ok" -> online at once, otherwise the admin decides.
   // 2026-11-22 (owner): kinder check – only clear heavy cases are refused, light ones go to the admin
-  const review = admin ? null : await aiReview(env, headline, subtext, mediaBytes, file && typeof file !== "string" ? file.type : "").catch(() => null);
-  const check = admin ? "" : reviewVerdict(review);
+  // 2026-11-22 (owner, later): no AI wait any more – it was too slow. The AI runs afterwards (see below).
+  const review = null;
+  const check = "";
   // 2026-11-17 (owner): 18+, insults, hate, gore are never published – saved as "rejected" (admin can still see it)
   const blocked = !admin && String(check).startsWith("block:");
   // 2026-11-21: trusted person -> online at once when the AI does not block it (owner: the AI check stays)
-  const direct = !admin && !blocked && (vip ? true : check === "ok" && (await isTrusted(database, device)));
+  const direct = !admin && !blocked && (vip ? true : await isTrusted(database, device));
   const created = Date.now();
   await database
     .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, ip, created_at, media_hash, text_hash, deal, device, ai_check, approved_at, cats) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
     .bind(id, headline, subtext, kiez, kind, author, mediaKey, mediaType, durationHours, blocked ? "rejected" : direct ? "approved" : "pending", ip, created, mediaHash, textHash, deal, device, check, direct ? created : 0, catsText)
     .run();
   if (blocked) return json({ error: "content_blocked", id, review }, 422);
+  // 2026-11-22 (owner): AI review in the background – only a note for the admin; a story that went online at once
+  // (trusted device) goes back to the admin when the AI is sure it is heavy. Trusted accounts (vip) are not checked.
+  if (!admin && !vip && typeof waitUntil === "function") {
+    const mime = file && typeof file !== "string" ? file.type : "";
+    waitUntil((async () => {
+      const r = await aiReview(env, headline, subtext, mediaBytes, mime).catch(() => null);
+      const v = reviewVerdict(r);
+      if (!v) return;
+      await database.prepare(`UPDATE stories SET ai_check = ? WHERE id = ?`).bind(v, id).run();
+      if (direct && v.startsWith("block:")) {
+        await database.prepare(`UPDATE stories SET status = 'pending', approved_at = 0 WHERE id = ? AND status = 'approved'`).bind(id).run();
+      }
+    })().catch(() => {}));
+  }
   // 2026-11-21: trusted person – further pictures/videos (like the admin, max VIP_MAX_FILES per story)
   if (vip) {
     const extra = [];

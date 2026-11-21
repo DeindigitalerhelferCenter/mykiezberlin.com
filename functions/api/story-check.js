@@ -4,7 +4,12 @@
 import { cleanLongText, cleanText, db, ipHash, json, noDb } from "../_lib/util.js";
 import { aiReview, reviewVerdict } from "../_lib/story-guard.js";
 
+// 2026-11-22 (owner, later): the check before sending was too slow -> it always answers "ok" at once now
+// (also for the app v1.49, which still asks). The old code below stays but is not used.
+const CHECK_BEFORE_SEND = false;
+
 export async function onRequestPost({ request, env }) {
+  if (!CHECK_BEFORE_SEND) return json({ verdict: "ok", skipped: "off" }, 200, { "cache-control": "no-store" });
   const database = await db(env);
   if (!database) return noDb();
   await database.prepare(`CREATE TABLE IF NOT EXISTS story_checks (ip TEXT, created_at INTEGER)`).run();
