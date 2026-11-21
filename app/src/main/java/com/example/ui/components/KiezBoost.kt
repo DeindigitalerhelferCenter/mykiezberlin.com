@@ -108,7 +108,7 @@ private fun pk(language: AppLanguage, de: String, tr: String, en: String = de) =
 }
 
 object KiezBoost {
-    const val RELEASE = false
+    const val RELEASE = true // 2026-11-22 (owner): now for everybody
     @Volatile var appContext: Context? = null
     /** Screen wish from a component without navigation (MainActivity reads it). */
     val navRequest = mutableStateOf<AppScreen?>(null)
@@ -123,6 +123,20 @@ object KiezBoost {
     }
 
     fun on(context: Context): Boolean = RELEASE || KiezStorageManager.getAdminToken(context).isNotBlank()
+
+    /** 2026-11-22 (owner): new view ("Startseite", no Live-Ticker button, no clock under the stories) –
+     *  admin at once, everybody else when the admin switches "ui2" on (/api/flags). */
+    val ui2Flag = mutableStateOf(false)
+    fun ui2(context: Context): Boolean = ui2Flag.value || KiezStorageManager.getAdminToken(context).isNotBlank()
+
+    suspend fun loadFlags() = withContext(Dispatchers.IO) {
+        runCatching {
+            val c = java.net.URL("$SITE/api/flags").openConnection()
+            c.connectTimeout = 8000; c.readTimeout = 8000
+            val o = JSONObject(c.getInputStream().bufferedReader().use { it.readText() })
+            ui2Flag.value = o.optBoolean("ui2")
+        }
+    }
 
     fun openSponsorLogin(context: Context) {
         runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("$SITE/sponsor")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
@@ -296,6 +310,8 @@ fun SponsorStoriesLoader() {
         KiezBoost.init(context)
         while (true) {
             if (KiezBoost.on(context)) SponsorStoriesRepo.load()
+            KiezBoost.loadFlags()
+            BlackFridayRepo.load()
             delay(5 * 60_000L)
         }
     }
@@ -568,6 +584,90 @@ fun WerbenPopup(language: AppLanguage, onClose: () -> Unit) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { TextButton(onClick = onClose) { Text("✕", color = Color.White, fontSize = 20.sp) } }
                 Text("📣", fontSize = 44.sp)
                 WerbenCta(language)
+            }
+        }
+    }
+}
+
+
+// ---------------- 7. Black Friday (2026-11-22, owner) ----------------
+// The first 100 sponsors 3 months free, then Kiez Basic 29 / Plus 49 / Premium 89 € a month – MONATLICH KÜNDBAR.
+// Until 30.11.2026. 20 "Gründungspartner" places count as taken. Window once a day + black strip on the home page.
+
+data class BlackFridayState(val active: Boolean, val taken: Int, val left: Int, val total: Int)
+
+object BlackFridayRepo {
+    val state = mutableStateOf<BlackFridayState?>(null)
+    suspend fun load() = withContext(Dispatchers.IO) {
+        runCatching {
+            val c = java.net.URL("$SITE/api/blackfriday").openConnection()
+            c.connectTimeout = 8000; c.readTimeout = 8000
+            val o = JSONObject(c.getInputStream().bufferedReader().use { it.readText() })
+            state.value = BlackFridayState(o.optBoolean("active"), o.optInt("taken"), o.optInt("left"), o.optInt("total", 100))
+        }
+    }
+    fun shouldShowToday(context: Context): Boolean {
+        val p = context.getSharedPreferences("mk_boost", Context.MODE_PRIVATE)
+        val day = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
+        if (p.getString("bf_day", "") == day) return false
+        p.edit().putString("bf_day", day).apply()
+        return true
+    }
+}
+
+private fun bfTexts(language: AppLanguage, s: BlackFridayState) = Triple(
+    pk(language, "🖤 BLACK FRIDAY: 3 Monate GRATIS werben", "🖤 BLACK FRIDAY: 3 ay ÜCRETSİZ reklam", "🖤 BLACK FRIDAY: 3 months FREE advertising"),
+    pk(language, "${s.taken} von ${s.total} Plätzen sind schon weg – nur noch ${s.left} frei! Sichere dir jetzt deinen Platz: 3 Monate gratis, danach ab 29 €/Monat.",
+        "${s.total} yerden ${s.taken} tanesi doldu – sadece ${s.left} yer kaldı! Acele et, yerini şimdi ayırt: 3 ay ücretsiz, sonra aylık 29 €'dan başlayan fiyatlar.",
+        "${s.taken} of ${s.total} places are gone – only ${s.left} left! Claim yours now: 3 months free, then from 29 €/month."),
+    pk(language, "MONATLICH KÜNDBAR · bis 30.11.", "HER AY İPTAL EDİLEBİLİR · 30.11.'e kadar", "CANCEL MONTHLY · until 30 Nov")
+)
+
+/** Black strip on the home page. */
+@Composable
+fun BlackFridayStrip(language: AppLanguage) {
+    val s = BlackFridayRepo.state.value ?: return
+    if (!s.active) return
+    val v = glow()
+    Row(
+        Modifier.fillMaxWidth().padding(horizontal = 16.dp).glowBox(v, Gold, RoundedCornerShape(16.dp)).clip(RoundedCornerShape(16.dp))
+            .background(Brush.linearGradient(listOf(Color.Black, Color(0xFF2B2100)))).clickable { KiezBoost.werbenRequest.value = true }.padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(bfTexts(language, s).first, color = Gold, fontWeight = FontWeight.ExtraBold, fontSize = 14.sp, modifier = Modifier.weight(1f))
+        Text(pk(language, "Nur noch ${s.left} →", "Sadece ${s.left} yer →", "Only ${s.left} left →"), color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 13.sp)
+    }
+}
+
+/** Window once a day (15 s after the start). */
+@Composable
+fun BlackFridayPopupHost(language: AppLanguage) {
+    val context = LocalContext.current
+    var show by remember { mutableStateOf(false) }
+    val s = BlackFridayRepo.state.value
+    LaunchedEffect(s?.active) {
+        if (s?.active == true) {
+            delay(15_000)
+            if (BlackFridayRepo.shouldShowToday(context)) show = true
+        }
+    }
+    if (!show || s == null) return
+    val (h, t, k) = bfTexts(language, s)
+    val v = glow()
+    Dialog(onDismissRequest = { show = false }) {
+        Column(
+            Modifier.glowBox(v, Gold, RoundedCornerShape(20.dp)).clip(RoundedCornerShape(20.dp)).background(Brush.linearGradient(listOf(Color.Black, Color(0xFF1F1F1F), Color(0xFF3A2C00)))).padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { TextButton(onClick = { show = false }) { Text("✕", color = Color.White, fontSize = 18.sp) } }
+            Text(h, color = Gold, fontWeight = FontWeight.ExtraBold, fontSize = 20.sp, textAlign = TextAlign.Center)
+            Box(Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp)).background(Color(0xFF333333))) {
+                Box(Modifier.fillMaxWidth(s.taken.toFloat() / s.total.coerceAtLeast(1)).height(10.dp).background(Brush.horizontalGradient(listOf(Gold, Color(0xFFFF5722)))))
+            }
+            Text(t, color = Color.White, fontSize = 14.sp, textAlign = TextAlign.Center)
+            Box(Modifier.clip(RoundedCornerShape(20.dp)).background(Gold).padding(horizontal = 12.dp, vertical = 5.dp)) { Text(k, color = Color.Black, fontWeight = FontWeight.Black, fontSize = 12.sp) }
+            Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(Gold).clickable { show = false; KiezBoost.werbenRequest.value = true }.padding(12.dp), contentAlignment = Alignment.Center) {
+                Text(pk(language, "Jetzt Gratis-Platz sichern →", "Ücretsiz yerini hemen ayırt →", "Claim your free place →"), color = Color.Black, fontWeight = FontWeight.Black)
             }
         }
     }

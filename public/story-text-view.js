@@ -23,6 +23,21 @@
         var video = view.querySelector("video");
         if (video) mkStoryTextLayer(video, m.overlay);
       }
+      // 2026-11-22 (owner): news stories – the text is drawn on top of the picture (template / own background)
+      else if (m && !m.video && m.overlay && view) {
+        var img = view.querySelector("img.story-main-img, .story-media img, img");
+        if (img) {
+          var proxy = {
+            get parentNode() { return img.parentNode; },
+            get videoWidth() { return img.naturalWidth; }, get videoHeight() { return img.naturalHeight; },
+            get clientWidth() { return img.clientWidth; }, get clientHeight() { return img.clientHeight; },
+            get offsetLeft() { return img.offsetLeft; }, get offsetTop() { return img.offsetTop; },
+            get readyState() { return img.complete && img.naturalWidth ? 1 : 0; },
+            addEventListener: function (ev, fn) { img.addEventListener(ev === "loadedmetadata" ? "load" : ev, fn); },
+          };
+          mkStoryTextLayer(proxy, m.overlay);
+        }
+      }
     } catch (e) {}
     return r;
   };

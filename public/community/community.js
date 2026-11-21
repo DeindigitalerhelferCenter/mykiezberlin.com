@@ -195,12 +195,28 @@ function classifiedForm() {
   const price = el("input", { maxLength: 40 });
   const text = el("textarea", { maxLength: 800 });
   const contact = el("input", { maxLength: 120 });
+  // 2026-11-22 (owner): up to 5 pictures + 1 video per ad
+  const files = el("input", { type: "file", accept: "image/jpeg,image/png,image/webp,video/mp4,video/webm", multiple: true });
+  const fileInfo = el("div", { class: "note" }, t("Bis zu 5 Bilder (je 5 MB) + 1 Video (50 MB).", "En fazla 5 resim (her biri 5 MB) + 1 video (50 MB)."));
+  const thumbs = el("div", { class: "mk-cl-thumbs" });
+  files.addEventListener("change", () => {
+    const list = [...files.files];
+    const img = list.filter((f) => f.type.startsWith("image/")).length;
+    const vid = list.filter((f) => f.type.startsWith("video/")).length;
+    thumbs.replaceChildren(...list.map((f) => f.type.startsWith("image/") ? el("img", { src: URL.createObjectURL(f), alt: "" }) : el("span", { class: "mk-cl-vid" }, "🎬")));
+    if (img > 5 || vid > 1) { toast(t("Höchstens 5 Bilder und 1 Video.", "En fazla 5 resim ve 1 video.")); files.value = ""; thumbs.replaceChildren(); }
+  });
   const send = el("button", { class: "btn primary" }, t("Gratis inserieren", "Ücretsiz ilan ver"));
   send.addEventListener("click", async () => {
     if (!title.value.trim() || !text.value.trim() || !contact.value.trim()) return toast(ERRORS.missing_fields);
     send.disabled = true;
     try {
-      const { status } = await postJson("/api/submissions", { type: "classified", title: title.value, category: category.value, kiezName: kiez.value, price: price.value, description: text.value, contact: contact.value });
+      const fd = new FormData();
+      Object.entries({ type: "classified", title: title.value, category: category.value, kiezName: kiez.value, price: price.value, description: text.value, contact: contact.value }).forEach(([k, v]) => fd.append(k, v));
+      [...files.files].forEach((f) => fd.append("file", f));
+      const res = await api("/api/submissions", { method: "POST", body: fd });
+      const status = res.status;
+      if (res.ownerKey) mkSaveMyAd({ id: res.id, key: res.ownerKey, title: title.value.trim(), created: Date.now() });
       toast(sentText(status));
       renderClassifieds();
     } catch (e) {
@@ -210,13 +226,14 @@ function classifiedForm() {
   });
   return el("section", { class: "card promo" },
     el("h3", {}, t("3 Tage kostenlos inserieren", "3 gün ücretsiz ilan ver")),
-    el("p", { class: "note" }, t("Nur Text. Die Anzeige erscheint nach der Prüfung und läuft 3 Tage.", "Yalnızca metin. İlan kontrolden sonra yayınlanır ve 3 gün kalır.")),
+    el("p", { class: "note" }, t("Mit Bildern oder Video. Die Anzeige erscheint nach der Prüfung und läuft 3 Tage kostenlos – danach verlängern: 1 Woche 5 €, 1 Monat 10 €.", "Resim veya videoyla. İlan kontrolden sonra yayınlanır ve 3 gün ücretsiz kalır – sonra uzat: 1 hafta 5 €, 1 ay 10 €.")),
     el("label", {}, t("Titel", "Başlık")), title,
     el("label", {}, t("Kategorie", "Kategori")), category,
     el("label", {}, "Kiez"), kiez,
     el("label", {}, t("Preis (optional)", "Fiyat (isteğe bağlı)")), price,
     el("label", {}, t("Text", "Metin")), text,
     el("label", {}, t("Kontakt (wird öffentlich angezeigt)", "İletişim (herkese açık görünür)")), contact,
+    el("label", {}, t("Bilder / Video", "Resimler / video")), files, fileInfo, thumbs,
     el("div", { class: "actions" }, send));
 }
 
@@ -227,6 +244,7 @@ async function renderClassifieds() {
     cards = items.filter((i) => i.type === "classified").map((i) => el("article", { class: "card" },
       el("h3", {}, i.title),
       el("div", { class: "meta" }, [i.category, i.kiezName, i.price, when(i.createdAt)].filter(Boolean).join(" · ")),
+      mkClassifiedMedia(i.media),
       el("p", {}, i.description),
       el("div", { class: "note" }, `${t("Kontakt", "İletişim")}: ${i.contact}`)));
   } catch (e) {
@@ -316,4 +334,73 @@ window.addEventListener("hashchange", () => {
     if (!user) localStorage.removeItem(TOKEN_KEY);
   }
   render();
+})();
+
+
+/* ---------- 2026-11-22 (owner): pictures in classifieds + "extend after 3 days" (5 €/week, 10 €/month) ---------- */
+const MY_ADS_KEY = "mykiez_my_classifieds_v1";
+function mkMyAds() { try { return JSON.parse(localStorage.getItem(MY_ADS_KEY) || "[]"); } catch (e) { return []; } }
+function mkSaveMyAd(ad) { const list = mkMyAds().filter((a) => a.id !== ad.id); list.push(ad); localStorage.setItem(MY_ADS_KEY, JSON.stringify(list.slice(-20))); }
+
+function mkClassifiedMedia(media) {
+  if (!Array.isArray(media) || !media.length) return null;
+  const box = el("div", { class: "mk-cl-media" });
+  media.slice(0, 6).forEach((m) => {
+    const url = String(m.url || "");
+    if (!/^\/media\/classifieds\//.test(url)) return;
+    box.append(m.type === "video" ? el("video", { src: url, controls: true, preload: "metadata", playsInline: true }) : el("img", { src: url, alt: "", loading: "lazy", onclick: () => window.open(url, "_blank") }));
+  });
+  return box;
+}
+
+async function mkCheckMyAds() {
+  const params2 = new URLSearchParams(location.search);
+  if (params2.get("paid")) toast(t("Danke! Deine Anzeige wurde verlängert.", "Teşekkürler! İlanın uzatıldı."));
+  for (const ad of mkMyAds()) {
+    if (Date.now() - ad.created < 3 * 86400000 - 60000) continue;
+    let st;
+    try { st = await api(`/api/classified-extend?id=${encodeURIComponent(ad.id)}&key=${encodeURIComponent(ad.key)}`); } catch (e) { continue; }
+    if (!st.expired) continue;
+    const seenKey = `mk_cl_asked_${ad.id}`;
+    if (localStorage.getItem(seenKey) && Date.now() - Number(localStorage.getItem(seenKey)) < 86400000) continue;
+    localStorage.setItem(seenKey, String(Date.now()));
+    mkExtendPopup(ad, st.title || ad.title);
+    break;
+  }
+}
+
+function mkExtendPopup(ad, title) {
+  const close = () => wrap.remove();
+  const buy = async (plan) => {
+    try {
+      const res = await fetch("/api/classified-extend", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: ad.id, key: ad.key, plan }) });
+      const j = await res.json().catch(() => ({}));
+      if (j.url) { location.href = j.url; return; }
+      if (j.requested) { close(); toast(t("Danke! Wir melden uns wegen der Zahlung und verlängern deine Anzeige.", "Teşekkürler! Ödeme için sana döneceğiz ve ilanını uzatacağız.")); return; }
+      toast(t("Das hat nicht geklappt. Bitte später nochmal.", "Olmadı. Lütfen sonra tekrar dene."));
+    } catch (e) { toast(t("Keine Verbindung.", "Bağlantı yok.")); }
+  };
+  const wrap = el("div", { class: "mk-cl-pop", role: "dialog", "aria-modal": "true", onclick: (ev) => { if (ev.target === wrap) close(); } },
+    el("div", { class: "mk-cl-card" },
+      el("button", { class: "mk-cl-x", type: "button", "aria-label": t("Schließen", "Kapat"), onclick: close }, "✕"),
+      el("div", { class: "mk-cl-ic" }, "📢"),
+      el("h3", {}, t("Deine Anzeige ist abgelaufen", "İlanının süresi doldu")),
+      el("p", {}, `„${title}“ – ` + t("Soll sie weiter online bleiben?", "Yayında kalmaya devam etsin mi?")),
+      el("button", { class: "btn primary mk-cl-buy", type: "button", onclick: () => buy("week") }, t("1 Woche – 5 €", "1 hafta – 5 €")),
+      el("button", { class: "btn primary mk-cl-buy mk-cl-best", type: "button", onclick: () => buy("month") }, t("1 Monat – 10 € (günstiger)", "1 ay – 10 € (daha avantajlı)")),
+      el("button", { class: "btn", type: "button", onclick: close }, t("Nein, danke", "Hayır, teşekkürler"))));
+  document.body.append(wrap);
+}
+
+(() => {
+  const css = document.createElement("style");
+  css.textContent =
+    ".mk-cl-thumbs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.mk-cl-thumbs img,.mk-cl-vid{width:56px;height:56px;border-radius:8px;object-fit:cover;display:flex;align-items:center;justify-content:center;background:#eee;font-size:24px}" +
+    ".mk-cl-media{display:flex;gap:6px;overflow-x:auto;margin:8px 0}.mk-cl-media img,.mk-cl-media video{height:150px;max-width:240px;border-radius:10px;object-fit:cover;flex:none;cursor:pointer;background:#000}" +
+    ".mk-cl-pop{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px}" +
+    ".mk-cl-card{position:relative;width:100%;max-width:380px;background:#fff;color:#0F172A;border-radius:18px;padding:22px 18px;display:flex;flex-direction:column;gap:10px;text-align:center}" +
+    ".mk-cl-card h3{margin:0}.mk-cl-card p{margin:0}.mk-cl-ic{font-size:40px}.mk-cl-x{position:absolute;top:6px;right:8px;background:none;border:0;font-size:20px;cursor:pointer}" +
+    ".mk-cl-buy{font-size:16px;padding:12px}.mk-cl-best{background:#E30A17!important;color:#fff!important}";
+  document.head.append(css);
+  setTimeout(mkCheckMyAds, 1500);
 })();

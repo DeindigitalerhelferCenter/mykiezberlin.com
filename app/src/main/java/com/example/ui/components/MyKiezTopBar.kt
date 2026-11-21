@@ -65,8 +65,8 @@ fun MyKiezTopBar(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                // Live Ticker Button
-                Surface(
+                // Live Ticker Button – 2026-11-22 (owner): not in the new view (the bottom bar has the Live-Ticker)
+                if (!com.example.ui.components.KiezBoost.ui2(androidx.compose.ui.platform.LocalContext.current)) Surface(
                     shape = RoundedCornerShape(16.dp),
                     color = BerlinRed,
                     modifier = Modifier.clickable { onNavigate(AppScreen.LIVE_BULLETIN) }

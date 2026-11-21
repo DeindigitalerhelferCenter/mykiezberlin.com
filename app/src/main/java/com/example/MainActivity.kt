@@ -269,6 +269,7 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
         }
     }
     if (werbenPopup) com.example.ui.components.WerbenPopup(uiState.language) { werbenPopup = false }
+    com.example.ui.components.BlackFridayPopupHost(uiState.language) // 2026-11-22 (owner)
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -346,6 +347,16 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     .weight(1f)
                     .nestedScroll(headerScroll)
             ) {
+                // 2026-11-22 (owner): Kiez search – a Kiez name in the search box shows everything in that Kiez
+                val searchKiez = remember(uiState.searchQuery, uiState.kieze) { com.example.ui.components.findSearchKiez(uiState.searchQuery, uiState.kieze) }
+                if (searchKiez != null && uiState.currentScreen in setOf(AppScreen.HOME, AppScreen.BUSINESSES, AppScreen.FOOD, AppScreen.DEALS)) {
+                    com.example.ui.components.KiezSearchResults(
+                        kiez = searchKiez, language = uiState.language, stories = uiState.allStories,
+                        events = uiState.customEvents, jobs = uiState.customJobs,
+                        onOpenStory = { st, list, i -> viewModel.setSearchQuery(""); viewModel.openStory(st, list, i) },
+                        onNavigate = { viewModel.setSearchQuery(""); viewModel.navigateTo(it) }
+                    )
+                } else
                 when (uiState.currentScreen) {
                 AppScreen.HOME, AppScreen.BUSINESSES -> BusinessesScreen(
                     language = uiState.language,

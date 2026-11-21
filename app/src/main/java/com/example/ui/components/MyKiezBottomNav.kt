@@ -42,7 +42,9 @@ fun MyKiezBottomNav(
             },
             label = {
                 Text(
-                    text = if (currentLanguage == AppLanguage.TURKISH) "İşletmeler" else "Betriebe",
+                    // 2026-11-22 (owner): "Ana sayfa / Startseite" (new view, see KiezBoost.ui2)
+                    text = if (com.example.ui.components.KiezBoost.ui2(androidx.compose.ui.platform.LocalContext.current)) (if (currentLanguage == AppLanguage.TURKISH) "Ana sayfa" else if (currentLanguage == AppLanguage.ENGLISH) "Home" else "Startseite")
+                        else if (currentLanguage == AppLanguage.TURKISH) "İşletmeler" else "Betriebe",
                     fontSize = 10.5.sp,
                     fontWeight = if (isBetriebeActive) FontWeight.Bold else FontWeight.Normal
                 )

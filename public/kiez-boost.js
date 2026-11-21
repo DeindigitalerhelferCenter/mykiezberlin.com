@@ -11,7 +11,7 @@
    (or ?mkbeta=1 was opened once). Set RELEASE = true to show them to everybody. */
 (function () {
   "use strict";
-  var RELEASE = false;
+  var RELEASE = true; // 2026-11-22 (owner): now for everybody
   var KEY_STORE = "mk_story_key";
   var BETA_STORE = "mk_beta_2026_11_21";
   var BOTTOM_STORE = "mk_b2b_bottom_n";
@@ -253,6 +253,10 @@
         var foot = main.querySelector(".mk-b2b-foot");
         if (!foot) main.insertAdjacentHTML("beforeend", werbenCta("mk-b2b-foot"));
         else if (foot !== main.lastElementChild) main.appendChild(foot);
+        if (tab === "home" && bf && bf.active && !main.querySelector(".mk-bf-strip")) {
+          var t0 = main.querySelector(".mk-b2b-top");
+          if (t0) t0.insertAdjacentHTML("afterend", bfStrip());
+        }
         if (tab === "home") {
           var all = main.querySelector(".mk-deck-all");
           if (!main.querySelector(".mk-dual") && (all || main.querySelector(".mk-tr-btn"))) {
@@ -318,6 +322,68 @@
     box.onclick = function (ev) { if (ev.target === box) close(); };
   }
 
+  /* ---------------- 7. Black Friday (2026-11-22, owner): window once a day + black strip on the home page ---------------- */
+  var bf = null;
+  function bfText() {
+    var taken = bf.taken, left = bf.left, total = bf.total;
+    return {
+      h: L("🖤 BLACK FRIDAY: 3 Monate GRATIS werben", "🖤 BLACK FRIDAY: 3 ay ÜCRETSİZ reklam", "🖤 BLACK FRIDAY: 3 months FREE advertising"),
+      t: L(taken + " von " + total + " Plätzen sind schon weg – nur noch " + left + " frei! Sichere dir jetzt deinen Platz: 3 Monate gratis, danach ab 29 €/Monat.",
+        total + " yerden " + taken + " tanesi doldu – sadece " + left + " yer kaldı! Acele et, yerini şimdi ayırt: 3 ay ücretsiz, sonra aylık 29 €'dan başlayan fiyatlar.",
+        taken + " of " + total + " places are gone – only " + left + " left! Claim yours now: 3 months free, then from 29 €/month."),
+      k: L("MONATLICH KÜNDBAR · bis 30.11.", "HER AY İPTAL EDİLEBİLİR · 30.11.'e kadar", "CANCEL MONTHLY · until 30 Nov"),
+      b: L("Jetzt Gratis-Platz sichern", "Ücretsiz yerini hemen ayırt", "Claim your free place"),
+    };
+  }
+  function bfStrip() {
+    if (!bf || !bf.active) return "";
+    var x = bfText();
+    return '<a class="mk-bf-strip" href="/werben?bf=1#f"><b>' + e(x.h) + "</b><span>" + e(L("Nur noch " + bf.left + " Plätze", "Sadece " + bf.left + " yer kaldı", "Only " + bf.left + " left")) + " →</span></a>";
+  }
+  function bfPopup() {
+    if (!bf || !bf.active || document.getElementById("mk-bf-pop") || document.getElementById("mk-sps-viewer")) return;
+    var x = bfText();
+    var box = document.createElement("div");
+    box.id = "mk-bf-pop";
+    box.setAttribute("role", "dialog");
+    box.setAttribute("aria-modal", "true");
+    box.innerHTML = '<div class="mk-bf-card"><button type="button" class="mk-b2b-pop-x" aria-label="' + e(L("Schließen", "Kapat", "Close")) + '">✕</button>' +
+      "<h3>" + e(x.h) + '</h3><div class="mk-bf-bar"><i style="width:' + Math.round(100 * bf.taken / bf.total) + '%"></i></div><p>' + e(x.t) + '</p><span class="mk-bf-k">' + e(x.k) + "</span>" +
+      '<a class="mk-bf-go" href="/werben?bf=1#f">' + e(x.b) + " →</a></div>";
+    document.body.appendChild(box);
+    var close = function () { box.remove(); };
+    box.querySelector(".mk-b2b-pop-x").onclick = close;
+    box.onclick = function (ev) { if (ev.target === box) close(); };
+  }
+  function bfLoad() {
+    baseFetch.call(window, "/api/blackfriday", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+      bf = j;
+      decorate();
+      if (!bf || !bf.active) return;
+      var day = new Date().toISOString().slice(0, 10);
+      if (lsGet("mk_bf_pop_day") === day) return;
+      setTimeout(function () { lsSet("mk_bf_pop_day", day); bfPopup(); }, 15000);
+    }).catch(function () {});
+  }
+  window.mkBlackFriday = function () { if (bf) bfPopup(); };
+
+  /* 2026-11-22 (owner): own classified older than 3 days -> hint to extend (the window with 5 €/10 € opens on /community) */
+  function myAdHint() {
+    var ads = [];
+    try { ads = JSON.parse(localStorage.getItem("mykiez_my_classifieds_v1") || "[]"); } catch (x) { ads = []; }
+    var old = ads.filter(function (a) { return Date.now() - a.created > 3 * 86400000; });
+    if (!old.length || lsGet("mk_cl_hint_day") === new Date().toISOString().slice(0, 10)) return;
+    lsSet("mk_cl_hint_day", new Date().toISOString().slice(0, 10));
+    var box = document.createElement("div");
+    box.id = "mk-b2b-pop";
+    box.setAttribute("role", "dialog");
+    box.innerHTML = '<div class="mk-b2b-pop-card"><button type="button" class="mk-b2b-pop-x" aria-label="' + e(L("Schließen", "Kapat", "Close")) + '">✕</button><div class="mk-b2b-pop-ic">📢</div>' +
+      '<div class="mk-b2b-pop-body"><div class="mk-b2b-txt"><b>' + e(L("Deine Kleinanzeige ist abgelaufen", "İlanının süresi doldu", "Your classified has expired")) + "</b><small>" + e(L("Verlängern: 1 Woche 5 € oder 1 Monat 10 €.", "Uzat: 1 hafta 5 € veya 1 ay 10 €.", "Extend: 1 week 5 € or 1 month 10 €.")) + '</small></div>' +
+      '<div class="mk-b2b-btns"><a class="mk-glow-btn mk-b2b-go" href="/community/?lang=' + (lang() === "tr" ? "tr" : "de") + '#ilan">' + e(L("Jetzt verlängern", "Hemen uzat", "Extend now")) + "</a></div></div></div>";
+    document.body.appendChild(box);
+    box.querySelector(".mk-b2b-pop-x").onclick = function () { box.remove(); };
+  }
+
   /* ---------------- start ---------------- */
   var css = document.createElement("style");
   css.textContent =
@@ -364,6 +430,14 @@
     ".mk-b2b-pop-ic{font-size:44px}.mk-b2b-pop-body{flex-direction:column;text-align:center;background:none}.mk-b2b-pop-body .mk-b2b-btns{justify-content:center}.mk-b2b-pop-body .mk-b2b-txt{flex:none}" +
     ".mk-b2b-pop-x{position:absolute;top:6px;right:8px;background:none;border:0;color:#fff;font-size:22px;cursor:pointer}" +
     ".mk-key-hint{margin:6px 0;padding:8px 10px;border-radius:10px;background:#E8F5E9;color:#1B5E20;font-size:12px;font-weight:600}" +
+    ".mk-bf-strip{grid-column:1/-1;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px;margin:0 0 12px;padding:12px 16px;border-radius:16px;background:linear-gradient(135deg,#000,#2b2100);color:#FFC107!important;text-decoration:none;animation:mkGlow 2.2s ease-in-out infinite}.mk-bf-strip b{font-size:15px}.mk-bf-strip span{font-weight:800;color:#fff}" +
+    "#mk-bf-pop{position:fixed;inset:0;z-index:10045;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px}" +
+    ".mk-bf-card{position:relative;width:100%;max-width:420px;border-radius:20px;background:linear-gradient(135deg,#000,#1f1f1f 60%,#3a2c00);color:#fff;padding:22px 18px;text-align:center;animation:mkGlow 2.2s ease-in-out infinite}" +
+    ".mk-bf-card h3{margin:0 0 10px;color:#FFC107;font-size:21px}.mk-bf-card p{margin:8px 0;font-size:14px;line-height:1.45}" +
+    ".mk-bf-bar{height:10px;border-radius:5px;background:#333;overflow:hidden}.mk-bf-bar i{display:block;height:100%;background:linear-gradient(90deg,#FFC107,#ff5722)}" +
+    ".mk-bf-k{display:inline-block;margin:4px 0 12px;padding:5px 12px;border-radius:999px;background:#FFC107;color:#000;font-weight:900;font-size:13px}" +
+    ".mk-bf-go{display:block;padding:12px;border-radius:999px;background:#FFC107;color:#000!important;font-weight:900;text-decoration:none}" +
+    "@media (prefers-reduced-motion:reduce){.mk-bf-strip,.mk-bf-card{animation:none}}" +
     "@media (prefers-reduced-motion:reduce){.mk-dual-btn,.mk-glow-btn,.mk-deal-chip,.mk-deal-banner,.mk-pill-glow,.mk-b2b-pop-card{animation:none}.mk-spin360{animation:none!important}}";
   document.head.appendChild(css);
 
@@ -381,6 +455,8 @@
     decorate();
     load();
     setInterval(load, 5 * 60000);
+    bfLoad();
+    setTimeout(myAdHint, 8000);
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { setTimeout(start, 0); });
   else setTimeout(start, 0);

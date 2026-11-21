@@ -121,7 +121,7 @@ fun BusinessesScreen(
                             )
                         }
                         if (showHomeExtras) item(key = "home_clock") { // 2026-11-14 (owner): clock + weather on the home page
-                            com.example.ui.components.HomeClockWeather(language = language, onWeatherClick = { onNavigateToScreen(com.example.ui.viewmodel.AppScreen.SPORTS_AND_MARKETS) })
+                            if (!com.example.ui.components.KiezBoost.ui2(androidx.compose.ui.platform.LocalContext.current)) com.example.ui.components.HomeClockWeather(language = language, onWeatherClick = { onNavigateToScreen(com.example.ui.viewmodel.AppScreen.SPORTS_AND_MARKETS) }) // 2026-11-22: only on "Sport & Kurse" in the new view
                         }
                         if (showHomeExtras) item(key = "kiez_stars") {
                             com.example.ui.components.HomeKiezStarsSmall(language = language, onShareStory = onAddStoryClick) // 2026-11-13: small window, comes and goes
@@ -178,7 +178,7 @@ fun BusinessesScreen(
                             )
                         }
                         if (showHomeExtras) item(key = "home_clock") { // 2026-11-14 (owner): clock + weather on the home page
-                            com.example.ui.components.HomeClockWeather(language = language, onWeatherClick = { onNavigateToScreen(com.example.ui.viewmodel.AppScreen.SPORTS_AND_MARKETS) })
+                            if (!com.example.ui.components.KiezBoost.ui2(androidx.compose.ui.platform.LocalContext.current)) com.example.ui.components.HomeClockWeather(language = language, onWeatherClick = { onNavigateToScreen(com.example.ui.viewmodel.AppScreen.SPORTS_AND_MARKETS) }) // 2026-11-22: only on "Sport & Kurse" in the new view
                         }
                         if (showHomeExtras) item(key = "kiez_stars") {
                             com.example.ui.components.HomeKiezStarsSmall(language = language, onShareStory = onAddStoryClick) // 2026-11-13: small window, comes and goes
@@ -264,7 +264,7 @@ fun BusinessesScreen(
                             )
                         }
                         if (showHomeExtras) item(key = "home_clock") { // 2026-11-14 (owner): clock + weather on the home page
-                            com.example.ui.components.HomeClockWeather(language = language, onWeatherClick = { onNavigateToScreen(com.example.ui.viewmodel.AppScreen.SPORTS_AND_MARKETS) })
+                            if (!com.example.ui.components.KiezBoost.ui2(androidx.compose.ui.platform.LocalContext.current)) com.example.ui.components.HomeClockWeather(language = language, onWeatherClick = { onNavigateToScreen(com.example.ui.viewmodel.AppScreen.SPORTS_AND_MARKETS) }) // 2026-11-22: only on "Sport & Kurse" in the new view
                         }
                         if (showHomeExtras) item(key = "kiez_stars") {
                             com.example.ui.components.HomeKiezStarsSmall(language = language, onShareStory = onAddStoryClick) // 2026-11-13: small window, comes and goes

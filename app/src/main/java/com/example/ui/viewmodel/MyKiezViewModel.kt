@@ -206,6 +206,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
             else -> "de"
         }
         val query = StringBuilder("?lang=$lang")
+        if (com.example.ui.components.BlackFridayRepo.state.value?.active == true) query.append("&bf=1") // 2026-11-22: Black Friday box ticked
         if (size.isNotBlank()) query.append("&size=").append(android.net.Uri.encode(size))
         if (claim.isNotBlank()) query.append("&claim=").append(android.net.Uri.encode(claim))
         werbenUrl = "https://mykiezberlin.com/werben$query"

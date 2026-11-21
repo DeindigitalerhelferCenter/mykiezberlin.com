@@ -111,6 +111,14 @@ export async function handleStripeEvent(event, database, env = {}) {
   const o = event.data?.object || {};
   const already = (id) => database.prepare(`SELECT id FROM payments WHERE id = ?`).bind(id).first();
 
+  // 2026-11-22 (owner): classified extended (1 week 5 € / 1 month 10 €)
+  if (event.type === "checkout.session.completed" && o.metadata?.classified_id) {
+    if (await already(o.id)) return;
+    const { extendClassified } = await import("./classifieds.js");
+    await extendClassified(database, o.metadata.classified_id, o.metadata.plan);
+    await database.prepare(`INSERT INTO payments (id, request_id, kind, amount, created_at) VALUES (?, ?, ?, ?, ?)`).bind(o.id, o.metadata.classified_id, `classified_${o.metadata.plan || ""}`, o.amount_total || 0, Date.now()).run();
+    return;
+  }
   if (event.type === "checkout.session.completed" && o.metadata?.request_id) {
     if (await already(o.id)) return;
     const until = Date.now() + 33 * DAY_MS;

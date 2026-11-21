@@ -3,6 +3,7 @@ import { cleanText, db, isAdmin, json, noDb } from "../_lib/util.js";
 import { createCheckout, REQUEST_SIZES } from "../_lib/werbung.js";
 import { INFO, sendMail } from "../_lib/mail.js";
 import { lang as pickLang, werbenReply } from "../_lib/mail-templates.js";
+import { bfStatus } from "../_lib/blackfriday.js";
 import { cleanupOldRequests, REQUEST_COLUMNS, sendLogged, shapeRequest } from "../_lib/ad-requests.js";
 
 const SIZE_NAMES = { s: "Kiez Basic (29 €)", m: "Kiez Plus (49 €)", l: "Kiez Premium (89 €)", banner: "Banner", gp: "Gründungspartner" };
@@ -37,8 +38,20 @@ export async function onRequestPost({ request, env }) {
     .run();
   if (row.address) await database.prepare(`UPDATE ad_requests SET address = ? WHERE id = ?`).bind(row.address, row.id).run().catch(() => {});
 
+  // 2026-11-22 (owner): Black Friday – 3 months free (no payment now), then the chosen package, cancel monthly
+  let bf = false;
+  if (body.bf && ["s", "m", "l"].includes(row.size)) {
+    const st = await bfStatus(database);
+    if (st.active) {
+      bf = true;
+      row.message = `[BLACK FRIDAY – ${st.freeMonths} Monate gratis, danach ${SIZE_NAMES[row.size]} monatlich kündbar]
+` + row.message;
+      await database.prepare(`UPDATE ad_requests SET campaign = 'bf', message = ? WHERE id = ?`).bind(row.message.slice(0, 1200), row.id).run();
+    }
+  }
+
   let checkoutUrl = "";
-  const checkout = await createCheckout(env, new URL(request.url).origin, row).catch(() => null);
+  const checkout = bf ? null : await createCheckout(env, new URL(request.url).origin, row).catch(() => null);
   if (checkout?.url) {
     checkoutUrl = checkout.url;
     await database.prepare(`UPDATE ad_requests SET stripe_session = ? WHERE id = ?`).bind(checkout.id, row.id).run();
@@ -49,7 +62,7 @@ export async function onRequestPost({ request, env }) {
   await sendLogged(env, database, row.id, "copy", {
     to: INFO,
     replyTo: row.email,
-    subject: `Neue Werbeanfrage: ${row.company} – ${SIZE_NAMES[row.size] || row.size}`,
+    subject: `${bf ? "🖤 BLACK FRIDAY – " : ""}Neue Werbeanfrage: ${row.company} – ${SIZE_NAMES[row.size] || row.size}`,
     text: [
       `Firma: ${row.company}`, `Ansprechpartner: ${row.person || "-"}`, `E-Mail: ${row.email}`, `Telefon: ${row.phone || "-"}`, `Adresse: ${row.address || "-"}`,
       `Paket: ${SIZE_NAMES[row.size] || row.size}`, "", row.message || "(keine Nachricht)", "", `Anfrage-ID: ${row.id}`,
@@ -60,7 +73,7 @@ export async function onRequestPost({ request, env }) {
   await database.prepare(`UPDATE ad_requests SET lang = ? WHERE id = ?`).bind(l, row.id).run().catch(() => {});
   const reply = werbenReply(l, { name: row.person || row.company, company: row.company, package: SIZE_NAMES[row.size] || row.size, payable: Boolean(checkoutUrl) });
   const welcome = await sendLogged(env, database, row.id, "welcome", { to: row.email, from: INFO, subject: reply.subject, text: reply.text });
-  return json({ ok: true, id: row.id, checkoutUrl, payable: Boolean(checkoutUrl), mailSent: welcome.ok });
+  return json({ ok: true, id: row.id, checkoutUrl, payable: Boolean(checkoutUrl), mailSent: welcome.ok, bf });
 }
 
 // Admin: newest requests (also used by the app to notify the admin).

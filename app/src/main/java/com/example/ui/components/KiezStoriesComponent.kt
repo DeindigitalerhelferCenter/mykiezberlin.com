@@ -571,8 +571,11 @@ fun StoryViewerDialog(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clickable { isImageZoomed = !isImageZoomed },
-                            contentScale = ContentScale.Fit
+                            contentScale = ContentScale.Fit,
+                            // 2026-11-22 (owner): news stories – picture size for the text layer
+                            onSuccess = { st -> val sz = st.painter.intrinsicSize; if (sz.height > 0f && sz.width > 0f) videoAspect = sz.width / sz.height }
                         )
+                        if (mediaOverlay != null) StoryTextOverlay(mediaOverlay, if (videoAspect > 0f) videoAspect else 9f / 16f)
                     } else if (story.mediaResId != null) {
                         Image(
                             painter = painterResource(id = story.mediaResId),
