@@ -10,7 +10,8 @@
   window.mkShareText = function (story) {
     var link = story.link && !/^https:\/\/mykiezberlin\.com\/?$/.test(story.link) ? story.link : "https://mykiezberlin.com";
     return "📍 My Kiez Berlin · " + plain(story.kiez) + "\n" + plain(story.headline) + (story.subtext ? "\n" + plain(story.subtext) : "") +
-      "\n\n👉 " + link + "\n📲 App: " + APK + "\n🌐 mykiezberlin.com";
+      "\n\n👉 " + link + "\n📲 App: " + APK + "\n🌐 mykiezberlin.com" +
+      "\n📢 WhatsApp-Kanal: https://whatsapp.com/channel/0029VbADtpj5a241JELaiq0O"; // 2026-11-21 (owner)
   };
 
   function toast(msg) { if (typeof showToast === "function") showToast(msg); else console.log(msg); }

@@ -16,7 +16,16 @@
     youtube: "",
     // 2026-11-19 (owner): Telegram channel + WhatsApp channel – the buttons appear as soon as a link is filled in
     telegram: "https://t.me/mykiezberlin",
-    waChannel: "",
+    waChannel: "https://whatsapp.com/channel/0029VbADtpj5a241JELaiq0O", // 2026-11-21 (owner): channel opened
+    // 2026-11-21 (owner): WhatsApp Kiez groups (join by link, only admins add people / change settings)
+    waGroups: [
+      ["Neukölln", "https://chat.whatsapp.com/EiCUYfwfQYr9eve4WT5STZ"],
+      ["Kreuzberg", "https://chat.whatsapp.com/JDUKCyyyyY6HsxclTEhdDP"],
+      ["Wedding", "https://chat.whatsapp.com/G0yav64xcdyFd5rLztmsiV"],
+      ["Moabit", "https://chat.whatsapp.com/Be6LDHBHC6K5YqM8acT3Cs"],
+      ["Spandau", "https://chat.whatsapp.com/IO6E8If42yWKPgoPsPdV8z"],
+      ["Ganz Berlin", "https://chat.whatsapp.com/GCPuN7MEzEVLjutfKIYRqb"],
+    ],
   };
 
   var css = document.createElement("style");

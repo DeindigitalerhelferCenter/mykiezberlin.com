@@ -34,6 +34,7 @@ object StoryShareHelper {
             append("\n\n👉 ").append(link)
             append("\n📲 App: ").append(APK_URL)
             append("\n🌐 mykiezberlin.com")
+            append("\n📢 WhatsApp-Kanal: ").append(com.example.ui.components.MkSocial.WA_CHANNEL) // 2026-11-21 (owner)
         }
     }
 

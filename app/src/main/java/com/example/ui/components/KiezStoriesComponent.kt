@@ -837,9 +837,9 @@ fun StoryViewerDialog(
                                     val shareIntent = Intent(Intent.ACTION_SEND).apply {
                                         type = "text/plain"
                                         val shareText = if (language == AppLanguage.TURKISH) {
-                                            "My Kiez Berlin (${story.kiez}):\n${story.headline}\n${story.subtext}\n\n👉 $shareUrl\n\n📲 My Kiez Berlin uygulamasını indir:\n$apkDownloadUrl"
+                                            "My Kiez Berlin (${story.kiez}):\n${story.headline}\n${story.subtext}\n\n👉 $shareUrl\n📢 WhatsApp Kanalımız: ${MkSocial.WA_CHANNEL}\n\n📲 My Kiez Berlin uygulamasını indir:\n$apkDownloadUrl"
                                         } else {
-                                            "My Kiez Berlin (${story.kiez}):\n${story.headline}\n${story.subtext}\n\n👉 $shareUrl\n\n📲 My Kiez Berlin App herunterladen:\n$apkDownloadUrl"
+                                            "My Kiez Berlin (${story.kiez}):\n${story.headline}\n${story.subtext}\n\n👉 $shareUrl\n📢 WhatsApp-Kanal: ${MkSocial.WA_CHANNEL}\n\n📲 My Kiez Berlin App herunterladen:\n$apkDownloadUrl"
                                         }
                                         putExtra(Intent.EXTRA_TEXT, shareText)
                                     }

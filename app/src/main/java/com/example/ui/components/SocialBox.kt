@@ -69,7 +69,16 @@ object MkSocial {
     const val YOUTUBE = ""
     // 2026-11-19 (owner): Telegram channel + WhatsApp channel – the buttons appear as soon as a link is filled in
     const val TELEGRAM = "https://t.me/mykiezberlin"
-    const val WA_CHANNEL = ""
+    const val WA_CHANNEL = "https://whatsapp.com/channel/0029VbADtpj5a241JELaiq0O" // 2026-11-21 (owner): channel opened
+    // 2026-11-21 (owner): WhatsApp Kiez groups (join by link) – same list as web social.js MK_SOCIAL.waGroups
+    val WA_GROUPS = listOf(
+        "Neukölln" to "https://chat.whatsapp.com/EiCUYfwfQYr9eve4WT5STZ",
+        "Kreuzberg" to "https://chat.whatsapp.com/JDUKCyyyyY6HsxclTEhdDP",
+        "Wedding" to "https://chat.whatsapp.com/G0yav64xcdyFd5rLztmsiV",
+        "Moabit" to "https://chat.whatsapp.com/Be6LDHBHC6K5YqM8acT3Cs",
+        "Spandau" to "https://chat.whatsapp.com/IO6E8If42yWKPgoPsPdV8z",
+        "Ganz Berlin" to "https://chat.whatsapp.com/GCPuN7MEzEVLjutfKIYRqb"
+    )
 
     /** Opens the link in the Facebook / Instagram / WhatsApp / TikTok / YouTube app when installed, else in the browser. */
     fun open(context: Context, url: String) {
@@ -127,6 +136,17 @@ fun SocialButtonsRow() {
         if (MkSocial.TELEGRAM.isNotBlank() || MkSocial.WA_CHANNEL.isNotBlank()) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             if (MkSocial.TELEGRAM.isNotBlank()) SocialButton("✈  Telegram", Brush.linearGradient(listOf(Color(0xFF229ED9), Color(0xFF229ED9))), Modifier.weight(1f)) { MkSocial.open(context, MkSocial.TELEGRAM) }
             if (MkSocial.WA_CHANNEL.isNotBlank()) SocialButton("📣  WhatsApp-Kanal", Brush.linearGradient(listOf(Color(0xFF128C7E), Color(0xFF128C7E))), Modifier.weight(1f)) { MkSocial.open(context, MkSocial.WA_CHANNEL) }
+        }
+        // 2026-11-21 (owner): WhatsApp Kiez groups – same as web wa-grow.js
+        if (MkSocial.WA_GROUPS.isNotEmpty()) {
+            Text("💬 WhatsApp-Kiezgruppen · semt grupları", fontWeight = FontWeight.ExtraBold, fontSize = 13.sp)
+            MkSocial.WA_GROUPS.chunked(3).forEach { row ->
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    row.forEach { (name, url) ->
+                        SocialButton(name, Brush.linearGradient(listOf(Color(0xFF075E54), Color(0xFF128C7E))), Modifier.weight(1f)) { MkSocial.open(context, url) }
+                    }
+                }
+            }
         }
     }
 }
