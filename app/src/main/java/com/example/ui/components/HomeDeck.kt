@@ -149,16 +149,34 @@ fun HomeDeckSection(language: AppLanguage, onNavigateToScreen: (AppScreen) -> Un
     val ads by AdsRepository.pageAds.collectAsState()
     val boxes = remember(seed) { pickDeck(5) }
     val sponsors = remember(seed, ads.isNotEmpty()) { pickHomeSponsors(ads) }
+    // 2026-11-21 (owner): admin test first – offers banner, werben boxes, two big sponsor buttons
+    val boostOn = KiezBoost.on(androidx.compose.ui.platform.LocalContext.current)
+    val storyDeals by KiezBoost.storyDealCount
+    var openAll by remember { mutableStateOf(false) }
+    var openTr by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        if (boostOn) DealsBanner(language, storyDeals) // (the werben box is on top of every page, MainActivity)
         boxes.forEachIndexed { i, box ->
             Box(Modifier.padding(horizontal = 16.dp)) { DeckBoxCard(box, language, onNavigateToScreen) }
             if (i % 2 == 0) HomeSponsorPlace(sponsors.getOrNull(i / 2), language) // after box 1, 3, 5
         }
+        if (boostOn) {
+            DualSponsorButtons(language, onOpenAll = { openAll = true }, onOpenTr = { openTr = true }, allCount = ads.size, trCount = ads.count { it.region == "tr" })
+            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                OutlinedButton(onClick = onOpenWerben, shape = RoundedCornerShape(12.dp)) { Text(if (language == AppLanguage.TURKISH) "Reklam ver" else "Selbst werben", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
+                InfoButton("sponsors", language)
+            }
+            SocialBox(Modifier.padding(horizontal = 16.dp))
+            WerbenCta(language, modifier = Modifier.padding(horizontal = 16.dp))
+        } else {
         AllSponsorsButton(language, onOpenWerben)
         // 2026-11-17 (owner): own social media + "Mitmachen · Paylaş" (WhatsApp glows green)
         SocialBox(Modifier.padding(horizontal = 16.dp))
         TurkeySponsorsButton(language) // 2026-11-14 (owner)
+        }
     }
+    if (openAll) AllSponsorsDialog(ads, language) { openAll = false }
+    if (openTr) TurkeySponsorsDialog(ads.filter { it.region == "tr" }, language) { openTr = false }
 }
 
 /** Kiez-Stars as a small window: opens on tap; shown on about every second visit. */
@@ -206,7 +224,7 @@ fun AllSponsorsButton(language: AppLanguage, onOpenWerben: () -> Unit) {
 }
 
 @Composable
-private fun AllSponsorsDialog(ads: List<ServerAd>, language: AppLanguage, onClose: () -> Unit) {
+internal fun AllSponsorsDialog(ads: List<ServerAd>, language: AppLanguage, onClose: () -> Unit) {
     val tr = language == AppLanguage.TURKISH
     var kiez by remember { mutableStateOf("") }
     val kieze = remember(ads) { ads.flatMap { it.kieze.split(",") }.map { it.trim() }.filter { it.isNotBlank() }.distinct().sorted() }

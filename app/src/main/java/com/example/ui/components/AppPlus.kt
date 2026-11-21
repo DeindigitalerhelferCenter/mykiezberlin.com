@@ -100,7 +100,13 @@ fun StoryDealsSection(language: AppLanguage, stories: List<KiezStory>, onOpen: (
     val deals = stories.filter { it.deal != null && it.status == "approved" && it.createdAtMillis + it.durationHours * 3_600_000L > now }
     Column(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text("🏷️ " + t(language, "Aktuelle Angebote aus den Kiez-Stories", "Mahalle hikâyelerindeki güncel indirimler"), fontWeight = FontWeight.Bold, fontSize = 14.sp, color = PlusRed)
-        if (deals.isEmpty()) {
+        // 2026-11-21 (owner): sponsor uploads with a price in the text (admin test first)
+        val boostOn = KiezBoost.on(androidx.compose.ui.platform.LocalContext.current)
+        val sponsorDeals by SponsorStoriesRepo.deals.collectAsState()
+        if (boostOn) SponsorDealsRow(language)
+        if (deals.isEmpty() && boostOn && sponsorDeals.isNotEmpty()) {
+            // sponsor offers are shown above – no "no offers" text
+        } else if (deals.isEmpty()) {
             Text(t(language, "Gerade keine Story-Angebote. Teile selbst eins über „Story teilen“ → „Angebot / Rabatt“.", "Şu an hikâye indirimi yok. „Hikâye paylaş“ → „İndirim / kampanya“ ile sen de paylaş."), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         } else {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {

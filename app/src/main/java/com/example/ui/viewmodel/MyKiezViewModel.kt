@@ -858,7 +858,9 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
             _storyQuotaLeft.value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                 runCatching {
                     val url = "https://mykiezberlin.com/api/stories?quota=1&device=" + android.net.Uri.encode(storyDeviceId())
-                    java.net.URL(url).openConnection().run { connectTimeout = 8000; readTimeout = 8000; getInputStream().bufferedReader().use { it.readText() } }
+                    java.net.URL(url).openConnection().run { connectTimeout = 8000; readTimeout = 8000
+                        if (com.example.ui.components.StoryKeyStore.valid()) setRequestProperty("x-story-key", com.example.ui.components.StoryKeyStore.key) // 2026-11-21
+                        getInputStream().bufferedReader().use { it.readText() } }
                         .let { org.json.JSONObject(it).optInt("left", -1) }.takeIf { it >= 0 }
                 }.getOrNull()
             }
@@ -1042,6 +1044,7 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
                 adminToken = if (isAdminPost) KiezStorageManager.getAdminToken(app) else ""
             )
             val serverId = upload.id
+            if (serverId != null) com.example.ui.components.StoryExtraDraft.clear() // 2026-11-21: extra pictures were sent
             val tr = _uiState.value.language == com.example.data.model.AppLanguage.TURKISH
             if (upload.code == 429) {
                 // 2026-11-14: daily limit (5 per day) or too many in one hour – the story goes back into the form

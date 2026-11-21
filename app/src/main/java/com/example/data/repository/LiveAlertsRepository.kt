@@ -607,11 +607,14 @@ object LiveAlertsRepository {
             if (fileBytes != null && fileBytes.isNotEmpty()) {
                 val requestFile = fileBytes.toRequestBody((mimeType ?: "image/jpeg").toMediaType())
                 builder.addFormDataPart("file", fileName ?: "story_${System.currentTimeMillis()}.jpg", requestFile)
+                com.example.ui.components.StoryExtraDraft.addTo(builder) // 2026-11-21: trusted person – more pictures/videos
             }
             val reqBuilder = Request.Builder()
                 .url(API_STORIES_URL)
                 .header("User-Agent", "MyKiezBerlin-Android/2.0")
             if (adminToken.isNotBlank()) reqBuilder.header("x-admin-token", adminToken)
+            // 2026-11-21 (owner): trusted person ("Kiez26" …) – story key from the story form
+            if (com.example.ui.components.StoryKeyStore.valid()) reqBuilder.header("x-story-key", com.example.ui.components.StoryKeyStore.key)
             val req = reqBuilder
                 .post(builder.build())
                 .build()

@@ -166,7 +166,7 @@ progress{width:100%;margin-top:8px}
     $("pend").textContent = ad.end_at ? t("until") + " " + new Date(ad.end_at).toLocaleDateString(lang) : t("unlimited");
     $("sviews").textContent = state.stats.views; $("sclicks").textContent = state.stats.clicks;
     document.querySelectorAll("input[name=period]").forEach(function (r) { r.checked = r.value === ad.media_period; });
-    $("quota").textContent = t("quota")(state.quota);
+    $("quota").textContent = state.quota && state.quota.unlimited ? "♾️ " + (lang === "tr" ? "Güvenilir hesap – sınır yok." : "Vertrauens-Konto – ohne Limit.") : t("quota")(state.quota); // 2026-11-21
     var list = $("mlist"); list.innerHTML = "";
     state.media.forEach(function (m) {
       var fig = document.createElement("figure");

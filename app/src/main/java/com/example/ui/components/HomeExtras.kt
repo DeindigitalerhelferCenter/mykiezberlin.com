@@ -127,19 +127,24 @@ fun TurkeySponsorsButton(language: AppLanguage) {
         Text(pick(language, "Sponsoren aus der Türkei", "Türkiye Sponsorları", "Sponsors from Turkey"), color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 15.sp, modifier = Modifier.weight(1f))
         Text("${tr.size} →", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 14.sp)
     }
-    if (open) {
-        Dialog(onDismissRequest = { open = false }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-            Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                Column(Modifier.fillMaxSize().systemBarsPadding()) {
-                    Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text("🇹🇷 " + pick(language, "Sponsoren aus der Türkei", "Türkiye Sponsorları", "Sponsors from Turkey") + " (${tr.size})",
-                            fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, modifier = Modifier.weight(1f))
-                        InfoButton("tuerkei", language) // 2026-11-14
-                        TextButton(onClick = { open = false }) { Text("✕", fontSize = 18.sp) }
-                    }
-                    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        items(tr, key = { it.id }) { ad -> SponsorTierCard(ad = ad, language = language, size = "medium") }
-                    }
+    if (open) TurkeySponsorsDialog(tr, language) { open = false }
+}
+
+
+/** 2026-11-21: the list of the sponsors from Turkey as its own window (also opened by the big button, KiezBoost.kt). */
+@Composable
+internal fun TurkeySponsorsDialog(tr: List<ServerAd>, language: AppLanguage, onClose: () -> Unit) {
+    Dialog(onDismissRequest = { onClose() }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            Column(Modifier.fillMaxSize().systemBarsPadding()) {
+                Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("🇹🇷 " + pick(language, "Sponsoren aus der Türkei", "Türkiye Sponsorları", "Sponsors from Turkey") + " (${tr.size})",
+                        fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, modifier = Modifier.weight(1f))
+                    InfoButton("tuerkei", language) // 2026-11-14
+                    TextButton(onClick = { onClose() }) { Text("✕", fontSize = 18.sp) }
+                }
+                LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    items(tr, key = { it.id }) { ad -> SponsorTierCard(ad = ad, language = language, size = "medium") }
                 }
             }
         }

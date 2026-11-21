@@ -238,15 +238,37 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
     // 2026-11-14 (owner): the top part (search box, live banner, sponsor place) gets out of the way while scrolling
     // down and comes back when scrolling up or opening another page – the page itself gets the room
     var headerShown by remember { mutableStateOf(true) }
-    LaunchedEffect(uiState.currentScreen) { headerShown = true }
+    // 2026-11-21 (owner): end of a page reached -> werben box above the bottom bar, every 2nd time a window
+    var pageEndShown by remember { mutableStateOf(false) }
+    var pageEndArmed by remember { mutableStateOf(true) }
+    var werbenPopup by remember { mutableStateOf(false) }
+    val boostContext = androidx.compose.ui.platform.LocalContext.current
+    val boostOn = com.example.ui.components.KiezBoost.on(boostContext)
+    LaunchedEffect(uiState.currentScreen) { headerShown = true; pageEndShown = false; pageEndArmed = true }
+    com.example.ui.components.SponsorStoriesLoader()
+    val boostNav by com.example.ui.components.KiezBoost.navRequest
+    LaunchedEffect(boostNav) { boostNav?.let { viewModel.navigateTo(it); com.example.ui.components.KiezBoost.navRequest.value = null } }
+    val boostWerben by com.example.ui.components.KiezBoost.werbenRequest
+    LaunchedEffect(boostWerben) { if (boostWerben) { werbenPopup = false; viewModel.openWerben(); com.example.ui.components.KiezBoost.werbenRequest.value = false } }
     val headerScroll = remember {
         object : androidx.compose.ui.input.nestedscroll.NestedScrollConnection {
             override fun onPreScroll(available: androidx.compose.ui.geometry.Offset, source: androidx.compose.ui.input.nestedscroll.NestedScrollSource): androidx.compose.ui.geometry.Offset {
                 if (available.y < -6f) headerShown = false else if (available.y > 6f) headerShown = true
+                if (available.y > 6f) { pageEndShown = false; pageEndArmed = true }
+                return androidx.compose.ui.geometry.Offset.Zero
+            }
+            override fun onPostScroll(consumed: androidx.compose.ui.geometry.Offset, available: androidx.compose.ui.geometry.Offset, source: androidx.compose.ui.input.nestedscroll.NestedScrollSource): androidx.compose.ui.geometry.Offset {
+                // the page could not scroll further down = its end
+                if (available.y < -2f && pageEndArmed && com.example.ui.components.KiezBoost.on(boostContext)) {
+                    pageEndArmed = false
+                    pageEndShown = true
+                    if (com.example.ui.components.KiezBoost.nextBottomCount(boostContext) % 2 == 0) werbenPopup = true
+                }
                 return androidx.compose.ui.geometry.Offset.Zero
             }
         }
     }
+    if (werbenPopup) com.example.ui.components.WerbenPopup(uiState.language) { werbenPopup = false }
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -271,12 +293,18 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
             }
         },
         bottomBar = {
+            Column {
+            // 2026-11-21 (owner): werben box at the end of every page (admin test first)
+            androidx.compose.animation.AnimatedVisibility(visible = boostOn && pageEndShown && uiState.currentScreen !in setOf(AppScreen.WERBEN, AppScreen.ADMIN, AppScreen.WEB_ADMIN)) {
+                com.example.ui.components.WerbenCta(uiState.language, modifier = Modifier.background(MaterialTheme.colorScheme.background).padding(horizontal = 12.dp, vertical = 6.dp))
+            }
             MyKiezBottomNav(
                 currentScreen = uiState.currentScreen,
                 currentLanguage = uiState.language,
                 onNavigate = { viewModel.navigateTo(it) },
                 onOpenMoreMenu = { showMoreBottomSheet = true }
             )
+            }
         }
     ) { innerPadding ->
         Column(
@@ -305,6 +333,10 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     activeKiez = uiState.activeKiezFilter,
                     showCoupons = uiState.currentScreen == AppScreen.DEALS
                 )
+            }
+            // 2026-11-21 (owner): "Ihr Betrieb in ganz Berlin sichtbar?" on top of every page (admin test first)
+            if (boostOn && uiState.currentScreen !in setOf(AppScreen.WERBEN, AppScreen.ADMIN, AppScreen.WEB_ADMIN, AppScreen.KIEZ_DETAIL)) {
+                com.example.ui.components.WerbenCta(uiState.language, compact = true, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
             }
             } } // end of the part that hides while scrolling
 

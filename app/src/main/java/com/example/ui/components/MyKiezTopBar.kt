@@ -91,10 +91,12 @@ fun MyKiezTopBar(
                 }
 
                 // Sponsoring / B2B Link
+                // 2026-11-21 (owner): users did not know "B2B" -> "Werben?" / "Reklam ver", opens /werben (admin test first)
+                val boostOn = com.example.ui.components.KiezBoost.on(androidx.compose.ui.platform.LocalContext.current)
                 Surface(
                     shape = RoundedCornerShape(16.dp),
-                    color = BerlinRedLight,
-                    modifier = Modifier.clickable { onNavigate(AppScreen.BUSINESS_PORTAL) }
+                    color = if (boostOn) androidx.compose.ui.graphics.Color(0xFFFFC107) else BerlinRedLight,
+                    modifier = Modifier.clickable { if (boostOn) com.example.ui.components.KiezBoost.werbenRequest.value = true else onNavigate(AppScreen.BUSINESS_PORTAL) }
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp),
@@ -109,8 +111,8 @@ fun MyKiezTopBar(
                         )
                         Text(
                             // "İşletmeler" was the same word as the first bottom tab, but this opens the B2B portal
-                            text = "B2B",
-                            color = BerlinRed,
+                            text = if (boostOn) (if (currentLanguage == AppLanguage.TURKISH) "Reklam ver" else "Werben?") else "B2B",
+                            color = if (boostOn) androidx.compose.ui.graphics.Color(0xFF0F172A) else BerlinRed,
                             fontWeight = FontWeight.Bold,
                             fontSize = 10.5.sp
                         )

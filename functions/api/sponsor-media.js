@@ -6,6 +6,7 @@
 import { cleanText, db, isAdmin, json, noDb } from "../_lib/util.js";
 import { mediaQuota, parseExtra } from "../_lib/plans.js";
 import { ensureSponsorTables, MEDIA_ORDER, sponsorFromToken } from "../_lib/sponsor-panel.js";
+import { isVipAd } from "../_lib/story-vip.js";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
@@ -47,7 +48,8 @@ export async function onRequestPost({ request, env }) {
   if (file.size > (isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES)) return json({ error: "file_too_large" }, 413);
 
   // Package limit for the chosen period (admin uploads do not count)
-  if (!byAdmin) {
+  // 2026-11-21 (owner): trusted sponsors (admin list "Güvenilir hesaplar") have no package limit
+  if (!byAdmin && !(await isVipAd(database, ad.id).catch(() => false))) {
     const q = mediaQuota(ad.plan, parseExtra(ad.extra).media_period);
     const used = await database
       .prepare(`SELECT COUNT(*) AS n FROM sponsor_media WHERE ad_id = ? AND media_type = ? AND created_at > ? AND by_admin = 0`)

@@ -3,6 +3,7 @@ import { safeLink } from "../_lib/blocklist.js";
 import { telegramSweep } from "../_lib/telegram.js";
 import { aiCheck, cleanDevice, cleanupStoryMedia, dailyLimited, dailyUsed, isTrusted, USER_DAILY_LIMIT } from "../_lib/story-guard.js";
 import { STORY_CATS, aiStoryCats, catsOf, dealFromText, storyCats } from "../_lib/story-cats.js";
+import { VIP_MAX_FILES, vipFromRequest } from "../_lib/story-vip.js";
 import { cleanLongText, cleanOverlay, cleanText, cleanupExpiredStories, db, ipHash, isAdmin, json, noDb, rateLimited, sha256Hex, parseDeal, storyDeal, storyMediaList, storyTextKey, validAuthor } from "../_lib/util.js";
 
 const HOUR_MS = 3600000;
@@ -43,6 +44,9 @@ export async function onRequestGet({ request, env, waitUntil }) {
   // 2026-11-14 (owner: warn BEFORE the server refuses): GET /api/stories?quota=1&device=… -> stories left today
   const params = new URL(request.url).searchParams;
   if (params.get("quota")) {
+    // 2026-11-21 (owner): trusted person (story key) – no daily limit
+    const vipQ = await vipFromRequest(database, request, null).catch(() => null);
+    if (vipQ) return json({ used: 0, limit: 0, left: 999, vip: true, name: vipQ.name }, 200, { "cache-control": "no-store" });
     const used = await dailyUsed(database, await ipHash(request, env), cleanDevice(params.get("device")));
     return json({ used, limit: USER_DAILY_LIMIT, left: Math.max(0, USER_DAILY_LIMIT - used) }, 200, { "cache-control": "no-store" });
   }
@@ -68,13 +72,16 @@ export async function onRequestPost({ request, env }) {
   // Admin (story planner): no hourly limit, published directly at the planned time.
   // 2026-11-14 (owner): the admin may write (almost) without limit – title 300, text 10.000 characters, line breaks stay.
   const admin = await isAdmin(request, env);
-  const headline = cleanText(form.get("headline"), admin ? 300 : 120);
+  // 2026-11-21 (owner): trusted person ("Kiez26" …) – like the admin: no limits, several files, long text, online at once
+  const vip = admin ? null : await vipFromRequest(database, request, form).catch(() => null);
+  const big = admin || !!vip;
+  const headline = cleanText(form.get("headline"), big ? 300 : 120);
   // 2026-11-20 (owner): users may write 3x more (1500 instead of 500) and everybody reads the full text.
-  const subtext = cleanLongText(form.get("subtext"), admin ? 10000 : 1500);
+  const subtext = cleanLongText(form.get("subtext"), big ? 10000 : 1500);
   const kiez = cleanText(form.get("kiez"), 60);
   const kind = KINDS.includes(form.get("kind")) ? form.get("kind") : "news";
   // Name of the person who shares (needed for the weekly Kiez-Stars)
-  const author = cleanText(form.get("author"), 40) || "Kiez Community";
+  const author = cleanText(form.get("author"), 40) || (vip ? cleanText(vip.name, 40) : "") || "Kiez Community";
   let deal = storyDeal(form, cleanText); // 2026-11-14: optional offer (users, sponsors, admin)
   // 2026-11-14 (owner): folders – chosen folder + rules (price -> "angebote", Polizei/Sperrung -> "eil" …)
   const chosenCat = cleanText(form.get("category"), 20);
@@ -91,11 +98,11 @@ export async function onRequestPost({ request, env }) {
   // (admin: see above)
   const ip = await ipHash(request, env);
   // 2026-11-13: real name or nickname required (not only emoji), see validAuthor
-  if (!admin && !validAuthor(form.get("author"))) return json({ error: "author_required" }, 400);
-  if (!admin && (await rateLimited(database, "stories", ip))) return json({ error: "rate_limited" }, 429);
+  if (!admin && !vip && !validAuthor(form.get("author"))) return json({ error: "author_required" }, 400);
+  if (!big && (await rateLimited(database, "stories", ip))) return json({ error: "rate_limited" }, 429);
   // 2026-11-14: at most USER_DAILY_LIMIT stories per user (IP or device) in 24 hours
   const device = cleanDevice(form.get("device"));
-  if (!admin && (await dailyLimited(database, ip, device))) return json({ error: "daily_limit", limit: USER_DAILY_LIMIT }, 429);
+  if (!big && (await dailyLimited(database, ip, device))) return json({ error: "daily_limit", limit: USER_DAILY_LIMIT }, 429);
 
   const id = crypto.randomUUID();
   let mediaKey = "";
@@ -118,7 +125,7 @@ export async function onRequestPost({ request, env }) {
   // 2026-11-13: the same picture/video or the same text cannot be uploaded twice (users only;
   // the admin planner may reuse material on purpose).
   const textHash = await sha256Hex(storyTextKey(headline, subtext));
-  if (!admin) {
+  if (!big) { // 2026-11-21: trusted person like the admin (may reuse material)
     const since = Date.now() - DUPLICATE_WINDOW_MS;
     const dup = await database
       .prepare(`SELECT id FROM stories WHERE status != 'rejected' AND created_at > ? AND (text_hash = ? OR (? != '' AND media_hash = ?)) LIMIT 1`)
@@ -160,12 +167,29 @@ export async function onRequestPost({ request, env }) {
   const check = admin ? "" : await aiCheck(env, headline, subtext, mediaBytes, file && typeof file !== "string" ? file.type : "");
   // 2026-11-17 (owner): 18+, insults, hate, gore are never published – saved as "rejected" (admin can still see it)
   const blocked = !admin && String(check).startsWith("block:");
-  const direct = !admin && check === "ok" && (await isTrusted(database, device));
+  // 2026-11-21: trusted person -> online at once when the AI does not block it (owner: the AI check stays)
+  const direct = !admin && !blocked && (vip ? true : check === "ok" && (await isTrusted(database, device)));
   const created = Date.now();
   await database
     .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, ip, created_at, media_hash, text_hash, deal, device, ai_check, approved_at, cats) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
     .bind(id, headline, subtext, kiez, kind, author, mediaKey, mediaType, durationHours, blocked ? "rejected" : direct ? "approved" : "pending", ip, created, mediaHash, textHash, deal, device, check, direct ? created : 0, catsText)
     .run();
   if (blocked) return json({ error: "content_blocked", id }, 422);
-  return json({ id, status: direct ? "approved" : "pending" }, 201);
+  // 2026-11-21: trusted person – further pictures/videos (like the admin, max VIP_MAX_FILES per story)
+  if (vip) {
+    const extra = [];
+    const more = form.getAll("file").filter((x) => x && typeof x !== "string" && x.size > 0).slice(1, VIP_MAX_FILES);
+    for (let i = 0; i < more.length; i++) {
+      const x = more[i];
+      const ext = MEDIA_TYPES[x.type];
+      if (!ext || !env.BUCKET) continue;
+      const video = x.type.startsWith("video/");
+      if (x.size > (video ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES)) continue;
+      const key = `stories/${id}-${i + 2}.${ext}`;
+      await env.BUCKET.put(key, await x.arrayBuffer(), { httpMetadata: { contentType: x.type } });
+      extra.push({ key, type: video ? "video" : "image", caption: cleanText(form.get(`caption_${i + 2}`), 300) });
+    }
+    if (extra.length) await database.prepare(`UPDATE stories SET media_extra = ? WHERE id = ?`).bind(JSON.stringify(extra), id).run();
+  }
+  return json({ id, status: direct ? "approved" : "pending", ...(vip ? { vip: true } : {}) }, 201);
 }

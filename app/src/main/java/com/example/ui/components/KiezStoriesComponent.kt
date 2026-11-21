@@ -65,6 +65,12 @@ fun KiezStoriesBar(
     // 2026-11-14 (owner): story folders – only the chosen folder ("" = all)
     val folder by StoryFolders.selected
     val shownStories = if (folder.isBlank()) visibleStories else visibleStories.filter { folder in it.folders() }
+    // 2026-11-21 (owner): one circle per sponsor with its pictures/videos of the last 24 h (admin test first)
+    val boostOn = com.example.ui.components.KiezBoost.on(androidx.compose.ui.platform.LocalContext.current)
+    val sponsorGroups by com.example.ui.components.SponsorStoriesRepo.groups.collectAsState()
+    val showSponsorGroups = boostOn && (folder.isBlank() || folder == "sponsoren") && sponsorGroups.isNotEmpty()
+    var openSponsorGroup by remember { mutableStateOf<Int?>(null) }
+    openSponsorGroup?.let { gi -> com.example.ui.components.SponsorStoryViewer(sponsorGroups, gi, 0, language) { openSponsorGroup = null } }
 
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
@@ -137,6 +143,10 @@ fun KiezStoriesBar(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
+            }
+            // 2026-11-21 (owner): sponsor circles right after "+"
+            if (showSponsorGroups) {
+                items(sponsorGroups.size) { gi -> com.example.ui.components.SponsorStoryCircle(sponsorGroups[gi]) { openSponsorGroup = gi } }
             }
 
             // Visible approved stories with sequential index support
@@ -1638,6 +1648,7 @@ fun StoryCreateDialog(
 
                 // 2026-11-14 (owner): optional offer – also shown under "Özel Mahalle İndirimleri"
                 com.example.ui.components.StoryDealFields(language)
+                com.example.ui.components.StoryKeyFields(language) // 2026-11-21 (owner): trusted person (story key)
 
                 // Commercial Toggle with 3 months free
                 Row(

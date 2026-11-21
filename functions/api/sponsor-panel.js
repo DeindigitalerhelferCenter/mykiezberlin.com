@@ -12,6 +12,7 @@
 import { cleanText, db, ipHash, isAdmin, json, noDb } from "../_lib/util.js";
 import { isBlockedUrl } from "../_lib/blocklist.js";
 import { mediaQuota, parseExtra, planRule } from "../_lib/plans.js";
+import { isVipAd } from "../_lib/story-vip.js";
 import { sendMail } from "../_lib/mail.js";
 import { adsForEmail, createSponsorToken, ensureSponsorTables, MEDIA_ORDER, moveSponsorMedia, panelUrl, sponsorFromToken, TOKEN_DAYS } from "../_lib/sponsor-panel.js";
 
@@ -43,6 +44,8 @@ async function usage(database, ad) {
     .prepare(`SELECT SUM(CASE WHEN media_type = 'image' THEN 1 ELSE 0 END) AS images, SUM(CASE WHEN media_type = 'video' THEN 1 ELSE 0 END) AS videos FROM sponsor_media WHERE ad_id = ? AND created_at > ? AND by_admin = 0`)
     .bind(ad.id, since)
     .first();
+  // 2026-11-21 (owner): trusted sponsor -> no limit (the panel shows "ohne Limit")
+  if (await isVipAd(database, ad.id).catch(() => false)) return { ...q, images: 999, videos: 999, unlimited: true, usedImages: row?.images || 0, usedVideos: row?.videos || 0 };
   return { ...q, usedImages: row?.images || 0, usedVideos: row?.videos || 0 };
 }
 

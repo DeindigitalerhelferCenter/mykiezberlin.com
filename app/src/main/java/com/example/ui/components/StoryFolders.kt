@@ -115,10 +115,17 @@ fun StoryFolderChips(stories: List<KiezStory>, language: AppLanguage) {
     val followed by StoryFolders.followed
     var showAll by remember { mutableStateOf(false) }
     val counts = remember(stories) { STORY_FOLDERS.associate { f -> f.key to stories.count { f.key in it.folders() } } }
+    // 2026-11-21 (owner): glowing offers chip first + "Sponsoren" also when only sponsor circles exist (admin test first)
+    val boostOn = KiezBoost.on(context)
+    val sponsorGroups by SponsorStoriesRepo.groups.collectAsState()
+    val now = System.currentTimeMillis()
+    val storyDeals = stories.count { it.deal != null && it.createdAtMillis + it.durationHours * 3_600_000L > now }
+    LaunchedEffect(storyDeals) { KiezBoost.storyDealCount.intValue = storyDeals }
     LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        if (boostOn) item { DealsChip(language, storyDeals) }
         item { FolderChip((if (language == AppLanguage.TURKISH) "Tümü" else if (language == AppLanguage.ENGLISH) "All" else "Alle") + " (${stories.size})", selected.isBlank()) { StoryFolders.selected.value = "" } }
-        items(STORY_FOLDERS.filter { (counts[it.key] ?: 0) > 0 || it.key in followed || it.key == selected }) { f ->
-            val n = counts[f.key] ?: 0
+        items(STORY_FOLDERS.filter { (counts[it.key] ?: 0) > 0 || it.key in followed || it.key == selected || (boostOn && it.key == "sponsoren" && sponsorGroups.isNotEmpty()) }) { f ->
+            val n = (counts[f.key] ?: 0) + if (boostOn && f.key == "sponsoren") sponsorGroups.size else 0
             FolderChip("${f.icon} ${f.label(language)}" + (if (n > 0) " ($n)" else "") + (if (f.key in followed) " 🔔" else ""), selected == f.key) {
                 StoryFolders.selected.value = if (selected == f.key) "" else f.key
             }
