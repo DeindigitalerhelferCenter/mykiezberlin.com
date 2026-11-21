@@ -84,11 +84,16 @@ export async function onRequestPost({ request, env, waitUntil }) {
   const kind = KINDS.includes(form.get("kind")) ? form.get("kind") : "news";
   // Name of the person who shares (needed for the weekly Kiez-Stars)
   const author = cleanText(form.get("author"), 40) || (vip ? cleanText(vip.name, 40) : "") || "Kiez Community";
+  // 2026-11-22 (owner): clear swear words are refused at once, before anything slow (no AI, nothing saved)
+  const swear = admin ? "" : swearHit(headline, subtext, author);
+  if (swear) return json({ error: "content_blocked", word: swear, review: swearReview(swear) }, 422);
   let deal = storyDeal(form, cleanText); // 2026-11-14: optional offer (users, sponsors, admin)
   // 2026-11-14 (owner): folders – chosen folder + rules (price -> "angebote", Polizei/Sperrung -> "eil" …)
   const chosenCat = cleanText(form.get("category"), 20);
   // 2026-11-14 (owner): "automatic" -> the AI reads the story and picks the folders; word rules only as fallback
-  const aiCats = chosenCat ? [] : await aiStoryCats(env, headline, subtext, kiez).catch(() => []);
+  // 2026-11-22 (owner): users do not wait for the AI any more (took up to 45 s) – word rules now, AI folders afterwards
+  const catsLater = !admin && !chosenCat;
+  const aiCats = chosenCat || catsLater ? [] : await aiStoryCats(env, headline, subtext, kiez).catch(() => []);
   const cats = aiCats.length
     ? [...aiCats, ...(deal ? ["angebote"] : []), ...(form.get("sponsor") === "1" ? ["sponsoren"] : [])].filter((k, i, a) => a.indexOf(k) === i).slice(0, 5)
     : storyCats({ chosen: chosenCat, kind: form.get("kind"), headline, subtext, deal, sponsor: form.get("sponsor") === "1" });
@@ -105,9 +110,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
   // 2026-11-14: at most USER_DAILY_LIMIT stories per user (IP or device) in 24 hours
   const device = cleanDevice(form.get("device"));
   if (!big && (await dailyLimited(database, ip, device))) return json({ error: "daily_limit", limit: USER_DAILY_LIMIT }, 429);
-  // 2026-11-22 (owner): clear swear words are refused at once (no AI, nothing saved) – the text stays in the form
-  const swear = admin ? "" : swearHit(headline, subtext, author);
-  if (swear) return json({ error: "content_blocked", word: swear, review: swearReview(swear) }, 422);
+  // (swear words: checked above, before the folders)
 
   const id = crypto.randomUUID();
   let mediaKey = "";
@@ -183,6 +186,17 @@ export async function onRequestPost({ request, env, waitUntil }) {
     .bind(id, headline, subtext, kiez, kind, author, mediaKey, mediaType, durationHours, blocked ? "rejected" : direct ? "approved" : "pending", ip, created, mediaHash, textHash, deal, device, check, direct ? created : 0, catsText)
     .run();
   if (blocked) return json({ error: "content_blocked", id, review }, 422);
+  // 2026-11-22 (owner): AI folders in the background (the story already has the word-rule folders)
+  if (catsLater && typeof waitUntil === "function") {
+    waitUntil((async () => {
+      const ai = await aiStoryCats(env, headline, subtext, kiez).catch(() => []);
+      if (!ai.length) return;
+      const sponsor = form.get("sponsor") === "1";
+      const c2 = [...ai, ...(deal ? ["angebote"] : []), ...(sponsor ? ["sponsoren"] : [])].filter((k, i, a) => a.indexOf(k) === i).slice(0, 5);
+      const d2 = !deal && c2.includes("angebote") && !c2.includes("wohnen") && !c2.includes("jobs") ? dealFromText(headline, subtext) : deal;
+      await database.prepare(`UPDATE stories SET cats = ?, deal = ? WHERE id = ?`).bind(c2.join(","), d2 || "", id).run();
+    })().catch(() => {}));
+  }
   // 2026-11-22 (owner): AI review in the background – only a note for the admin; a story that went online at once
   // (trusted device) goes back to the admin when the AI is sure it is heavy. Trusted accounts (vip) are not checked.
   if (!admin && !vip && typeof waitUntil === "function") {
