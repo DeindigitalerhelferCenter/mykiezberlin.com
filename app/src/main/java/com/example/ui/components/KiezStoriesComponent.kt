@@ -1827,36 +1827,57 @@ fun StoryCreateDialog(
                     Checkbox(checked = rulesAccepted, onCheckedChange = { rulesAccepted = it })
                     Text(
                         text = if (language == AppLanguage.TURKISH)
-                            "Politik, küfür ve 18+ içeriklerin yasak olduğunu kabul ediyorum."
+                            "Küfür, hakaret, nefret ve 18+ içeriklerin yasak olduğunu kabul ediyorum." // 2026-11-22: politics is allowed now
                         else
-                            "Ich bestätige: Keine Politik, keine Beleidigungen, keine 18+ Inhalte.",
+                            "Ich bestätige: Keine Beleidigungen, kein Hass, keine 18+ Inhalte.",
                         fontSize = 11.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
+                // 2026-11-22 (owner): check BEFORE sending – problem words in red + better wording (StoryCheck.kt)
+                val checkScope = rememberCoroutineScope()
+                var checking by remember { mutableStateOf(false) }
+                var storyReview by remember { mutableStateOf<StoryReview?>(null) }
+                val sendNow: () -> Unit = {
+                    com.example.ui.components.KiezStarsRepository.saveName(storyContext, author)
+                    val finalKind = if (isCustomKindSelected && customKind.isNotBlank()) customKind.trim() else selectedKind
+                    onSubmit(
+                        headline,
+                        subtext,
+                        selectedKiez,
+                        finalKind,
+                        selectedColor,
+                        if (author.isBlank()) "Kiez-User" else author,
+                        selectedMediaUri,
+                        isVideoMedia,
+                        isCommercial,
+                        selectedDurationHours,
+                        priceToPay,
+                        urlLink.trim()
+                    )
+                }
+                storyReview?.let { rv ->
+                    StoryCheckDialog(
+                        review = rv, language = language, headline = headline, subtext = subtext,
+                        onApply = { iss -> headline = replaceIgnoreCase(headline, iss.text, iss.suggestion); subtext = replaceIgnoreCase(subtext, iss.text, iss.suggestion) },
+                        onEdit = { storyReview = null },
+                        onSendAnyway = { storyReview = null; sendNow() }
+                    )
+                }
                 Button(
                     onClick = {
-                        if (headline.isNotBlank() && rulesAccepted && author.isNotBlank()) {
-                            com.example.ui.components.KiezStarsRepository.saveName(storyContext, author)
-                            val finalKind = if (isCustomKindSelected && customKind.isNotBlank()) customKind.trim() else selectedKind
-                            onSubmit(
-                                headline,
-                                subtext,
-                                selectedKiez,
-                                finalKind,
-                                selectedColor,
-                                if (author.isBlank()) "Kiez-User" else author,
-                                selectedMediaUri,
-                                isVideoMedia,
-                                isCommercial,
-                                selectedDurationHours,
-                                priceToPay,
-                                urlLink.trim()
-                            )
+                        if (headline.isNotBlank() && rulesAccepted && author.isNotBlank() && !checking) {
+                            if (com.example.data.repository.KiezStorageManager.isAdminAuthenticated(storyContext)) sendNow()
+                            else checkScope.launch {
+                                checking = true
+                                val rv = StoryCheckClient.check(storyContext, headline, subtext, selectedMediaUri, isVideoMedia)
+                                checking = false
+                                if (rv == null || rv.verdict == "ok") sendNow() else storyReview = rv
+                            }
                         }
                     },
-                    enabled = headline.isNotBlank() && rulesAccepted && isValidStoryAuthor(author),
+                    enabled = headline.isNotBlank() && rulesAccepted && isValidStoryAuthor(author) && !checking,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = BerlinRed)

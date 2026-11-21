@@ -76,8 +76,68 @@ Antworte NUR mit JSON: {"ok":true,"reason":"","block":false} oder {"ok":false,"r
 "block":true NUR bei eindeutig: Nacktheit/Sexuelles/Pornografie, Beleidigung/Schimpfwörter/Fluchen (auch Türkisch), Hass/Hetze, grausamer Gewalt oder Blut.
 Bei allem anderen, was nicht erlaubt oder unklar ist (Politik, Spam, private Daten …): "block":false (dann entscheidet der Admin).`;
 
-/** "ok", "flag:<reason>", "block:<reason>" (2026-11-17: 18+, insults, hate, gore -> refused at once) or "" (AI not reachable). */
+// 2026-11-22 (owner): the old check refused too much (politics, police news, accidents). New rules:
+// - refused at once ONLY when clearly heavy AND the AI is sure: nudity/porn, swear words or insults against people,
+//   hate speech, very bloody/cruel pictures
+// - light problems (rude words, unclear) -> NOT refused, the admin decides
+// - news, accidents, police, politics, criticism, opinions are allowed
+// - the AI names the exact words/sentences, why, and a better wording (shown red in the form before sending)
+const REVIEW_PROMPT = `Du prüfst Beiträge für die öffentliche Berliner Nachbarschafts-App "My Kiez Berlin". Sei GROSSZÜGIG – lieber durchlassen als ablehnen.
+ERLAUBT (immer ok): Nachrichten, Polizei- und Unfallmeldungen, Feuer, Verkehr, Politik, Meinungen, Kritik an Politik/Behörden/Firmen, Werbung von Geschäften, Veranstaltungen, normale Fotos.
+"heavy" NUR bei EINDEUTIG: Nacktheit/Sexuelles/Pornografie, Schimpfwörter oder Beleidigungen gegen Personen oder Gruppen (auch Türkisch), Hass/Hetze gegen Gruppen, sehr blutige/grausame Bilder.
+"light" bei: unhöflichen/groben Wörtern ohne Beleidigung, Spam, privaten Daten fremder Menschen, wenn du unsicher bist.
+Sonst "none".
+Nenne bei "light"/"heavy" GENAU die betroffenen Stellen (wörtlich aus dem Text kopiert), den Grund kurz auf Deutsch UND Türkisch, und einen höflichen Ersatz in derselben Sprache wie der Text.
+Antworte NUR mit JSON:
+{"severity":"none|light|heavy","confidence":0.0-1.0,"reason_de":"","reason_tr":"","image_problem":"","issues":[{"text":"wörtlich","why_de":"","why_tr":"","suggestion":""}]}`;
+
+/** Detailed check: { severity, confidence, reason_de, reason_tr, image_problem, issues[] } or null (AI not reachable). */
+export async function aiReview(env, headline, subtext, bytes, mime) {
+  if (!env.AI) return null;
+  const content = [{ type: "text", text: `${REVIEW_PROMPT}\n\nTitel: ${headline}\nText: ${subtext}` }];
+  if (bytes && /^image\/(jpeg|png|webp)$/.test(mime || "") && bytes.byteLength <= AI_MAX_BYTES) {
+    content.push({ type: "image_url", image_url: { url: `data:${mime};base64,${toBase64(bytes)}` } });
+  }
+  for (const model of AI_MODELS) {
+    try {
+      const r = await env.AI.run(model, { messages: [{ role: "user", content }], max_tokens: 700, temperature: 0 });
+      const raw = typeof r?.response === "string" ? r.response : JSON.stringify(r?.response ?? r);
+      const m = String(raw).match(/\{[\s\S]*\}/);
+      if (!m) continue;
+      const d = JSON.parse(m[0]);
+      const sev = ["none", "light", "heavy"].includes(d.severity) ? d.severity : "none";
+      const clean = (s, n) => String(s || "").replace(/[<>]/g, "").slice(0, n);
+      const full = `${headline}\n${subtext}`;
+      const issues = (Array.isArray(d.issues) ? d.issues : []).slice(0, 8).map((x) => ({
+        text: clean(x.text, 200), why_de: clean(x.why_de, 160), why_tr: clean(x.why_tr, 160), suggestion: clean(x.suggestion, 300),
+      })).filter((x) => x.text && full.toLowerCase().includes(x.text.toLowerCase())); // only real places of the text
+      return {
+        severity: sev, confidence: Math.max(0, Math.min(1, Number(d.confidence) || 0)),
+        reason_de: clean(d.reason_de, 200), reason_tr: clean(d.reason_tr, 200), image_problem: clean(d.image_problem, 200), issues,
+      };
+    } catch (e) {
+      // next model
+    }
+  }
+  return null;
+}
+
+/** heavy + sure (>= 0.8) -> "block:"; light or unsure -> "flag:" (admin decides); else "ok". */
+export function reviewVerdict(r) {
+  if (!r) return "";
+  const why = r.reason_de || r.image_problem || (r.issues[0] && r.issues[0].why_de) || "";
+  if (r.severity === "heavy" && r.confidence >= 0.8) return "block:" + why;
+  if (r.severity === "heavy" || r.severity === "light") return "flag:" + why;
+  return "ok";
+}
+
+/** "ok", "flag:<reason>", "block:<reason>" or "" (AI not reachable). 2026-11-22: uses the new, kinder review. */
 export async function aiCheck(env, headline, subtext, bytes, mime) {
+  return reviewVerdict(await aiReview(env, headline, subtext, bytes, mime));
+}
+
+/** The old strict check (before 2026-11-22) – kept for reference, not used any more. */
+export async function aiCheckStrict(env, headline, subtext, bytes, mime) {
   if (!env.AI) return "";
   const content = [{ type: "text", text: `${PROMPT}\n\nTitel: ${headline}\nText: ${subtext}` }];
   if (bytes && /^image\/(jpeg|png|webp)$/.test(mime || "") && bytes.byteLength <= AI_MAX_BYTES) {

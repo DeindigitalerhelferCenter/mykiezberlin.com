@@ -298,10 +298,15 @@ async function submitUserStory() {
       return;
     } else if (res.status === 422) {
       // 2026-11-17 (owner): 18+, insults, hate or gore – refused at once
+      // 2026-11-22 (owner): say exactly why and which words – the text stays in the form
+      const blockedAnswer = await res.clone().json().catch(() => ({}));
+      const rv = blockedAnswer.review || {};
+      const words = (rv.issues || []).map((x) => "„" + x.text + "“" + (x.suggestion ? " → " + x.suggestion : "")).join(", ");
       mkStoryNotice(
         tr("Nicht veröffentlicht", "Yayınlanmadı"),
-        tr("Dieser Inhalt passt nicht zu unseren Regeln (z. B. 18+, Beleidigung, Hass oder Gewalt) und wird nicht veröffentlicht.",
-          "Bu içerik kurallarımıza uygun değil (ör. 18+, küfür/hakaret, nefret veya şiddet) ve yayınlanmayacak.")
+        (tr(rv.reason_de || "Dieser Inhalt passt nicht zu unseren Regeln (z. B. 18+, Beleidigung, Hass oder Gewalt).", rv.reason_tr || rv.reason_de || "Bu içerik kurallarımıza uygun değil (ör. 18+, küfür/hakaret, nefret veya şiddet).") +
+          (rv.image_problem ? " " + tr("Bild: ", "Resim: ") + rv.image_problem : "") +
+          (words ? " " + tr("Bitte ändern: ", "Lütfen değiştir: ") + words : "") + " " + tr("Dein Text bleibt erhalten.", "Yazdıkların duruyor."))
       );
       return;
     } else if (res.status === 409) {

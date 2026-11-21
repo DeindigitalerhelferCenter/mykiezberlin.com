@@ -1,7 +1,7 @@
 // Shared Kiez stories: public list and moderated submissions.
 import { safeLink } from "../_lib/blocklist.js";
 import { telegramSweep } from "../_lib/telegram.js";
-import { aiCheck, cleanDevice, cleanupStoryMedia, dailyLimited, dailyUsed, isTrusted, USER_DAILY_LIMIT } from "../_lib/story-guard.js";
+import { aiReview, reviewVerdict, cleanDevice, cleanupStoryMedia, dailyLimited, dailyUsed, isTrusted, USER_DAILY_LIMIT } from "../_lib/story-guard.js";
 import { STORY_CATS, aiStoryCats, catsOf, dealFromText, storyCats } from "../_lib/story-cats.js";
 import { VIP_MAX_FILES, vipFromRequest } from "../_lib/story-vip.js";
 import { newsSweep } from "../_lib/news-auto.js";
@@ -166,7 +166,9 @@ export async function onRequestPost({ request, env }) {
   }
 
   // 2026-11-14: AI check first (users only). Trusted device + AI "ok" -> online at once, otherwise the admin decides.
-  const check = admin ? "" : await aiCheck(env, headline, subtext, mediaBytes, file && typeof file !== "string" ? file.type : "");
+  // 2026-11-22 (owner): kinder check – only clear heavy cases are refused, light ones go to the admin
+  const review = admin ? null : await aiReview(env, headline, subtext, mediaBytes, file && typeof file !== "string" ? file.type : "").catch(() => null);
+  const check = admin ? "" : reviewVerdict(review);
   // 2026-11-17 (owner): 18+, insults, hate, gore are never published – saved as "rejected" (admin can still see it)
   const blocked = !admin && String(check).startsWith("block:");
   // 2026-11-21: trusted person -> online at once when the AI does not block it (owner: the AI check stays)
@@ -176,7 +178,7 @@ export async function onRequestPost({ request, env }) {
     .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, ip, created_at, media_hash, text_hash, deal, device, ai_check, approved_at, cats) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
     .bind(id, headline, subtext, kiez, kind, author, mediaKey, mediaType, durationHours, blocked ? "rejected" : direct ? "approved" : "pending", ip, created, mediaHash, textHash, deal, device, check, direct ? created : 0, catsText)
     .run();
-  if (blocked) return json({ error: "content_blocked", id }, 422);
+  if (blocked) return json({ error: "content_blocked", id, review }, 422);
   // 2026-11-21: trusted person – further pictures/videos (like the admin, max VIP_MAX_FILES per story)
   if (vip) {
     const extra = [];
