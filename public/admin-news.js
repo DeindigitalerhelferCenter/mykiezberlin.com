@@ -32,10 +32,10 @@
       var tplHtml = '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0">Arka plan: ' +
         '<button type="button" data-tpl="0" style="' + BTN + (tpl === 0 ? ";border-color:#2ea043" : "") + '">🔄 Sırayla</button>';
       for (var i = 1; i <= (j.templates || 6); i++) tplHtml += '<img data-tpl="' + i + '" src="/assets/news/tpl-' + i + '-s.webp" alt="" style="width:34px;height:60px;border-radius:6px;cursor:pointer;object-fit:cover;border:2px solid ' + (tpl === i ? "#2ea043" : "transparent") + '">';
-      tplHtml += '<label style="' + BTN + '">📷 Kendi resmim<input type="file" id="admin-news-bg" accept="image/jpeg,image/png,image/webp" style="display:none"></label><span id="admin-news-bgname" style="color:#8b949e"></span></div>';
+      tplHtml += '<label style="' + BTN + '">📷 Kendi resmim<input type="file" id="admin-news-bg" accept="image/jpeg,image/png" style="display:none"></label><span id="admin-news-bgname" style="color:#8b949e"></span></div>';
       var head = '<label style="display:flex;gap:8px;align-items:center;margin:8px 0;font-weight:700"><input type="checkbox" id="admin-news-auto"' + (j.auto ? " checked" : "") + "> 🤖 Otomatik · Automatisch (her listede acil + ilk 3 konu, 20 dk arayla, şablon resim)</label>" +
         tplHtml +
-        '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">Dil: <select id="admin-news-lang" style="' + BTN + '"><option value="de">Deutsch (+TR)</option><option value="tr">Türkçe</option></select>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">Dil: <select id="admin-news-lang" style="' + BTN + '"><option value="tr-de" selected>Türkçe + Deutsch</option><option value="tr-en">Türkçe + English</option><option value="de">Deutsch + Türkçe</option><option value="tr">Sadece Türkçe</option></select>' +
         ' Aralık: <select id="admin-news-gap" style="' + BTN + '"><option value="0">hemen</option><option value="15">15 dk</option><option value="30" selected>30 dk</option><option value="60">60 dk</option></select>' +
         ' <button type="button" id="admin-news-refresh" style="' + BTN + '">↻ Listeyi yenile</button></div>';
       if (!j.slots.length) { body.innerHTML = head + '<p style="color:#8b949e">Şu an liste yok (06:00–22:00 arası oluşur).</p>'; bind(j); return; }
@@ -44,12 +44,14 @@
           s.items.map(function (it) {
             return '<div style="border:1px solid ' + (it.urgent ? "#f85149" : "#30363d") + ';border-radius:10px;padding:8px;margin:6px 0" data-slot="' + e(s.slot) + '" data-id="' + e(it.id) + '">' +
               '<label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="news-pick"' + (it.published ? " disabled" : "") + ">" +
-              '<span style="flex:1">' + (it.urgent ? '<b style="color:#f85149">🚨 ACİL · EIL</b> ' : "") + (it.published ? '<b style="color:#3fb950">✓ paylaşıldı</b> ' : "") +
+              '<span style="flex:1">' + (it.urgent ? '<b style="color:#f85149">🚨 ACİL · EIL</b> ' : "") + (it.published ? '<b style="color:#3fb950">✓ paylaşıldı</b> ' : "") + (it.renderError ? '<b style="color:#d29922">⚠ resim çizilemedi, eski yöntem kullanıldı</b> ' : "") +
               '<small style="color:#8b949e">' + e(it.source) + ' · <a href="' + e(it.url) + '" target="_blank" rel="noopener" style="color:#58a6ff">kaynak ↗</a></small><br><small style="color:#8b949e">Orijinal: ' + e(it.orig) + "</small></span></label>" +
               '<input class="news-f" data-f="title_de" style="' + INP + ';margin-top:6px;font-weight:700" value="' + e(it.title_de) + '" placeholder="Titel (DE)">' +
-              '<textarea class="news-f" data-f="text_de" rows="2" style="' + INP + ';margin-top:4px" placeholder="Text (DE)">' + e(it.text_de) + "</textarea>" +
+              '<textarea class="news-f" data-f="text_de" rows="3" style="' + INP + ';margin-top:4px" placeholder="Text (DE)">' + e(it.text_de) + "</textarea>" +
               '<input class="news-f" data-f="title_tr" style="' + INP + ';margin-top:4px;font-weight:700" value="' + e(it.title_tr) + '" placeholder="Başlık (TR)">' +
-              '<textarea class="news-f" data-f="text_tr" rows="2" style="' + INP + ';margin-top:4px" placeholder="Metin (TR)">' + e(it.text_tr) + "</textarea></div>";
+              '<textarea class="news-f" data-f="text_tr" rows="3" style="' + INP + ';margin-top:4px" placeholder="Metin (TR)">' + e(it.text_tr) + "</textarea>" +
+              '<input class="news-f" data-f="title_en" style="' + INP + ';margin-top:4px;font-weight:700" value="' + e(it.title_en) + '" placeholder="Title (EN)">' +
+              '<textarea class="news-f" data-f="text_en" rows="3" style="' + INP + ';margin-top:4px" placeholder="Text (EN)">' + e(it.text_en) + "</textarea></div>";
           }).join("") +
           '<button type="button" class="news-publish" data-slot="' + e(s.slot) + '" style="' + BTN + ';background:#2ea043;margin-top:6px">📤 Seçilenleri paylaş</button> <span class="news-out"></span></details>';
       }).join("");

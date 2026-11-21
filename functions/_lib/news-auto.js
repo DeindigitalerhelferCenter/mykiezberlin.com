@@ -8,6 +8,7 @@
 // - No cron needed: a new list is made by the first request after each slot (admin panel, app, or any visitor
 //   through GET /api/stories, at most one check every 5 minutes).
 import { readFlags } from "../api/flags.js";
+import { renderNewsImage } from "./news-image.js";
 
 export const NEWS_SLOTS = [6, 8, 10, 12, 14, 16, 18, 20, 22];
 export const NEWS_TOPICS = 5;
@@ -83,6 +84,43 @@ export async function collectNews() {
   }).sort((a, b) => b.date - a.date).slice(0, 40);
 }
 
+// 2026-11-22 (owner): the text must stay close to the real source -> read the first paragraphs of the article
+async function articleText(url) {
+  try {
+    const res = await fetch(url, { headers: UA, cf: { cacheTtl: 900 } });
+    if (!res.ok) return "";
+    const html = (await res.text()).slice(0, 400000);
+    const meta = (html.match(/<meta[^>]+(?:property|name)=["'](?:og:description|description)["'][^>]+content=["']([^"']+)["']/i) || [])[1] || "";
+    const paras = [...html.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)].map((m) => strip(m[1])).filter((t) => t.length > 60 && !/cookie|javascript|abonn|newsletter|©/i.test(t));
+    return strip(meta + " " + paras.slice(0, 6).join(" ")).slice(0, 1800);
+  } catch (e) {
+    return "";
+  }
+}
+
+async function aiWrite(env, items) {
+  if (!env.AI || !items.length) return null;
+  const list = items.map((n, i) => `### ${i}\nQuelle: ${n.source}\nTitel: ${n.title}\nText: ${(n.article || n.teaser).slice(0, 1500)}`).join("\n\n");
+  const prompt = `Du schreibst Kurz-Nachrichten für die Berliner Nachbarschafts-App "My Kiez Berlin". Für jede Meldung unten:\n` +
+    `- Nutze NUR Fakten aus dem Quelltext, erfinde nichts, keine Vermutungen. Bleib inhaltlich sehr nah an der Quelle, aber schreib es mit eigenen Worten (nicht wörtlich abschreiben).\n` +
+    `- "tr_title"/"de_title"/"en_title": kurze Schlagzeile (max. 60 Zeichen) auf Türkisch / Deutsch / Englisch.\n` +
+    `- "tr_text"/"de_text"/"en_text": mittellange Beschreibung, 3–4 Sätze (max. 380 Zeichen): was, wo, wann, Folgen. Die drei Texte haben denselben Inhalt (genaue Übersetzung).\n` +
+    `Antworte NUR mit JSON: [{"i":0,"tr_title":"","tr_text":"","de_title":"","de_text":"","en_title":"","en_text":""}]\n\n${list}`;
+  for (const model of AI_MODELS) {
+    try {
+      const out = await env.AI.run(model, { messages: [{ role: "user", content: prompt }], max_tokens: 4000, temperature: 0.2 });
+      const text = typeof out === "string" ? out : out?.response ?? JSON.stringify(out);
+      const m = String(typeof text === "string" ? text : JSON.stringify(text)).match(/\[[\s\S]*\]/);
+      if (!m) continue;
+      const arr = JSON.parse(m[0]);
+      if (Array.isArray(arr) && arr.length) return arr;
+    } catch (e) {
+      // next model
+    }
+  }
+  return null;
+}
+
 function isUrgent(n) {
   return !!n.breaking || /eilmeldung|\+\+\+|breaking|unwetter|evakuier|großeinsatz|großbrand|warnung|amok|terror/i.test(n.title + " " + n.teaser);
 }
@@ -122,10 +160,24 @@ export async function buildList(env) {
       const n = news[Number(p.i)];
       if (!n) return null;
       return {
-        urgent: !!p.urgent || isUrgent(n), source: n.source, url: n.url,
-        title_de: cut(p.de_title || n.title, 90), text_de: cut(p.de_text, 300), title_tr: cut(p.tr_title, 90), text_tr: cut(p.tr_text, 300), orig: cut(n.title, 160),
+        urgent: !!p.urgent || isUrgent(n), source: n.source, url: n.url, teaser: n.teaser, title: n.title,
+        title_de: cut(p.de_title || n.title, 90), text_de: cut(p.de_text, 420), title_tr: cut(p.tr_title, 90), text_tr: cut(p.tr_text, 420), title_en: "", text_en: "", orig: cut(n.title, 160),
       };
-    }).filter(Boolean);
+    }).filter(Boolean).slice(0, NEWS_TOPICS + 3);
+    // 2026-11-22 (owner): medium text close to the real source, TR + DE + EN
+    await Promise.all(items.map(async (it) => { it.article = await articleText(it.url); }));
+    const written = await aiWrite(env, items).catch(() => null);
+    if (written) written.forEach((w) => {
+      const it = items[Number(w.i)];
+      if (!it) return;
+      if (w.tr_title) it.title_tr = cut(w.tr_title, 90);
+      if (w.tr_text) it.text_tr = cut(w.tr_text, 420);
+      if (w.de_title) it.title_de = cut(w.de_title, 90);
+      if (w.de_text) it.text_de = cut(w.de_text, 420);
+      if (w.en_title) it.title_en = cut(w.en_title, 90);
+      if (w.en_text) it.text_en = cut(w.en_text, 420);
+    });
+    items.forEach((it) => { delete it.article; delete it.teaser; delete it.title; });
   } else {
     // no AI: headlines only (the admin writes the text before publishing)
     items = news.slice(0, NEWS_TOPICS + 3).map((n) => ({ urgent: isUrgent(n), source: n.source, url: n.url, title_de: cut(n.title, 90), text_de: "", title_tr: "", text_tr: "", orig: cut(n.title, 160), noAi: true }));
@@ -166,23 +218,40 @@ export async function ensureCurrentSlot(env, database) {
 export async function publishItems(env, database, slot, ids, opts = {}) {
   const s = await getSlot(database, slot);
   if (!s) return { published: 0 };
-  const lang = opts.lang === "tr" ? "tr" : "de";
+  // 2026-11-22 (owner): language pairs – "tr-de" (default), "tr-en", "de" (DE + TR), "tr" (only TR)
+  const lang = ["tr-de", "tr-en", "de", "tr"].includes(opts.lang) ? opts.lang : "tr-de";
   let n = 0;
   const now = Date.now();
   const gapMs = (opts.gapMinutes || 0) * 60000;
+  const logo = await assetBytes(opts.origin, "/assets/images/mykiez_logo.png", "image/png");
+  let background = null;
+  if (opts.backgroundKey && env.BUCKET) {
+    const obj = await env.BUCKET.get(opts.backgroundKey).catch(() => null);
+    if (obj) background = { bytes: new Uint8Array(await obj.arrayBuffer()), mime: (obj.httpMetadata && obj.httpMetadata.contentType) || "image/jpeg" };
+  }
   for (const it of s.items) {
     if (!ids.includes(it.id) || it.published) continue;
-    const title = (lang === "tr" && it.title_tr) ? it.title_tr : it.title_de;
-    const text = (lang === "tr" && it.text_tr) ? it.text_tr : it.text_de;
-    const bg = opts.backgroundKey || (await templateKey(env, opts.template || (n % TEMPLATE_COUNT) + 1, opts.origin));
-    if (!bg) continue;
+    const p = newsParts(it, lang);
     const id = crypto.randomUUID();
-    const overlay = { t: (it.urgent ? "🚨 " : "") + title, x: 0.5, y: 0.5, s: 0.07, c: "#ffffff", b: "box" };
-    const subtext = [text, lang === "tr" && it.text_de ? "" : it.text_tr, `Quelle: ${it.source}`].filter(Boolean).join("\n\n");
+    const theme = (opts.template ? Number(opts.template) - 1 : n) % TEMPLATE_COUNT;
+    // the picture with all text inside; if drawing fails: template + text layer (older way)
+    let mediaKey = "";
+    let overlay = null;
+    try {
+      const png = await renderNewsImage(p, { theme, logo, background });
+      mediaKey = `stories/news-${id}.png`;
+      await env.BUCKET.put(mediaKey, png, { httpMetadata: { contentType: "image/png" } });
+    } catch (e) {
+      it.renderError = String((e && e.message) || e).slice(0, 120);
+      mediaKey = opts.backgroundKey || (await templateKey(env, theme + 1, opts.origin));
+      overlay = { t: (it.urgent ? "🚨 " : "") + p.title1, x: 0.5, y: 0.5, s: 0.07, c: "#ffffff", b: "box" };
+    }
+    if (!mediaKey) continue;
+    const subtext = [p.text1, p.text2, `${p.sourceLabel}: ${it.source}`].filter(Boolean).join("\n\n");
     const start = now + n * gapMs;
     await database
       .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, ip, created_at, approved_at, link, by_admin, media_hash, text_hash, media_extra, deal, cats, overlay) VALUES (?, ?, ?, ?, ?, ?, ?, 'image', 24, 'approved', '', ?, ?, ?, 1, '', '', '[]', '', ?, ?)`)
-      .bind(id, title, subtext.slice(0, 2000), "Ganz Berlin", it.urgent ? "warn" : "news", "My Kiez Berlin", bg, now, start, it.url || "", it.urgent ? "eil,berlin" : /tagesschau$/.test(it.source) ? "deutschland" : "berlin", JSON.stringify(overlay))
+      .bind(id, p.title1, subtext.slice(0, 2000), "Ganz Berlin", it.urgent ? "warn" : "news", "My Kiez Berlin", mediaKey, now, start, it.url || "", it.urgent ? "eil,berlin" : /tagesschau$/.test(it.source) ? "deutschland" : "berlin", overlay ? JSON.stringify(overlay) : null)
       .run();
     it.published = id;
     n++;
@@ -191,11 +260,56 @@ export async function publishItems(env, database, slot, ids, opts = {}) {
   return { published: n };
 }
 
+/** Title/description pair for the chosen language mode. */
+export function newsParts(it, lang) {
+  const tr = { t: it.title_tr || it.title_de, x: it.text_tr || it.text_de };
+  const de = { t: it.title_de, x: it.text_de };
+  const en = { t: it.title_en || it.title_de, x: it.text_en || it.text_de };
+  const pair = lang === "tr-en" ? [tr, en] : lang === "de" ? [de, tr] : lang === "tr" ? [tr, null] : [tr, de];
+  return {
+    title1: pair[0].t, text1: pair[0].x, title2: pair[1] ? pair[1].t : "", text2: pair[1] ? pair[1].x : "",
+    sourceLabel: lang === "tr-en" ? "Kaynak / Source" : lang === "tr" ? "Kaynak" : "Kaynak / Quelle", source: it.source, url: it.url, urgent: !!it.urgent,
+  };
+}
+
+async function assetBytes(origin, path, mime) {
+  try {
+    const res = await fetch(`${origin || "https://mykiezberlin.com"}${path}`);
+    if (!res.ok) return null;
+    return { bytes: new Uint8Array(await res.arrayBuffer()), mime };
+  } catch (e) {
+    return null;
+  }
+}
+
+/** 2026-11-22 (owner): news stories made the old way (template + text layer) get the new picture once. */
+export async function upgradeOldNews(env, database, origin) {
+  const { results } = await database
+    .prepare(`SELECT id, headline, subtext, link, kind FROM stories WHERE status = 'approved' AND media_key LIKE 'stories/news-tpl-%' AND approved_at + duration_hours * 3600000 > ? LIMIT 3`)
+    .bind(Date.now())
+    .all();
+  if (!results.length) return;
+  const logo = await assetBytes(origin, "/assets/images/mykiez_logo.png", "image/png");
+  for (const r of results) {
+    const parts = String(r.subtext || "").split("\n\n");
+    const src = (parts.find((x) => /^Quelle: /.test(x)) || "").replace(/^Quelle: /, "");
+    const texts = parts.filter((x) => x && !/^Quelle: /.test(x));
+    try {
+      const png = await renderNewsImage({ title1: r.headline, title2: "", text1: texts[1] || "", text2: texts[0] || "", sourceLabel: "Kaynak / Quelle", source: src, url: r.link, urgent: r.kind === "warn" }, { theme: 1, logo });
+      const key = `stories/news-${r.id}.png`;
+      await env.BUCKET.put(key, png, { httpMetadata: { contentType: "image/png" } });
+      await database.prepare(`UPDATE stories SET media_key = ?, overlay = NULL WHERE id = ?`).bind(key, r.id).run();
+    } catch (e) {
+      return; // drawing not possible here – keep the old picture
+    }
+  }
+}
+
 /** R2 key of a template picture (copied once from /assets/news/tpl-N.webp into R2). */
 async function templateKey(env, nr, origin) {
   if (!env.BUCKET) return "";
   const n = Math.min(TEMPLATE_COUNT, Math.max(1, Number(nr) || 1));
-  const key = `stories/news-tpl-${n}.webp`;
+  const key = `stories/news-tpl2-${n}.webp`; // 2026-11-22: new design (tpl2), the old copies stay unused
   const head = await env.BUCKET.head(key).catch(() => null);
   if (head) return key;
   try {
@@ -215,6 +329,7 @@ export async function newsSweep(env, database, origin) {
     const last = await database.prepare(`SELECT value FROM news_state WHERE id = 'sweep'`).first();
     if (last && Date.now() - last.value < 5 * 60000) return;
     await database.prepare(`INSERT INTO news_state (id, value) VALUES ('sweep', ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value`).bind(Date.now()).run();
+    await upgradeOldNews(env, database, origin).catch(() => {});
     const s = await ensureCurrentSlot(env, database);
     if (!s || s.auto_done) return;
     const flags = await readFlags(database);

@@ -692,8 +692,11 @@ fun StoryViewerDialog(
                             }
                         }
 
+                        // 2026-11-22 (owner): news pictures carry ALL text inside the picture -> no extra title/text here,
+                        // only the "KAYNAĞA GİT / QUELLE ÖFFNEN" button below stays
+                        val isNewsPic = story.mediaUri?.let { it.contains("/stories/news-") && !it.contains("/stories/news-tpl") } == true
                         // Metin Başlığı ve Kategori Rozeti
-                        Row(
+                        if (!isNewsPic) Row(
                             verticalAlignment = Alignment.Top,
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                             modifier = Modifier.fillMaxWidth()
@@ -722,7 +725,7 @@ fun StoryViewerDialog(
                             )
                         }
 
-                        if (story.subtext.isNotBlank()) {
+                        if (story.subtext.isNotBlank() && !isNewsPic) {
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = story.subtext,

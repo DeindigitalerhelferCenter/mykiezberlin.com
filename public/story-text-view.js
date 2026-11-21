@@ -38,7 +38,27 @@
           mkStoryTextLayer(proxy, m.overlay);
         }
       }
+      // 2026-11-22 (owner): news pictures carry ALL text inside the picture -> no extra text box, only a small source button
+      var box = document.querySelector("#story-modal-overlay .story-viewer-box");
+      if (box) {
+        box.querySelectorAll(".mk-news-src").forEach(function (n) { n.remove(); });
+        var isNews = story && /\/media\/stories\/news-(?!tpl)/.test(String(story.image || ""));
+        box.classList.toggle("mk-news-pic", !!isNews);
+        if (isNews && story.link && /^https?:\/\//.test(story.link) && story.link.indexOf("mykiezberlin.com") < 0) {
+          var a = document.createElement("a");
+          a.className = "mk-news-src";
+          a.href = story.link;
+          a.target = "_blank";
+          a.rel = "noopener";
+          a.textContent = "🔗 Kaynağı aç · Quelle öffnen";
+          box.appendChild(a);
+        }
+      }
     } catch (e) {}
     return r;
   };
+  var css = document.createElement("style");
+  css.textContent = "#story-modal-overlay .story-viewer-box.mk-news-pic .story-text-card,#story-modal-overlay .story-viewer-box.mk-news-pic .story-watermark-logo{display:none!important}" +
+    ".mk-news-src{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:7;padding:9px 16px;border-radius:999px;background:rgba(0,0,0,.72);color:#FFC107!important;font-weight:800;font-size:13px;text-decoration:none;white-space:nowrap}";
+  document.head.appendChild(css);
 })();

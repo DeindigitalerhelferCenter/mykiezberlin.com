@@ -9,7 +9,7 @@ import { cleanLongText, cleanText, db, isAdmin, json, noDb } from "../_lib/util.
 import { berlinSlot, buildList, ensureCurrentSlot, ensureNews, getSlot, publishItems, saveItems, TEMPLATE_COUNT } from "../_lib/news-auto.js";
 import { readFlags } from "./flags.js";
 
-const BG_TYPES = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+const BG_TYPES = { "image/jpeg": "jpg", "image/png": "png" }; // 2026-11-22: the picture renderer reads JPEG + PNG
 
 export async function onRequestGet({ request, env }) {
   if (!(await isAdmin(request, env))) return json({ error: "unauthorized" }, 401);
@@ -55,6 +55,8 @@ export async function onRequestPost({ request, env }) {
     if (body.text_de != null) it.text_de = cleanLongText(body.text_de, 600);
     if (body.title_tr != null) it.title_tr = cleanText(body.title_tr, 90);
     if (body.text_tr != null) it.text_tr = cleanLongText(body.text_tr, 600);
+    if (body.title_en != null) it.title_en = cleanText(body.title_en, 90);
+    if (body.text_en != null) it.text_en = cleanLongText(body.text_en, 600);
     await saveItems(database, slot, s.items);
     return json({ ok: true });
   }
