@@ -96,6 +96,21 @@
 
   function slotLabel(s) { var p = s.split("-"); return p[2] + "." + p[1] + ". " + p[3] + ":00"; }
 
+  // 2026-11-22 (owner: "otomatik haber paylaşmıyor"): clear status – is the auto mode really ON on the server, what happened last
+  function hm(t) { if (!t) return "–"; try { return new Date(t).toLocaleString("de-DE", { timeZone: "Europe/Berlin", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }); } catch (x) { return "–"; } }
+  function statusHtml(j) {
+    var s = j.status || {};
+    var on = !!j.auto;
+    var line = on
+      ? '<b style="color:#3fb950">🟢 Otomatik AÇIK (sunucuda)</b>'
+      : '<b style="color:#f85149">🔴 Otomatik KAPALI (sunucuda) – haberler kendiliğinden paylaşılmaz. Yukarıdaki kutuyu işaretle.</b>';
+    var slot = !s.slot ? "Şu an liste saati değil (06–22)."
+      : "Güncel liste " + e(s.slot.slice(11)) + ":00 · " + s.items + " konu" + (s.open ? " · " + s.open + " metin yazılıyor…" : "") +
+        (s.autoDone ? " · ✓ otomatik paylaşıldı" : on ? (s.open || !s.items ? " · metinler bitince paylaşılır" : " · birkaç dakika içinde paylaşılır") : "");
+    return '<div id="admin-news-status" style="margin:-2px 0 8px;line-height:1.5">' + line + '<br><span style="color:#8b949e">' + slot +
+      " · Son kontrol: " + hm(s.sweepAt) + " · Son haber story: " + hm(s.lastNewsAt) + "</span></div>";
+  }
+
   function render() {
     var view = document.getElementById("admin-main-view");
     if (!view || !token()) return;
@@ -119,6 +134,7 @@
       tplHtml += '<label style="' + BTN + ';background:#1f6feb">➕ Resim ekle (klasöre)<input type="file" id="admin-news-bgadd" accept="image/*,.heic,.heif" multiple style="display:none"></label><span id="admin-news-bgname" style="color:#8b949e"></span></div>' +
         '<div style="color:#8b949e;margin:-2px 0 8px">' + (ST.bgMode === "pick" && ST.bgPicks.length ? "✓ Seçili " + ST.bgPicks.length + " arka plan sırayla kullanılır (otomatik mod da)." : "🔄 Hazır 6 şablon + klasördeki " + BGS.length + " resim sırayla kullanılır.") + " Resme tıkla = büyük ön izleme, seç / kaldır / sil.</div>";
       var head = '<label style="display:flex;gap:8px;align-items:center;margin:8px 0;font-weight:700"><input type="checkbox" id="admin-news-auto"' + (j.auto ? " checked" : "") + "> 🤖 Otomatik · Automatisch (her listede acil + ilk 3 konu · aralık, dil ve arka plan aşağıdaki ayarlara göre · kapalı haberler paylaşılmaz)</label>" +
+        statusHtml(j) +
         tplHtml +
         '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">Dil: <select id="admin-news-lang" style="' + BTN + '">' + [["tr-de", "Türkçe + Deutsch"], ["tr-en", "Türkçe + English"], ["de", "Deutsch + Türkçe"], ["tr", "Sadece Türkçe"]].map(function (o) { return '<option value="' + o[0] + '"' + (ST.lang === o[0] ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") + "</select>" +
         ' Aralık: <select id="admin-news-gap" style="' + BTN + '">' + GAPS.map(function (o) { return '<option value="' + o[0] + '"' + (Number(ST.gap) === o[0] ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") + "</select>" +
@@ -157,8 +173,17 @@
   function bind(j) {
     var auto = document.getElementById("admin-news-auto");
     if (auto) auto.onchange = function () {
-      fetch("/api/flags", { method: "POST", headers: { "content-type": "application/json", "x-admin-token": token() }, body: JSON.stringify({ name: "newsAuto", on: auto.checked }) })
-        .then(function () { if (auto.checked) return api("POST", { action: "refresh", auto: "1" }).then(render); }); // 2026-11-22: switching on = new analysis
+      var want = auto.checked;
+      var st = document.getElementById("admin-news-status");
+      if (st) st.innerHTML = '<span style="color:#8b949e">⏳ Kaydediliyor…</span>';
+      // 2026-11-22 (owner): the switch said "on" although the server stayed off – now the answer is checked
+      fetch("/api/flags", { method: "POST", headers: { "content-type": "application/json", "x-admin-token": token() }, body: JSON.stringify({ name: "newsAuto", on: want }) })
+        .then(function (r) { return r.json().catch(function () { return {}; }).then(function (x) { if (!r.ok || !x.ok || !!x.newsAuto !== want) throw new Error(x.error || ("HTTP " + r.status)); }); })
+        .then(function () { if (want) return api("POST", { action: "refresh", auto: "1" }).then(render); render(); }) // 2026-11-22: switching on = new analysis
+        .catch(function (err) {
+          auto.checked = !want;
+          if (st) st.innerHTML = '<b style="color:#f85149">❌ Kaydedilmedi: ' + e(String(err && err.message || err)) + " – tekrar giriş yapıp yeniden dene.</b>";
+        });
     };
     var rot = document.getElementById("admin-news-rotate");
     if (rot) rot.onclick = function () { saveSettings({ bgMode: "rotate", bgPicks: [] }).then(render); };

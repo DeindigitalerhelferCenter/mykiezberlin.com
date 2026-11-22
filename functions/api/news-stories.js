@@ -25,7 +25,19 @@ export async function onRequestGet({ request, env }) {
   // 2026-11-22 (owner): settings stay (interval, language, backgrounds) + own background folder
   const settings = await readSettings(database);
   const backgrounds = await listBackgrounds(database);
-  return json({ slots, auto: flags.newsAuto, templates: TEMPLATE_COUNT, now: berlinSlot(), settings, backgrounds }, 200, { "cache-control": "no-store" });
+  // 2026-11-22 (owner: "otomatik haber paylaşmıyor"): status line for the admin – why nothing was shared
+  const sweepRow = await database.prepare(`SELECT value FROM news_state WHERE id = 'sweep'`).first().catch(() => null);
+  const lastNews = await database.prepare(`SELECT MAX(approved_at) AS t FROM stories WHERE by_admin = 1 AND kind IN ('news','warn') AND media_key LIKE 'stories/news-%'`).first().catch(() => null);
+  const cur = slots.find((x) => x && x.slot === berlinSlot().slot) || null;
+  const status = {
+    sweepAt: sweepRow ? Number(sweepRow.value) : 0,
+    lastNewsAt: lastNews && lastNews.t ? Number(lastNews.t) : 0,
+    slot: cur ? cur.slot : "",
+    items: cur ? cur.items.length : 0,
+    open: cur ? cur.items.filter((x) => x.written === false).length : 0,
+    autoDone: cur ? !!cur.auto_done : false,
+  };
+  return json({ slots, auto: flags.newsAuto, templates: TEMPLATE_COUNT, now: berlinSlot(), settings, backgrounds, status }, 200, { "cache-control": "no-store" });
 }
 
 export async function onRequestPost({ request, env }) {
