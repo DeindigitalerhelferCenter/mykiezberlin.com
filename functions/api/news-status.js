@@ -16,7 +16,10 @@ export async function onRequestGet({ env }) {
   const now = berlinSlot();
   const cur = now.slot ? await getSlot(database, now.slot) : null;
   const last = await database.prepare(`SELECT MAX(approved_at) AS t FROM stories WHERE by_admin = 1 AND media_key LIKE 'stories/news-%' AND media_key NOT LIKE 'stories/news-bglib-%'`).first().catch(() => null);
+  // 2026-11-22 (owner: "8:00/16:00/23:00 yüklendi mi?"): last Social-Planer runs (slot, time, short result)
+  const { results: runs } = await database.prepare(`SELECT slot, started, result FROM social_runs ORDER BY started DESC LIMIT 4`).all().catch(() => ({ results: [] }));
   return json({
+    socialPlaner: (runs || []).map((r) => ({ slot: r.slot, started: r.started, result: String(r.result || "").slice(0, 200) })),
     auto: flags.newsAuto,
     now,
     sweepAt: sweep ? Number(sweep.value) : 0,
