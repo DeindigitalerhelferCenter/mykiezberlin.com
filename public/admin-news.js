@@ -15,10 +15,46 @@
     return fetch("/api/news-stories", { method: method, headers: h, body: body ? (isForm ? body : JSON.stringify(body)) : undefined, cache: "no-store" })
       .then(function (r) { return r.json().catch(function () { return {}; }); });
   }
-  var tpl = 0; // 0 = rotating
+  var tpl = 0; // 0 = rotating (kept for older calls; 2026-11-22 the settings decide)
+  // 2026-11-22 (owner): settings that stay (server) + own background folder
+  var ST = { gap: 30, lang: "tr-de", bgMode: "rotate", bgPicks: [] };
+  var BGS = [];
+  var GAPS = [[0, "hemen"], [15, "15 dk"], [30, "30 dk"], [60, "60 dk"], [90, "90 dk"], [120, "120 dk"]];
+  function saveSettings(patch) {
+    for (var k in patch) ST[k] = patch[k];
+    return api("POST", Object.assign({ action: "settings" }, patch)).then(function (r) { if (r && r.settings) ST = r.settings; return r; });
+  }
+  function previewPick() { return ST.bgMode === "pick" && ST.bgPicks.length ? ST.bgPicks[0] : ""; }
+  function bgSrc(pick) { return pick.charAt(0) === "t" ? "/assets/news/tpl-" + pick.slice(1) + ".webp" : "/media/" + pick.slice(2); }
+  // any picture (also HEIC / WEBP from the phone) -> JPEG, max. 1080 x 1920
+  function loadScript(src) { return new Promise(function (ok, bad) { var x = document.createElement("script"); x.src = src; x.onload = ok; x.onerror = bad; document.head.appendChild(x); }); }
+  function toJpeg(file) {
+    var heic = /heic|heif/i.test(file.type) || /\.(heic|heif)$/i.test(file.name || "");
+    var src = heic
+      ? (window.heic2any ? Promise.resolve() : loadScript("https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"))
+          .then(function () { return window.heic2any({ blob: file, toType: "image/jpeg", quality: 0.9 }); })
+          .then(function (b) { return Array.isArray(b) ? b[0] : b; })
+      : Promise.resolve(file);
+    return src.then(function (blob) {
+      return new Promise(function (ok, bad) {
+        var url = URL.createObjectURL(blob);
+        var img = new Image();
+        img.onload = function () {
+          var k = Math.min(1, 1080 / img.width, 1920 / img.height);
+          var c = document.createElement("canvas");
+          c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+          c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+          URL.revokeObjectURL(url);
+          c.toBlob(function (b) { b ? ok(b) : bad(new Error("convert")); }, "image/jpeg", 0.88);
+        };
+        img.onerror = function () { URL.revokeObjectURL(url); bad(new Error("read")); };
+        img.src = url;
+      });
+    });
+  }
 
   // 2026-11-21 (owner): big preview window (real colours, readable text) – backgrounds and finished pictures
-  function lightbox(src, title, onPick) {
+  function lightbox(src, title, onPick, onDelete, pickLabel) {
     var old = document.getElementById("admin-news-lb");
     if (old) old.remove();
     var lb = document.createElement("div");
@@ -27,7 +63,8 @@
     lb.innerHTML = '<div style="color:#fff;font-weight:800;font-size:14px;text-align:center">' + e(title || "") + "</div>" +
       '<div id="admin-news-lb-img" style="color:#8b949e">…</div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">' +
-      (onPick ? '<button type="button" id="admin-news-lb-pick" style="' + BTN + ';background:#2ea043">✓ Bu arka planı seç</button>' : "") +
+      (onPick ? '<button type="button" id="admin-news-lb-pick" style="' + BTN + ';background:#2ea043">' + (pickLabel || "✓ Bu arka planı seç") + "</button>" : "") +
+      (onDelete ? '<button type="button" id="admin-news-lb-del" style="' + BTN + ';background:#da3633">🗑 Klasörden sil</button>' : "") +
       '<button type="button" id="admin-news-lb-close" style="' + BTN + '">✕ Kapat</button></div>';
     document.body.appendChild(lb);
     var box = document.getElementById("admin-news-lb-img");
@@ -42,15 +79,15 @@
     lb.onclick = function (ev) { if (ev.target === lb) close(); };
     document.getElementById("admin-news-lb-close").onclick = close;
     if (onPick) document.getElementById("admin-news-lb-pick").onclick = function () { close(); onPick(); };
+    if (onDelete) document.getElementById("admin-news-lb-del").onclick = function () { close(); onDelete(); };
   }
 
   function previewUrl(slot, id) {
     var fd = new FormData();
     fd.append("action", "preview"); fd.append("slot", slot); fd.append("id", id);
     fd.append("lang", (document.getElementById("admin-news-lang") || {}).value || "tr-de");
-    fd.append("template", String(tpl));
-    var file = document.getElementById("admin-news-bg");
-    if (file && file.files[0]) fd.append("background", file.files[0]);
+    var pk = previewPick();
+    if (pk.charAt(0) === "t") fd.append("template", pk.slice(1)); else { fd.append("template", "0"); if (pk) fd.append("bgPick", pk); }
     return fetch("/api/news-stories", { method: "POST", headers: { "x-admin-token": token() }, body: fd, cache: "no-store" })
       .then(function (r) { return r.ok && /image/.test(r.headers.get("content-type") || "") ? r.blob() : null; })
       .then(function (b) { return b ? URL.createObjectURL(b) : null; })
@@ -69,25 +106,34 @@
       var body = document.getElementById("admin-news-body");
       if (!body) return;
       if (!j || !j.slots) { body.textContent = "Yüklenemedi."; return; }
+      if (j.settings) ST = j.settings;
+      BGS = j.backgrounds || [];
+      var picked = function (k) { return ST.bgMode === "pick" && ST.bgPicks.indexOf(k) >= 0; };
+      var thumb = function (k, small) {
+        return '<img data-bg="' + e(k) + '" src="' + e(small) + '" alt="" loading="lazy" style="width:34px;height:60px;border-radius:6px;cursor:pointer;object-fit:cover;border:3px solid ' + (picked(k) ? "#2ea043" : "transparent") + '">';
+      };
       var tplHtml = '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0">Arka plan: ' +
-        '<button type="button" data-tpl="0" style="' + BTN + (tpl === 0 ? ";border-color:#2ea043" : "") + '">🔄 Sırayla</button>';
-      for (var i = 1; i <= (j.templates || 6); i++) tplHtml += '<img data-tpl="' + i + '" src="/assets/news/tpl-' + i + '-s.webp" alt="" style="width:34px;height:60px;border-radius:6px;cursor:pointer;object-fit:cover;border:2px solid ' + (tpl === i ? "#2ea043" : "transparent") + '">';
-      tplHtml += '<label style="' + BTN + '">📷 Kendi resmim<input type="file" id="admin-news-bg" accept="image/jpeg,image/png" style="display:none"></label><span id="admin-news-bgname" style="color:#8b949e"></span></div>';
-      var head = '<label style="display:flex;gap:8px;align-items:center;margin:8px 0;font-weight:700"><input type="checkbox" id="admin-news-auto"' + (j.auto ? " checked" : "") + "> 🤖 Otomatik · Automatisch (her listede acil + ilk 3 konu, 20 dk arayla, şablon resim)</label>" +
+        '<button type="button" id="admin-news-rotate" style="' + BTN + (ST.bgMode === "rotate" ? ";border-color:#2ea043;background:#238636" : "") + '">🔄 Sırayla (hepsi)</button>';
+      for (var i = 1; i <= (j.templates || 6); i++) tplHtml += thumb("t" + i, "/assets/news/tpl-" + i + "-s.webp");
+      BGS.forEach(function (b) { tplHtml += thumb("b:" + b.key, "/media/" + b.key); });
+      tplHtml += '<label style="' + BTN + ';background:#1f6feb">➕ Resim ekle (klasöre)<input type="file" id="admin-news-bgadd" accept="image/*,.heic,.heif" multiple style="display:none"></label><span id="admin-news-bgname" style="color:#8b949e"></span></div>' +
+        '<div style="color:#8b949e;margin:-2px 0 8px">' + (ST.bgMode === "pick" && ST.bgPicks.length ? "✓ Seçili " + ST.bgPicks.length + " arka plan sırayla kullanılır (otomatik mod da)." : "🔄 Hazır 6 şablon + klasördeki " + BGS.length + " resim sırayla kullanılır.") + " Resme tıkla = büyük ön izleme, seç / kaldır / sil.</div>";
+      var head = '<label style="display:flex;gap:8px;align-items:center;margin:8px 0;font-weight:700"><input type="checkbox" id="admin-news-auto"' + (j.auto ? " checked" : "") + "> 🤖 Otomatik · Automatisch (her listede acil + ilk 3 konu · aralık, dil ve arka plan aşağıdaki ayarlara göre · kapalı haberler paylaşılmaz)</label>" +
         tplHtml +
-        '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">Dil: <select id="admin-news-lang" style="' + BTN + '"><option value="tr-de" selected>Türkçe + Deutsch</option><option value="tr-en">Türkçe + English</option><option value="de">Deutsch + Türkçe</option><option value="tr">Sadece Türkçe</option></select>' +
-        ' Aralık: <select id="admin-news-gap" style="' + BTN + '"><option value="0">hemen</option><option value="15">15 dk</option><option value="30" selected>30 dk</option><option value="60">60 dk</option></select>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">Dil: <select id="admin-news-lang" style="' + BTN + '">' + [["tr-de", "Türkçe + Deutsch"], ["tr-en", "Türkçe + English"], ["de", "Deutsch + Türkçe"], ["tr", "Sadece Türkçe"]].map(function (o) { return '<option value="' + o[0] + '"' + (ST.lang === o[0] ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") + "</select>" +
+        ' Aralık: <select id="admin-news-gap" style="' + BTN + '">' + GAPS.map(function (o) { return '<option value="' + o[0] + '"' + (Number(ST.gap) === o[0] ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") + "</select>" +
         ' <button type="button" id="admin-news-refresh" style="' + BTN + '">🔎 Şimdi analiz et (yeni liste)</button></div>' +
         '<div style="color:#8b949e;margin-bottom:6px">Resme tıkla = büyük ön izleme · Kaynaklar: tagesschau, rbb24, Polizei Berlin, Tagesspiegel, Berliner Zeitung, Morgenpost, taz, Berliner Kurier</div>';
       if (!j.slots.length) { body.innerHTML = head + '<p style="color:#8b949e">Şu an liste yok (06:00–22:00 arası oluşur).</p>'; bind(j); return; }
       // 2026-11-21: texts are written step by step – look again in 20 s while something is open
       var pending = j.slots.some(function (s) { return !s.items.length || s.items.some(function (x) { return x.written === false; }); });
       clearTimeout(render.t);
-      if (pending) render.t = setTimeout(function () { if (document.getElementById("admin-news") && !document.querySelector("#admin-news .news-f:focus")) render(); }, 20000);
+      if (pending) render.t = setTimeout(function () { if (document.getElementById("admin-news") && !document.querySelector("#admin-news .news-f:focus") && !document.getElementById("admin-news-lb") && !/⏳/.test((document.getElementById("admin-news-bgname") || {}).textContent || "")) render(); }, 20000);
       body.innerHTML = head + j.slots.map(function (s, si) {
         return '<details' + (si === 0 ? " open" : "") + ' style="margin:6px 0"><summary style="cursor:pointer;font-weight:800;color:#fff">🕑 ' + slotLabel(s.slot) + " · " + (s.items.length ? s.items.length + " konu" : "⏳ analiz ediliyor…") + (s.auto_done ? " · 🤖 otomatik paylaşıldı" : "") + "</summary>" +
           s.items.map(function (it) {
-            return '<div style="border:1px solid ' + (it.urgent ? "#f85149" : "#30363d") + ';border-radius:10px;padding:8px;margin:6px 0" data-slot="' + e(s.slot) + '" data-id="' + e(it.id) + '">' +
+            return '<div style="border:1px solid ' + (it.urgent ? "#f85149" : "#30363d") + ';border-radius:10px;padding:8px;margin:6px 0' + (it.hidden ? ";opacity:.45" : "") + '" data-slot="' + e(s.slot) + '" data-id="' + e(it.id) + '">' +
+              (it.hidden ? '<b style="color:#d29922">🙈 kapalı – otomatik paylaşılmaz</b><br>' : "") +
               '<label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="news-pick">' +
               '<span style="flex:1">' + (it.urgent ? '<b style="color:#f85149">🚨 ACİL · EIL</b> ' : "") + (it.published ? '<b style="color:#3fb950">✓ paylaşıldı' + ((it.shares || []).length > 1 ? " (" + it.shares.length + "×)" : "") + "</b> " : "") + (it.written === false ? '<b style="color:#d29922">⏳ metin yazılıyor…</b> ' : "") + (it.renderError ? '<b style="color:#d29922">⚠ resim çizilemedi, eski yöntem kullanıldı</b> ' : "") +
               '<small style="color:#8b949e">' + e(it.source) + ' · <a href="' + e(it.url) + '" target="_blank" rel="noopener" style="color:#58a6ff">kaynak ↗</a></small><br><small style="color:#8b949e">Orijinal: ' + e(it.orig) + "</small></span></label>" +
@@ -98,9 +144,11 @@
               '<input class="news-f" data-f="title_en" style="' + INP + ';margin-top:4px;font-weight:700" value="' + e(it.title_en) + '" placeholder="Title (EN)">' +
               '<textarea class="news-f" data-f="text_en" rows="3" style="' + INP + ';margin-top:4px" placeholder="Text (EN)">' + e(it.text_en) + "</textarea>" +
               '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><button type="button" class="news-prev" style="' + BTN + '">👁 Ön izleme (büyük)</button>' +
-              (it.published ? '<button type="button" class="news-again" style="' + BTN + ';background:#1f6feb">🔁 Tekrar paylaş</button><span class="news-again-out" style="color:#8b949e"></span>' : "") + "</div></div>";
+              (it.published ? '<button type="button" class="news-again" style="' + BTN + ';background:#1f6feb">🔁 Tekrar paylaş</button><span class="news-again-out" style="color:#8b949e"></span>' : "") +
+              (it.hidden ? '<button type="button" class="news-hide" data-act="unhide" style="' + BTN + '">👁 Aç</button>' : '<button type="button" class="news-hide" data-act="hide" style="' + BTN + '">🙈 Kapat (paylaşma)</button>') +
+              '<button type="button" class="news-del" style="' + BTN + ';background:#da3633">🗑 Sil</button>' + "</div></div>";
           }).join("") +
-          '<button type="button" class="news-publish" data-slot="' + e(s.slot) + '" style="' + BTN + ';background:#2ea043;margin-top:6px">📤 Seçilenleri paylaş (paylaşılanlar tekrar)</button> <span class="news-out"></span></details>';
+          '<button type="button" class="news-publish" data-slot="' + e(s.slot) + '" style="' + BTN + ';background:#2ea043;margin-top:6px">📤 Seçilenleri paylaş (paylaşılanlar tekrar · aralık + arka plan ayarlarına göre)</button> <span class="news-out"></span></details>';
       }).join("");
       bind(j);
     });
@@ -109,14 +157,54 @@
   function bind(j) {
     var auto = document.getElementById("admin-news-auto");
     if (auto) auto.onchange = function () {
-      fetch("/api/flags", { method: "POST", headers: { "content-type": "application/json", "x-admin-token": token() }, body: JSON.stringify({ name: "newsAuto", on: auto.checked }) });
+      fetch("/api/flags", { method: "POST", headers: { "content-type": "application/json", "x-admin-token": token() }, body: JSON.stringify({ name: "newsAuto", on: auto.checked }) })
+        .then(function () { if (auto.checked) return api("POST", { action: "refresh", auto: "1" }).then(render); }); // 2026-11-22: switching on = new analysis
     };
-    document.querySelectorAll("#admin-news [data-tpl]").forEach(function (x) {
-      var n = Number(x.getAttribute("data-tpl"));
+    var rot = document.getElementById("admin-news-rotate");
+    if (rot) rot.onclick = function () { saveSettings({ bgMode: "rotate", bgPicks: [] }).then(render); };
+    document.querySelectorAll("#admin-news [data-bg]").forEach(function (x) {
+      var k = x.getAttribute("data-bg");
       x.onclick = function () {
-        if (!n) { tpl = 0; render(); return; }
-        // 2026-11-21: click = big preview of the background, then choose it
-        lightbox("/assets/news/tpl-" + n + ".webp", "Arka plan " + n + " · metinsiz", function () { tpl = n; render(); });
+        var on = ST.bgMode === "pick" && ST.bgPicks.indexOf(k) >= 0;
+        var toggle = function () {
+          var list = ST.bgMode === "pick" ? ST.bgPicks.slice() : [];
+          if (on) list = list.filter(function (y) { return y !== k; }); else list.push(k);
+          saveSettings({ bgMode: list.length ? "pick" : "rotate", bgPicks: list }).then(render);
+        };
+        var del = k.charAt(0) === "b" ? function () {
+          api("POST", { action: "bgDelete", key: k.slice(2) }).then(render);
+        } : null;
+        lightbox(bgSrc(k), (k.charAt(0) === "t" ? "Şablon " + k.slice(1) : "Kendi resmin") + " · metinsiz", toggle, del, on ? "✕ Seçimi kaldır" : "✓ Seç (sadece seçilenler kullanılır)");
+      };
+    });
+    var add = document.getElementById("admin-news-bgadd");
+    if (add) add.onchange = function () {
+      var files = Array.prototype.slice.call(add.files || []);
+      var label = document.getElementById("admin-news-bgname");
+      var done = 0, bad = 0;
+      var next = function () {
+        if (!files.length) { label.textContent = "✓ " + done + " resim eklendi" + (bad ? " · " + bad + " eklenemedi" : ""); setTimeout(render, 600); return; }
+        var f = files.shift();
+        label.textContent = "⏳ yükleniyor… (" + (done + bad + 1) + ")";
+        toJpeg(f).then(function (jpg) {
+          var fd = new FormData();
+          fd.append("action", "bgUpload"); fd.append("name", f.name || ""); fd.append("file", jpg, "bg.jpg");
+          return api("POST", fd, true);
+        }).then(function (r) { if (r && r.ok) done++; else bad++; next(); }, function () { bad++; next(); });
+      };
+      next();
+    };
+    var lang = document.getElementById("admin-news-lang");
+    if (lang) lang.onchange = function () { saveSettings({ lang: lang.value }); };
+    var gap = document.getElementById("admin-news-gap");
+    if (gap) gap.onchange = function () { saveSettings({ gap: Number(gap.value) }); };
+    document.querySelectorAll("#admin-news .news-hide, #admin-news .news-del").forEach(function (b) {
+      b.onclick = function () {
+        var box = b.closest("[data-id]");
+        var act = b.classList.contains("news-del") ? "delete" : b.getAttribute("data-act");
+        if (act === "delete" && !confirm("Bu haber listeden silinsin mi? Bir daha analizde gelmez. (Paylaşılmış story yayında kalır.)")) return;
+        b.disabled = true;
+        api("POST", { action: act, slot: box.getAttribute("data-slot"), id: box.getAttribute("data-id") }).then(render);
       };
     });
     document.querySelectorAll("#admin-news .news-prev").forEach(function (b) {
@@ -134,16 +222,19 @@
         fd.append("action", "publish"); fd.append("slot", box.getAttribute("data-slot")); fd.append("ids", box.getAttribute("data-id")); fd.append("again", "1");
         fd.append("lang", document.getElementById("admin-news-lang").value);
         fd.append("gapMinutes", "0");
-        fd.append("template", String(tpl));
-        var file = document.getElementById("admin-news-bg");
-        if (file && file.files[0]) fd.append("background", file.files[0]);
+        fd.append("template", "0");
         api("POST", fd, true).then(function (r) { out.textContent = r.ok ? " ✓ tekrar paylaşıldı" : " Hata: " + (r.error || "?"); setTimeout(render, 1500); });
       };
     });
-    var bg = document.getElementById("admin-news-bg");
-    if (bg) bg.onchange = function () { document.getElementById("admin-news-bgname").textContent = bg.files[0] ? "✓ " + bg.files[0].name : ""; };
     var ref = document.getElementById("admin-news-refresh");
-    if (ref) ref.onclick = function () { ref.disabled = true; ref.textContent = "…"; api("POST", { action: "refresh" }).then(render); };
+    if (ref) ref.onclick = function () {
+      ref.disabled = true; ref.textContent = "⏳ yeni haberler aranıyor…";
+      api("POST", { action: "refresh" }).then(function (r) {
+        if (r && r.error === "outside_hours") ref.textContent = "Sadece 06:00–22:00 arası";
+        else if (!r || !r.ok) ref.textContent = "Hata: " + ((r && r.error) || "?");
+        setTimeout(render, r && r.ok ? 300 : 2500);
+      });
+    };
     // save edited texts when leaving a field
     document.querySelectorAll("#admin-news .news-f").forEach(function (f) {
       f.onchange = function () {
@@ -166,9 +257,7 @@
         fd.append("action", "publish"); fd.append("slot", slot); fd.append("ids", ids.join(",")); fd.append("again", "1");
         fd.append("lang", document.getElementById("admin-news-lang").value);
         fd.append("gapMinutes", document.getElementById("admin-news-gap").value);
-        fd.append("template", String(tpl));
-        var file = document.getElementById("admin-news-bg");
-        if (file && file.files[0]) fd.append("background", file.files[0]);
+        fd.append("template", "0");
         api("POST", fd, true).then(function (r) {
           out.textContent = r.ok ? "✓ " + r.published + " story paylaşıldı / planlandı" : "Hata: " + (r.error || "?");
           setTimeout(render, 1500);

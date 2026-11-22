@@ -6,7 +6,7 @@
 //   JSON {action:"edit", slot, id, title_de, text_de, title_tr, text_tr}
 //   JSON {action:"refresh"} -> builds the current list again (only not yet published topics are lost)
 import { cleanLongText, cleanText, db, isAdmin, json, noDb } from "../_lib/util.js";
-import { berlinSlot, buildList, ensureCurrentSlot, ensureNews, getSlot, newsParts, publishItems, saveItems, TEMPLATE_COUNT } from "../_lib/news-auto.js";
+import { addBlocked, berlinSlot, buildList, ensureCurrentSlot, ensureNews, getSlot, listBackgrounds, newsParts, pickList, publishItems, readBlocked, readSettings, saveItems, saveSettings, TEMPLATE_COUNT } from "../_lib/news-auto.js";
 import { renderNewsImage } from "../_lib/news-image.js";
 import { readFlags } from "./flags.js";
 
@@ -22,7 +22,10 @@ export async function onRequestGet({ request, env }) {
   const slots = [];
   for (const r of results) slots.push(await getSlot(database, r.slot));
   const flags = await readFlags(database);
-  return json({ slots, auto: flags.newsAuto, templates: TEMPLATE_COUNT, now: berlinSlot() }, 200, { "cache-control": "no-store" });
+  // 2026-11-22 (owner): settings stay (interval, language, backgrounds) + own background folder
+  const settings = await readSettings(database);
+  const backgrounds = await listBackgrounds(database);
+  return json({ slots, auto: flags.newsAuto, templates: TEMPLATE_COUNT, now: berlinSlot(), settings, backgrounds }, 200, { "cache-control": "no-store" });
 }
 
 export async function onRequestPost({ request, env }) {
@@ -36,12 +39,64 @@ export async function onRequestPost({ request, env }) {
   const body = form ? Object.fromEntries([...form.entries()].filter(([, v]) => typeof v === "string")) : await request.json().catch(() => ({}));
   const slot = cleanText(body.slot, 20);
 
+  // 2026-11-22 (owner): settings that stay – interval 0/15/30/60/90/120, language, background mode + picks
+  if (body.action === "settings") {
+    const s = await saveSettings(database, body);
+    return json({ ok: true, settings: s });
+  }
+
+  // 2026-11-22 (owner): own background pictures – any number, kept in R2 (the panel sends a JPEG, also from HEIC/WEBP)
+  if (body.action === "bgUpload") {
+    const file = form && form.get("file");
+    if (!file || typeof file === "string" || !file.size) return json({ error: "no_file" }, 400);
+    const ext = BG_TYPES[file.type];
+    if (!ext) return json({ error: "unsupported_file" }, 415);
+    if (file.size > 6 * 1024 * 1024) return json({ error: "file_too_large" }, 413);
+    if (!env.BUCKET) return json({ error: "r2_unbound" }, 503);
+    const key = `stories/news-bglib-${crypto.randomUUID()}.${ext}`;
+    await env.BUCKET.put(key, await file.arrayBuffer(), { httpMetadata: { contentType: file.type } });
+    await database.prepare(`INSERT INTO news_bgs (key, name, created_at) VALUES (?, ?, ?)`).bind(key, cleanText(body.name || "", 80), Date.now()).run();
+    return json({ ok: true, key });
+  }
+  if (body.action === "bgDelete") {
+    const key = cleanText(body.key, 120);
+    if (!/^stories\/news-bglib-[0-9a-f-]+\.(jpg|png)$/.test(key)) return json({ error: "bad_key" }, 400);
+    await database.prepare(`DELETE FROM news_bgs WHERE key = ?`).bind(key).run();
+    // the picture file stays in R2: stories already published with it still need it
+    const s = await readSettings(database);
+    if (s.bgPicks.includes(`b:${key}`)) await saveSettings(database, { bgPicks: s.bgPicks.filter((x) => x !== `b:${key}`) });
+    return json({ ok: true });
+  }
+
+  // 2026-11-22 (owner): the admin decides – hide (not shared by the auto mode), show again, or delete for good
+  if (body.action === "hide" || body.action === "unhide" || body.action === "delete") {
+    const s = await getSlot(database, slot);
+    const it = s && s.items.find((x) => x.id === body.id);
+    if (!it) return json({ error: "not_found" }, 404);
+    if (body.action === "delete") {
+      await addBlocked(database, it.orig || it.title_de || "");
+      await saveItems(database, slot, s.items.filter((x) => x.id !== body.id)); // published stories stay online
+    } else {
+      it.hidden = body.action === "hide";
+      await saveItems(database, slot, s.items);
+    }
+    return json({ ok: true });
+  }
+
+  // 2026-11-22 (owner): "Şimdi analiz et" – a NEW list, fast (choice now, the long texts are written by the next calls)
   if (body.action === "refresh") {
     const { slot: cur } = berlinSlot();
     if (!cur) return json({ error: "outside_hours" }, 400);
     const old = await getSlot(database, cur);
     const keep = old ? old.items.filter((x) => x.published) : [];
-    const fresh = (await buildList(env)).filter((x) => !keep.some((k) => k.orig === x.orig));
+    const seen = new Set();
+    const day = cur.slice(0, 10);
+    const { results: daySlots } = await database.prepare(`SELECT items FROM news_slots WHERE slot LIKE ?`).bind(`${day}%`).all();
+    for (const r of daySlots || []) { try { for (const x of JSON.parse(r.items || "[]")) if (x.orig) seen.add(x.orig); } catch (e) { /* skip */ } }
+    const blocked = new Set(await readBlocked(database));
+    for (const b of blocked) seen.add(b);
+    const fresh = (await pickList(env, { exclude: seen, blocked })).filter((x) => !keep.some((k) => k.orig === x.orig));
+    if (body.auto === "1" || body.auto === true) await database.prepare(`UPDATE news_slots SET auto_done = 0 WHERE slot = ?`).bind(cur).run();
     const items = [...keep, ...fresh].map((x, i) => ({ ...x, id: x.published ? x.id : `r${Date.now() % 100000}-${i}` }));
     if (old) await saveItems(database, cur, items);
     else await database.prepare(`INSERT INTO news_slots (slot, created_at, items) VALUES (?, ?, ?)`).bind(cur, Date.now(), JSON.stringify(items)).run();
@@ -58,6 +113,11 @@ export async function onRequestPost({ request, env }) {
     const file = form && form.get("background");
     if (file && typeof file !== "string" && file.size > 0 && BG_TYPES[file.type] && file.size <= 5 * 1024 * 1024) {
       background = { bytes: new Uint8Array(await file.arrayBuffer()), mime: file.type };
+    }
+    const pick = String(body.bgPick || "");
+    if (!background && env.BUCKET && /^b:stories\/news-bglib-[0-9a-f-]+\.(jpg|png)$/.test(pick)) {
+      const obj = await env.BUCKET.get(pick.slice(2)).catch(() => null);
+      if (obj) background = { bytes: new Uint8Array(await obj.arrayBuffer()), mime: (obj.httpMetadata && obj.httpMetadata.contentType) || "image/jpeg" };
     }
     const row = await database.prepare(`SELECT value FROM news_state WHERE id = 'theme'`).first().catch(() => null);
     const tpl = Number(body.template) || 0;
@@ -102,9 +162,14 @@ export async function onRequestPost({ request, env }) {
       backgroundKey = `stories/news-bg-${crypto.randomUUID()}.${ext}`;
       await env.BUCKET.put(backgroundKey, await file.arrayBuffer(), { httpMetadata: { contentType: file.type } });
     }
+    // 2026-11-22 (owner): a picked background of the folder ("b:<key>") / template, else the settings decide
+    const st = await readSettings(database);
+    const pick = String(body.bgPick || "");
+    if (!backgroundKey && /^b:stories\/news-bglib-[0-9a-f-]+\.(jpg|png)$/.test(pick)) backgroundKey = pick.slice(2);
     const res = await publishItems(env, database, slot, ids, {
-      lang: body.lang, template: Number(body.template) || 0, backgroundKey, origin, again: body.again === "1" || body.again === true,
-      gapMinutes: Math.min(120, Math.max(0, Number(body.gapMinutes) || 0)),
+      lang: body.lang || st.lang, template: Number(body.template) || 0, backgroundKey, origin, again: body.again === "1" || body.again === true,
+      gapMinutes: body.gapMinutes != null && body.gapMinutes !== "" ? Math.min(120, Math.max(0, Number(body.gapMinutes) || 0)) : st.gap,
+      useSettings: true,
     });
     return json({ ok: true, ...res });
   }

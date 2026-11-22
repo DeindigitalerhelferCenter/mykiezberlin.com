@@ -21,7 +21,69 @@ export async function ensureNews(database) {
   await database.batch([
     database.prepare(`CREATE TABLE IF NOT EXISTS news_slots (slot TEXT PRIMARY KEY, created_at INTEGER, items TEXT, auto_done INTEGER DEFAULT 0)`),
     database.prepare(`CREATE TABLE IF NOT EXISTS news_state (id TEXT PRIMARY KEY, value INTEGER)`),
+    // 2026-11-22 (owner): own background pictures of the admin (R2 key stories/news-bglib-<uuid>.jpg)
+    database.prepare(`CREATE TABLE IF NOT EXISTS news_bgs (key TEXT PRIMARY KEY, name TEXT, created_at INTEGER)`),
   ]);
+}
+
+// ---- 2026-11-22 (owner): admin settings that stay (interval, language, backgrounds) + blocked topics ----
+export const GAP_CHOICES = [0, 15, 30, 60, 90, 120];
+const DEFAULT_SETTINGS = { gap: 30, lang: "tr-de", bgMode: "rotate", bgPicks: [], autoOnlyVisible: true };
+
+export async function readSettings(database) {
+  await ensureNews(database);
+  const row = await database.prepare(`SELECT value FROM news_state WHERE id = 'settings'`).first().catch(() => null);
+  let s = {};
+  try { s = JSON.parse((row && row.value) || "{}") || {}; } catch (e) { s = {}; }
+  const out = { ...DEFAULT_SETTINGS, ...s };
+  if (!GAP_CHOICES.includes(Number(out.gap))) out.gap = 30;
+  out.gap = Number(out.gap);
+  if (!["tr-de", "tr-en", "de", "tr"].includes(out.lang)) out.lang = "tr-de";
+  if (!["rotate", "pick"].includes(out.bgMode)) out.bgMode = "rotate";
+  out.bgPicks = (Array.isArray(out.bgPicks) ? out.bgPicks : []).map(String).filter((x) => /^(t[1-9]|b:stories\/news-bglib-[0-9a-f-]+\.(jpg|png))$/.test(x)).slice(0, 12);
+  return out;
+}
+
+export async function saveSettings(database, patchIn) {
+  const cur = await readSettings(database);
+  const next = { ...cur };
+  if (patchIn.gap != null && GAP_CHOICES.includes(Number(patchIn.gap))) next.gap = Number(patchIn.gap);
+  if (patchIn.lang != null && ["tr-de", "tr-en", "de", "tr"].includes(patchIn.lang)) next.lang = patchIn.lang;
+  if (patchIn.bgMode != null && ["rotate", "pick"].includes(patchIn.bgMode)) next.bgMode = patchIn.bgMode;
+  if (Array.isArray(patchIn.bgPicks)) next.bgPicks = patchIn.bgPicks.map(String);
+  await database.prepare(`INSERT INTO news_state (id, value) VALUES ('settings', ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value`).bind(JSON.stringify(next)).run();
+  return readSettings(database);
+}
+
+export async function listBackgrounds(database) {
+  await ensureNews(database);
+  const { results } = await database.prepare(`SELECT key, name, created_at FROM news_bgs ORDER BY created_at ASC`).all();
+  return results || [];
+}
+
+/** Topics the admin deleted – they never come back in a new analysis. */
+export async function readBlocked(database) {
+  const row = await database.prepare(`SELECT value FROM news_state WHERE id = 'blocked'`).first().catch(() => null);
+  try { return JSON.parse((row && row.value) || "[]") || []; } catch (e) { return []; }
+}
+export async function addBlocked(database, orig) {
+  const list = (await readBlocked(database)).filter((x) => x !== orig);
+  list.push(orig);
+  await database.prepare(`INSERT INTO news_state (id, value) VALUES ('blocked', ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value`).bind(JSON.stringify(list.slice(-500))).run();
+}
+
+/** Next background by the admin settings: {theme, backgroundKey}. Template "tN" = colour N; own picture = picture + rotating colour. */
+async function chooseBackground(database, settings) {
+  const bgs = (await listBackgrounds(database)).map((b) => `b:${b.key}`);
+  let cands = settings.bgMode === "pick" ? settings.bgPicks.filter((x) => x.startsWith("t") || bgs.includes(x)) : [];
+  if (!cands.length) cands = [...Array.from({ length: TEMPLATE_COUNT }, (_, i) => `t${i + 1}`), ...bgs];
+  const n = await nextTheme(database); // counter 0..5 (also used for the colour)
+  const row = await database.prepare(`SELECT value FROM news_state WHERE id = 'bgturn'`).first().catch(() => null);
+  const turn = ((row ? Number(row.value) : -1) + 1) % cands.length;
+  await database.prepare(`INSERT INTO news_state (id, value) VALUES ('bgturn', ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value`).bind(turn).run();
+  const c = cands[turn];
+  if (c.startsWith("t")) return { theme: (Number(c.slice(1)) - 1) % TEMPLATE_COUNT, backgroundKey: "" };
+  return { theme: n, backgroundKey: c.slice(2) };
 }
 
 /** Berlin date + hour now, and the current slot ("2026-11-22-14") or "" outside 06–22. */
@@ -158,8 +220,12 @@ const cut = (s, n) => String(s || "").replace(/\s+/g, " ").trim().slice(0, n);
 // read 6 sources, asked the AI and wrote all texts; the slot stayed claimed with an EMPTY list for ever.
 // Now in steps: 1) pickList (sources + AI choice, short texts), saved at once; 2) writeSome writes the long
 // texts of 2 topics per step; an empty or half list is taken up again by the next request.
-export async function pickList(env) {
-  const news = await collectNews();
+export async function pickList(env, opts = {}) {
+  const skip = opts.exclude instanceof Set ? opts.exclude : new Set();
+  const all = await collectNews();
+  // 2026-11-22 (owner): "Şimdi analiz et" must bring NEW topics – shown / deleted ones are left out (if enough are left)
+  const fresh = all.filter((n) => !skip.has(cut(n.title, 160)));
+  const news = fresh.length >= 4 ? fresh : all.filter((n) => !opts.blocked || !opts.blocked.has(cut(n.title, 160)));
   const picked = await aiPick(env, news);
   let items;
   if (picked) {
@@ -274,7 +340,8 @@ export async function ensureCurrentSlot(env, database, opts = {}) {
     }
     return have;
   }
-  const items = await pickList(env).catch(() => []);
+  const blocked = new Set(await readBlocked(database).catch(() => []));
+  const items = await pickList(env, { exclude: blocked, blocked }).catch(() => []);
   await saveItems(database, slot, items);
   if (items.length && opts.write) { await writeSome(env, items, opts.write); await saveItems(database, slot, items); }
   return getSlot(database, slot);
@@ -300,17 +367,33 @@ export async function publishItems(env, database, slot, ids, opts = {}) {
   const gapMs = (opts.gapMinutes || 0) * 60000;
   const logo = await assetBytes(opts.origin, "/assets/images/mykiez_logo.png", "image/png");
   let background = null;
-  if (opts.backgroundKey && env.BUCKET) {
-    const obj = await env.BUCKET.get(opts.backgroundKey).catch(() => null);
-    if (obj) background = { bytes: new Uint8Array(await obj.arrayBuffer()), mime: (obj.httpMetadata && obj.httpMetadata.contentType) || "image/jpeg" };
-  }
+  const bgCache = new Map();
+  const loadBg = async (key) => {
+    if (!key || !env.BUCKET) return null;
+    if (bgCache.has(key)) return bgCache.get(key);
+    const obj = await env.BUCKET.get(key).catch(() => null);
+    const v = obj ? { bytes: new Uint8Array(await obj.arrayBuffer()), mime: (obj.httpMetadata && obj.httpMetadata.contentType) || "image/jpeg" } : null;
+    bgCache.set(key, v);
+    return v;
+  };
+  if (opts.backgroundKey) background = await loadBg(opts.backgroundKey);
+  const settings = opts.useSettings ? await readSettings(database) : null;
   for (const it of s.items) {
     if (!ids.includes(it.id) || (it.published && !opts.again)) continue; // 2026-11-21: opts.again = share once more
+    if (opts.skipHidden && it.hidden) continue; // 2026-11-22: hidden topics are never shared by the auto mode
     const p = newsParts(it, lang);
     const id = crypto.randomUUID();
     // 2026-11-22 (owner): own choice of the admin, otherwise the next colour (server counter, not "n" – was always red)
-    const theme = opts.template ? (Number(opts.template) - 1) % TEMPLATE_COUNT : await nextTheme(database);
-    it.theme = theme; it.lang = lang; if (opts.backgroundKey) it.bg = opts.backgroundKey; // for a later redraw
+    let theme;
+    let itemBgKey = opts.backgroundKey || "";
+    if (opts.template) theme = (Number(opts.template) - 1) % TEMPLATE_COUNT;
+    else if (settings && !opts.backgroundKey) {
+      // 2026-11-22 (owner): background folder – rotating (templates + own pictures) or the 1–2 the admin picked
+      const c = await chooseBackground(database, settings);
+      theme = c.theme;
+      if (c.backgroundKey) { itemBgKey = c.backgroundKey; background = await loadBg(c.backgroundKey); } else background = null;
+    } else theme = await nextTheme(database);
+    it.theme = theme; it.lang = lang; if (itemBgKey) it.bg = itemBgKey; else delete it.bg; // for a later redraw
     // the picture with all text inside; if drawing fails: template + text layer (older way)
     let mediaKey = "";
     let overlay = null;
@@ -320,7 +403,7 @@ export async function publishItems(env, database, slot, ids, opts = {}) {
       await env.BUCKET.put(mediaKey, png, { httpMetadata: { contentType: "image/png" } });
     } catch (e) {
       it.renderError = String((e && e.message) || e).slice(0, 120);
-      mediaKey = opts.backgroundKey || (await templateKey(env, theme + 1, opts.origin));
+      mediaKey = itemBgKey || (await templateKey(env, theme + 1, opts.origin));
       overlay = { t: (it.urgent ? "🚨 " : "") + p.title1, x: 0.5, y: 0.5, s: 0.07, c: "#ffffff", b: "box" };
     }
     if (!mediaKey) continue;
@@ -461,9 +544,11 @@ export async function newsSweep(env, database, origin) {
     if (!s || s.auto_done || s.items.some((x) => x.written === false)) return;
     const flags = await readFlags(database);
     if (!flags.newsAuto || !s.items.length) return;
-    const ids = [...s.items.filter((x) => x.urgent).map((x) => x.id), ...s.items.filter((x) => !x.urgent).slice(0, AUTO_COUNT).map((x) => x.id)];
+    const vis = s.items.filter((x) => !x.hidden); // 2026-11-22: hidden ("kapalı") topics are not shared
+    const ids = [...vis.filter((x) => x.urgent).map((x) => x.id), ...vis.filter((x) => !x.urgent).slice(0, AUTO_COUNT).map((x) => x.id)];
     await database.prepare(`UPDATE news_slots SET auto_done = 1 WHERE slot = ?`).bind(s.slot).run();
-    await publishItems(env, database, s.slot, ids, { origin, gapMinutes: 20 });
+    const st = await readSettings(database);
+    await publishItems(env, database, s.slot, ids, { origin, gapMinutes: st.gap, lang: st.lang, useSettings: true, skipHidden: true });
   } catch (e) {
     // never break the story list
   }

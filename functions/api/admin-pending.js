@@ -1,5 +1,7 @@
 // GET /api/admin-pending – small list of stories waiting for approval (admin token), polled by the admin's phone.
 import { db, isAdmin, json, noDb } from "../_lib/util.js";
+import { reminderNotices } from "../_lib/reminders.js";
+import { reportNotices } from "../_lib/ledger.js";
 
 export async function onRequestGet({ request, env }) {
   if (!(await isAdmin(request, env))) return json({ error: "unauthorized" }, 401);
@@ -24,5 +26,8 @@ export async function onRequestGet({ request, env }) {
   } catch (e) {
     sponsorMedia = []; // table is created with the first sponsor panel call
   }
-  return json({ stories: results, support, sponsorMedia });
+  // 2026-11-22 (owner): reminders (WhatsApp Info …) and finished monthly reports – shown by the phone like support
+  // notices (one per day / per report), so no new app version is needed
+  const extra = [...(await reminderNotices(env, database)), ...(await reportNotices(database))];
+  return json({ stories: results, support: [...extra, ...(support || [])], sponsorMedia, reminders: extra });
 }
