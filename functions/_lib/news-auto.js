@@ -455,7 +455,7 @@ export async function publishItems(env, database, slot, ids, opts = {}) {
     let overlay = null;
     try {
       const png = await renderNewsImage(p, { theme, logo, background });
-      mediaKey = `stories/news-${id}-v2.png`; // 2026-11-22: "-v2" = new text fitting
+      mediaKey = `stories/news-${id}-v3.png`; // 2026-11-22: "-v3" = text fills the page (bigger)
       await env.BUCKET.put(mediaKey, png, { httpMetadata: { contentType: "image/png" } });
     } catch (e) {
       it.renderError = String((e && e.message) || e).slice(0, 120);
@@ -527,7 +527,7 @@ export async function upgradeOldNews(env, database, origin) {
 export async function redrawNews(env, database, origin, limit = 2) {
   if (!env.BUCKET) return 0;
   const { results } = await database
-    .prepare(`SELECT id, headline, subtext, link, kind, media_key FROM stories WHERE status = 'approved' AND media_key LIKE 'stories/news-%.png' AND media_key NOT LIKE '%-v2.png' AND media_key NOT LIKE 'stories/news-render-check%' AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT ?`)
+    .prepare(`SELECT id, headline, subtext, link, kind, media_key FROM stories WHERE status = 'approved' AND media_key LIKE 'stories/news-%.png' AND media_key NOT LIKE '%-v3.png' AND media_key NOT LIKE 'stories/news-render-check%' AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT ?`)
     .bind(Date.now(), limit)
     .all();
   if (!results.length) return 0;
@@ -554,8 +554,8 @@ export async function redrawNews(env, database, origin, limit = 2) {
       p = { title1: r.headline, title2: "", text1: texts[0] || "", text2: texts[1] || "", sourceLabel: "Kaynak / Quelle", source: srcLine.replace(/^[^:]*: /, ""), url: r.link, urgent: r.kind === "warn" };
     }
     try {
-      const png = await renderNewsImage(p, { theme: await nextTheme(database), logo, background });
-      const key = `stories/news-${r.id}-v2.png`;
+      const png = await renderNewsImage(p, { theme: it && it.theme != null ? it.theme : await nextTheme(database), logo, background }); // 2026-11-22: same colour as before
+      const key = `stories/news-${r.id}-v3.png`; // 2026-11-22: bigger text that fills the page
       await env.BUCKET.put(key, png, { httpMetadata: { contentType: "image/png" } });
       await database.prepare(`UPDATE stories SET media_key = ?, overlay = NULL WHERE id = ?`).bind(key, r.id).run();
       done++;
@@ -611,7 +611,7 @@ export async function newsSweep(env, database, origin) {
     await sweepLog(database, step);
     if (!busy) {
       await upgradeOldNews(env, database, origin).catch(() => {});
-      await redrawNews(env, database, origin).catch(() => {}); // 2026-11-22: once for the older pictures
+      await redrawNews(env, database, origin, 1).catch(() => {}); // 2026-11-22: once for the older pictures (1 per step: 30 s limit)
     }
     if (!s || s.auto_done || s.items.some((x) => x.written === false)) return;
     const flags = await readFlags(database);

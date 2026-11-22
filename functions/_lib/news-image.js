@@ -100,51 +100,57 @@ export async function renderNewsImage(parts, opts = {}) {
   const maxW = W - pad * 2 - 60; // 2026-11-22: a bit more room to the box edge
   const b64 = (o) => `data:${o.mime};base64,${toBase64(o.bytes)}`;
 
-  // fit the text: start big, shrink until it fits between y=430 and y=1760
-  let k = 1.2; // start big, shrink until it fits (2026-11-22: titles max 3 lines each)
-  let body = "";
-  let height = 0;
-  const STEPS = 16;
-  for (let step = 0; step < STEPS; step++) {
-    const last = step === STEPS - 1;
-    const s1 = Math.round(66 * k), s2 = Math.round(52 * k), s3 = Math.round(38 * k), s4 = Math.round(34 * k), s5 = Math.round(32 * k), s6 = Math.round(26 * k);
+  // 2026-11-22 (owner: "metinler çok küçük, sayfanın yarısı boş"): the text now FILLS the page – the biggest size that
+  // still fits (binary search), titles grow less than the texts, the box sits in the middle of the free area.
+  const AREA = 1300; // text height that fits between the logo row and "mykiezberlin.com"
+  const layout = (k, cutOver) => {
+    const kt = Math.min(k, (parts.text1 || parts.text2) ? 1.5 : 2.1); // titles: max 1.5x with texts (else 4+ lines), 2.1x when only titles
+    const s1 = Math.round(66 * kt), s2 = Math.round(52 * kt), s3 = Math.round(38 * k), s4 = Math.round(36 * k), s5 = Math.round(32 * Math.min(k, 1.3)), s6 = Math.round(26 * Math.min(k, 1.2));
     const t1 = wrap(parts.title1, s1, maxW, true), t2 = parts.title2 ? wrap(parts.title2, s2, maxW, true) : [];
     let d1 = parts.text1 ? wrap(parts.text1, s3, maxW, false) : [], d2 = parts.text2 ? wrap(parts.text2, s4, maxW, false) : [];
     const src = wrap(`${parts.sourceLabel || "Kaynak / Quelle"}: ${parts.source || ""}`, s5, maxW, true);
-    const link = wrap(String(parts.url || "").replace(/^https?:\/\//, ""), s6, maxW, false).slice(0, 3);
-    let y = 0;
-    let out = "";
-    const add = (lines, size, lh, fill, bold, gap) => { if (!lines.length) return; out += block(lines, pad + 20, y + size, size, lh, fill, bold); y += lines.length * lh + gap; };
-    add(t1, s1, Math.round(s1 * 1.18), "#FFFFFF", true, Math.round(18 * k));
-    add(t2, s2, Math.round(s2 * 1.2), acc, true, Math.round(34 * k));
-    add(d1, s3, Math.round(s3 * 1.38), "#FFFFFF", false, Math.round(26 * k));
-    add(d2, s4, Math.round(s4 * 1.38), "#E2E8F0", false, Math.round(34 * k));
-    add(src, s5, Math.round(s5 * 1.3), acc, true, Math.round(10 * k));
-    add(link, s6, Math.round(s6 * 1.3), "#93C5FD", false, 0);
-    body = out;
-    height = y;
-    if (y <= 1320 && t1.length <= 3 && t2.length <= 3) break;
-    if (last && y > 1320 && (d1.length || d2.length)) {
+    const link = wrap(String(parts.url || "").replace(/^https?:\/\//, ""), s6, maxW, false).slice(0, 2);
+    const draw = () => {
+      let y = 0;
+      let out = "";
+      const add = (lines, size, lh, fill, bold, gap) => { if (!lines.length) return; out += block(lines, pad + 20, y + size, size, lh, fill, bold); y += lines.length * lh + gap; };
+      add(t1, s1, Math.round(s1 * 1.18), "#FFFFFF", true, Math.round(22 * k));
+      add(t2, s2, Math.round(s2 * 1.2), acc, true, Math.round(38 * k));
+      add(d1, s3, Math.round(s3 * 1.36), "#FFFFFF", false, Math.round(30 * k));
+      add(d2, s4, Math.round(s4 * 1.36), "#E2E8F0", false, Math.round(36 * k));
+      add(src, s5, Math.round(s5 * 1.3), acc, true, Math.round(10 * k));
+      add(link, s6, Math.round(s6 * 1.3), "#93C5FD", false, 0);
+      return { out, y };
+    };
+    let r = draw();
+    if (cutOver && r.y > AREA && (d1.length || d2.length)) {
       // still too long at the smallest size: shorten the descriptions with "…" (never out of the box)
-      const over = Math.ceil((y - 1320) / Math.round(s4 * 1.38));
+      const over = Math.ceil((r.y - AREA) / Math.round(s4 * 1.36));
       const cut = (arr, n) => { const a = arr.slice(0, Math.max(1, arr.length - n)); a[a.length - 1] = a[a.length - 1].replace(/\s*\S*$/, "") + " …"; return a; };
       const fromD2 = Math.min(over, Math.max(0, d2.length - 1));
       if (fromD2) d2 = cut(d2, fromD2);
       if (over - fromD2 > 0 && d1.length > 1) d1 = cut(d1, over - fromD2);
-      y = 0; out = "";
-      add(t1, s1, Math.round(s1 * 1.18), "#FFFFFF", true, Math.round(18 * k));
-      add(t2, s2, Math.round(s2 * 1.2), acc, true, Math.round(34 * k));
-      add(d1, s3, Math.round(s3 * 1.38), "#FFFFFF", false, Math.round(26 * k));
-      add(d2, s4, Math.round(s4 * 1.38), "#E2E8F0", false, Math.round(34 * k));
-      add(src, s5, Math.round(s5 * 1.3), acc, true, Math.round(10 * k));
-      add(link, s6, Math.round(s6 * 1.3), "#93C5FD", false, 0);
-      body = out;
-      height = y;
-      break;
+      r = draw();
     }
-    k *= 0.93;
+    const maxT = (parts.text1 || parts.text2) ? 3 : 5; // 2026-11-22: only titles -> they may use more lines
+    return { ...r, ok: r.y <= AREA && t1.length <= maxT && t2.length <= maxT };
+  };
+  const K_MIN = 0.55, K_MAX = 2.3; // 2.3 = description ~87 px on a 1080 px wide picture
+  let best = null;
+  let lo = K_MIN, hi = K_MAX;
+  const top0 = layout(K_MAX, false);
+  if (top0.ok) best = top0;
+  else {
+    for (let i = 0; i < 12; i++) {
+      const mid = (lo + hi) / 2;
+      const r = layout(mid, false);
+      if (r.ok) { best = r; lo = mid; } else hi = mid;
+    }
   }
-  const top = 450;
+  if (!best) best = layout(K_MIN, true);
+  const body = best.out;
+  const height = best.y;
+  const top = 450 + Math.max(0, Math.round((AREA - height) / 2)); // 2026-11-22: box in the middle of the free area
   const boxH = height + 60;
 
   const bg = opts.background
