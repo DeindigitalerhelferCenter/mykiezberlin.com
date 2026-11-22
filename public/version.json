@@ -9,8 +9,8 @@
     "en": "New: Kiez search (everything in your Kiez), news stories with text in the picture, sponsor stories, deals at a glance, classifieds with pictures, Black Friday for businesses, friendlier story check with suggestions."
   },
   "beta": {
-    "versionCode": 50,
-    "versionName": "1.49",
+    "versionCode": 51,
+    "versionName": "1.50",
     "apkUrl": "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin-test.apk",
     "notes": {
       "de": "Testversion – nur für das Admin-Handy.",
