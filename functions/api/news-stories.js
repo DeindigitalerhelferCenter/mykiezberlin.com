@@ -12,11 +12,13 @@ import { readFlags } from "./flags.js";
 
 const BG_TYPES = { "image/jpeg": "jpg", "image/png": "png" }; // 2026-11-22: the picture renderer reads JPEG + PNG
 
-export async function onRequestGet({ request, env }) {
+export async function onRequestGet({ request, env, waitUntil }) {
   if (!(await isAdmin(request, env))) return json({ error: "unauthorized" }, 401);
   const database = await db(env);
   if (!database) return noDb();
-  await ensureCurrentSlot(env, database, { write: 3 }); // 2026-11-21: admin view also writes 3 texts per call
+  // 2026-11-22 (owner: panel "yüklenmiyor"): the slow work (sources, AI) runs in the background, the panel answers at once
+  await ensureNews(database);
+  if (waitUntil) waitUntil(ensureCurrentSlot(env, database, { write: 1 }).catch(() => {})); else await ensureCurrentSlot(env, database, { write: 1 });
   const day = (berlinSlot().slot || new Date().toISOString().slice(0, 10)).slice(0, 10);
   const { results } = await database.prepare(`SELECT slot FROM news_slots WHERE slot LIKE ? ORDER BY slot DESC LIMIT 9`).bind(`${day}%`).all();
   const slots = [];

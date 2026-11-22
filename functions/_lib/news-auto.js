@@ -102,7 +102,7 @@ function strip(s) {
 
 async function rss(url, source, limit = 12) {
   try {
-    const res = await fetch(url, { headers: UA, cf: { cacheTtl: 300 } });
+    const res = await fetch(url, { headers: UA, cf: { cacheTtl: 300 }, signal: AbortSignal.timeout(6000) }); // 2026-11-22: max 6 s per source
     if (!res.ok) return [];
     const xml = await res.text();
     return [...xml.matchAll(/<item[\s>][\s\S]*?<\/item>/g)].slice(0, limit).map((m) => {
@@ -117,7 +117,7 @@ async function rss(url, source, limit = 12) {
 
 async function tagesschau(query, source) {
   try {
-    const res = await fetch(`https://www.tagesschau.de/api2u/news/?${query}`, { headers: UA, cf: { cacheTtl: 300 } });
+    const res = await fetch(`https://www.tagesschau.de/api2u/news/?${query}`, { headers: UA, cf: { cacheTtl: 300 }, signal: AbortSignal.timeout(6000) });
     if (!res.ok) return [];
     const d = await res.json();
     return (d.news || []).filter((n) => n.title && n.shareURL).slice(0, 12)
@@ -153,7 +153,7 @@ export async function collectNews() {
 // 2026-11-22 (owner): the text must stay close to the real source -> read the first paragraphs of the article
 async function articleText(url) {
   try {
-    const res = await fetch(url, { headers: UA, cf: { cacheTtl: 900 } });
+    const res = await fetch(url, { headers: UA, cf: { cacheTtl: 900 }, signal: AbortSignal.timeout(6000) });
     if (!res.ok) return "";
     const html = (await res.text()).slice(0, 400000);
     const meta = (html.match(/<meta[^>]+(?:property|name)=["'](?:og:description|description)["'][^>]+content=["']([^"']+)["']/i) || [])[1] || "";
@@ -214,6 +214,35 @@ async function aiPick(env, news) {
   return null;
 }
 
+// 2026-11-22 (owner: "otomatik haber çalışmıyor"): the background work is cut after ~30 s -> every slow step has its own time limit
+export function withTimeout(promise, ms, fallback = null) {
+  let t;
+  return Promise.race([Promise.resolve(promise).catch(() => fallback), new Promise((r) => { t = setTimeout(() => r(fallback), ms); })]).finally(() => clearTimeout(t));
+}
+
+// 2026-11-22: fast choice – only numbers (no texts), the texts are written later topic by topic (writeSome)
+async function aiPickFast(env, news) {
+  if (!env.AI || !news.length) return null;
+  const list = news.map((n, i) => `${i}. [${n.source}] ${n.title}`).join("\n");
+  const prompt = `Du bist Redakteur der Berliner Nachbarschafts-App "My Kiez Berlin". Aktuelle Meldungen:\n${list}\n\n` +
+    `Wähle die ${NEWS_TOPICS + 3} wichtigsten Themen für Menschen in Berlin (Berlin zuerst). Echte Eil-/Warnmeldungen: "u": true. ` +
+    `Antworte NUR mit JSON: [{"i": Nummer, "u": false}]`;
+  for (const model of AI_MODELS) {
+    try {
+      const out = await withTimeout(env.AI.run(model, { messages: [{ role: "user", content: prompt }], max_tokens: 300 }), 9000);
+      if (!out) continue;
+      const text = typeof out === "string" ? out : out?.response ?? JSON.stringify(out);
+      const m = String(typeof text === "string" ? text : JSON.stringify(text)).match(/\[[\s\S]*\]/);
+      if (!m) continue;
+      const arr = JSON.parse(m[0]);
+      if (Array.isArray(arr) && arr.length) return arr.map((x) => ({ i: x.i, urgent: !!(x.u || x.urgent) }));
+    } catch (e) {
+      // next model
+    }
+  }
+  return null;
+}
+
 const cut = (s, n) => String(s || "").replace(/\s+/g, " ").trim().slice(0, n);
 
 // 2026-11-21 (owner): the list was never made – the background work (waitUntil, max. 30 s) was cut while it
@@ -226,7 +255,21 @@ export async function pickList(env, opts = {}) {
   // 2026-11-22 (owner): "Şimdi analiz et" must bring NEW topics – shown / deleted ones are left out (if enough are left)
   const fresh = all.filter((n) => !skip.has(cut(n.title, 160)));
   const news = fresh.length >= 4 ? fresh : all.filter((n) => !opts.blocked || !opts.blocked.has(cut(n.title, 160)));
-  const picked = await aiPick(env, news);
+  // 2026-11-22: fast choice first (numbers only, max 9 s per model); the old full pick only with opts.fullPick
+  const fast = opts.fullPick ? null : await aiPickFast(env, news);
+  if (fast) {
+    const out = fast.map((p) => {
+      const n = news[Number(p.i)];
+      if (!n) return null;
+      return { urgent: !!p.urgent || isUrgent(n), source: n.source, url: n.url, teaser: cut(n.teaser, 400), title_de: cut(n.title, 90), text_de: cut(n.teaser, 420), title_tr: "", text_tr: "", title_en: "", text_en: "", orig: cut(n.title, 160), written: false };
+    }).filter(Boolean).slice(0, NEWS_TOPICS + 3);
+    if (out.length) {
+      const u = out.filter((x) => x.urgent).slice(0, 3);
+      const r = out.filter((x) => !x.urgent).slice(0, NEWS_TOPICS);
+      return [...u, ...r].map((x, i) => ({ ...x, id: `n${i + 1}`, published: "" }));
+    }
+  }
+  const picked = opts.fullPick ? await aiPick(env, news) : null;
   let items;
   if (picked) {
     items = picked.map((p) => {
@@ -238,7 +281,7 @@ export async function pickList(env, opts = {}) {
       };
     }).filter(Boolean).slice(0, NEWS_TOPICS + 3);
   } else {
-    items = news.slice(0, NEWS_TOPICS + 3).map((n) => ({ urgent: isUrgent(n), source: n.source, url: n.url, title_de: cut(n.title, 90), text_de: "", title_tr: "", text_tr: "", orig: cut(n.title, 160), noAi: true, written: true }));
+    items = news.slice(0, NEWS_TOPICS + 3).map((n) => ({ urgent: isUrgent(n), source: n.source, url: n.url, teaser: cut(n.teaser, 400), title_de: cut(n.title, 90), text_de: cut(n.teaser, 420), title_tr: "", text_tr: "", orig: cut(n.title, 160), noAi: !env.AI, written: !env.AI })); // 2026-11-22: AI writes the texts later
   }
   const urgent = items.filter((x) => x.urgent).slice(0, 3);
   const normal = items.filter((x) => !x.urgent).slice(0, NEWS_TOPICS);
@@ -249,8 +292,8 @@ export async function pickList(env, opts = {}) {
 export async function writeSome(env, items, max = 2) {
   const todo = items.filter((x) => x.written === false).slice(0, max);
   for (const it of todo) {
-    const article = await articleText(it.url).catch(() => "");
-    const w = await aiWrite(env, [{ source: it.source, title: it.orig, teaser: it.teaser || "", article }]).catch(() => null);
+    const article = await withTimeout(articleText(it.url), 6000, "");
+    const w = await withTimeout(aiWrite(env, [{ source: it.source, title: it.orig, teaser: it.teaser || "", article }]), 16000, null); // 2026-11-22: max 16 s, else the short text stays
     const x = w && w[0];
     if (x) {
       if (x.tr_title) it.title_tr = cut(x.tr_title, 90);
@@ -408,7 +451,7 @@ export async function publishItems(env, database, slot, ids, opts = {}) {
     }
     if (!mediaKey) continue;
     const subtext = [p.text1, p.text2, `${p.sourceLabel}: ${it.source}`].filter(Boolean).join("\n\n");
-    const start = now + n * gapMs;
+    const start = (opts.startAt != null ? Number(opts.startAt) : now) + n * gapMs; // 2026-11-22: auto mode publishes one per step, times from the first
     await database
       .prepare(`INSERT INTO stories (id, headline, subtext, kiez, kind, author, media_key, media_type, duration_hours, status, ip, created_at, approved_at, link, by_admin, media_hash, text_hash, media_extra, deal, cats, overlay) VALUES (?, ?, ?, ?, ?, ?, ?, 'image', 24, 'approved', '', ?, ?, ?, 1, '', '', '[]', '', ?, ?)`)
       .bind(id, p.title1, subtext.slice(0, 2000), "Ganz Berlin", it.urgent ? "warn" : "news", "My Kiez Berlin", mediaKey, now, start, it.url || "", it.urgent ? "eil,berlin" : /tagesschau$/.test(it.source) ? "deutschland" : "berlin", overlay ? JSON.stringify(overlay) : null)
@@ -549,7 +592,7 @@ export async function newsSweep(env, database, origin) {
     await database.prepare(`INSERT INTO news_state (id, value) VALUES ('sweep', ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value`).bind(Date.now()).run();
     step = "list";
     await sweepLog(database, step);
-    const s = await ensureCurrentSlot(env, database);
+    const s = await ensureCurrentSlot(env, database, { write: 1 });
     step = s ? `list ${s.items.length} open ${s.items.filter((x) => x.written === false).length} done ${s.auto_done ? 1 : 0}` : "no slot (22-06)";
     await sweepLog(database, step);
     if (!busy) {
@@ -561,12 +604,20 @@ export async function newsSweep(env, database, origin) {
     if (!flags.newsAuto || !s.items.length) { await sweepLog(database, flags.newsAuto ? "empty list" : "auto off"); return; }
     const vis = s.items.filter((x) => !x.hidden); // 2026-11-22: hidden ("kapalı") topics are not shared
     const ids = [...vis.filter((x) => x.urgent).map((x) => x.id), ...vis.filter((x) => !x.urgent).slice(0, AUTO_COUNT).map((x) => x.id)];
-    await database.prepare(`UPDATE news_slots SET auto_done = 1 WHERE slot = ?`).bind(s.slot).run();
+    // 2026-11-22 (owner: "otomatik haber çalışmıyor"): ONE picture per step (3–4 at once were cut after 30 s);
+    // times stay: first one now, the next ones + interval; auto_done only when all are out.
     const st = await readSettings(database);
-    step = `publish ${ids.length}`;
+    const todo = ids.filter((id) => { const x = s.items.find((y) => y.id === id); return x && !x.published; });
+    if (!todo.length) { await database.prepare(`UPDATE news_slots SET auto_done = 1 WHERE slot = ?`).bind(s.slot).run(); await sweepLog(database, `all published (${s.slot})`); return; }
+    const autoStart = (s.items.find((x) => x.autoStart) || {}).autoStart || Date.now();
+    s.items.forEach((x) => { x.autoStart = autoStart; });
+    await saveItems(database, s.slot, s.items);
+    const pos = ids.length - todo.length;
+    step = `publish ${pos + 1}/${ids.length}`;
     await sweepLog(database, step);
-    const r = await publishItems(env, database, s.slot, ids, { origin, gapMinutes: st.gap, lang: st.lang, useSettings: true, skipHidden: true });
-    await sweepLog(database, `published ${r.published} of ${ids.length} (${s.slot})`);
+    const r = await publishItems(env, database, s.slot, [todo[0]], { origin, gapMinutes: 0, startAt: autoStart + pos * st.gap * 60000, lang: st.lang, useSettings: true, skipHidden: true });
+    if (todo.length === 1 && r.published) await database.prepare(`UPDATE news_slots SET auto_done = 1 WHERE slot = ?`).bind(s.slot).run();
+    await sweepLog(database, `published ${pos + r.published}/${ids.length} (${s.slot})`);
   } catch (e) {
     // never break the story list
     await sweepLog(database, step, e);
