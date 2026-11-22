@@ -527,7 +527,18 @@ async function templateKey(env, nr, origin) {
 }
 
 /** Called from GET /api/stories (waitUntil): at most every 5 minutes make the slot list and, if "newsAuto" is on, publish. */
+// 2026-11-22 (owner: "otomatik haber çalışmıyor"): every step + the last error are written to news_state 'sweep_log'
+// so /api/news-status shows where the auto mode stops.
+export async function sweepLog(database, step, err) {
+  try {
+    const v = JSON.stringify({ at: Date.now(), step, err: err ? String((err && err.message) || err).slice(0, 300) : "" });
+    await database.prepare(`INSERT INTO news_state (id, value) VALUES ('sweep_log', ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value`).bind(v).run();
+    if (err) await database.prepare(`INSERT INTO news_state (id, value) VALUES ('sweep_err', ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value`).bind(v).run();
+  } catch (e) { /* never break */ }
+}
+
 export async function newsSweep(env, database, origin) {
+  let step = "start";
   try {
     await ensureNews(database);
     const last = await database.prepare(`SELECT value FROM news_state WHERE id = 'sweep'`).first();
@@ -536,20 +547,28 @@ export async function newsSweep(env, database, origin) {
     const busy = !cur || !cur.items.length || cur.items.some((x) => x.written === false);
     if (last && Date.now() - last.value < (busy ? 60000 : 5 * 60000)) return;
     await database.prepare(`INSERT INTO news_state (id, value) VALUES ('sweep', ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value`).bind(Date.now()).run();
+    step = "list";
+    await sweepLog(database, step);
     const s = await ensureCurrentSlot(env, database);
+    step = s ? `list ${s.items.length} open ${s.items.filter((x) => x.written === false).length} done ${s.auto_done ? 1 : 0}` : "no slot (22-06)";
+    await sweepLog(database, step);
     if (!busy) {
       await upgradeOldNews(env, database, origin).catch(() => {});
       await redrawNews(env, database, origin).catch(() => {}); // 2026-11-22: once for the older pictures
     }
     if (!s || s.auto_done || s.items.some((x) => x.written === false)) return;
     const flags = await readFlags(database);
-    if (!flags.newsAuto || !s.items.length) return;
+    if (!flags.newsAuto || !s.items.length) { await sweepLog(database, flags.newsAuto ? "empty list" : "auto off"); return; }
     const vis = s.items.filter((x) => !x.hidden); // 2026-11-22: hidden ("kapalı") topics are not shared
     const ids = [...vis.filter((x) => x.urgent).map((x) => x.id), ...vis.filter((x) => !x.urgent).slice(0, AUTO_COUNT).map((x) => x.id)];
     await database.prepare(`UPDATE news_slots SET auto_done = 1 WHERE slot = ?`).bind(s.slot).run();
     const st = await readSettings(database);
-    await publishItems(env, database, s.slot, ids, { origin, gapMinutes: st.gap, lang: st.lang, useSettings: true, skipHidden: true });
+    step = `publish ${ids.length}`;
+    await sweepLog(database, step);
+    const r = await publishItems(env, database, s.slot, ids, { origin, gapMinutes: st.gap, lang: st.lang, useSettings: true, skipHidden: true });
+    await sweepLog(database, `published ${r.published} of ${ids.length} (${s.slot})`);
   } catch (e) {
     // never break the story list
+    await sweepLog(database, step, e);
   }
 }
