@@ -6,6 +6,7 @@ import { aiReview, reviewVerdict, swearHit, swearReview, cleanDevice, cleanupSto
 import { STORY_CATS, aiStoryCats, catsOf, dealFromText, storyCats } from "../_lib/story-cats.js";
 import { VIP_MAX_FILES, vipFromRequest } from "../_lib/story-vip.js";
 import { newsSweep } from "../_lib/news-auto.js";
+import { socialPlanerSweep } from "../_lib/social-planer.js";
 import { cleanLongText, cleanOverlay, cleanText, cleanupExpiredStories, db, ipHash, isAdmin, json, noDb, rateLimited, sha256Hex, parseDeal, storyDeal, storyMediaList, storyTextKey, validAuthor } from "../_lib/util.js";
 
 const HOUR_MS = 3600000;
@@ -59,6 +60,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   waitUntil(telegramSweep(env, database)); // 2026-11-19 (owner): new live stories -> Telegram channel
   waitUntil(metaSweep(env, database)); // 2026-11-21 (owner): admin stories -> Facebook + Instagram (needs META_PAGE_TOKEN)
   waitUntil(newsSweep(env, database, new URL(request.url).origin)); // 2026-11-22 (owner): news lists every 2 h (+ auto mode)
+  waitUntil(socialPlanerSweep(env, database)); // 2026-11-22 (owner): Social-Planer 08:00 / 16:00 / 23:00
   const now = Date.now();
   const { results } = await database
     .prepare(`SELECT id, headline, subtext, kiez, kind, author, media_key, media_type, media_extra, overlay, deal, duration_hours, approved_at, link, cats FROM stories WHERE status = 'approved' AND approved_at <= ? AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT 60`)
