@@ -285,6 +285,17 @@ export const SPONSOR_SEED = [
     extra: { category: { de: "Eventlocation · Raumvermietung", tr: "Salon kiralama · Etkinlik mekânı", en: "Event location · Venue hire" }, address: "Prinzenallee 86 B, 13359 Berlin", hours: "Mietzeit bis 4 Uhr morgens", primary: "wa",
       description: "Eventlocation mitten in Berlin-Wedding für bis zu 70 Personen: Geburtstagsfeier, Weihnachtsfeier, Silvester, Firmenfeier.\nPreise (inkl. Reinigung, zzgl. 19 % MwSt.): Mo–Do 800 €, Fr & So 1.000 €, Sa 1.300 € (außer Feiertage).\nRaucherbereich · unter 18 Jahren bis 22 Uhr · sonst bis 4 Uhr morgens (Mietzeit).\nTelefon / WhatsApp: +49 163 3135709" },
   },
+  // ---- 2026-11-22 (owner): EM-Performance, package Plus (folder "Sponsor -EM-PERFORMANCE", cover = EM-PERFORMANCE-1, logo = -5) ----
+  {
+    id: "em-performance", plan: "m", name: "EM-Performance Softwareoptimierung", kieze: "Charlottenburg",
+    headline_de: "Mehr Leistung, weniger Verbrauch: Custom-Software für Motor & Getriebe – alle Marken, Vor-Ort-Service",
+    headline_tr: "Daha fazla güç, daha az yakıt: motor ve şanzıman için özel yazılım – tüm markalar, yerinde servis",
+    headline_en: "More power, less fuel: custom software for engine & gearbox – all brands, on-site service",
+    cta_de: "WhatsApp schreiben", cta_tr: "WhatsApp yaz", cta_en: "Message on WhatsApp",
+    link_web: "", link_wa: "+4917684004379", link_tel: "0176 84004379", link_ig: "https://www.instagram.com/emperformance60",
+    extra: { category: { de: "Kfz · Softwareoptimierung", tr: "Araç · Yazılım optimizasyonu", en: "Cars · Software tuning" }, address: "14059 Berlin · Vor-Ort-Service in Berlin & Umgebung", hours: "Nach Terminvereinbarung", email: "em-performance60@outlook.com", primary: "wa",
+      description: "Professionelle Custom-Softwareoptimierung für Motor & Getriebe – alle Marken (BMW, Audi, Mercedes u. a.).\nLeistungssteigerung / Chiptuning (Stage 1/2/3), Getriebeoptimierung, Schubabschaltung, Pops and Bangs / AK-47, Verbrauchsoptimierung, AGR/DPF/AdBlue-Lösungen, Codierung, individuelle Softwarelösungen. Rückrüstung jederzeit möglich.\nVor-Ort-Service möglich · Termin nach Vereinbarung.\nTelefon / WhatsApp: 0176 84004379" },
+  },
   {
     id: "packpress", plan: "m", name: "PackPress", kieze: "",
     headline_de: "Bedruckte Verpackungen mit Ihrem Logo: Pizzakartons, Burgerboxen, Tüten, Becher & Dönerpapier",
@@ -356,6 +367,30 @@ export async function seedSponsors(database) {
   await applyOwnFirmsByNameFix(database);
   await applyRestoreOptimizedFix(database);
   await applyMaxatYusufFix(database);
+  await applyEmPerformanceMediaFix(database);
+}
+
+// 2026-11-22 (owner): EM-Performance – 4 pictures + the 3 most-viewed Instagram reels (@emperformance60: DKrTZmWtvNn 1.775,
+// DJEJlbPCxZm 1.324, DJeVumACvNF 1.318 views on 22.11.2026) in its gallery / story folder. Runs once.
+const EM_MEDIA = [
+  ["g-em-performance-1", "/assets/sponsors/gallery/em-performance-1.webp", "image", "Custom Software · Alle Marken · Tel. 0176 84004379"],
+  ["g-em-performance-2", "/assets/sponsors/gallery/em-performance-2.webp", "image", "Mehr Leistung & Fahrspaß · Daha fazla güç"],
+  ["g-em-performance-3", "/assets/sponsors/gallery/em-performance-3.webp", "image", "Motor & Getriebe · Motor ve şanzıman"],
+  ["g-em-performance-4", "/assets/sponsors/gallery/em-performance-4.webp", "image", "Wir bieten an · Hizmetlerimiz"],
+  ["v-em-performance-1", "/assets/sponsors/gallery/em-performance-video-1.mp4", "video", "EM-Performance"],
+  ["v-em-performance-2", "/assets/sponsors/gallery/em-performance-video-2.mp4", "video", "EM-Performance"],
+  ["v-em-performance-3", "/assets/sponsors/gallery/em-performance-video-3.mp4", "video", "EM-Performance"],
+];
+async function applyEmPerformanceMediaFix(database) {
+  const id = "fix:2026-11-22-em-performance";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  await ensureSponsorTables(database);
+  const now = Date.now();
+  const ops = EM_MEDIA.map(([mid, key, type, caption], i) =>
+    database.prepare(`INSERT OR IGNORE INTO sponsor_media (id, ad_id, media_key, media_type, caption, status, bytes, created_at, by_admin) VALUES (?, 'em-performance', ?, ?, ?, 'live', 0, ?, 1)`)
+      .bind(mid, key, type, caption, now + i));
+  ops.push(database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now));
+  await database.batch(ops);
 }
 
 // 2026-11-21 (owner): MAXAT – all 8 pictures + 2 videos in its gallery / story folder; Yusuf Car Rental – only the new
