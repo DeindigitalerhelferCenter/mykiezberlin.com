@@ -425,7 +425,20 @@ export async function publishItems(env, database, slot, ids, opts = {}) {
     if (!ids.includes(it.id) || (it.published && !opts.again)) continue; // 2026-11-21: opts.again = share once more
     if (opts.skipHidden && it.hidden) continue; // 2026-11-22: hidden topics are never shared by the auto mode
     const p = newsParts(it, lang);
-    const id = crypto.randomUUID();
+    // 2026-11-22 (owner): auto mode gives a fixed story id per topic -> if the step was cut after saving the story,
+    // the next step sees it and only marks it (no second copy of the same news)
+    const fixedId = opts.storyIds && opts.storyIds[it.id];
+    if (fixedId) {
+      const there = await database.prepare(`SELECT id FROM stories WHERE id = ?`).bind(fixedId).first().catch(() => null);
+      if (there) {
+        it.shares = [...(it.shares || []), fixedId];
+        it.published = fixedId;
+        await saveItems(database, slot, s.items);
+        n++;
+        continue;
+      }
+    }
+    const id = fixedId || crypto.randomUUID();
     // 2026-11-22 (owner): own choice of the admin, otherwise the next colour (server counter, not "n" – was always red)
     let theme;
     let itemBgKey = opts.backgroundKey || "";
@@ -458,6 +471,7 @@ export async function publishItems(env, database, slot, ids, opts = {}) {
       .run();
     it.shares = [...(it.shares || (it.published ? [it.published] : [])), id];
     it.published = id;
+    if (fixedId) await saveItems(database, slot, s.items); // 2026-11-22: mark at once, not only at the end
     n++;
   }
   await saveItems(database, slot, s.items);
@@ -615,7 +629,8 @@ export async function newsSweep(env, database, origin) {
     const pos = ids.length - todo.length;
     step = `publish ${pos + 1}/${ids.length}`;
     await sweepLog(database, step);
-    const r = await publishItems(env, database, s.slot, [todo[0]], { origin, gapMinutes: 0, startAt: autoStart + pos * st.gap * 60000, lang: st.lang, useSettings: true, skipHidden: true });
+    const storyIds = { [todo[0]]: `news-auto-${s.slot}-${todo[0]}` }; // 2026-11-22: fixed id = never twice
+    const r = await publishItems(env, database, s.slot, [todo[0]], { origin, gapMinutes: 0, startAt: autoStart + pos * st.gap * 60000, lang: st.lang, useSettings: true, skipHidden: true, storyIds });
     if (todo.length === 1 && r.published) await database.prepare(`UPDATE news_slots SET auto_done = 1 WHERE slot = ?`).bind(s.slot).run();
     await sweepLog(database, `published ${pos + r.published}/${ids.length} (${s.slot})`);
   } catch (e) {
