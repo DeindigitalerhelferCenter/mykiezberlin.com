@@ -1,12 +1,12 @@
 {
-  "versionCode": 50,
-  "versionName": "1.49",
+  "versionCode": 51,
+  "versionName": "1.50",
   "apkUrl": "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin.com.apk",
   "mandatory": false,
   "notes": {
-    "de": "Neu: Kiez-Suche (alles in deinem Kiez), News-Storys mit Text im Bild, Sponsoren-Storys, Angebote auf einen Blick, Kleinanzeigen mit Bildern, Black Friday für Betriebe, freundlichere Story-Prüfung mit Verbesserungsvorschlägen.",
-    "tr": "Yeni: Mahalle araması (mahallendeki her şey), resmin içinde metinli haber hikâyeleri, sponsor hikâyeleri, indirimler tek bakışta, resimli ilanlar, işletmeler için Black Friday, öneri veren daha anlayışlı hikâye kontrolü.",
-    "en": "New: Kiez search (everything in your Kiez), news stories with text in the picture, sponsor stories, deals at a glance, classifieds with pictures, Black Friday for businesses, friendlier story check with suggestions."
+    "de": "Neu: Unser WhatsApp-Kanal mit Berlin-News und WhatsApp-Gruppen für deinen Kiez (Neukölln, Kreuzberg, Wedding, Moabit, Spandau, Ganz Berlin). Stories jetzt mit WhatsApp-Kanal-Link teilen.",
+    "tr": "Yeni: Berlin haberleri için WhatsApp kanalımız ve semt grupları (Neukölln, Kreuzberg, Wedding, Moabit, Spandau, Ganz Berlin). Hikâyeleri artık WhatsApp kanal linkiyle paylaş.",
+    "en": "New: our WhatsApp channel with Berlin news and WhatsApp groups for your Kiez (Neukölln, Kreuzberg, Wedding, Moabit, Spandau, all Berlin). Share stories with the WhatsApp channel link."
   },
   "beta": {
     "versionCode": 51,
