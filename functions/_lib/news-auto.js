@@ -560,6 +560,7 @@ export async function redrawNews(env, database, origin, limit = 2) {
       await database.prepare(`UPDATE stories SET media_key = ?, overlay = NULL WHERE id = ?`).bind(key, r.id).run();
       done++;
     } catch (e) {
+      await sweepLog(database, `redraw ${r.id}`, e); // 2026-11-22: show why
       return done; // drawing not possible here – keep the old picture
     }
   }
@@ -611,7 +612,8 @@ export async function newsSweep(env, database, origin) {
     await sweepLog(database, step);
     if (!busy) {
       await upgradeOldNews(env, database, origin).catch(() => {});
-      await redrawNews(env, database, origin, 1).catch(() => {}); // 2026-11-22: once for the older pictures (1 per step: 30 s limit)
+      const rd = await redrawNews(env, database, origin, 1).catch((e) => { sweepLog(database, "redraw", e); return -1; }); // 2026-11-22: once for the older pictures (1 per step: 30 s limit)
+      if (rd) await sweepLog(database, `redraw ${rd}`);
     }
     if (!s || s.auto_done || s.items.some((x) => x.written === false)) return;
     const flags = await readFlags(database);
