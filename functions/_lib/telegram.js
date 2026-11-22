@@ -112,3 +112,39 @@ export async function telegramDeleteStory(env, database, storyId) {
     return false;
   }
 }
+
+/**
+ * 2026-11-22 (owner): admin button "send the stories that are online but not yet in Telegram".
+ * Only the owner's own stories (author "My Kiez Berlin" / "Kiez26") and sponsor stories (author = active ad name),
+ * never user stories. A story that is in telegram_sent already (sent, failed or deleted) is never sent again.
+ * mode "count" only counts, mode "send" sends at most `limit` stories (Telegram allows ~20 posts a minute in a channel).
+ */
+export const OWN_AUTHORS = ["My Kiez Berlin", "Kiez26"];
+export async function telegramBacklog(env, database, { mode = "count", limit = 5 } = {}) {
+  if (!database) return { error: "no_db" };
+  await ensureTables(database);
+  const now = Date.now();
+  let sponsors = [];
+  try { sponsors = ((await database.prepare(`SELECT name FROM ads WHERE active = 1`).all()).results || []).map((r) => r.name).filter(Boolean); } catch (e) { sponsors = []; }
+  const authors = [...OWN_AUTHORS, ...sponsors];
+  const { results } = await database
+    .prepare(`SELECT s.id, s.headline, s.subtext, s.kiez, s.media_key, s.media_type, s.author FROM stories s
+      LEFT JOIN telegram_sent t ON t.story_id = s.id
+      WHERE t.story_id IS NULL AND s.status = 'approved' AND s.approved_at <= ? AND s.approved_at + s.duration_hours * 3600000 > ?
+      ORDER BY s.approved_at ASC LIMIT 200`)
+    .bind(now, now)
+    .all();
+  const todo = (results || []).filter((s) => authors.includes(s.author));
+  if (mode !== "send") return { open: todo.length, ready: telegramReady(env), list: todo.map((s) => ({ id: s.id, headline: s.headline, author: s.author })) };
+  if (!telegramReady(env)) return { error: "telegram_not_set" };
+  let sent = 0, failed = 0;
+  for (const story of todo.slice(0, Math.min(10, Math.max(1, Number(limit) || 5)))) {
+    const ins = await database.prepare(`INSERT OR IGNORE INTO telegram_sent (story_id, sent_at, ok) VALUES (?, ?, 0)`).bind(story.id, now).run();
+    if (!ins.meta || !ins.meta.changes) continue; // somebody else just sent it
+    const ok = await postStory(env, story).catch(() => false);
+    if (ok) { sent++; await database.prepare(`UPDATE telegram_sent SET ok = 1, message_id = ? WHERE story_id = ?`).bind(typeof ok === "number" ? ok : null, story.id).run(); }
+    else failed++;
+    await new Promise((r) => setTimeout(r, 1200));
+  }
+  return { sent, failed, open: Math.max(0, todo.length - sent - failed) };
+}
