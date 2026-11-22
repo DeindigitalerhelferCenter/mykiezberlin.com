@@ -6,7 +6,7 @@
 import { db, isAdmin, json, noDb } from "../_lib/util.js";
 import { telegramReady } from "../_lib/telegram.js";
 import { metaReady } from "../_lib/meta-social.js";
-import { PACK_CHANNELS, collectionText, markDone, nextSlot, openStories, plannerSettings, runSlot, saveSettings } from "../_lib/social-planer.js";
+import { PACK_CHANNELS, collectionText, isWaKiezChannel, kiezPacks, markDone, nextSlot, openStories, plannerSettings, runSlot, saveSettings } from "../_lib/social-planer.js";
 
 const NO_STORE = { "cache-control": "no-store" };
 
@@ -23,7 +23,8 @@ export async function onRequestGet({ request, env }) {
     const list = (await openStories(database, c, now)).slice(0, 35);
     pack[c] = { text: list.length ? collectionText(list, now) : "", stories: list.map((s) => ({ id: s.id, headline: s.headline, author: s.author, media: s.media, video: s.media_type === "video" })) };
   }
-  return json({ settings, ready: { telegram: telegramReady(env), meta: metaReady(env), instagram: Boolean(env.IG_USER_ID) }, next: nextSlot(settings.times, now), runs, pack }, 200, NO_STORE);
+  const kiez = await kiezPacks(database, now).catch(() => []); // 2026-11-22 (owner): one package per WhatsApp Kiez group
+  return json({ settings, ready: { telegram: telegramReady(env), meta: metaReady(env), instagram: Boolean(env.IG_USER_ID) }, next: nextSlot(settings.times, now), runs, pack, kiez }, 200, NO_STORE);
 }
 
 export async function onRequestPost({ request, env }) {
@@ -34,7 +35,7 @@ export async function onRequestPost({ request, env }) {
   if (body.action === "settings") return json({ ok: true, settings: await saveSettings(database, body) }, 200, NO_STORE);
   if (body.action === "run") return json({ ok: true, result: await runSlot(env, database, `manual ${new Date().toISOString().slice(0, 16)}`) }, 200, NO_STORE);
   if (body.action === "mark") {
-    if (!PACK_CHANNELS.includes(body.channel) || !Array.isArray(body.ids)) return json({ error: "bad_request" }, 400);
+    if (!(PACK_CHANNELS.includes(body.channel) || isWaKiezChannel(body.channel)) || !Array.isArray(body.ids)) return json({ error: "bad_request" }, 400); // 2026-11-22: + "wa-<kiez>"
     return json({ ok: true, marked: await markDone(database, body.channel, body.ids.slice(0, 100), "admin") }, 200, NO_STORE);
   }
   return json({ error: "bad_request" }, 400);

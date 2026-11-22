@@ -55,6 +55,26 @@
         }
         h.push("</div>");
       });
+      // 2026-11-22 (owner): one WhatsApp package per Kiez group – copy, open the group, send, tap "paylaştım"
+      if (j.kiez && j.kiez.length) {
+        var waitN = j.kiez.filter(function (g) { return g.stories.length; }).length;
+        h.push('<div style="border-top:1px solid #30363d;margin-top:10px;padding-top:8px"><b>💬 WhatsApp Kiez-Gruppen · Mahalle grupları</b> – ' + (waitN ? waitN + " grup için yeni paket" : "hepsi güncel ✓") + "</div>");
+        j.kiez.forEach(function (g) {
+          var c = g.channel;
+          h.push('<details style="margin:4px 0;background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:6px 8px"><summary style="cursor:pointer"><b>📍 ' + e(g.name) + "</b> · " + (g.stories.length ? g.stories.length + " yeni" : '<span style="color:#8b949e">yeni yok ✓</span>') + "</summary>");
+          if (g.stories.length) {
+            h.push('<div style="display:flex;gap:6px;overflow-x:auto;margin:6px 0">' + g.stories.map(function (x) {
+              return x.media ? '<a href="' + e(x.media) + '" download target="_blank" title="' + e(x.headline) + '">' + (x.video ? '<span style="display:inline-block;width:48px;height:72px;background:#161b22;border-radius:6px;text-align:center;line-height:72px">🎬</span>' : '<img src="' + e(x.media) + '" loading="lazy" style="width:48px;height:72px;object-fit:cover;border-radius:6px">') + "</a>" : "";
+            }).join("") + "</div>");
+            h.push('<textarea id="sp-text-' + c + '" readonly style="width:100%;height:120px;background:#0d1117;color:#c9d1d9;border:1px solid #30363d;border-radius:6px;font:12px monospace">' + e(g.text) + "</textarea>");
+            h.push('<button type="button" data-copy="' + c + '" style="' + BTN2 + '">📋 Kopyala</button>' +
+              '<a href="' + e(g.url) + '" target="_blank" rel="noopener" style="' + BTN2 + ';text-decoration:none;display:inline-block">💬 Gruba git</a>' +
+              '<button type="button" data-kdone="' + c + '" style="' + BTN + '">✓ Paylaştım · geteilt</button>');
+          }
+          h.push("</details>");
+        });
+        h.push('<small style="color:#8b949e">Sıra: 📋 Kopyala → 💬 Gruba git → yapıştır + gönder → ✓ Paylaştım. Paylaşılan story o gruba bir daha gelmez. Mahalle grubuna: kendi mahallesi + en yeni 3 Berlin haberi.</small>');
+      }
       b.innerHTML = h.join("");
       wire(b);
     });
@@ -89,6 +109,16 @@
       };
     });
   }
+  // 2026-11-22: "Paylaştım" for one Kiez group
+  document.addEventListener("click", function (ev) {
+    var btn = ev.target && ev.target.closest ? ev.target.closest("[data-kdone]") : null;
+    if (!btn) return;
+    var c = btn.getAttribute("data-kdone");
+    var g = ((data && data.kiez) || []).filter(function (x) { return x.channel === c; })[0];
+    if (!g) return;
+    btn.disabled = true;
+    api({ action: "mark", channel: c, ids: g.stories.map(function (x) { return x.id; }) }).then(function (r) { btn.textContent = r.ok ? "✓ " + r.marked + " işaretlendi" : "Hata"; setTimeout(render, 1200); });
+  });
   var base = window.renderAdminDashboard;
   if (typeof base === "function") {
     window.renderAdminDashboard = function () { var r = base.apply(this, arguments); setTimeout(render, 0); return r; };

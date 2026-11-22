@@ -226,3 +226,43 @@ export async function socialPlanerSweep(env, database) {
     // the planner must never break the story list
   }
 }
+
+// ---- 2026-11-22 (owner: "1 – Kiez başına WhatsApp paketi"): one ready package per WhatsApp Kiez group ----
+// WhatsApp has no API for groups: the admin copies the text, opens the group, sends, taps "geteilt".
+// Each group is its own channel in social_items ("wa-<key>") -> a story is never offered twice to the same group.
+// Kiez groups get their own Kiez stories + the 3 newest Berlin-wide ones; "Ganz Berlin" gets everything (max 10).
+export const WA_KIEZ_GROUPS = [
+  { key: "neukoelln", name: "Neukölln", url: "https://chat.whatsapp.com/EiCUYfwfQYr9eve4WT5STZ", match: /neuk[öo]lln|britz|rudow|buckow/i },
+  { key: "kreuzberg", name: "Kreuzberg", url: "https://chat.whatsapp.com/JDUKCyyyyY6HsxclTEhdDP", match: /kreuzberg/i },
+  { key: "wedding", name: "Wedding", url: "https://chat.whatsapp.com/G0yav64xcdyFd5rLztmsiV", match: /wedding|gesundbrunnen/i },
+  { key: "moabit", name: "Moabit", url: "https://chat.whatsapp.com/Be6LDHBHC6K5YqM8acT3Cs", match: /moabit|tiergarten/i },
+  { key: "spandau", name: "Spandau", url: "https://chat.whatsapp.com/IO6E8If42yWKPgoPsPdV8z", match: /spandau/i },
+  { key: "berlin", name: "Ganz Berlin", url: "https://chat.whatsapp.com/GCPuN7MEzEVLjutfKIYRqb", match: null },
+];
+const WA_GENERAL = /^(ganz berlin|berlin|berlin & umgebung)$/i;
+export const isWaKiezChannel = (c) => typeof c === "string" && WA_KIEZ_GROUPS.some((g) => `wa-${g.key}` === c);
+
+function kiezText(group, stories, now) {
+  const h = Number(new Date(now + berlinOffsetMs(now)).toISOString().slice(11, 13));
+  const part = h < 12 ? "Guten Morgen" : h < 19 ? "Neu am Nachmittag" : "Neu am Abend";
+  const lines = [`📍 My Kiez ${group.name} · ${part}`, ""];
+  for (const s of stories) lines.push(`• ${String(s.headline || "").trim().slice(0, 120)}${s.kiez && !WA_GENERAL.test(s.kiez) && group.key === "berlin" ? ` (📍 ${s.kiez})` : ""}`);
+  lines.push("", `👉 Alles mit Bildern: ${SITE}`, "📲 App: My Kiez Berlin · Tümü resimli: mykiezberlin.com");
+  return lines.join("\n").slice(0, 2000);
+}
+
+export async function kiezPacks(database, now = Date.now()) {
+  const out = [];
+  for (const g of WA_KIEZ_GROUPS) {
+    const open = await openStories(database, `wa-${g.key}`, now);
+    let list;
+    if (!g.match) list = open.slice(-10);
+    else {
+      const own = open.filter((s) => g.match.test(String(s.kiez || "")));
+      const general = open.filter((s) => WA_GENERAL.test(String(s.kiez || ""))).slice(-3);
+      list = [...own, ...general].sort((a, b) => a.approved_at - b.approved_at).slice(-10);
+    }
+    out.push({ key: g.key, channel: `wa-${g.key}`, name: g.name, url: g.url, text: list.length ? kiezText(g, list, now) : "", stories: list.map((s) => ({ id: s.id, headline: s.headline, kiez: s.kiez, media: s.media, video: s.media_type === "video" })) });
+  }
+  return out;
+}
