@@ -210,6 +210,7 @@ export async function metaEnv(env, database) {
   return env;
 }
 
+let checkCache = null;
 /** Status without secrets: is a page token saved, when, last error. */
 export async function metaStatus(env, database) {
   const out = { ready: metaReady(env), instagram: Boolean(env && env.IG_USER_ID), pageTokenAt: 0, error: null };
@@ -221,6 +222,15 @@ export async function metaStatus(env, database) {
     if (v && v.at && env && env.META_PAGE_TOKEN && v.fp === String(env.META_PAGE_TOKEN).slice(-10)) out.pageTokenAt = v.at;
     const e = await database.prepare(`SELECT value FROM meta_state WHERE key = 'page_token_err'`).first();
     out.error = e && e.value ? JSON.parse(e.value) : null;
+    // 2026-11-23: read-only check that the token really works (page name, Instagram name, token type); kept 10 min
+    if (out.ready && (!checkCache || Date.now() - checkCache.at > 600000)) {
+      const menv = await metaEnv(env, database);
+      const pg = await graphGet(menv, env.FB_PAGE_ID, "name");
+      const ig = env.IG_USER_ID ? await graphGet(menv, env.IG_USER_ID, "username") : null;
+      const dbg = await graphGet(menv, "me", "id,name");
+      checkCache = { at: Date.now(), page: (pg && pg.name) || null, instagram: (ig && ig.username) || null, tokenIsPage: !!(dbg && dbg.id === String(env.FB_PAGE_ID)) };
+    }
+    if (checkCache) out.check = checkCache;
   } catch (e) { /* ignore */ }
   return out;
 }
