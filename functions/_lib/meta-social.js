@@ -136,6 +136,17 @@ export async function metaSweep(env, database) {
     if (!lock.meta || !lock.meta.changes) return;
     env = await metaEnv(env, database); // 2026-11-23: user token -> page token
     await finishInstagramVideos(env, database).catch(() => {});
+    // 2026-11-23: a run that was cut after Facebook (all result fields empty, older than 2 min) -> only Instagram now,
+    // Facebook is NOT sent again (no double post)
+    const cutRow = await database.prepare(`SELECT m.story_id, s.headline, s.subtext, s.kiez, s.media_key, s.media_type FROM meta_sent m JOIN stories s ON s.id = m.story_id
+      WHERE m.fb_post IS NULL AND m.ig_post IS NULL AND m.ig_story IS NULL AND m.ig_wait IS NULL AND m.log IS NULL AND m.sent_at < ? AND m.sent_at > ? LIMIT 1`).bind(now - 120000, now - MAX_AGE_MS).first().catch(() => null);
+    if (cutRow) {
+      lastGraphError = "";
+      const media = cutRow.media_key ? `${SITE}/media/${cutRow.media_key}` : "";
+      const ig = await postInstagram(env, cutRow, media, cutRow.media_type === "video").catch(() => ({ post: "", story: "", wait: "" }));
+      await database.prepare(`UPDATE meta_sent SET ig_post = ?, ig_story = ?, ig_wait = ?, log = ? WHERE story_id = ?`).bind(ig.post, ig.story, ig.wait, `resumed (fb not resent)${lastGraphError ? " | " + lastGraphError : ""}`, cutRow.story_id).run();
+      return;
+    }
     const since = Number((await database.prepare(`SELECT value FROM meta_state WHERE key = 'since'`).first())?.value) || now;
     const { results } = await database
       .prepare(`SELECT s.id, s.headline, s.subtext, s.kiez, s.media_key, s.media_type FROM stories s
