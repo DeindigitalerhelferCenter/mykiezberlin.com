@@ -28,6 +28,7 @@ export async function onRequestGet({ env }) {
     lastError: parse(await get("sweep_err")),
     slot: cur ? { slot: cur.slot, items: cur.items.length, open: cur.items.filter((x) => x.written === false).length, autoDone: !!cur.auto_done, published: cur.items.filter((x) => x.published).length, noAi: cur.items.filter((x) => x.noAi).length, renderErrors: cur.items.filter((x) => x.renderError).map((x) => x.renderError) } : null,
     lastAutoNewsAt: last && last.t ? Number(last.t) : 0,
+    bgs: (await database.prepare(`SELECT key FROM news_bgs ORDER BY created_at ASC`).all().catch(() => ({ results: [] }))).results.map((b) => b.key), // 2026-11-23: own backgrounds (public pictures)
     meta: await metaEnv(env, database).then(() => metaStatus(env, database)), // 2026-11-23 (fetches the page token once): Facebook/Instagram ready? (no secrets)
   }, 200, { "cache-control": "no-store" });
 }
