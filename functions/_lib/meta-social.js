@@ -9,6 +9,8 @@
 // (Instagram business account linked to the page). Without them nothing happens.
 // Runs at most once a minute from GET /api/stories (waitUntil). Never throws.
 
+import { shareAuthors } from "./social-authors.js"; // 2026-11-23 (owner "UYGULA 2")
+
 const SITE = "https://mykiezberlin.com";
 const GRAPH = "https://graph.facebook.com/v21.0";
 const PER_RUN = 1; // 2026-11-23: was 2 – one story per run, so a run is never cut
@@ -158,7 +160,12 @@ export async function metaSweep(env, database) {
     // Facebook is NOT sent again (no double post)
     const cutRow = await database.prepare(`SELECT m.story_id, s.headline, s.subtext, s.kiez, s.media_key, s.media_type FROM meta_sent m JOIN stories s ON s.id = m.story_id
       WHERE m.fb_post IS NULL AND m.ig_post IS NULL AND m.ig_story IS NULL AND m.ig_wait IS NULL AND m.log IS NULL AND m.sent_at < ? AND m.sent_at > ? LIMIT 1`).bind(now - 120000, now - MAX_AGE_MS).first().catch(() => null);
+    await fixRangeRover2311(database).catch(() => {}); // 2026-11-23 (owner "UYGULA 1"): once
     if (cutRow) {
+      // 2026-11-23: the Facebook post may be online although its id was not saved (run cut) -> look for a page post
+      // made within 90 s of the send time and keep its id (so the report shows it and nothing is sent twice)
+      const fbFound = await findPagePostNear(env, Number((await database.prepare(`SELECT sent_at FROM meta_sent WHERE story_id = ?`).bind(cutRow.story_id).first())?.sent_at) || 0).catch(() => "");
+      if (fbFound) await database.prepare(`UPDATE meta_sent SET fb_post = ? WHERE story_id = ?`).bind(fbFound, cutRow.story_id).run();
       lastGraphError = "";
       const media = cutRow.media_key ? `${SITE}/media/${cutRow.media_key}` : "";
       const ig = await postInstagram(env, cutRow, media, cutRow.media_type === "video").catch(() => ({ post: "", story: "", wait: "" }));
@@ -166,15 +173,19 @@ export async function metaSweep(env, database) {
       return;
     }
     const since = Number((await database.prepare(`SELECT value FROM meta_state WHERE key = 'since'`).first())?.value) || now;
-    const { results } = await database
-      .prepare(`SELECT s.id, s.headline, s.subtext, s.kiez, s.media_key, s.media_type FROM stories s
+    // 2026-11-23 (owner "UYGULA 2"): who may go out is decided by shareAuthors (own, sponsors also when written a bit
+    // differently, trusted users, the admin's choice); admin stories (by_admin = 1) always
+    const okAuthor = await shareAuthors(database).catch(() => null);
+    const { results: cands } = await database
+      .prepare(`SELECT s.id, s.headline, s.subtext, s.kiez, s.media_key, s.media_type, s.author, s.by_admin FROM stories s
         LEFT JOIN meta_sent m ON m.story_id = s.id
-        WHERE m.story_id IS NULL AND (s.by_admin = 1 OR s.author IN (SELECT name FROM ads WHERE active = 1) /* 2026-11-23 (owner "UYGULA 5"): sponsor stories too */) AND s.status = 'approved' AND s.media_key NOT LIKE 'stories/news-%' /* 2026-11-23 (owner "öneri"): news only in the 8/16/23 collections */ AND s.approved_at <= ? AND s.approved_at >= ? AND s.approved_at > ?
+        WHERE m.story_id IS NULL AND s.status = 'approved' AND s.media_key NOT LIKE 'stories/news-%' /* 2026-11-23 (owner "öneri"): news only in the collections */ AND s.approved_at <= ? AND s.approved_at >= ? AND s.approved_at > ?
           AND s.approved_at + s.duration_hours * 3600000 > ?
           AND s.id NOT IN (SELECT story_id FROM social_items WHERE channel = 'meta') /* 2026-11-23: shared by hand / in a collection */
-        ORDER BY s.approved_at ASC LIMIT ?`)
-      .bind(now, since, now - MAX_AGE_MS, now, PER_RUN)
+        ORDER BY s.approved_at ASC LIMIT 40`)
+      .bind(now, since, now - MAX_AGE_MS, now)
       .all();
+    const results = (cands || []).filter((s) => s.by_admin === 1 || (okAuthor && okAuthor(s.author))).slice(0, PER_RUN);
     // 2026-11-23 (owner "UYGULA 5"): no story waiting -> one new sponsor folder VIDEO alone (Facebook video + Instagram Reel);
     // sponsor folder pictures go in the Social-Planer collections (one carousel per sponsor)
     if (!(results || []).length) {
@@ -306,5 +317,83 @@ async function finishFacebookStories(env, database) {
     }
   }
   await database.prepare(`UPDATE meta_sent SET fb_story = ?, log = COALESCE(log, '') || ? WHERE story_id = ?`).bind(id || "failed", lastGraphError ? ` | fb_story: ${lastGraphError}` : "", row.story_id).run();
+  return true;
+}
+
+// ---- 2026-11-23 (owner "UYGULA 1"): Range Rover story – the Facebook post is online (15:35:03 Berlin, same second as
+// the send), only its id was not saved because the run was cut. The id is written once; nothing is sent again.
+async function fixRangeRover2311(database) {
+  const flag = await database.prepare(`SELECT value FROM meta_state WHERE key = 'fix_rr_2311'`).first();
+  if (flag) return;
+  const r = await database.prepare(`UPDATE meta_sent SET fb_post = ?, log = COALESCE(log, '') || ' | fb id restored 23.11' WHERE story_id = ? AND (fb_post IS NULL OR fb_post = '')`)
+    .bind("1405322516004566_122110445211545605", "678b6ed6-8209-40a3-af6c-8bc56b455c75").run();
+  await database.prepare(`INSERT OR REPLACE INTO meta_state (key, value) VALUES ('fix_rr_2311', ?)`).bind(String((r.meta && r.meta.changes) || 0)).run();
+}
+
+/** A page post made within 90 s of `at` (ms) -> its id, else "". Read only. */
+async function findPagePostNear(env, at) {
+  if (!at) return "";
+  const list = await graphGet(env, `${env.FB_PAGE_ID}/posts`, "id,created_time");
+  for (const p of (list && list.data) || []) {
+    const t = Date.parse(p.created_time || "");
+    if (t && Math.abs(t - at) <= 90000) return p.id;
+  }
+  return "";
+}
+
+// ---- 2026-11-23 (owner "UYGULA 3"): share report – every live story and where it went ----
+export async function shareReport(database) {
+  await ensureTables(database);
+  const now = Date.now();
+  const ok = await shareAuthors(database).catch(() => null);
+  const { results: stories } = await database.prepare(`SELECT id, headline, author, by_admin, media_key, media_type, approved_at FROM stories
+      WHERE status = 'approved' AND approved_at <= ? AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT 120`).bind(now, now).all();
+  const ids = (stories || []).map((s) => s.id);
+  if (!ids.length) return { stories: [] };
+  const q = ids.map(() => "?").join(",");
+  const rows = async (sql) => ((await database.prepare(sql).bind(...ids).all().catch(() => ({ results: [] }))).results || []);
+  const sent = new Map((await rows(`SELECT story_id, fb_post, fb_story, ig_post, ig_story, ig_wait, log FROM meta_sent WHERE story_id IN (${q})`)).map((r) => [r.story_id, r]));
+  const tg = new Map((await rows(`SELECT story_id, ok FROM telegram_sent WHERE story_id IN (${q})`)).map((r) => [r.story_id, r.ok]));
+  const items = new Map();
+  for (const r of await rows(`SELECT story_id, channel, slot FROM social_items WHERE story_id IN (${q})`)) {
+    const l = items.get(r.story_id) || [];
+    l.push({ c: r.channel, slot: r.slot });
+    items.set(r.story_id, l);
+  }
+  let jobs = [];
+  try { jobs = (await database.prepare(`SELECT slot, ids, status FROM social_jobs WHERE created > ?`).bind(now - 3 * 86400000).all()).results || []; } catch (e) { jobs = []; }
+  const good = (v) => !!v && v !== "failed" && v !== "todo" && v !== "working";
+  return {
+    stories: (stories || []).map((s) => {
+      const who = s.by_admin === 1 ? { kind: "own" } : ok ? ok(s.author) : null;
+      const m = sent.get(s.id) || null;
+      const its = items.get(s.id) || [];
+      const coll = its.find((x) => x.c === "meta");
+      const job = coll ? jobs.find((j) => j.slot === coll.slot && JSON.parse(j.ids || "[]").includes(s.id)) : null;
+      const news = /^stories\/news-/.test(s.media_key || "");
+      let meta = "-";
+      if (m && (good(m.fb_post) || good(m.ig_post))) meta = `FB ${good(m.fb_post) ? "✓" : "✕"} · IG ${good(m.ig_post) || good(m.ig_story) ? "✓" : m.ig_wait ? "⏳" : "✕"}`;
+      else if (coll && /^(manual-share|admin)$/.test(coll.slot)) meta = "elle ✓";
+      else if (coll) meta = job ? (job.status === "done" ? `toplu ✓ ${coll.slot.slice(11)}` : job.status === "open" ? "toplu ⏳" : "toplu ✕") : `toplu ✓ ${coll.slot.slice(11)}`;
+      else if (m) meta = "✕ " + String(m.log || "").slice(0, 60);
+      else if (!who) meta = "kural: paylaşılmaz";
+      else meta = news ? "sıradaki toplu" : "sırada";
+      return {
+        id: s.id, headline: String(s.headline || "").slice(0, 90), author: s.author, who: who ? who.kind + (who.guess ? "?" : "") + (who.name && who.kind === "sponsor" ? ` (${who.name})` : "") : "",
+        news, video: s.media_type === "video", approved_at: s.approved_at,
+        telegram: tg.has(s.id) ? (tg.get(s.id) === 1 ? "✓" : tg.get(s.id) === 2 ? "silindi" : "✕") : "-",
+        meta, tiktok: its.some((x) => x.c === "tiktok") ? "✓" : "-", whatsapp: its.some((x) => x.c === "whatsapp") ? "✓" : "-",
+        waKiez: its.filter((x) => /^wa-/.test(x.c)).map((x) => x.c.slice(3)),
+      };
+    }),
+  };
+}
+
+/** Admin "Sıraya al": the story is offered again for Facebook/Instagram (and Telegram). May make a second copy. */
+export async function requeueStory(database, id, channel) {
+  await ensureTables(database);
+  if (channel === "telegram") { await database.prepare(`DELETE FROM telegram_sent WHERE story_id = ?`).bind(id).run().catch(() => {}); return true; }
+  await database.prepare(`DELETE FROM meta_sent WHERE story_id = ?`).bind(id).run();
+  await database.prepare(`DELETE FROM social_items WHERE story_id = ? AND channel = 'meta'`).bind(id).run();
   return true;
 }

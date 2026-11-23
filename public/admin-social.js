@@ -42,6 +42,8 @@
         });
         h.push("</small></details>");
       }
+      // 2026-11-23 (owner "UYGULA 3"): report – every live story and where it went
+      h.push('<details id="sp-report" style="margin-top:6px"><summary style="cursor:pointer;font-weight:700">📊 Paylaşım raporu · Wo wurde was geteilt? (canlı story\'ler)</summary><div id="sp-report-body" style="margin-top:6px">…</div></details>');
       ["tiktok", "whatsapp"].forEach(function (c) {
         var p = j.pack[c];
         h.push('<div style="border-top:1px solid #30363d;margin-top:10px;padding-top:8px"><b>' + NAMES[c] + "</b> – " + (p.stories.length ? p.stories.length + " neue Story(s) zum Teilen · paylaşılacak" : "nichts neu · yeni yok ✓"));
@@ -79,7 +81,47 @@
       wire(b);
     });
   }
+  // 2026-11-23 (owner "UYGULA 3"): share report with "Sıraya al" and "author = sponsor / trusted / no"
+  function loadReport() {
+    var box = document.getElementById("sp-report-body");
+    if (!box) return;
+    box.textContent = "⏳ yükleniyor…";
+    fetch("/api/social-planer?report=1", { headers: { "x-admin-token": token() }, cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (!j || !j.stories) { box.textContent = "Yüklenemedi."; return; }
+        var adOpts = (j.ads || []).map(function (a) { return '<option value="ad:' + e(a.id) + '">' + e(a.name) + "</option>"; }).join("");
+        var cnt = { all: j.stories.length, meta: 0, rule: 0, wait: 0 };
+        j.stories.forEach(function (s) { if (/✓/.test(s.meta)) cnt.meta++; else if (/kural/.test(s.meta)) cnt.rule++; else cnt.wait++; });
+        var rows = j.stories.map(function (s) {
+          var col = /✓/.test(s.meta) ? "#3fb950" : /kural/.test(s.meta) ? "#8b949e" : /✕/.test(s.meta) ? "#f85149" : "#d29922";
+          var t = new Date(s.approved_at).toLocaleString("de-DE", { timeZone: "Europe/Berlin", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+          var sel = !s.news && !(s.who === "own") ? '<select data-amap="' + e(s.author) + '" style="background:#0d1117;color:#c9d1d9;border:1px solid #30363d;border-radius:6px;font-size:11px;max-width:150px"><option value="">' + (s.who ? "otomatik: " + e(s.who) : "– kim? –") + '</option><option value="trusted">güvenilir</option><option value="no">paylaşma</option>' + adOpts + "</select>" : "";
+          return '<tr style="border-top:1px solid #30363d"><td style="padding:3px 4px;color:#8b949e;white-space:nowrap">' + t + '</td><td style="padding:3px 4px">' + (s.video ? "🎬 " : "") + (s.news ? "📰 " : "") + e(s.headline) + '<br><small style="color:#8b949e">' + e(s.author) + "</small> " + sel + "</td>" +
+            '<td style="padding:3px 4px;text-align:center">✓</td><td style="padding:3px 4px;text-align:center">' + e(s.telegram) + '</td><td style="padding:3px 4px;color:' + col + '">' + e(s.meta) +
+            (/kural/.test(s.meta) ? "" : ' <button type="button" data-rq="' + e(s.id) + '" title="Facebook/Instagram\'a tekrar sıraya al (kopya olabilir)" style="background:#21262d;border:1px solid #30363d;color:#c9d1d9;border-radius:6px;font-size:11px;cursor:pointer">↻</button>') + "</td>" +
+            '<td style="padding:3px 4px;text-align:center">' + s.tiktok + '</td><td style="padding:3px 4px;text-align:center">' + s.whatsapp + (s.waKiez.length ? '<br><small style="color:#8b949e">' + e(s.waKiez.join(", ")) + "</small>" : "") + "</td></tr>";
+        }).join("");
+        box.innerHTML = '<div style="margin-bottom:6px">Canlı: <b>' + cnt.all + "</b> · FB/IG ✓ <b>" + cnt.meta + "</b> · bekliyor/eksik <b>" + cnt.wait + "</b> · kural gereği paylaşılmaz <b>" + cnt.rule + '</b> <button type="button" id="sp-report-reload" style="' + BTN2 + '">↻ Yenile</button></div>' +
+          '<div style="overflow-x:auto"><table style="border-collapse:collapse;font-size:12px;width:100%"><tr style="color:#8b949e;text-align:left"><th>Zaman</th><th>Story · yazar</th><th>Site</th><th>Telegram</th><th>Facebook/Instagram</th><th>TikTok</th><th>WhatsApp</th></tr>' + rows + "</table></div>" +
+          '<small style="color:#8b949e">"kural: paylaşılmaz" = normal kullanıcı (sadece güvenilirler gider). Yazarın yanındaki seçimle "bu yazar = sponsor / güvenilir / paylaşma" diyebilirsin. ↻ = tekrar sıraya al (zaten paylaşıldıysa kopya olur). TikTok/WhatsApp elle paylaşılır (paket + "paylaştım").</small>';
+        box.querySelector("#sp-report-reload").onclick = loadReport;
+        box.querySelectorAll("[data-rq]").forEach(function (btn) {
+          btn.onclick = function () {
+            if (!confirm("Bu story Facebook/Instagram'a tekrar sıraya alınsın mı? Zaten paylaşıldıysa ikinci kopya olur.")) return;
+            btn.disabled = true;
+            api({ action: "requeue", id: btn.getAttribute("data-rq"), channel: "meta" }).then(loadReport);
+          };
+        });
+        box.querySelectorAll("[data-amap]").forEach(function (s) {
+          s.onchange = function () { s.disabled = true; api({ action: "authorMap", author: s.getAttribute("data-amap"), target: s.value }).then(loadReport); };
+        });
+      })
+      .catch(function () { box.textContent = "Ağ hatası."; });
+  }
   function wire(b) {
+    var rep = b.querySelector("#sp-report");
+    if (rep) rep.addEventListener("toggle", function () { if (rep.open) loadReport(); });
     var out = b.querySelector("#sp-out");
     b.querySelector("#sp-save").onclick = function () {
       api({ action: "settings", times: b.querySelector("#sp-times").value.split(/[,; ]+/), telegram: b.querySelector("#sp-tg").checked, meta: b.querySelector("#sp-meta").checked, pack: b.querySelector("#sp-pack").checked })

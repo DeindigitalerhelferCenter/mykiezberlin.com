@@ -12,6 +12,7 @@
 // So a slot runs at the first visit after its time (up to 3 h later). Never throws.
 import { OWN_AUTHORS, telegramBacklog, telegramReady } from "./telegram.js";
 import { metaReady, metaEnv } from "./meta-social.js";
+import { shareAuthors } from "./social-authors.js"; // 2026-11-23
 
 const SITE = "https://mykiezberlin.com";
 const GRAPH = "https://graph.facebook.com/v21.0";
@@ -114,7 +115,10 @@ export async function openStories(database, channel, now = Date.now()) {
       ORDER BY s.approved_at ASC LIMIT 100`)
     .bind(channel, since, now, now)
     .all();
-  return (results || []).filter((s) => authors.includes(s.author)).map((s) => ({ ...s, media: s.media_key ? `${SITE}/media/${s.media_key}` : "" }));
+  // 2026-11-23 (owner "UYGULA 2"): no capital/small difference, sponsor names that are written a bit differently,
+  // trusted users and the admin's own choice count too (see social-authors.js); the exact old list still counts
+  const ok = await shareAuthors(database).catch(() => null);
+  return (results || []).filter((s) => authors.includes(s.author) || (ok && ok(s.author))).map((s) => ({ ...s, media: s.media_key ? `${SITE}/media/${s.media_key}` : "" }));
 }
 
 /** Text for a collection post – max 5 hashtags (Instagram + TikTok limit). */

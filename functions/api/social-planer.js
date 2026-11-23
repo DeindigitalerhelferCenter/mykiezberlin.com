@@ -8,6 +8,8 @@ import { telegramReady } from "../_lib/telegram.js";
 import { metaReady } from "../_lib/meta-social.js";
 import { PACK_CHANNELS, collectionText, isWaKiezChannel, kiezPacks, markDone, nextSlot, openStories, plannerSettings, runSlot, saveSettings } from "../_lib/social-planer.js";
 import { runJobsNow } from "../_lib/social-planer.js"; // 2026-11-23
+import { requeueStory, shareReport } from "../_lib/meta-social.js"; // 2026-11-23 (owner "UYGULA 3")
+import { readAuthorMap, setAuthorMap } from "../_lib/social-authors.js";
 
 const NO_STORE = { "cache-control": "no-store" };
 
@@ -15,6 +17,13 @@ export async function onRequestGet({ request, env }) {
   if (!(await isAdmin(request, env))) return json({ error: "unauthorized" }, 401);
   const database = await db(env);
   if (!database) return noDb();
+  // 2026-11-23 (owner "UYGULA 3"): ?report=1 -> every live story and where it went (Site, Telegram, FB/IG, packages)
+  if (new URL(request.url).searchParams.get("report") === "1") {
+    await plannerSettings(database); // tables
+    const rep = await shareReport(database);
+    const ads = ((await database.prepare(`SELECT id, name FROM ads WHERE active = 1 ORDER BY name`).all().catch(() => ({ results: [] }))).results || []);
+    return json({ ...rep, ads, authorMap: await readAuthorMap(database) }, 200, NO_STORE);
+  }
   const settings = await plannerSettings(database);
   const now = Date.now();
   const runs = ((await database.prepare(`SELECT slot, started, result FROM social_runs ORDER BY started DESC LIMIT 10`).all()).results || [])
@@ -43,6 +52,17 @@ export async function onRequestPost({ request, env }) {
     let now = result;
     try { now = JSON.parse((run && run.result) || "null") || result; } catch (e) { now = result; }
     return json({ ok: true, result: now, steps }, 200, NO_STORE);
+  }
+  // 2026-11-23 (owner "UYGULA 3"): report buttons – send again / who is this author
+  if (body.action === "requeue") {
+    if (!body.id || !["meta", "telegram"].includes(body.channel)) return json({ error: "bad_request" }, 400);
+    await requeueStory(database, String(body.id).slice(0, 80), body.channel);
+    return json({ ok: true }, 200, NO_STORE);
+  }
+  if (body.action === "authorMap") {
+    const t = String(body.target || "");
+    if (!body.author || !(t === "" || t === "no" || t === "trusted" || /^ad:[\w-]{1,60}$/.test(t))) return json({ error: "bad_request" }, 400);
+    return json({ ok: true, map: await setAuthorMap(database, String(body.author).slice(0, 80), t) }, 200, NO_STORE);
   }
   // 2026-11-23 (owner "UYGULA 7"): the admin shared a story by hand (story viewer) -> this channel never offers it again
   if (body.action === "manualShared") {
