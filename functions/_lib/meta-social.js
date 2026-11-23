@@ -129,6 +129,7 @@ export async function metaSweep(env, database) {
     await database.prepare(`INSERT OR IGNORE INTO meta_state (key, value) VALUES ('last_run', '0')`).run();
     const lock = await database.prepare(`UPDATE meta_state SET value = ? WHERE key = 'last_run' AND CAST(value AS INTEGER) < ?`).bind(String(now), now - RUN_EVERY_MS).run();
     if (!lock.meta || !lock.meta.changes) return;
+    env = await metaEnv(env, database); // 2026-11-23: user token -> page token
     await finishInstagramVideos(env, database).catch(() => {});
     const since = Number((await database.prepare(`SELECT value FROM meta_state WHERE key = 'since'`).first())?.value) || now;
     const { results } = await database
@@ -158,6 +159,7 @@ export async function metaDeleteStory(env, database, storyId) {
   try {
     if (!metaReady(env) || !database || !storyId) return false;
     await ensureTables(database);
+    env = await metaEnv(env, database); // 2026-11-23: user token -> page token
     const row = await database.prepare(`SELECT fb_post FROM meta_sent WHERE story_id = ?`).bind(storyId).first();
     if (!row || !row.fb_post) return false;
     const res = await fetch(`${GRAPH}/${row.fb_post}?access_token=${encodeURIComponent(env.META_PAGE_TOKEN)}`, { method: "DELETE" });
@@ -167,4 +169,58 @@ export async function metaDeleteStory(env, database, storyId) {
   } catch (e) {
     return false;
   }
+}
+
+// ---- 2026-11-23 (owner "UYGULA B"): META_PAGE_TOKEN may also be a long-lived USER token ----
+// The page token is fetched once from Facebook (GET /{FB_PAGE_ID}?fields=access_token) and kept in meta_state.
+// A page token made from a long-lived user token does not expire, so posting keeps working after the user token ends.
+// When the secret changes (other last 10 chars), the page token is fetched again. If nothing works, the secret is used as it is.
+let pageTokenCache = null;
+export async function metaEnv(env, database) {
+  if (!metaReady(env)) return env;
+  const src = String(env.META_PAGE_TOKEN);
+  const fp = src.slice(-10);
+  if (pageTokenCache && pageTokenCache.fp === fp) return { ...env, META_PAGE_TOKEN: pageTokenCache.token };
+  try {
+    if (database) {
+      await ensureTables(database);
+      const row = await database.prepare(`SELECT value FROM meta_state WHERE key = 'page_token'`).first();
+      let saved = null;
+      try { saved = row ? JSON.parse(row.value) : null; } catch (e) { saved = null; }
+      if (saved && saved.fp === fp && saved.token) { pageTokenCache = saved; return { ...env, META_PAGE_TOKEN: saved.token }; }
+    }
+    const res = await fetch(`${GRAPH}/${env.FB_PAGE_ID}?fields=access_token&access_token=${encodeURIComponent(src)}`);
+    const data = await res.json().catch(() => ({}));
+    if (data && data.access_token) {
+      const v = { fp, token: data.access_token, at: Date.now() };
+      pageTokenCache = v;
+      if (database) {
+        await database.prepare(`INSERT OR REPLACE INTO meta_state (key, value) VALUES ('page_token', ?)`).bind(JSON.stringify(v)).run();
+        await database.prepare(`INSERT OR REPLACE INTO meta_state (key, value) VALUES ('page_token_err', '')`).run();
+      }
+      return { ...env, META_PAGE_TOKEN: v.token };
+    }
+    if (database) {
+      const err = JSON.stringify({ at: Date.now(), err: String((data && data.error && data.error.message) || `http ${res.status}`).slice(0, 200) });
+      await database.prepare(`INSERT OR REPLACE INTO meta_state (key, value) VALUES ('page_token_err', ?)`).bind(err).run();
+    }
+  } catch (e) {
+    // never break anything
+  }
+  return env;
+}
+
+/** Status without secrets: is a page token saved, when, last error. */
+export async function metaStatus(env, database) {
+  const out = { ready: metaReady(env), instagram: Boolean(env && env.IG_USER_ID), pageTokenAt: 0, error: null };
+  try {
+    if (!database) return out;
+    await ensureTables(database);
+    const row = await database.prepare(`SELECT value FROM meta_state WHERE key = 'page_token'`).first();
+    const v = row ? JSON.parse(row.value) : null;
+    if (v && v.at && env && env.META_PAGE_TOKEN && v.fp === String(env.META_PAGE_TOKEN).slice(-10)) out.pageTokenAt = v.at;
+    const e = await database.prepare(`SELECT value FROM meta_state WHERE key = 'page_token_err'`).first();
+    out.error = e && e.value ? JSON.parse(e.value) : null;
+  } catch (e) { /* ignore */ }
+  return out;
 }

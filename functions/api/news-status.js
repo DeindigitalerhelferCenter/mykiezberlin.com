@@ -3,6 +3,7 @@
 import { db, json, noDb } from "../_lib/util.js";
 import { berlinSlot, ensureNews, getSlot } from "../_lib/news-auto.js";
 import { readFlags } from "./flags.js";
+import { metaEnv, metaStatus } from "../_lib/meta-social.js";
 
 const parse = (row) => { try { return row ? JSON.parse(row.value) : null; } catch (e) { return null; } };
 
@@ -27,5 +28,6 @@ export async function onRequestGet({ env }) {
     lastError: parse(await get("sweep_err")),
     slot: cur ? { slot: cur.slot, items: cur.items.length, open: cur.items.filter((x) => x.written === false).length, autoDone: !!cur.auto_done, published: cur.items.filter((x) => x.published).length, noAi: cur.items.filter((x) => x.noAi).length, renderErrors: cur.items.filter((x) => x.renderError).map((x) => x.renderError) } : null,
     lastAutoNewsAt: last && last.t ? Number(last.t) : 0,
+    meta: await metaEnv(env, database).then(() => metaStatus(env, database)), // 2026-11-23 (fetches the page token once): Facebook/Instagram ready? (no secrets)
   }, 200, { "cache-control": "no-store" });
 }

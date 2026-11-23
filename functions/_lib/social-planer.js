@@ -11,7 +11,7 @@
 // Cloudflare Pages has no cron: the check runs from GET /api/stories (app + web ask every minute).
 // So a slot runs at the first visit after its time (up to 3 h later). Never throws.
 import { OWN_AUTHORS, telegramBacklog, telegramReady } from "./telegram.js";
-import { metaReady } from "./meta-social.js";
+import { metaReady, metaEnv } from "./meta-social.js";
 
 const SITE = "https://mykiezberlin.com";
 const GRAPH = "https://graph.facebook.com/v21.0";
@@ -200,7 +200,7 @@ export async function runSlot(env, database, slot) {
       if (!todo.length) result.meta = "nichts neu";
       else {
         await markDone(database, "meta", todo.map((x) => x.id), slot); // never twice, even if the post fails
-        const r = await postCollection(env, todo, collectionText(todo, now)).catch(() => ({ fb: "", ig: "" }));
+        const r = await postCollection(await metaEnv(env, database), todo, collectionText(todo, now)) // 2026-11-23: user token -> page token.catch(() => ({ fb: "", ig: "" }));
         result.meta = `${todo.length} Bilder · FB ${r.fb ? "ok" : "Fehler"} · IG ${r.ig ? "ok" : env.IG_USER_ID ? "Fehler" : "kein IG_USER_ID"}`;
       }
     }
