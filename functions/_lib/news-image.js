@@ -94,6 +94,8 @@ function block(lines, x, y, size, lineH, fill, bold) {
  */
 export async function renderNewsImage(parts, opts = {}) {
   await init();
+  // 2026-11-23 (owner "UYGULA 1-7"): own background -> clean layout (no box, no logo, no site name; see renderNewsClean)
+  if (opts.background && opts.clean !== false) return renderNewsClean(parts, opts);
   const th = THEMES[((Number(opts.theme) || 0) % THEMES.length + THEMES.length) % THEMES.length];
   const [c1, c2, acc] = th;
   const pad = 80;
@@ -195,4 +197,131 @@ function toBase64(buffer) {
   const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
   for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
   return btoa(binary);
+}
+
+// ---- 2026-11-23 (owner "UYGULA 1-7"): clean layout on the owner's own backgrounds ----
+// The owner's pictures already have the logo (top left, ~27 % of the height) and "https://mykiezberlin.com/" at the bottom:
+// no box, no round logo, no rays, no site name. Only the text, sitting between logo and address, colours taken from the
+// picture (dark picture -> light text, light picture -> dark text; accent colour from the picture's own colour),
+// a soft shadow so it stays readable on photos. Size follows the text length (binary search), with an upper limit,
+// and more room between the lines.
+const SAFE_TOP = 540, SAFE_BOTTOM = 1700; // under the logo, over the address
+const AREA_CLEAN = SAFE_BOTTOM - SAFE_TOP;
+
+function hsl2hex(h, s, l) {
+  const k = (n) => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n) => Math.round(255 * (l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)))));
+  return "#" + [f(0), f(8), f(4)].map((v) => v.toString(16).padStart(2, "0")).join("");
+}
+function rgb2hsl(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2;
+  if (mx === mn) return [0, 0, l];
+  const d = mx - mn, s = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn);
+  const h = mx === r ? ((g - b) / d + (g < b ? 6 : 0)) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return [h * 60, s, l];
+}
+
+/** Looks at the text area of the picture (small render) -> text colours that fit. */
+export async function bgColors(background) {
+  await init();
+  const w = 54, h = 96;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><image href="data:${background.mime};base64,${toBase64(background.bytes)}" x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="xMidYMid slice"/></svg>`;
+  const px = new Resvg(svg, { fitTo: { mode: "width", value: w } }).render().pixels;
+  const y0 = Math.floor((SAFE_TOP / H) * h), y1 = Math.floor((SAFE_BOTTOM / H) * h);
+  let lum = 0, n = 0, hx = 0, hy = 0, sw = 0;
+  for (let y = y0; y < y1; y++) for (let x = 0; x < w; x++) {
+    const i = (y * w + x) * 4, r = px[i], g = px[i + 1], b = px[i + 2];
+    lum += (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255; n++;
+    const [hh, ss, ll] = rgb2hsl(r, g, b);
+    const wt = ss * (1 - Math.abs(ll - 0.5) * 2); // colourful pixels count more
+    hx += Math.cos((hh * Math.PI) / 180) * wt; hy += Math.sin((hh * Math.PI) / 180) * wt; sw += wt;
+  }
+  const L = n ? lum / n : 0.3;
+  const hue = (Math.atan2(hy, hx) * 180) / Math.PI;
+  const hueD = (hue + 360) % 360;
+  const colourful = n ? sw / n > 0.08 : false;
+  if (L > 0.58) {
+    // light picture: dark text, light halo
+    return { title: "#0B1220", accent: colourful ? hsl2hex(hueD, 0.85, 0.26) : "#7A1E00", text: "#111827", text2: "#1F2937", meta: "#1E3A8A", shadow: "#FFFFFF", shadowOp: 0.85, L };
+  }
+  // dark / middle picture: light text, dark soft shadow; accent = the picture's own colour, light and strong
+  // gold fits green/red/blue/grey pictures; on warm (orange/yellow) pictures a light sky blue stands out better
+  const warm = colourful && hueD >= 15 && hueD <= 75;
+  const accent = warm ? "#CFE8FF" : "#FFD54F";
+  return { title: "#FFFFFF", accent, text: "#FFFFFF", text2: "#F1F5F9", meta: "#E0F2FE", shadow: "#000000", shadowOp: L > 0.4 ? 0.95 : 0.8, L };
+}
+
+export async function renderNewsClean(parts, opts) {
+  await init();
+  const col = opts.colors || (await bgColors(opts.background));
+  const x0 = 76;
+  const maxW = W - x0 * 2;
+  const hasText = !!(parts.text1 || parts.text2);
+  const layout = (k, cutOver) => {
+    // titles grow less than the texts; short news must not become huge (K_MAX below)
+    const kt = Math.min(k, hasText ? 1.45 : 1.75);
+    const s1 = Math.round(64 * kt), s2 = Math.round(50 * kt), s3 = Math.round(38 * k), s4 = Math.round(36 * k), s5 = Math.round(30 * Math.min(k, 1.25)), s6 = Math.round(25 * Math.min(k, 1.15));
+    const t1 = wrap(parts.title1, s1, maxW, true), t2 = parts.title2 ? wrap(parts.title2, s2, maxW, true) : [];
+    let d1 = parts.text1 ? wrap(parts.text1, s3, maxW, false) : [], d2 = parts.text2 ? wrap(parts.text2, s4, maxW, false) : [];
+    const src = wrap(`${parts.sourceLabel || "Kaynak / Quelle"}: ${parts.source || ""}`, s5, maxW, true);
+    const link = wrap(String(parts.url || "").replace(/^https?:\/\//, ""), s6, maxW, false).slice(0, 2);
+    const badgeH = parts.urgent ? Math.round(64 * Math.min(k, 1.3)) : 0;
+    const draw = () => {
+      let y = 0;
+      let out = "";
+      if (badgeH) {
+        const bs = Math.round(badgeH * 0.52);
+        const bw = Math.round(textW("ACİL · EIL", bs, true) + bs * 1.6);
+        out += `<rect x="${x0}" y="0" width="${bw}" height="${badgeH}" rx="${badgeH / 2}" fill="#E30A17"/><text x="${x0 + bw / 2}" y="${Math.round(badgeH * 0.69)}" text-anchor="middle" font-family="Noto Sans" font-weight="700" font-size="${bs}" fill="#FFFFFF">ACİL · EIL</text>`;
+        y += badgeH + Math.round(30 * k);
+      }
+      const add = (lines, size, lh, fill, bold, gap) => { if (!lines.length) return; out += `<g filter="url(#sh)">${block(lines, x0, y + size, size, lh, fill, bold)}</g>`; y += lines.length * lh + gap; };
+      // 2026-11-23 (owner: "çok sıkışık, biraz arala"): more line height and more room between the parts
+      add(t1, s1, Math.round(s1 * 1.24), col.title, true, Math.round(26 * k));
+      add(t2, s2, Math.round(s2 * 1.26), col.accent, true, Math.round(52 * k));
+      add(d1, s3, Math.round(s3 * 1.5), col.text, false, Math.round(40 * k));
+      add(d2, s4, Math.round(s4 * 1.5), col.text2, false, Math.round(48 * k));
+      add(src, s5, Math.round(s5 * 1.35), col.accent, true, Math.round(12 * k));
+      add(link, s6, Math.round(s6 * 1.35), col.meta, false, 0);
+      return { out, y };
+    };
+    let r = draw();
+    if (cutOver && r.y > AREA_CLEAN && (d1.length || d2.length)) {
+      const over = Math.ceil((r.y - AREA_CLEAN) / Math.round(s4 * 1.5));
+      const cut = (arr, n) => { const a = arr.slice(0, Math.max(1, arr.length - n)); a[a.length - 1] = a[a.length - 1].replace(/\s*\S*$/, "") + " …"; return a; };
+      const fromD2 = Math.min(over, Math.max(0, d2.length - 1));
+      if (fromD2) d2 = cut(d2, fromD2);
+      if (over - fromD2 > 0 && d1.length > 1) d1 = cut(d1, over - fromD2);
+      r = draw();
+    }
+    const maxT = hasText ? 3 : 5;
+    return { ...r, ok: r.y <= AREA_CLEAN && t1.length <= maxT && t2.length <= maxT };
+  };
+  // 2026-11-23 (owner: "kısa metinlerde aşırı büyük olmamalı"): upper limit 1.85 (description ~70 px, title ~93 px)
+  const K_MIN = 0.55, K_MAX = 1.85;
+  let best = null;
+  const top0 = layout(K_MAX, false);
+  if (top0.ok) best = top0;
+  else {
+    let lo = K_MIN, hi = K_MAX;
+    for (let i = 0; i < 12; i++) {
+      const mid = (lo + hi) / 2;
+      const r = layout(mid, false);
+      if (r.ok) { best = r; lo = mid; } else hi = mid;
+    }
+  }
+  if (!best) best = layout(K_MIN, true);
+  const top = SAFE_TOP + Math.max(0, Math.round((AREA_CLEAN - best.y) / 2));
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">` +
+    `<defs><filter id="sh" x="-10%" y="-30%" width="120%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="${col.shadow}" flood-opacity="1"/><feDropShadow dx="0" dy="0" stdDeviation="16" flood-color="${col.shadow}" flood-opacity="${Math.min(1, col.shadowOp).toFixed(2)}"/></filter></defs>` +
+    `<image href="data:${opts.background.mime};base64,${toBase64(opts.background.bytes)}" x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="xMidYMid slice"/>` +
+    `<g transform="translate(0 ${top})">${best.out}</g>` +
+    `</svg>`;
+  const r = new Resvg(svg, {
+    fitTo: { mode: "original" },
+    font: { fontBuffers: [new Uint8Array(fontBold), new Uint8Array(fontRegular)], defaultFontFamily: "Noto Sans", loadSystemFonts: false },
+  });
+  return r.render().asPng();
 }

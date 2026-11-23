@@ -76,7 +76,9 @@ export async function addBlocked(database, orig) {
 async function chooseBackground(database, settings) {
   const bgs = (await listBackgrounds(database)).map((b) => `b:${b.key}`);
   let cands = settings.bgMode === "pick" ? settings.bgPicks.filter((x) => x.startsWith("t") || bgs.includes(x)) : [];
-  if (!cands.length) cands = [...Array.from({ length: TEMPLATE_COUNT }, (_, i) => `t${i + 1}`), ...bgs];
+  // 2026-11-23 (owner: "sadece yüklediğim arka planlar"): when own pictures exist, the old templates are not used (not deleted)
+  if (bgs.length) cands = cands.filter((x) => bgs.includes(x));
+  if (!cands.length) cands = bgs.length ? bgs : [...Array.from({ length: TEMPLATE_COUNT }, (_, i) => `t${i + 1}`), ...bgs];
   const n = await nextTheme(database); // counter 0..5 (also used for the colour)
   const row = await database.prepare(`SELECT value FROM news_state WHERE id = 'bgturn'`).first().catch(() => null);
   const turn = ((row ? Number(row.value) : -1) + 1) % cands.length;
@@ -303,6 +305,10 @@ export async function writeSome(env, items, max = 2) {
       if (x.en_title) it.title_en = cut(x.en_title, 90);
       if (x.en_text) it.text_en = cut(x.en_text, 420);
     }
+    // 2026-11-23: Turkish missing / German -> translate; try the whole step up to 3 times before giving up
+    const trOk = await withTimeout(ensureTr(env, it), 12000, false);
+    it.tries = (it.tries || 0) + 1;
+    if (!trOk && it.tries < 3) continue;
     it.written = true; // also when the AI failed: the short texts from step 1 stay
     delete it.teaser;
   }
@@ -424,6 +430,7 @@ export async function publishItems(env, database, slot, ids, opts = {}) {
   for (const it of s.items) {
     if (!ids.includes(it.id) || (it.published && !opts.again)) continue; // 2026-11-21: opts.again = share once more
     if (opts.skipHidden && it.hidden) continue; // 2026-11-22: hidden topics are never shared by the auto mode
+    await withTimeout(ensureTr(env, it), 12000, false); // 2026-11-23: Turkish must be Turkish
     const p = newsParts(it, lang);
     // 2026-11-22 (owner): auto mode gives a fixed story id per topic -> if the step was cut after saving the story,
     // the next step sees it and only marks it (no second copy of the same news)
@@ -455,7 +462,7 @@ export async function publishItems(env, database, slot, ids, opts = {}) {
     let overlay = null;
     try {
       const png = await renderNewsImage(p, { theme, logo, background });
-      mediaKey = `stories/news-${id}-v3.png`; // 2026-11-22: "-v3" = text fills the page (bigger)
+      mediaKey = `stories/news-${id}-v4.png`; // 2026-11-23: "-v4" = clean layout on own backgrounds (was -v3)
       await env.BUCKET.put(mediaKey, png, { httpMetadata: { contentType: "image/png" } });
     } catch (e) {
       it.renderError = String((e && e.message) || e).slice(0, 120);
@@ -481,6 +488,11 @@ export async function publishItems(env, database, slot, ids, opts = {}) {
 /** Title/description pair for the chosen language mode. */
 export function newsParts(it, lang) {
   const tr = { t: it.title_tr || it.title_de, x: it.text_tr || it.text_de };
+  // 2026-11-23 (owner: "ikisi de Almanca"): no Turkish -> German only once (not twice)
+  if (trMissing(it) && lang !== "tr") {
+    const one = lang === "tr-en" ? { t: it.title_en || it.title_de, x: it.text_en || it.text_de } : { t: it.title_de, x: it.text_de };
+    return { title1: one.t, text1: one.x, title2: "", text2: "", sourceLabel: lang === "tr-en" ? "Source" : "Quelle", source: it.source, url: it.url, urgent: !!it.urgent };
+  }
   const de = { t: it.title_de, x: it.text_de };
   const en = { t: it.title_en || it.title_de, x: it.text_en || it.text_de };
   const pair = lang === "tr-en" ? [tr, en] : lang === "de" ? [de, tr] : lang === "tr" ? [tr, null] : [tr, de];
@@ -527,7 +539,7 @@ export async function upgradeOldNews(env, database, origin) {
 export async function redrawNews(env, database, origin, limit = 2) {
   if (!env.BUCKET) return 0;
   const { results } = await database
-    .prepare(`SELECT id, headline, subtext, link, kind, media_key FROM stories WHERE status = 'approved' AND media_key LIKE 'stories/news-%.png' AND media_key NOT LIKE '%-v3.png' AND media_key NOT LIKE 'stories/news-render-check%' AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT ?`)
+    .prepare(`SELECT id, headline, subtext, link, kind, media_key FROM stories WHERE status = 'approved' AND media_key LIKE 'stories/news-%.png' AND media_key NOT LIKE '%-v4.png' AND media_key NOT LIKE 'stories/news-render-check%' AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT ?`)
     .bind(Date.now(), limit)
     .all();
   if (!results.length) return 0;
@@ -542,6 +554,7 @@ export async function redrawNews(env, database, origin, limit = 2) {
     let p;
     let background = null;
     if (it) {
+      await withTimeout(ensureTr(env, it), 10000, false); // 2026-11-23
       p = newsParts(it, it.lang || "tr-de");
       if (it.bg) {
         const obj = await env.BUCKET.get(it.bg).catch(() => null);
@@ -553,9 +566,14 @@ export async function redrawNews(env, database, origin, limit = 2) {
       const texts = parts.filter((x) => x && x !== srcLine);
       p = { title1: r.headline, title2: "", text1: texts[0] || "", text2: texts[1] || "", sourceLabel: "Kaynak / Quelle", source: srcLine.replace(/^[^:]*: /, ""), url: r.link, urgent: r.kind === "warn" };
     }
+    if (!background) {
+      // 2026-11-23 (owner): only the owner's own backgrounds -> the next one of them (if there are any)
+      const c = await chooseBackground(database, await readSettings(database)).catch(() => null);
+      if (c && c.backgroundKey) { const obj = await env.BUCKET.get(c.backgroundKey).catch(() => null); if (obj) background = { bytes: new Uint8Array(await obj.arrayBuffer()), mime: (obj.httpMetadata && obj.httpMetadata.contentType) || "image/jpeg" }; }
+    }
     try {
       const png = await renderNewsImage(p, { theme: it && it.theme != null ? it.theme : await nextTheme(database), logo, background }); // 2026-11-22: same colour as before
-      const key = `stories/news-${r.id}-v3.png`; // 2026-11-22: bigger text that fills the page
+      const key = `stories/news-${r.id}-v4.png`; // 2026-11-23: clean layout (was -v3)
       await env.BUCKET.put(key, png, { httpMetadata: { contentType: "image/png" } });
       await database.prepare(`UPDATE stories SET media_key = ?, overlay = NULL WHERE id = ?`).bind(key, r.id).run();
       done++;
@@ -639,4 +657,54 @@ export async function newsSweep(env, database, origin) {
     // never break the story list
     await sweepLog(database, step, e);
   }
+}
+
+// ---- 2026-11-23 (owner: "bazen ikisi de Almanca") ----
+// Cause: when the AI text step failed or ran out of time (16 s), the topic was marked "written" with an empty Turkish
+// title, and newsParts() used the German text for the Turkish line too -> both lines German.
+// Now: 1) a missing or German-looking Turkish text is translated from German (fast translation model, then a short AI
+// prompt); 2) the text step is tried up to 3 times before it gives up; 3) if Turkish is still missing, the picture shows
+// German only once (never the same German text twice).
+const TR_ONLY = /[ğışçĞİŞÇ]/;
+const DE_WORDS = /\b(der|die|das|und|ist|nicht|mit|für|auf|wird|werden|eine?|im|den|dem|von|zum|zur|nach|bei|aus|sich)\b/gi;
+const TR_WORDS = /\b(ve|bir|bu|için|ile|olarak|değil|da|de|en|çok|sonra|daha)\b/i;
+export function trMissing(it) {
+  const t = String(it.title_tr || "").trim(), x = String(it.text_tr || "").trim();
+  if (!t) return true;
+  if (t === String(it.title_de || "").trim() || (x && x === String(it.text_de || "").trim())) return true;
+  const s = `${t} ${x}`;
+  if (/[äÄß]/.test(s)) return true;
+  if (TR_ONLY.test(s)) return (s.match(DE_WORDS) || []).length >= 3;
+  return (s.match(DE_WORDS) || []).length > 0 && !TR_WORDS.test(s);
+}
+
+async function translateDeTr(env, text) {
+  const src = String(text || "").trim();
+  if (!src || !env.AI) return "";
+  for (const args of [{ text: src, source_lang: "de", target_lang: "tr" }, { text: src, source_lang: "german", target_lang: "turkish" }]) {
+    try {
+      const out = await withTimeout(env.AI.run("@cf/meta/m2m100-1.2b", args), 7000, null);
+      const t = out && (out.translated_text || out.response);
+      if (t && String(t).trim() && String(t).trim() !== src) return String(t).trim();
+    } catch (e) { /* next */ }
+  }
+  for (const model of AI_MODELS) {
+    try {
+      const out = await withTimeout(env.AI.run(model, { messages: [{ role: "user", content: `Übersetze ins Türkische. Antworte NUR mit der Übersetzung, ohne Erklärung:\n\n${src}` }], max_tokens: 400, temperature: 0.1 }), 8000, null);
+      const t = String((out && (out.response || out)) || "").trim().replace(/^["„]|["“]$/g, "");
+      if (t && t !== src && typeof t === "string") return t;
+    } catch (e) { /* next */ }
+  }
+  return "";
+}
+
+/** Makes sure the Turkish title/text exist and are Turkish. Returns true when it is fine now. */
+export async function ensureTr(env, it) {
+  if (!trMissing(it)) return true;
+  const [t, x] = await Promise.all([translateDeTr(env, it.title_de), it.text_de ? translateDeTr(env, it.text_de) : Promise.resolve("")]);
+  if (t) it.title_tr = cut(t, 90);
+  if (x) it.text_tr = cut(x, 420);
+  const ok = !trMissing(it);
+  if (!ok) it.trFail = (it.trFail || 0) + 1; else delete it.trFail;
+  return ok;
 }
