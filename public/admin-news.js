@@ -149,10 +149,11 @@
       };
       var tplHtml = '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0">Arka plan: ' +
         '<button type="button" id="admin-news-rotate" style="' + BTN + (ST.bgMode === "rotate" ? ";border-color:#2ea043;background:#238636" : "") + '">🔄 Sırayla (hepsi)</button>';
-      for (var i = 1; i <= (j.templates || 6); i++) tplHtml += thumb("t" + i, "/assets/news/tpl-" + i + "-s.webp");
+      // 2026-11-23 evening (owner "UYGULA 1"): the 6 old colour templates (box + logo) are not shown / used any more
+      if (false) for (var i = 1; i <= (j.templates || 6); i++) tplHtml += thumb("t" + i, "/assets/news/tpl-" + i + "-s.webp");
       BGS.forEach(function (b) { tplHtml += thumb("b:" + b.key, "/media/" + b.key); });
       tplHtml += '<label style="' + BTN + ';background:#1f6feb">➕ Resim ekle (klasöre)<input type="file" id="admin-news-bgadd" accept="image/*,.heic,.heif" multiple style="display:none"></label><span id="admin-news-bgname" style="color:#8b949e"></span></div>' +
-        '<div style="color:#8b949e;margin:-2px 0 8px">' + (ST.bgMode === "pick" && ST.bgPicks.length ? "✓ Seçili " + ST.bgPicks.length + " arka plan sırayla kullanılır (otomatik mod da)." : "🔄 Hazır 6 şablon + klasördeki " + BGS.length + " resim sırayla kullanılır.") + " Resme tıkla = büyük ön izleme, seç / kaldır / sil.</div>";
+        '<div style="color:#8b949e;margin:-2px 0 8px">' + (ST.bgMode === "pick" && ST.bgPicks.length ? "✓ Seçili " + ST.bgPicks.length + " arka plan sırayla kullanılır (otomatik mod da)." : "🔄 Klasördeki " + BGS.length + " resim sırayla kullanılır (konu etiketine göre). Eski renkli şablonlar kullanılmaz.") + " Resme tıkla = büyük ön izleme, seç / kaldır / sil.</div>";
       var head = '<label style="display:flex;gap:8px;align-items:center;margin:8px 0;font-weight:700"><input type="checkbox" id="admin-news-auto"' + (j.auto ? " checked" : "") + "> 🤖 Otomatik · Automatisch (her listede acil + ilk 3 konu + işaretlediklerin · aralık, dil ve arka plan aşağıdaki ayarlara göre · kapalı haberler paylaşılmaz)</label>" +
         statusHtml(j) +
         tplHtml +

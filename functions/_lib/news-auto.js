@@ -501,18 +501,32 @@ export async function publishItems(env, database, slot, ids, opts = {}) {
         it.bgNote = background ? (itemBgKey === c.backgroundKey ? "bg loaded on 2nd try" : `bg ${c.backgroundKey.slice(-12)} failed, other used`) : "no own background could be loaded";
       }
     } else theme = await nextTheme(database);
+    if (!background) {
+      // 2026-11-23 evening (owner "UYGULA 1"): never the old colour templates (box, logo) – always an own background
+      const own = await anyOwnBackground(env, database, it).catch(() => null);
+      if (own) { background = own.bg; itemBgKey = own.key; }
+    }
     it.theme = theme; it.lang = lang; if (itemBgKey) it.bg = itemBgKey; else delete it.bg; // for a later redraw
     // the picture with all text inside; if drawing fails: template + text layer (older way)
     let mediaKey = "";
     let overlay = null;
     try {
       const png = await renderNewsImage(p, { theme, logo, background });
-      mediaKey = `stories/news-${id}-v5.png`; // 2026-11-23: "-v5" = better Turkish + more room under the logo (was -v4)
+      mediaKey = `stories/news-${id}-v6.png`; // 2026-11-23 evening: "-v6" = TR on top, DE below, spread (was -v5)
       await env.BUCKET.put(mediaKey, png, { httpMetadata: { contentType: "image/png" } });
     } catch (e) {
       it.renderError = String((e && e.message) || e).slice(0, 120);
-      mediaKey = itemBgKey || (await templateKey(env, theme + 1, opts.origin));
-      overlay = { t: (it.urgent ? "🚨 " : "") + p.title1, x: 0.5, y: 0.5, s: 0.07, c: "#ffffff", b: "box" };
+      // 2026-11-23 evening (owner "UYGULA 1"): no template + text box any more – once more; if it fails again the topic
+      // is not shared now (the next step tries again)
+      try {
+        const png2 = await renderNewsImage(p, { theme, logo, background });
+        mediaKey = `stories/news-${id}-v6.png`;
+        await env.BUCKET.put(mediaKey, png2, { httpMetadata: { contentType: "image/png" } });
+        delete it.renderError;
+      } catch (e2) {
+        mediaKey = "";
+        if (false) overlay = { t: p.title1, b: "box" }; // old way (template + box), not used
+      }
     }
     if (!mediaKey) continue;
     const subtext = [p.text1, p.text2, `${p.sourceLabel}: ${it.source}`].filter(Boolean).join("\n\n");
@@ -584,7 +598,7 @@ export async function upgradeOldNews(env, database, origin) {
 export async function redrawNews(env, database, origin, limit = 2) {
   if (!env.BUCKET) return 0;
   const { results } = await database
-    .prepare(`SELECT id, headline, subtext, link, kind, media_key FROM stories WHERE status = 'approved' AND media_key LIKE 'stories/news-%.png' AND media_key NOT LIKE '%-v5.png' AND media_key NOT LIKE '%-v5k.png' AND media_key NOT LIKE 'stories/news-render-check%' AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT ?`)
+    .prepare(`SELECT id, headline, subtext, link, kind, media_key FROM stories WHERE status = 'approved' AND media_key LIKE 'stories/news-%.png' AND media_key NOT LIKE '%-v6.png' AND media_key NOT LIKE '%-v6k.png' AND media_key NOT LIKE 'stories/news-render-check%' AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT ?`)
     .bind(Date.now(), limit)
     .all();
   if (!results.length) return 0;
@@ -602,7 +616,7 @@ export async function redrawNews(env, database, origin, limit = 2) {
       // (copied to "-v5k", so it is not taken again and the next ones are drawn).
       const old = await env.BUCKET.get(r.media_key).catch(() => null);
       if (old) {
-        const keepKey = `stories/news-${r.id}-v5k.png`;
+        const keepKey = `stories/news-${r.id}-v6k.png`; // 2026-11-23 evening: v6
         await env.BUCKET.put(keepKey, await old.arrayBuffer(), { httpMetadata: { contentType: "image/png" } });
         await database.prepare(`UPDATE stories SET media_key = ? WHERE id = ?`).bind(keepKey, r.id).run();
         done++;
@@ -631,7 +645,7 @@ export async function redrawNews(env, database, origin, limit = 2) {
     }
     try {
       const png = await renderNewsImage(p, { theme: it && it.theme != null ? it.theme : await nextTheme(database), logo, background }); // 2026-11-22: same colour as before
-      const key = `stories/news-${r.id}-v5.png`; // 2026-11-23: better Turkish + room under the logo (was -v4)
+      const key = `stories/news-${r.id}-v6.png`; // 2026-11-23 evening: TR on top, DE below, spread (was -v5)
       await env.BUCKET.put(key, png, { httpMetadata: { contentType: "image/png" } });
       await database.prepare(`UPDATE stories SET media_key = ?, overlay = NULL WHERE id = ?`).bind(key, r.id).run();
       done++;
@@ -953,7 +967,8 @@ async function topicBackground(database, settings, it) {
   };
   const same = all.filter((b) => tagOf(b) === topic);
   if (topic !== "genel" && same.length) return turn(same);
-  if (it.urgent) return { theme: 1, backgroundKey: "" }; // red EIL design (THEMES[1]) – no photo that does not fit
+  // 2026-11-23 evening (owner "UYGULA 1"): no template for urgent news any more – an own background + the red ACİL badge
+  if (it.urgent) { const gen = all.filter((b) => tagOf(b) === "genel"); return all.length ? turn(gen.length ? gen : all) : null; }
   // no own background for this topic: only "genel" ones (picked ones first, if the admin picked some)
   const general = all.filter((b) => tagOf(b) === "genel");
   if (!general.length || general.length === all.length) return null; // nothing tagged -> old way
@@ -1010,9 +1025,14 @@ export async function redrawEditedStory(env, database, storyId, origin, from = "
     const obj = await env.BUCKET.get(bgKey).catch(() => null);
     if (obj) background = { bytes: new Uint8Array(await obj.arrayBuffer()), mime: (obj.httpMetadata && obj.httpMetadata.contentType) || "image/jpeg" };
   }
+  if (!background) {
+    // 2026-11-23 evening (owner "UYGULA 1"): never a template – an own background (kept in the list for later drawings)
+    const own = await anyOwnBackground(env, database, it || { urgent: r.kind === "warn", orig: r.headline, url: r.link }).catch(() => null);
+    if (own) { background = own.bg; if (it) { it.bg = own.key; if (slotItems) await saveItems(database, itSlot, slotItems); } }
+  }
   const logo = await assetBytes(origin, "/assets/images/mykiez_logo.png", "image/png");
   const png = await renderNewsImage(p, { theme: it && it.theme != null ? it.theme : await nextTheme(database), logo, background });
-  const mediaKey = `stories/news-${storyId}-e${Date.now() % 100000000}-v5.png`; // "-v5.png" at the end: redrawNews leaves it alone
+  const mediaKey = `stories/news-${storyId}-e${Date.now() % 100000000}-v6.png`; // "-v6.png" at the end: redrawNews leaves it alone
   await env.BUCKET.put(mediaKey, png, { httpMetadata: { contentType: "image/png" } });
   await database.prepare(`UPDATE stories SET media_key = ?, overlay = NULL WHERE id = ?`).bind(mediaKey, storyId).run();
   out.redrawn = true;
@@ -1031,4 +1051,35 @@ export async function redrawEditedStory(env, database, storyId, origin, from = "
     out.social = `fb ${out.fbDeleted ? "deleted, sent again" : "sent again"} · telegram ${tg ? "deleted, sent again" : "sent again"}`;
   } catch (e) { out.social = "error"; }
   return out;
+}
+
+
+// ---- 2026-11-23 evening (owner "UYGULA 1"): an own background for every news picture (never the colour templates) ----
+/** Topic background first (tags), else the next own background. null only when the folder is empty. */
+export async function anyOwnBackground(env, database, it) {
+  if (!env.BUCKET) return null;
+  const all = await listBackgrounds(database);
+  if (!all.length) return null;
+  const t = it ? await topicBackground(database, null, it).catch(() => null) : null;
+  const keys = [];
+  if (t && t.backgroundKey) keys.push(t.backgroundKey);
+  const row = await database.prepare(`SELECT value FROM news_state WHERE id = 'bgturn'`).first().catch(() => null);
+  const start = ((row ? Number(row.value) : 0) + 1) % all.length;
+  for (let i = 0; i < all.length; i++) keys.push(all[(start + i) % all.length].key);
+  for (const key of keys) {
+    const obj = await env.BUCKET.get(key).catch(() => null);
+    if (obj) return { key, bg: { bytes: new Uint8Array(await obj.arrayBuffer()), mime: (obj.httpMetadata && obj.httpMetadata.contentType) || "image/jpeg" } };
+  }
+  return null;
+}
+/** Preview without side effects: the first own background that fits the topic (no rotation counter). */
+export async function previewBackground(env, database, it) {
+  if (!env.BUCKET) return null;
+  const all = await listBackgrounds(database);
+  if (!all.length) return null;
+  const topic = newsTopic(it || {});
+  const tagOf = (b) => (BG_TAGS.includes(b.tag) ? b.tag : "genel");
+  const pick = all.find((b) => tagOf(b) === topic) || all.find((b) => tagOf(b) === "genel") || all[0];
+  const obj = await env.BUCKET.get(pick.key).catch(() => null);
+  return obj ? { bytes: new Uint8Array(await obj.arrayBuffer()), mime: (obj.httpMetadata && obj.httpMetadata.contentType) || "image/jpeg" } : null;
 }

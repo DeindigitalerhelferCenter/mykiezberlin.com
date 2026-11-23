@@ -33,6 +33,22 @@
     } catch (e) { return null; }
   }
 
+  // 2026-11-23 evening (owner "UYGULA 7"): the picture/video is loaded as soon as the story is open (not after the tap) –
+  // so the phone still allows the share sheet and the file goes WITH the text. A video that is too big goes as a link.
+  var ready = {}; // story id -> {file|null, done}
+  function prepare(s, force) {
+    if (!s || !s.id || ready[s.id]) return;
+    if (s.isVideo && !force) return; // videos only after a tap (mobile data)
+    var r = ready[s.id] = { done: false, file: null };
+    mediaFile(s).then(function (f) { r.file = f; r.done = true; }, function () { r.done = true; });
+  }
+  function mediaLink(s) {
+    var url = s.isVideo ? s.videoUri : s.image;
+    if (!url || /hero_berlin|mykiez_logo/.test(url)) return "";
+    return /^https?:/.test(url) ? url : location.origin + (url.charAt(0) === "/" ? "" : "/") + url;
+  }
+  function note(msg) { if (typeof showToast === "function") showToast(msg); }
+
   window.mkWaShareStory = async function () {
     try {
       var stories = getStories().filter(function (x) { return x.status === "approved"; });
@@ -40,15 +56,21 @@
       if (!s) return;
       var text = storyText(s);
       var mobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+      prepare(s, true);
+      var r = ready[s.id];
+      var file = r && r.done ? r.file : null;
       if (mobile && navigator.share) {
-        var file = await mediaFile(s);
+        if (r && !r.done) { note(tr() ? "Resim hazırlanıyor… 1 sn sonra tekrar bas." : "Bild wird geladen … gleich noch einmal tippen."); return; }
         var data = { text: text };
         if (file && navigator.canShare && navigator.canShare({ files: [file] })) data.files = [file];
+        else if (mediaLink(s)) data.text = text + "\n" + (s.isVideo ? "🎬 Video: " : "🖼 ") + mediaLink(s); // too big / not allowed -> link
         try { await navigator.share(data); return; } catch (e) { if (e && e.name === "AbortError") return; }
       }
-      window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank", "noopener");
+      var link = mediaLink(s);
+      window.open("https://wa.me/?text=" + encodeURIComponent(link ? text + "\n" + (s.isVideo ? "🎬 Video: " : "🖼 ") + link : text), "_blank", "noopener");
     } catch (e) {}
   };
+  window.mkPrepareStoryShare = function () { try { var st = getStories().filter(function (x) { return x.status === "approved"; }); prepare(st[activeStoryIndex]); } catch (e) {} };
 
   // 1. story viewer button (everybody)
   if (typeof renderStorySlide === "function") {
@@ -63,6 +85,7 @@
             'style="background:#25D366;color:#fff" title="' + (tr() ? "WhatsApp'ta paylaş" : "Auf WhatsApp teilen") + '" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></button>';
           if (close) close.insertAdjacentHTML("beforebegin", html); else header.insertAdjacentHTML("beforeend", html);
         }
+        if (window.mkPrepareStoryShare) window.mkPrepareStoryShare(); // 2026-11-23 evening: file ready before the tap
       } catch (e) {}
       return r;
     };

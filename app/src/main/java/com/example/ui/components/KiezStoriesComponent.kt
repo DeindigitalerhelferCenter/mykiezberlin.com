@@ -834,6 +834,28 @@ fun StoryViewerDialog(
                                 onClick = {
                                     val shareUrl = if (hasExternalSource) story.link else "https://mykiezberlin.com"
                                     val apkDownloadUrl = "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin.com.apk"
+                                    val shareText0 = if (language == AppLanguage.TURKISH) {
+                                        "My Kiez Berlin (${story.kiez}):\n${story.headline}\n${story.subtext}\n\n👉 $shareUrl\n📢 WhatsApp Kanalımız: ${MkSocial.WA_CHANNEL}\n\n📲 My Kiez Berlin uygulamasını indir:\n$apkDownloadUrl"
+                                    } else {
+                                        "My Kiez Berlin (${story.kiez}):\n${story.headline}\n${story.subtext}\n\n👉 $shareUrl\n📢 WhatsApp-Kanal: ${MkSocial.WA_CHANNEL}\n\n📲 My Kiez Berlin App herunterladen:\n$apkDownloadUrl"
+                                    }
+                                    // 2026-11-23 evening (owner "UYGULA 6", v1.52): the picture / video goes WITH the text and the links
+                                    // (before: text only). Picture with the logo like the download; the text is also copied.
+                                    downloadScope.launch {
+                                        val media = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { com.example.util.StoryShareHelper.prepareMedia(context, story) }
+                                        val withMedia = Intent(Intent.ACTION_SEND).apply {
+                                            if (media != null) {
+                                                type = media.second
+                                                putExtra(Intent.EXTRA_STREAM, media.first)
+                                                clipData = android.content.ClipData.newRawUri("story", media.first)
+                                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                            } else type = "text/plain"
+                                            putExtra(Intent.EXTRA_TEXT, shareText0)
+                                        }
+                                        try { (context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager).setPrimaryClip(android.content.ClipData.newPlainText("My Kiez Berlin", shareText0)) } catch (_: Exception) {}
+                                        context.startActivity(Intent.createChooser(withMedia, "Story teilen"))
+                                    }
+                                    if (false) { // old way (text only) – kept, not used
                                     val shareIntent = Intent(Intent.ACTION_SEND).apply {
                                         type = "text/plain"
                                         val shareText = if (language == AppLanguage.TURKISH) {
@@ -844,6 +866,7 @@ fun StoryViewerDialog(
                                         putExtra(Intent.EXTRA_TEXT, shareText)
                                     }
                                     context.startActivity(Intent.createChooser(shareIntent, "Story teilen"))
+                                    }
                                 },
                                 colors = ButtonDefaults.buttonColors(containerColor = BerlinGreen),
                                 shape = RoundedCornerShape(12.dp),

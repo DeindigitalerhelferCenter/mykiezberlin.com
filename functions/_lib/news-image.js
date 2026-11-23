@@ -95,7 +95,8 @@ function block(lines, x, y, size, lineH, fill, bold) {
 export async function renderNewsImage(parts, opts = {}) {
   await init();
   // 2026-11-23 (owner "UYGULA 1-7"): own background -> clean layout (no box, no logo, no site name; see renderNewsClean)
-  if (opts.background && opts.clean !== false) return renderNewsClean(parts, opts);
+  // 2026-11-23 evening (owner "UYGULA 3-4"): TR on top, DE below, spread over the picture (renderNewsSpread); renderNewsClean kept
+  if (opts.background && opts.clean !== false) return opts.packed ? renderNewsClean(parts, opts) : renderNewsSpread(parts, opts);
   const th = THEMES[((Number(opts.theme) || 0) % THEMES.length + THEMES.length) % THEMES.length];
   const [c1, c2, acc] = th;
   const pad = 80;
@@ -324,4 +325,94 @@ export async function renderNewsClean(parts, opts) {
     font: { fontBuffers: [new Uint8Array(fontBold), new Uint8Array(fontRegular)], defaultFontFamily: "Noto Sans", loadSystemFonts: false },
   });
   return r.render().asPng();
+}
+
+// ---- 2026-11-23 evening (owner "UYGULA 3-4"): spread layout on the owner's backgrounds ----
+// Turkish on top (title + text), German below (title + text), source at the bottom. The three parts are spread over the
+// whole text area (under the logo row, over the address) with even space between them – not one packed block in the
+// middle. Nothing else is drawn on the picture: no box, no logo, no darkening; only the letters with a thin outline-like
+// shadow so they stay readable on photos.
+export async function renderNewsSpread(parts, opts) {
+  await init();
+  const col = opts.colors || (await bgColors(opts.background));
+  const x0 = 76;
+  const maxW = W - x0 * 2;
+  const hasText = !!(parts.text1 || parts.text2);
+  const MIN_GAP = 56, MAX_GAP = 190;
+  const layout = (k, cutOver) => {
+    const kt = Math.min(k, hasText ? 1.45 : 1.75);
+    const s1 = Math.round(62 * kt), s2 = Math.round(56 * kt), s3 = Math.round(38 * k), s4 = Math.round(37 * k), s5 = Math.round(29 * Math.min(k, 1.25)), s6 = Math.round(24 * Math.min(k, 1.15));
+    const t1 = wrap(parts.title1, s1, maxW, true), t2 = parts.title2 ? wrap(parts.title2, s2, maxW, true) : [];
+    let d1 = parts.text1 ? wrap(parts.text1, s3, maxW, false) : [], d2 = parts.text2 ? wrap(parts.text2, s4, maxW, false) : [];
+    const src = wrap(`${parts.sourceLabel || "Kaynak / Quelle"}: ${parts.source || ""}`, s5, maxW, true);
+    const link = wrap(String(parts.url || "").replace(/^https?:\/\//, ""), s6, maxW, false).slice(0, 2);
+    const badgeH = parts.urgent ? Math.round(60 * Math.min(k, 1.3)) : 0;
+    const group = (items) => {
+      let y = 0, out = "";
+      for (const [lines, size, lh, fill, bold, gap] of items) {
+        if (!lines.length) continue;
+        out += `<g filter="url(#sh)">${block(lines, x0, y + size, size, lh, fill, bold)}</g>`;
+        y += lines.length * lh + gap;
+      }
+      return { out, h: y };
+    };
+    const build = () => {
+      let g1 = group([[t1, s1, Math.round(s1 * 1.24), col.title, true, Math.round(30 * k)], [d1, s3, Math.round(s3 * 1.55), col.text, false, 0]]);
+      if (badgeH) {
+        const bs = Math.round(badgeH * 0.52);
+        const bw = Math.round(textW("ACİL · EIL", bs, true) + bs * 1.6);
+        const badge = `<rect x="${x0}" y="0" width="${bw}" height="${badgeH}" rx="${badgeH / 2}" fill="#E30A17"/><text x="${x0 + bw / 2}" y="${Math.round(badgeH * 0.69)}" text-anchor="middle" font-family="Noto Sans" font-weight="700" font-size="${bs}" fill="#FFFFFF">ACİL · EIL</text>`;
+        const off = badgeH + Math.round(26 * k);
+        g1 = { out: badge + `<g transform="translate(0 ${off})">${g1.out}</g>`, h: g1.h + off };
+      }
+      const g2 = group([[t2, s2, Math.round(s2 * 1.24), col.accent, true, Math.round(30 * k)], [d2, s4, Math.round(s4 * 1.55), col.text2, false, 0]]);
+      const g3 = group([[src, s5, Math.round(s5 * 1.35), col.accent, true, Math.round(10 * k)], [link, s6, Math.round(s6 * 1.35), col.meta, false, 0]]);
+      const parts3 = [g1, g2, g3].filter((g) => g.h > 0);
+      const sum = parts3.reduce((n, g) => n + g.h, 0);
+      return { parts3, sum, need: sum + MIN_GAP * (parts3.length - 1) };
+    };
+    let r = build();
+    if (cutOver && r.need > AREA_CLEAN && (d1.length || d2.length)) {
+      const over = Math.ceil((r.need - AREA_CLEAN) / Math.round(s4 * 1.55));
+      const cut = (arr, n) => { const a = arr.slice(0, Math.max(1, arr.length - n)); a[a.length - 1] = a[a.length - 1].replace(/\s*\S*$/, "") + " …"; return a; };
+      const fromD2 = Math.min(over, Math.max(0, d2.length - 1));
+      if (fromD2) d2 = cut(d2, fromD2);
+      if (over - fromD2 > 0 && d1.length > 1) d1 = cut(d1, over - fromD2);
+      r = build();
+    }
+    const maxT = hasText ? 3 : 5;
+    return { ...r, ok: r.need <= AREA_CLEAN && t1.length <= maxT && t2.length <= maxT };
+  };
+  const K_MIN = 0.55, K_MAX = 1.85;
+  let best = null;
+  const top0 = layout(K_MAX, false);
+  if (top0.ok) best = top0;
+  else {
+    let lo = K_MIN, hi = K_MAX;
+    for (let i = 0; i < 12; i++) {
+      const mid = (lo + hi) / 2;
+      const r = layout(mid, false);
+      if (r.ok) { best = r; lo = mid; } else hi = mid;
+    }
+  }
+  if (!best) best = layout(K_MIN, true);
+  // even space between the parts (not more than MAX_GAP; the rest stays above and below)
+  const n = best.parts3.length;
+  const free = Math.max(0, AREA_CLEAN - best.sum);
+  const gap = n > 1 ? Math.min(MAX_GAP, Math.max(MIN_GAP, free / (n - 1))) : 0;
+  const used = best.sum + gap * (n - 1);
+  let y = SAFE_TOP + Math.max(0, Math.round((AREA_CLEAN - used) / 2));
+  let body = "";
+  for (const g of best.parts3) { body += `<g transform="translate(0 ${Math.round(y)})">${g.out}</g>`; y += g.h + gap; }
+  // thin shadow only (no dark glow / no darkening of the picture)
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">` +
+    `<defs><filter id="sh" x="-10%" y="-30%" width="120%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="2.2" flood-color="${col.shadow}" flood-opacity="0.95"/><feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="${col.shadow}" flood-opacity="${Math.min(0.75, col.shadowOp * 0.7).toFixed(2)}"/></filter></defs>` +
+    `<image href="data:${opts.background.mime};base64,${toBase64(opts.background.bytes)}" x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="xMidYMid slice"/>` +
+    body +
+    `</svg>`;
+  const res = new Resvg(svg, {
+    fitTo: { mode: "original" },
+    font: { fontBuffers: [new Uint8Array(fontBold), new Uint8Array(fontRegular)], defaultFontFamily: "Noto Sans", loadSystemFonts: false },
+  });
+  return res.render().asPng();
 }

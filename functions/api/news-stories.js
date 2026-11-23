@@ -10,7 +10,7 @@ import { setHidden, seenTopics } from "../_lib/news-auto.js";
 import { addBlocked, berlinSlot, buildList, ensureCurrentSlot, ensureNews, getSlot, listBackgrounds, newsParts, pickList, publishItems, readBlocked, readSettings, saveItems, saveSettings, TEMPLATE_COUNT } from "../_lib/news-auto.js";
 import { renderNewsImage } from "../_lib/news-image.js";
 import { readFlags } from "./flags.js";
-import { redrawEditedStory, setBackgroundTag, setPicked } from "../_lib/news-auto.js"; // 2026-11-23 (owner "UYGULA 1-12")
+import { previewBackground, redrawEditedStory, setBackgroundTag, setPicked } from "../_lib/news-auto.js"; // 2026-11-23 (owner "UYGULA 1-12")
 import { metaStateFor, nextSlot, plannerSettings } from "../_lib/social-planer.js";
 
 const BG_TYPES = { "image/jpeg": "jpg", "image/png": "png" }; // 2026-11-22: the picture renderer reads JPEG + PNG
@@ -168,6 +168,8 @@ export async function onRequestPost({ request, env }) {
       const obj = await env.BUCKET.get(pick.slice(2)).catch(() => null);
       if (obj) background = { bytes: new Uint8Array(await obj.arrayBuffer()), mime: (obj.httpMetadata && obj.httpMetadata.contentType) || "image/jpeg" };
     }
+    // 2026-11-23 evening (owner "UYGULA 1"): the preview never shows the old colour templates – an own background
+    if (!background) background = await previewBackground(env, database, it).catch(() => null);
     const row = await database.prepare(`SELECT value FROM news_state WHERE id = 'theme'`).first().catch(() => null);
     const tpl = Number(body.template) || 0;
     const theme = tpl ? tpl - 1 : ((row ? Number(row.value) : -1) + 1) % TEMPLATE_COUNT; // rotating: the next colour

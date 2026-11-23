@@ -52,6 +52,7 @@
             return x.media ? '<a href="' + e(x.media) + '" download target="_blank" title="' + e(x.headline) + '">' + (x.video ? '<span style="display:inline-block;width:64px;height:96px;background:#0d1117;border-radius:6px;text-align:center;line-height:96px">🎬</span>' : '<img src="' + e(x.media) + '" loading="lazy" style="width:64px;height:96px;object-fit:cover;border-radius:6px">') + "</a>" : "";
           }).join("") + "</div>");
           h.push('<textarea id="sp-text-' + c + '" readonly style="width:100%;height:110px;background:#0d1117;color:#c9d1d9;border:1px solid #30363d;border-radius:6px;font:12px monospace">' + e(p.text) + "</textarea>");
+          h.push('<button type="button" data-bundle="' + c + '" style="' + BTN + ';background:#1f6feb">📤 Resimler + metin birlikte paylaş</button>'); // 2026-11-23 evening (owner "UYGULA 8")
           h.push('<button type="button" data-copy="' + c + '" style="' + BTN2 + '">📋 Text kopieren</button><button type="button" data-done="' + c + '" style="' + BTN + '">✓ Auf ' + NAMES[c] + " geteilt · paylaştım</button>");
           h.push('<br><small style="color:#8b949e">Bilder antippen = herunterladen. Erst teilen, dann „geteilt“ drücken – dann kommen diese Stories nie wieder ins Paket.</small>');
         }
@@ -69,6 +70,7 @@
               return x.media ? '<a href="' + e(x.media) + '" download target="_blank" title="' + e(x.headline) + '">' + (x.video ? '<span style="display:inline-block;width:48px;height:72px;background:#161b22;border-radius:6px;text-align:center;line-height:72px">🎬</span>' : '<img src="' + e(x.media) + '" loading="lazy" style="width:48px;height:72px;object-fit:cover;border-radius:6px">') + "</a>" : "";
             }).join("") + "</div>");
             h.push('<textarea id="sp-text-' + c + '" readonly style="width:100%;height:120px;background:#0d1117;color:#c9d1d9;border:1px solid #30363d;border-radius:6px;font:12px monospace">' + e(g.text) + "</textarea>");
+            h.push('<button type="button" data-bundle="' + c + '" style="' + BTN + ';background:#1f6feb">📤 Resimler + metin birlikte</button>'); // 2026-11-23 evening (owner "UYGULA 8")
             h.push('<button type="button" data-copy="' + c + '" style="' + BTN2 + '">📋 Kopyala</button>' +
               '<a href="' + e(g.url) + '" target="_blank" rel="noopener" style="' + BTN2 + ';text-decoration:none;display:inline-block">💬 Gruba git</a>' +
               '<button type="button" data-kdone="' + c + '" style="' + BTN + '">✓ Paylaştım · geteilt</button>');
@@ -165,4 +167,48 @@
   if (typeof base === "function") {
     window.renderAdminDashboard = function () { var r = base.apply(this, arguments); setTimeout(render, 0); return r; };
   }
+})();
+
+// ---- 2026-11-23 evening (owner "UYGULA 8"): WhatsApp/TikTok package – pictures + text in ONE share (phone share sheet) ----
+// First tap loads the pictures (max 10, videos up to 15 MB), the share sheet opens at once if the phone still allows it,
+// otherwise the button says "tekrar bas" and the second tap shares the prepared files. Text is always copied too.
+(function () {
+  "use strict";
+  var prepared = {}; // channel -> {key, data}
+  function full(u) { return /^https?:/.test(u) ? u : location.origin + (u.charAt(0) === "/" ? "" : "/") + u; }
+  function load(url, i) {
+    return fetch(full(url)).then(function (r) { return r.ok ? r.blob() : null; }).then(function (b) {
+      if (!b || b.size > 15 * 1024 * 1024) return null;
+      var type = b.type || (/\.mp4/i.test(url) ? "video/mp4" : "image/jpeg");
+      return new File([b], "MyKiezBerlin_" + (i + 1) + "." + (type.split("/")[1] || "jpg").replace("jpeg", "jpg"), { type: type });
+    }).catch(function () { return null; });
+  }
+  document.addEventListener("click", function (ev) {
+    var btn = ev.target && ev.target.closest ? ev.target.closest("[data-bundle]") : null;
+    if (!btn) return;
+    var c = btn.getAttribute("data-bundle");
+    var ta = document.getElementById("sp-text-" + c);
+    var text = ta ? ta.value : "";
+    var box = btn.parentNode;
+    var urls = Array.prototype.map.call(box.querySelectorAll("a[href][download]"), function (a) { return a.getAttribute("href"); }).filter(Boolean).slice(0, 10);
+    var key = urls.join("|");
+    try { navigator.clipboard && navigator.clipboard.writeText(text); } catch (e) { /* ignore */ }
+    var p = prepared[c];
+    if (p && p.key === key && navigator.share) {
+      prepared[c] = null;
+      navigator.share(p.data).then(function () { btn.textContent = "✓ Paylaşım açıldı – sonra „paylaştım“ bas"; }, function () { btn.textContent = "📤 Resimler + metin birlikte paylaş"; });
+      return;
+    }
+    if (!navigator.share || !navigator.canShare) { btn.textContent = "Bu cihazda dosya paylaşımı yok – metin kopyalandı (telefondan dene)"; return; }
+    btn.textContent = "⏳ resimler hazırlanıyor…";
+    Promise.all(urls.map(load)).then(function (files) {
+      files = files.filter(Boolean);
+      var data = { text: text };
+      if (files.length && navigator.canShare({ files: files })) data.files = files;
+      navigator.share(data).then(function () { btn.textContent = "✓ Paylaşım açıldı – sonra „paylaştım“ bas"; }, function (e) {
+        if (e && e.name === "NotAllowedError") { prepared[c] = { key: key, data: data }; btn.textContent = "✅ " + (data.files ? data.files.length : 0) + " dosya hazır – bir kez daha bas"; }
+        else btn.textContent = "📤 Resimler + metin birlikte paylaş";
+      });
+    });
+  });
 })();
