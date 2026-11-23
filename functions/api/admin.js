@@ -8,6 +8,7 @@ import { mailReady } from "../_lib/mail.js";
 import { countTrust } from "../_lib/story-guard.js";
 import { telegramDeleteStory } from "../_lib/telegram.js";
 import { metaDeleteStory } from "../_lib/meta-social.js";
+import { redrawEditedStory } from "../_lib/news-auto.js"; // 2026-11-23
 
 const TABLES = { story: "stories", post: "reporter_posts", comment: "reporter_comments", submission: "submissions" };
 
@@ -190,6 +191,10 @@ export async function onRequestPost({ request, env }) {
     await database.prepare(`UPDATE stories SET duration_hours = duration_hours + ? WHERE id = ?`).bind(Math.min(Number(body.hours) || 48, 720), id).run();
   } else if (action === "edit" && type === "story") {
     await database.prepare(`UPDATE stories SET headline = ?, subtext = ? WHERE id = ?`).bind(cleanText(body.headline, 300), cleanLongText(body.subtext, 10000), id).run();
+    // 2026-11-23 (owner "UYGULA 10"): a news picture has the text inside -> drawn again with the new text,
+    // Facebook/Telegram get the corrected story again (Instagram: the admin deletes the old one in the app)
+    const redraw = await redrawEditedStory(env, database, id, new URL(request.url).origin, "story").catch((e) => ({ error: String((e && e.message) || e).slice(0, 120) }));
+    if (redraw && (redraw.redrawn || redraw.error)) return json({ ok: true, redraw });
   } else if (action === "storyMeta" && type === "story") {
     const kind = cleanText(body.kind, 30);
     const kiez = cleanText(body.kiez, 60);

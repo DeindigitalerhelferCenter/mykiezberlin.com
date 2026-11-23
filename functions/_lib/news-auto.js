@@ -9,6 +9,8 @@
 //   through GET /api/stories, at most one check every 5 minutes).
 import { readFlags } from "../api/flags.js";
 import { renderNewsImage } from "./news-image.js";
+import { metaDeleteStory } from "./meta-social.js"; // 2026-11-23: edited story -> old Facebook post out
+import { telegramDeleteStory } from "./telegram.js";
 
 export const NEWS_SLOTS = [6, 8, 10, 12, 14, 16, 18, 20, 22];
 export const NEWS_TOPICS = 10; // 2026-11-23 (owner): 10 topics per list (was 5)
@@ -24,7 +26,10 @@ export async function ensureNews(database) {
     // 2026-11-22 (owner): own background pictures of the admin (R2 key stories/news-bglib-<uuid>.jpg)
     database.prepare(`CREATE TABLE IF NOT EXISTS news_bgs (key TEXT PRIMARY KEY, name TEXT, created_at INTEGER)`),
   ]);
+  // 2026-11-23 (owner "UYGULA 8"): a background has a topic tag (genel / spor / kultur / acil)
+  if (!bgTagReady) { await database.prepare(`ALTER TABLE news_bgs ADD COLUMN tag TEXT DEFAULT ''`).run().catch(() => {}); bgTagReady = true; }
 }
+let bgTagReady = false;
 
 // ---- 2026-11-22 (owner): admin settings that stay (interval, language, backgrounds) + blocked topics ----
 export const GAP_CHOICES = [0, 15, 30, 60, 90, 120];
@@ -57,7 +62,7 @@ export async function saveSettings(database, patchIn) {
 
 export async function listBackgrounds(database) {
   await ensureNews(database);
-  const { results } = await database.prepare(`SELECT key, name, created_at FROM news_bgs ORDER BY created_at ASC`).all();
+  const { results } = await database.prepare(`SELECT key, name, created_at, tag FROM news_bgs ORDER BY created_at ASC`).all();
   return results || [];
 }
 
@@ -73,7 +78,9 @@ export async function addBlocked(database, orig) {
 }
 
 /** Next background by the admin settings: {theme, backgroundKey}. Template "tN" = colour N; own picture = picture + rotating colour. */
-async function chooseBackground(database, settings) {
+async function chooseBackground(database, settings, it) {
+  // 2026-11-23 (owner "UYGULA 8"): the background fits the topic (see topicBackground); null = the old way below
+  if (it) { const t = await topicBackground(database, settings, it).catch(() => null); if (t) return t; }
   const bgs = (await listBackgrounds(database)).map((b) => `b:${b.key}`);
   let cands = settings.bgMode === "pick" ? settings.bgPicks.filter((x) => x.startsWith("t") || bgs.includes(x)) : [];
   // 2026-11-23 (owner: "sadece yüklediğim arka planlar"): when own pictures exist, the old templates are not used (not deleted)
@@ -476,7 +483,7 @@ export async function publishItems(env, database, slot, ids, opts = {}) {
     if (opts.template) theme = (Number(opts.template) - 1) % TEMPLATE_COUNT;
     else if (settings && !opts.backgroundKey) {
       // 2026-11-22 (owner): background folder – rotating (templates + own pictures) or the 1–2 the admin picked
-      const c = await chooseBackground(database, settings);
+      const c = await chooseBackground(database, settings, it); // 2026-11-23: + topic
       theme = c.theme;
       if (c.backgroundKey) { itemBgKey = c.backgroundKey; background = await loadBg(c.backgroundKey); } else background = null;
       if (c.backgroundKey && !background) {
@@ -619,7 +626,7 @@ export async function redrawNews(env, database, origin, limit = 2) {
     }
     if (!background) {
       // 2026-11-23 (owner): only the owner's own backgrounds -> the next one of them (if there are any)
-      const c = await chooseBackground(database, await readSettings(database)).catch(() => null);
+      const c = await chooseBackground(database, await readSettings(database), it || { urgent: r.kind === "warn", orig: r.headline, url: r.link }).catch(() => null); // 2026-11-23: + topic
       if (c && c.backgroundKey) { const obj = await env.BUCKET.get(c.backgroundKey).catch(() => null); if (obj) background = { bytes: new Uint8Array(await obj.arrayBuffer()), mime: (obj.httpMetadata && obj.httpMetadata.contentType) || "image/jpeg" }; }
     }
     try {
@@ -685,11 +692,16 @@ export async function newsSweep(env, database, origin) {
       const rd = await redrawNews(env, database, origin, 1).catch((e) => { sweepLog(database, "redraw", e); return -1; }); // 2026-11-22: once for the older pictures (1 per step: 30 s limit)
       if (rd) await sweepLog(database, `redraw ${rd}`);
     }
-    if (!s || s.auto_done || s.items.some((x) => x.written === false)) return;
+    // 2026-11-23 (owner "UYGULA 2"): ticked topics of earlier lists (last 24 h) are shared too – one per step
+    if (await publishPickedElsewhere(env, database, origin, s ? s.slot : "").catch((e) => { sweepLog(database, "picked", e); return false; })) return;
+    if (!s || s.items.some((x) => x.written === false)) return;
+    const pickedHere = s.items.filter((x) => x.picked && !x.hidden && !x.published && pickReady(x));
+    if (s.auto_done && !pickedHere.length) return; // 2026-11-23: after "all published" only new ticks count
     const flags = await readFlags(database);
-    if (!flags.newsAuto || !s.items.length) { await sweepLog(database, flags.newsAuto ? "empty list" : "auto off"); return; }
+    if (!pickedHere.length && (!flags.newsAuto || !s.items.length)) { await sweepLog(database, flags.newsAuto ? "empty list" : "auto off"); return; }
     const vis = s.items.filter((x) => !x.hidden && !x.noText); // 2026-11-22: hidden ("kapalı") topics are not shared; 2026-11-23: nor topics without text
-    const ids = [...vis.filter((x) => x.urgent).map((x) => x.id), ...vis.filter((x) => !x.urgent).slice(0, AUTO_COUNT).map((x) => x.id)];
+    const autoIds = s.auto_done || !flags.newsAuto ? [] : [...vis.filter((x) => x.urgent).map((x) => x.id), ...vis.filter((x) => !x.urgent).slice(0, AUTO_COUNT).map((x) => x.id)];
+    const ids = [...new Set([...autoIds, ...pickedHere.map((x) => x.id)])]; // 2026-11-23: urgent + first 3 + every ticked topic
     // 2026-11-22 (owner: "otomatik haber çalışmıyor"): ONE picture per step (3–4 at once were cut after 30 s);
     // times stay: first one now, the next ones + interval; auto_done only when all are out.
     const st = await readSettings(database);
@@ -825,6 +837,9 @@ async function applyAdminChoices(database, items) {
     const key = (x) => x.orig || x.title_de || "";
     for (let i = items.length - 1; i >= 0; i--) if (blocked.has(key(items[i]))) items.splice(i, 1);
     for (const x of items) if (Object.prototype.hasOwnProperty.call(hidden, key(x))) { if (hidden[key(x)]) x.hidden = true; else delete x.hidden; }
+    // 2026-11-23 (owner "işaretler kayboluyor"): the admin's ticks are kept apart too and laid over the list
+    const picked = await readPicked(database);
+    for (const x of items) if (Object.prototype.hasOwnProperty.call(picked, key(x))) { if (picked[key(x)]) x.picked = true; else delete x.picked; }
   } catch (e) { /* keep the list as it is */ }
   return items;
 }
@@ -874,4 +889,146 @@ export async function fixNews2311(env, database) {
     await database.prepare(`UPDATE stories SET media_key = ? WHERE id = ?`).bind(key, id).run();
   }
   await database.prepare(`INSERT INTO news_state (id, value) VALUES ('fix2311', ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value`).bind(old ? "done" : "no v4").run();
+}
+
+
+// ---- 2026-11-23 (owner "UYGULA 1-2": "işaretliyorum, sonra işaretsiz oluyor") ----
+// Cause: the ticks lived only in the browser; the list is drawn again every 20 s (and after every button) -> all empty.
+// Now a tick is saved on the server at once (news_state 'picked' = {topic: true/false}, like 'hidden') and the
+// auto step shares urgent + first 3 + every ticked topic (also ticked later, also in an earlier list of the last 24 h).
+export async function readPicked(database) {
+  const row = await database.prepare(`SELECT value FROM news_state WHERE id = 'picked'`).first().catch(() => null);
+  try { return JSON.parse((row && row.value) || "{}") || {}; } catch (e) { return {}; }
+}
+export async function setPicked(database, key, on) {
+  if (!key) return;
+  const map = await readPicked(database);
+  map[key] = !!on;
+  const keys = Object.keys(map);
+  for (const k of keys.slice(0, Math.max(0, keys.length - 600))) delete map[k];
+  await database.prepare(`INSERT INTO news_state (id, value) VALUES ('picked', ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value`).bind(JSON.stringify(map)).run();
+}
+/** A ticked topic is shared when it has a text (written by the AI or by the admin). */
+function pickReady(x) {
+  return x.written !== false && (hasText(x) || String(x.text_tr || x.text_de || "").trim().length >= 40);
+}
+/** One ticked, not yet shared topic of an earlier list (last 24 h) -> shared now. true = one step used. */
+async function publishPickedElsewhere(env, database, origin, current) {
+  const { results } = await database.prepare(`SELECT slot FROM news_slots WHERE created_at > ? ORDER BY slot DESC LIMIT 12`).bind(Date.now() - 24 * 3600000).all();
+  for (const r of results || []) {
+    if (r.slot === current) continue;
+    const s = await getSlot(database, r.slot);
+    const it = s && s.items.find((x) => x.picked && !x.hidden && !x.published && pickReady(x));
+    if (!it) continue;
+    const st = await readSettings(database);
+    await sweepLog(database, `publish picked ${r.slot} ${it.id}`);
+    await publishItems(env, database, r.slot, [it.id], { origin, gapMinutes: 0, startAt: Date.now(), lang: st.lang, useSettings: true, skipHidden: true, storyIds: { [it.id]: `news-auto-${r.slot}-${it.id}` } });
+    return true;
+  }
+  return false;
+}
+
+// ---- 2026-11-23 (owner "UYGULA 8"): the background fits the topic ----
+// Tags of own backgrounds: "genel" (or none) = all topics, "spor", "kultur", "acil" (police / fire / accident / warning).
+// Urgent news without an "acil" background get the own red EIL design (no photo). Sport/culture/acil backgrounds are
+// not used for other topics. Returns null when nothing special applies (then the old rotation decides).
+export const BG_TAGS = ["genel", "spor", "kultur", "acil"];
+export function newsTopic(it) {
+  const t = `${it.url || ""} ${it.source || ""} ${it.orig || ""} ${it.title_de || ""}`.toLowerCase();
+  if (it.urgent) return "acil";
+  if (/\/sport|sport\b|fußball|fussball|hertha|union berlin|alba|eisbären|bundesliga|olymp/.test(t)) return "spor";
+  if (/kultur|theater|museum|konzert|festival|ausstellung|kino|oper\b/.test(t)) return "kultur";
+  if (/polizei|feuerwehr|brand|feuer|unfall|messer|schüsse|festnahme|razzia|bombe|evakuier|verletzt|tot\b|getötet/.test(t)) return "acil";
+  return "genel";
+}
+async function topicBackground(database, settings, it) {
+  const topic = newsTopic(it);
+  const all = await listBackgrounds(database);
+  const tagOf = (b) => (BG_TAGS.includes(b.tag) ? b.tag : "genel");
+  const turn = async (list) => {
+    const row = await database.prepare(`SELECT value FROM news_state WHERE id = 'bgturn'`).first().catch(() => null);
+    const n = ((row ? Number(row.value) : -1) + 1) % list.length;
+    await database.prepare(`INSERT INTO news_state (id, value) VALUES ('bgturn', ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value`).bind(n).run();
+    return { theme: await nextTheme(database), backgroundKey: list[n].key };
+  };
+  const same = all.filter((b) => tagOf(b) === topic);
+  if (topic !== "genel" && same.length) return turn(same);
+  if (it.urgent) return { theme: 1, backgroundKey: "" }; // red EIL design (THEMES[1]) – no photo that does not fit
+  // no own background for this topic: only "genel" ones (picked ones first, if the admin picked some)
+  const general = all.filter((b) => tagOf(b) === "genel");
+  if (!general.length || general.length === all.length) return null; // nothing tagged -> old way
+  const picks = settings && settings.bgMode === "pick" ? general.filter((b) => settings.bgPicks.includes(`b:${b.key}`)) : [];
+  return turn(picks.length ? picks : general);
+}
+export async function setBackgroundTag(database, key, tag) {
+  await ensureNews(database);
+  await database.prepare(`UPDATE news_bgs SET tag = ? WHERE key = ?`).bind(BG_TAGS.includes(tag) ? tag : "genel", key).run();
+}
+
+// ---- 2026-11-23 (owner "UYGULA 10"): the admin corrects the text of a shared news story -> new picture ----
+// The text is drawn INTO the picture, so a correction of the text alone was not seen. Now the picture is drawn again
+// with the new text (same background + colour), the story keeps its place (new file name: /media is cached).
+// Facebook: the old single post is deleted and the story is sent again (next run / next collection);
+// Instagram cannot delete by API -> the answer says so. Telegram: old message deleted, sent again.
+// from = "story" (headline/subtext of the story row changed) or "item" (texts in the news list changed).
+export async function redrawEditedStory(env, database, storyId, origin, from = "story") {
+  const out = { redrawn: false, fbDeleted: false, igManual: false, social: "" };
+  if (!env.BUCKET || !storyId) return out;
+  const r = await database.prepare(`SELECT id, headline, subtext, link, kind, media_key FROM stories WHERE id = ?`).bind(storyId).first();
+  if (!r || !/^stories\/news-/.test(r.media_key || "") || /news-(bglib|tpl|bg-)/.test(r.media_key)) return out; // only pictures we drew
+  await ensureNews(database);
+  let it = null, itSlot = "", slotItems = null;
+  const { results: slots } = await database.prepare(`SELECT slot, items FROM news_slots WHERE created_at > ?`).bind(Date.now() - 4 * 86400000).all();
+  for (const s of slots || []) {
+    let items = [];
+    try { items = JSON.parse(s.items || "[]"); } catch (e) { items = []; }
+    const x = items.find((y) => y.published === storyId || (y.shares || []).includes(storyId));
+    if (x) { it = x; itSlot = s.slot; slotItems = items; break; }
+  }
+  const parts = String(r.subtext || "").split("\n\n");
+  const srcLine = parts.find((x) => /^(Kaynak|Quelle|Source)[^:]*: /.test(x)) || "";
+  const texts = parts.filter((x) => x && x !== srcLine);
+  const lang = (it && it.lang) || "tr-de";
+  let p;
+  if (it && from === "item") {
+    p = newsParts(it, lang);
+    const subtext = [p.text1, p.text2, `${p.sourceLabel}: ${it.source}`].filter(Boolean).join("\n\n");
+    await database.prepare(`UPDATE stories SET headline = ?, subtext = ? WHERE id = ?`).bind(p.title1, subtext.slice(0, 2000), storyId).run();
+  } else if (it) {
+    // the story row was changed -> the list gets the same texts (so a later drawing keeps them)
+    const f = lang === "de" ? ["title_de", "text_de", "text_tr"] : lang === "tr-en" ? ["title_tr", "text_tr", "text_en"] : lang === "tr" ? ["title_tr", "text_tr", ""] : ["title_tr", "text_tr", "text_de"];
+    it[f[0]] = r.headline; if (texts[0] != null) it[f[1]] = texts[0]; if (f[2] && texts[1] != null) it[f[2]] = texts[1];
+    p = newsParts(it, lang);
+    p.title1 = r.headline; p.text1 = texts[0] || p.text1; if (texts.length > 1) p.text2 = texts[1];
+    await saveItems(database, itSlot, slotItems);
+  } else {
+    p = { title1: r.headline, title2: "", text1: texts[0] || "", text2: texts[1] || "", sourceLabel: "Kaynak / Quelle", source: srcLine.replace(/^[^:]*: /, ""), url: r.link, urgent: r.kind === "warn" };
+  }
+  let background = null;
+  const bgKey = it && it.bg;
+  if (bgKey) {
+    const obj = await env.BUCKET.get(bgKey).catch(() => null);
+    if (obj) background = { bytes: new Uint8Array(await obj.arrayBuffer()), mime: (obj.httpMetadata && obj.httpMetadata.contentType) || "image/jpeg" };
+  }
+  const logo = await assetBytes(origin, "/assets/images/mykiez_logo.png", "image/png");
+  const png = await renderNewsImage(p, { theme: it && it.theme != null ? it.theme : await nextTheme(database), logo, background });
+  const mediaKey = `stories/news-${storyId}-e${Date.now() % 100000000}-v5.png`; // "-v5.png" at the end: redrawNews leaves it alone
+  await env.BUCKET.put(mediaKey, png, { httpMetadata: { contentType: "image/png" } });
+  await database.prepare(`UPDATE stories SET media_key = ?, overlay = NULL WHERE id = ?`).bind(mediaKey, storyId).run();
+  out.redrawn = true;
+  out.mediaKey = mediaKey;
+  // social media: the corrected story is sent again
+  try {
+    const m = await database.prepare(`SELECT fb_post, ig_post, ig_story FROM meta_sent WHERE story_id = ?`).bind(storyId).first().catch(() => null);
+    if (m && m.fb_post) out.fbDeleted = await metaDeleteStory(env, database, storyId);
+    if (m && ((m.ig_post && m.ig_post !== "failed") || (m.ig_story && m.ig_story !== "failed"))) out.igManual = true;
+    const inCollection = await database.prepare(`SELECT slot FROM social_items WHERE channel = 'meta' AND story_id = ?`).bind(storyId).first().catch(() => null);
+    if (inCollection) { out.igManual = true; out.inCollection = inCollection.slot; } // the collection post stays (one of many pictures)
+    await database.prepare(`DELETE FROM meta_sent WHERE story_id = ?`).bind(storyId).run().catch(() => {});
+    await database.prepare(`DELETE FROM social_items WHERE story_id = ? AND channel = 'meta'`).bind(storyId).run().catch(() => {});
+    const tg = await telegramDeleteStory(env, database, storyId).catch(() => false);
+    await database.prepare(`DELETE FROM telegram_sent WHERE story_id = ?`).bind(storyId).run().catch(() => {});
+    out.social = `fb ${out.fbDeleted ? "deleted, sent again" : "sent again"} · telegram ${tg ? "deleted, sent again" : "sent again"}`;
+  } catch (e) { out.social = "error"; }
+  return out;
 }

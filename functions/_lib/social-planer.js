@@ -26,6 +26,8 @@ async function ensureTables(database) {
     database.prepare(`CREATE TABLE IF NOT EXISTS social_runs (slot TEXT PRIMARY KEY, started INTEGER, result TEXT)`),
     database.prepare(`CREATE TABLE IF NOT EXISTS social_items (channel TEXT, story_id TEXT, at INTEGER, slot TEXT, PRIMARY KEY (channel, story_id))`),
     database.prepare(`CREATE TABLE IF NOT EXISTS meta_sent (story_id TEXT PRIMARY KEY, sent_at INTEGER, fb_post TEXT, fb_story TEXT, ig_post TEXT, ig_story TEXT, ig_wait TEXT, log TEXT)`),
+    // 2026-11-23 (owner "UYGULA 4"): collection posts are sent step by step (see runJobStep)
+    database.prepare(`CREATE TABLE IF NOT EXISTS social_jobs (id TEXT PRIMARY KEY, slot TEXT, title TEXT, ids TEXT, media TEXT, text TEXT, state TEXT, status TEXT, lock INTEGER, created INTEGER, result TEXT)`),
   ]);
   await database.prepare(`INSERT OR IGNORE INTO social_state (key, value) VALUES ('since', ?)`).bind(String(Date.now())).run();
 }
@@ -200,13 +202,23 @@ export async function runSlot(env, database, slot) {
     if (!metaReady(env)) result.meta = "not_set";
     else {
       const todo = (await openStories(database, "meta", now)).filter((x) => x.media && x.media_type !== "video").slice(0, 10);
-      if (!todo.length) result.meta = "nichts neu";
+      // 2026-11-23 (owner "UYGULA 4"): the whole collection in ONE run took longer than 30 s -> the run was cut and the
+      // stories were marked "done" without being posted (08:00 + 12:00). Now the run only makes JOBS (fast); the posting
+      // is done step by step (runJobStep, one small step per minute) and a failed job gives its stories back.
+      const jobs = [];
+      if (todo.length) jobs.push({ title: "", ids: todo.map((x) => x.id), media: todo.map((x) => x.media), text: collectionText(todo, now) });
+      for (const g of await sponsorMediaGroups(database, now).catch(() => [])) jobs.push(g); // 2026-11-23 (owner "UYGULA 5")
+      if (!jobs.length) result.meta = "nichts neu";
       else {
-        await markDone(database, "meta", todo.map((x) => x.id), slot); // never twice, even if the post fails
-        // 2026-11-23: user token -> page token (the .catch was lost behind a comment – back now)
-        const r = await postCollection(await metaEnv(env, database), todo, collectionText(todo, now)).catch(() => ({ fb: "", ig: "" }));
-        result.meta = `${todo.length} Bilder · FB ${r.fb ? "ok" : "Fehler"} · IG ${r.ig ? "ok" : env.IG_USER_ID ? "Fehler" : "kein IG_USER_ID"}`;
+        for (const j of jobs) {
+          await markDone(database, "meta", j.ids, slot); // reserved (never twice); given back if the job fails
+          await database.prepare(`INSERT INTO social_jobs (id, slot, title, ids, media, text, state, status, lock, created, result) VALUES (?, ?, ?, ?, ?, ?, '{}', 'open', 0, ?, '')`)
+            .bind(crypto.randomUUID(), slot, j.title || "", JSON.stringify(j.ids), JSON.stringify(j.media), j.text, Date.now()).run();
+        }
+        const pics = jobs.reduce((n, j) => n + j.media.length, 0);
+        result.meta = `${pics} Bilder in ${jobs.length} Paket(en) · wird gesendet …`;
       }
+      if (false) await postCollection(await metaEnv(env, database), todo, collectionText(todo, now)); // old way (kept, not used)
     }
   }
   if (s.pack) for (const c of PACK_CHANNELS) result.pack[c] = (await openStories(database, c, now)).length;
@@ -220,6 +232,8 @@ export async function socialPlanerSweep(env, database) {
     const now = Date.now();
     if (!database || now - lastCheck < 60 * 1000) return;
     lastCheck = now;
+    await fixCutRuns(database).catch(() => {}); // 2026-11-23: once – cut runs of 23.11 give their stories back
+    if (await runJobStep(env, database).catch(() => false)) return; // 2026-11-23: one posting step per run
     const s = await plannerSettings(database);
     const due = dueSlot(s.times, now);
     if (!due) return;
@@ -267,6 +281,183 @@ export async function kiezPacks(database, now = Date.now()) {
       list = [...own, ...general].sort((a, b) => a.approved_at - b.approved_at).slice(-10);
     }
     out.push({ key: g.key, channel: `wa-${g.key}`, name: g.name, url: g.url, text: list.length ? kiezText(g, list, now) : "", stories: list.map((s) => ({ id: s.id, headline: s.headline, kiez: s.kiez, media: s.media, video: s.media_type === "video" })) });
+  }
+  return out;
+}
+
+// ---- 2026-11-23 (owner "UYGULA 4-5"): collection posts step by step ----
+// A job = one Facebook multi-photo post + one Instagram carousel (1 picture = normal post). Every call does ONE small
+// step (max. 3 uploads), so a run is never cut by the 30 s limit; every result is saved at once. When Facebook AND
+// Instagram both fail, the stories are given back (social_items row deleted) and come again in the next slot.
+let jobErr = "";
+async function jobGraph(env, path, params) {
+  const body = new URLSearchParams({ ...params, access_token: env.META_PAGE_TOKEN });
+  const res = await fetch(`${GRAPH}/${path}`, { method: "POST", body });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data || data.error) jobErr = `${path.split("/").pop()}: ${String((data && data.error && data.error.message) || res.status).slice(0, 140)}`;
+  return res.ok && data && !data.error ? data : null;
+}
+async function jobGraphGet(env, path, fields) {
+  const res = await fetch(`${GRAPH}/${path}?fields=${encodeURIComponent(fields)}&access_token=${encodeURIComponent(env.META_PAGE_TOKEN)}`);
+  const data = await res.json().catch(() => ({}));
+  return res.ok && data && !data.error ? data : null;
+}
+
+/** One step of the oldest open job. true = a step was done (the caller stops for this run). */
+export async function runJobStep(env, database) {
+  if (!metaReady(env)) return false;
+  await ensureTables(database);
+  const now = Date.now();
+  const job = await database.prepare(`SELECT * FROM social_jobs WHERE status = 'open' ORDER BY created ASC LIMIT 1`).first();
+  if (!job) return false;
+  const lock = await database.prepare(`UPDATE social_jobs SET lock = ? WHERE id = ? AND lock < ?`).bind(now, job.id, now - 90000).run();
+  if (!lock.meta || !lock.meta.changes) return true; // another run works on it
+  const menv = await metaEnv(env, database);
+  let st = {};
+  try { st = JSON.parse(job.state || "{}") || {}; } catch (e) { st = {}; }
+  const media = JSON.parse(job.media || "[]");
+  const page = env.FB_PAGE_ID, ig = env.IG_USER_ID;
+  jobErr = "";
+  st.steps = (st.steps || 0) + 1;
+  if (!st.fbDone) {
+    st.fbIds = st.fbIds || [];
+    if (st.fbIds.length < media.length) {
+      for (const url of media.slice(st.fbIds.length, st.fbIds.length + 3)) {
+        const p = await jobGraph(menv, `${page}/photos`, { url, published: "false" });
+        st.fbIds.push((p && p.id) || "");
+      }
+    } else {
+      const ok = st.fbIds.filter(Boolean);
+      if (ok.length) {
+        const params = { message: job.text };
+        ok.forEach((id, i) => { params[`attached_media[${i}]`] = JSON.stringify({ media_fbid: id }); });
+        const f = await jobGraph(menv, `${page}/feed`, params);
+        st.fb = (f && f.id) || "failed";
+      } else st.fb = "failed";
+      st.fbDone = true;
+    }
+  } else if (!st.igDone && ig) {
+    st.igKids = st.igKids || [];
+    if (!st.igCreation && media.length === 1) {
+      const c = await jobGraph(menv, `${ig}/media`, { image_url: media[0], caption: job.text });
+      st.igCreation = (c && c.id) || "failed";
+    } else if (!st.igCreation && st.igKids.length < media.length) {
+      for (const url of media.slice(st.igKids.length, st.igKids.length + 3)) {
+        const c = await jobGraph(menv, `${ig}/media`, { image_url: url, is_carousel_item: "true" });
+        st.igKids.push((c && c.id) || "");
+      }
+    } else if (!st.igCreation) {
+      const kids = st.igKids.filter(Boolean);
+      if (kids.length >= 2) {
+        const c = await jobGraph(menv, `${ig}/media`, { media_type: "CAROUSEL", children: kids.join(","), caption: job.text });
+        st.igCreation = (c && c.id) || "failed";
+      } else if (kids.length === 1) {
+        const c = await jobGraph(menv, `${ig}/media`, { image_url: media[st.igKids.indexOf(kids[0])], caption: job.text });
+        st.igCreation = (c && c.id) || "failed";
+      } else st.igCreation = "failed";
+    } else if (st.igCreation === "failed") {
+      st.ig = "failed"; st.igDone = true;
+    } else {
+      const s = await jobGraphGet(menv, st.igCreation, "status_code");
+      const code = s && s.status_code;
+      if (code === "FINISHED" || !code) {
+        const p = await jobGraph(menv, `${ig}/media_publish`, { creation_id: st.igCreation });
+        st.ig = (p && p.id) || "";
+        if (!st.ig) { const again = await jobGraphGet(menv, st.igCreation, "status_code"); st.ig = again && again.status_code === "PUBLISHED" ? "published" : "failed"; }
+        st.igDone = true;
+      } else if (code === "PUBLISHED") { st.ig = "published"; st.igDone = true; }
+      else if (code === "ERROR" || st.steps > 40) { st.ig = "failed"; st.igDone = true; }
+      // IN_PROGRESS: wait for the next run
+    }
+  } else {
+    if (!ig) { st.ig = "kein IG_USER_ID"; st.igDone = true; }
+  }
+  if (jobErr) st.err = jobErr;
+  const finished = st.fbDone && (st.igDone || !ig);
+  if (finished) {
+    const fbOk = st.fb && st.fb !== "failed", igOk = st.ig && st.ig !== "failed" && st.ig !== "kein IG_USER_ID";
+    const ids = JSON.parse(job.ids || "[]");
+    if (!fbOk && !igOk) for (const id of ids) await database.prepare(`DELETE FROM social_items WHERE channel = 'meta' AND story_id = ? AND slot = ?`).bind(String(id), job.slot).run(); // back in the queue
+    const line = `${job.title ? job.title + ": " : ""}${media.length} Bilder · FB ${fbOk ? "ok" : "Fehler"} · IG ${igOk ? "ok" : ig ? "Fehler" : "kein IG_USER_ID"}${!fbOk && !igOk ? " (kommt im nächsten Lauf wieder)" : ""}`;
+    await database.prepare(`UPDATE social_jobs SET state = ?, status = ?, result = ?, lock = 0 WHERE id = ?`).bind(JSON.stringify(st), fbOk || igOk ? "done" : "failed", line, job.id).run();
+    // the slot line in "Letzte Läufe" shows all jobs of the slot
+    const { results } = await database.prepare(`SELECT status, result FROM social_jobs WHERE slot = ? ORDER BY created ASC`).bind(job.slot).all();
+    const run = await database.prepare(`SELECT result FROM social_runs WHERE slot = ?`).bind(job.slot).first();
+    let r = {};
+    try { r = JSON.parse((run && run.result) || "{}") || {}; } catch (e) { r = {}; }
+    r.meta = (results || []).map((x) => (x.status === "open" ? "⏳ wird gesendet" : x.result)).join(" | ");
+    await database.prepare(`UPDATE social_runs SET result = ? WHERE slot = ?`).bind(JSON.stringify(r), job.slot).run();
+  } else {
+    await database.prepare(`UPDATE social_jobs SET state = ?, lock = 0 WHERE id = ?`).bind(JSON.stringify(st), job.id).run();
+  }
+  return true;
+}
+
+/** Manual run ("Jetzt ausführen"): the steps run in the request itself (max. ~25 s), the rest in the background. */
+export async function runJobsNow(env, database, maxMs = 25000) {
+  const t0 = Date.now();
+  let n = 0;
+  while (Date.now() - t0 < maxMs && (await runJobStep(env, database).catch(() => false))) n++;
+  return n;
+}
+
+/** New sponsor folder pictures (sponsor panel uploads), one job per sponsor (max. 10). Only uploads after this update. */
+async function sponsorMediaGroups(database, now) {
+  await database.prepare(`INSERT OR IGNORE INTO social_state (key, value) VALUES ('since_sm', ?)`).bind(String(now)).run();
+  const since = Number((await database.prepare(`SELECT value FROM social_state WHERE key = 'since_sm'`).first())?.value) || now;
+  const { results } = await database.prepare(`SELECT m.id, m.ad_id, m.media_key, m.caption, a.name FROM sponsor_media m JOIN ads a ON a.id = m.ad_id
+      WHERE m.status = 'live' AND m.media_type = 'image' AND m.created_at >= ? AND m.created_at > ? AND a.active = 1
+        AND ('sm-' || m.id) NOT IN (SELECT story_id FROM social_items WHERE channel = 'meta')
+      ORDER BY m.created_at ASC LIMIT 60`).bind(since, now - 2 * 86400000).all().catch(() => ({ results: [] }));
+  const map = new Map();
+  for (const r of results || []) {
+    const g = map.get(r.ad_id) || { title: r.name, ids: [], media: [], caps: [] };
+    if (g.ids.length >= 10) continue;
+    g.ids.push(`sm-${r.id}`);
+    g.media.push(r.media_key.startsWith("https://") ? r.media_key : r.media_key.startsWith("/") ? `${SITE}${r.media_key}` : `${SITE}/media/${r.media_key}`);
+    if (r.caption && g.caps.length < 3) g.caps.push(String(r.caption).trim().slice(0, 200));
+    map.set(r.ad_id, g);
+  }
+  return [...map.values()].map((g) => ({
+    title: g.title, ids: g.ids, media: g.media,
+    text: [`📣 ${g.title} · Sponsor von My Kiez Berlin`, "", ...g.caps.map((c) => `• ${c}`), "", `👉 ${SITE} · 📲 App: My Kiez Berlin`, "", "#berlin #mykiezberlin #kiez #berlinshopping #kiezleben"].join("\n").slice(0, 2100),
+  }));
+}
+
+/** Once: the runs of 23.11 08:00 + 12:00 were cut (empty result) -> their stories come back into the queue. */
+async function fixCutRuns(database) {
+  const flag = await database.prepare(`SELECT value FROM social_state WHERE key = 'fix_cut_2311'`).first().catch(() => null);
+  if (flag) return;
+  await ensureTables(database);
+  const { results } = await database.prepare(`SELECT slot FROM social_runs WHERE (result = '' OR result IS NULL) AND started < ?`).bind(Date.now() - 10 * 60000).all();
+  let n = 0;
+  for (const r of results || []) {
+    const d = await database.prepare(`DELETE FROM social_items WHERE channel = 'meta' AND slot = ?`).bind(r.slot).run();
+    n += (d.meta && d.meta.changes) || 0;
+    await database.prepare(`UPDATE social_runs SET result = ? WHERE slot = ?`).bind(JSON.stringify({ telegram: "-", meta: `abgebrochen (30 s) – ${(d.meta && d.meta.changes) || 0} Stories wieder in der Warteschlange`, pack: {} }), r.slot).run();
+  }
+  await database.prepare(`INSERT OR REPLACE INTO social_state (key, value) VALUES ('fix_cut_2311', ?)`).bind(`${(results || []).length} runs, ${n} stories`).run();
+}
+
+/** 2026-11-23 (owner "UYGULA 6"): Facebook/Instagram state of stories for the news card. */
+export async function metaStateFor(database, ids) {
+  const out = {};
+  if (!ids.length) return out;
+  await ensureTables(database);
+  const q = ids.map(() => "?").join(",");
+  const { results: items } = await database.prepare(`SELECT story_id, slot, channel FROM social_items WHERE story_id IN (${q})`).bind(...ids).all();
+  const { results: sent } = await database.prepare(`SELECT story_id, fb_post, ig_post FROM meta_sent WHERE story_id IN (${q})`).bind(...ids).all();
+  const { results: jobs } = await database.prepare(`SELECT slot, ids, status, result FROM social_jobs WHERE created > ?`).bind(Date.now() - 3 * 86400000).all();
+  for (const r of items || []) {
+    const o = (out[r.story_id] = out[r.story_id] || { channels: [] });
+    o.channels.push(r.channel);
+    if (r.channel !== "meta") continue;
+    const j = (jobs || []).find((x) => x.slot === r.slot && JSON.parse(x.ids || "[]").includes(r.story_id));
+    o.meta = { slot: r.slot, status: j ? j.status : /^(admin|manual-share)/.test(r.slot) ? "manual" : "done", result: j ? j.result : "" };
+  }
+  for (const r of sent || []) {
+    const o = (out[r.story_id] = out[r.story_id] || { channels: [] });
+    o.single = { fb: !!(r.fb_post && r.fb_post !== "failed"), ig: !!(r.ig_post && r.ig_post !== "failed") };
   }
   return out;
 }

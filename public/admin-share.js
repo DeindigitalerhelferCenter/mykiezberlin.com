@@ -78,4 +78,42 @@
       return r;
     };
   }
+
+  // 2026-11-23 (owner "UYGULA 7"): after sharing by hand the admin confirms "✓ Paylaştım" -> the server remembers it
+  // (social_items), so the Social-Planer / TikTok / WhatsApp package never offers this story again for that channel.
+  // Instagram / Facebook by hand = the automatic Facebook/Instagram posting skips this story too.
+  function adminToken() { try { return sessionStorage.getItem("mykiez_admin_token_v1") || localStorage.getItem("mykiez_admin_session_v1") || ""; } catch (e) { return ""; } }
+  function askShared(target, id) {
+    var old = document.getElementById("mk-shared-ask");
+    if (old) old.remove();
+    var names = { whatsapp: "WhatsApp", instagram: "Instagram", facebook: "Facebook", tiktok: "TikTok" };
+    var box = document.createElement("div");
+    box.id = "mk-shared-ask";
+    box.style.cssText = "position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:100001;background:#161b22;border:1px solid #30363d;border-radius:14px;padding:10px 12px;color:#fff;font:600 13px system-ui,sans-serif;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;max-width:94vw;box-shadow:0 8px 30px rgba(0,0,0,.5)";
+    var btn = "border:0;border-radius:10px;padding:7px 11px;font-weight:700;cursor:pointer;color:#fff";
+    box.innerHTML = "<span>" + names[target] + ": paylaştın mı? · geteilt?</span>" +
+      '<button type="button" data-y style="' + btn + ';background:#238636">✓ Paylaştım</button>' +
+      '<button type="button" data-n style="' + btn + ';background:#30363d">✕ Hayır</button>';
+    document.body.appendChild(box);
+    var t = setTimeout(function () { box.remove(); }, 60000);
+    box.querySelector("[data-n]").onclick = function () { clearTimeout(t); box.remove(); };
+    box.querySelector("[data-y]").onclick = function () {
+      clearTimeout(t);
+      box.textContent = "…";
+      fetch("/api/social-planer", { method: "POST", headers: { "content-type": "application/json", "x-admin-token": adminToken() }, body: JSON.stringify({ action: "manualShared", target: target, id: id }) })
+        .then(function (r) { return r.json().catch(function () { return {}; }); })
+        .then(function (j) { box.textContent = j && j.ok ? "✓ Kaydedildi – " + names[target] + " için bir daha önerilmez" : "Kaydedilemedi: " + ((j && j.error) || "?"); setTimeout(function () { box.remove(); }, 3500); })
+        .catch(function () { box.textContent = "Ağ hatası"; setTimeout(function () { box.remove(); }, 3500); });
+    };
+  }
+  if (typeof window.mkAdminShare === "function") {
+    var shareBase = window.mkAdminShare;
+    window.mkAdminShare = async function (target) {
+      var story = null;
+      try { story = typeof getStories === "function" ? getStories().filter(function (s) { return s.status === "approved"; })[activeStoryIndex] : null; } catch (e) { story = null; }
+      var r = await shareBase.apply(this, arguments);
+      if (story && story.id && isAdmin()) askShared(target, String(story.id));
+      return r;
+    };
+  }
 })();

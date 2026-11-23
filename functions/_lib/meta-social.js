@@ -51,6 +51,8 @@ async function ensureTables(database) {
   await database.batch([
     database.prepare(`CREATE TABLE IF NOT EXISTS meta_state (key TEXT PRIMARY KEY, value TEXT)`),
     database.prepare(`CREATE TABLE IF NOT EXISTS meta_sent (story_id TEXT PRIMARY KEY, sent_at INTEGER, fb_post TEXT, fb_story TEXT, ig_post TEXT, ig_story TEXT, ig_wait TEXT, log TEXT)`),
+    // 2026-11-23: same table as the Social-Planer – stories shared by hand / in a collection are skipped here
+    database.prepare(`CREATE TABLE IF NOT EXISTS social_items (channel TEXT, story_id TEXT, at INTEGER, slot TEXT, PRIMARY KEY (channel, story_id))`),
   ]);
 }
 
@@ -167,11 +169,21 @@ export async function metaSweep(env, database) {
     const { results } = await database
       .prepare(`SELECT s.id, s.headline, s.subtext, s.kiez, s.media_key, s.media_type FROM stories s
         LEFT JOIN meta_sent m ON m.story_id = s.id
-        WHERE m.story_id IS NULL AND s.by_admin = 1 AND s.status = 'approved' AND s.media_key NOT LIKE 'stories/news-%' /* 2026-11-23 (owner "öneri"): news only in the 8/16/23 collections */ AND s.approved_at <= ? AND s.approved_at >= ? AND s.approved_at > ?
+        WHERE m.story_id IS NULL AND (s.by_admin = 1 OR s.author IN (SELECT name FROM ads WHERE active = 1) /* 2026-11-23 (owner "UYGULA 5"): sponsor stories too */) AND s.status = 'approved' AND s.media_key NOT LIKE 'stories/news-%' /* 2026-11-23 (owner "öneri"): news only in the 8/16/23 collections */ AND s.approved_at <= ? AND s.approved_at >= ? AND s.approved_at > ?
           AND s.approved_at + s.duration_hours * 3600000 > ?
+          AND s.id NOT IN (SELECT story_id FROM social_items WHERE channel = 'meta') /* 2026-11-23: shared by hand / in a collection */
         ORDER BY s.approved_at ASC LIMIT ?`)
       .bind(now, since, now - MAX_AGE_MS, now, PER_RUN)
       .all();
+    // 2026-11-23 (owner "UYGULA 5"): no story waiting -> one new sponsor folder VIDEO alone (Facebook video + Instagram Reel);
+    // sponsor folder pictures go in the Social-Planer collections (one carousel per sponsor)
+    if (!(results || []).length) {
+      const v = await database.prepare(`SELECT m.id, m.media_key, m.caption, a.name FROM sponsor_media m JOIN ads a ON a.id = m.ad_id
+          WHERE m.status = 'live' AND m.media_type = 'video' AND a.active = 1 AND m.created_at >= ? AND m.created_at > ? AND m.media_key NOT LIKE 'http%' AND m.media_key NOT LIKE '/%'
+            AND ('sm-' || m.id) NOT IN (SELECT story_id FROM meta_sent) AND ('sm-' || m.id) NOT IN (SELECT story_id FROM social_items WHERE channel = 'meta')
+          ORDER BY m.created_at ASC LIMIT 1`).bind(since, now - MAX_AGE_MS).first().catch(() => null);
+      if (v) results.push({ id: `sm-${v.id}`, headline: `📣 ${v.name} · Sponsor`, subtext: v.caption || "", kiez: "", media_key: v.media_key, media_type: "video" });
+    }
     for (const story of results || []) {
       await database.prepare(`INSERT OR IGNORE INTO meta_sent (story_id, sent_at) VALUES (?, ?)`).bind(story.id, now).run(); // never twice
       lastGraphError = "";

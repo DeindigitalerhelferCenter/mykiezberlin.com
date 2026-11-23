@@ -7,6 +7,7 @@ import { db, isAdmin, json, noDb } from "../_lib/util.js";
 import { telegramReady } from "../_lib/telegram.js";
 import { metaReady } from "../_lib/meta-social.js";
 import { PACK_CHANNELS, collectionText, isWaKiezChannel, kiezPacks, markDone, nextSlot, openStories, plannerSettings, runSlot, saveSettings } from "../_lib/social-planer.js";
+import { runJobsNow } from "../_lib/social-planer.js"; // 2026-11-23
 
 const NO_STORE = { "cache-control": "no-store" };
 
@@ -33,7 +34,23 @@ export async function onRequestPost({ request, env }) {
   if (!database) return noDb();
   const body = await request.json().catch(() => ({}));
   if (body.action === "settings") return json({ ok: true, settings: await saveSettings(database, body) }, 200, NO_STORE);
-  if (body.action === "run") return json({ ok: true, result: await runSlot(env, database, `manual ${new Date().toISOString().slice(0, 16)}`) }, 200, NO_STORE);
+  if (body.action === "run") {
+    // 2026-11-23 (owner "UYGULA 4"): the run makes jobs; the posting steps run here (~25 s), the rest in the background
+    const slotKey = `manual ${new Date().toISOString().slice(0, 16)}`;
+    const result = await runSlot(env, database, slotKey);
+    const steps = await runJobsNow(env, database, 25000);
+    const run = await database.prepare(`SELECT result FROM social_runs WHERE slot = ?`).bind(slotKey).first().catch(() => null);
+    let now = result;
+    try { now = JSON.parse((run && run.result) || "null") || result; } catch (e) { now = result; }
+    return json({ ok: true, result: now, steps }, 200, NO_STORE);
+  }
+  // 2026-11-23 (owner "UYGULA 7"): the admin shared a story by hand (story viewer) -> this channel never offers it again
+  if (body.action === "manualShared") {
+    const map = { whatsapp: "whatsapp", tiktok: "tiktok", instagram: "meta", facebook: "meta" };
+    const channel = map[body.target];
+    if (!channel || !body.id) return json({ error: "bad_request" }, 400);
+    return json({ ok: true, channel, marked: await markDone(database, channel, [String(body.id).slice(0, 80)], "manual-share") }, 200, NO_STORE);
+  }
   if (body.action === "mark") {
     if (!(PACK_CHANNELS.includes(body.channel) || isWaKiezChannel(body.channel)) || !Array.isArray(body.ids)) return json({ error: "bad_request" }, 400); // 2026-11-22: + "wa-<kiez>"
     return json({ ok: true, marked: await markDone(database, body.channel, body.ids.slice(0, 100), "admin") }, 200, NO_STORE);

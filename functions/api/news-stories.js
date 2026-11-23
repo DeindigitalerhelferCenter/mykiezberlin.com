@@ -10,6 +10,8 @@ import { setHidden, seenTopics } from "../_lib/news-auto.js";
 import { addBlocked, berlinSlot, buildList, ensureCurrentSlot, ensureNews, getSlot, listBackgrounds, newsParts, pickList, publishItems, readBlocked, readSettings, saveItems, saveSettings, TEMPLATE_COUNT } from "../_lib/news-auto.js";
 import { renderNewsImage } from "../_lib/news-image.js";
 import { readFlags } from "./flags.js";
+import { redrawEditedStory, setBackgroundTag, setPicked } from "../_lib/news-auto.js"; // 2026-11-23 (owner "UYGULA 1-12")
+import { metaStateFor, nextSlot, plannerSettings } from "../_lib/social-planer.js";
 
 const BG_TYPES = { "image/jpeg": "jpg", "image/png": "png" }; // 2026-11-22: the picture renderer reads JPEG + PNG
 
@@ -40,7 +42,15 @@ export async function onRequestGet({ request, env, waitUntil }) {
     open: cur ? cur.items.filter((x) => x.written === false).length : 0,
     autoDone: cur ? !!cur.auto_done : false,
   };
-  return json({ slots, auto: flags.newsAuto, templates: TEMPLATE_COUNT, now: berlinSlot(), settings, backgrounds, status }, 200, { "cache-control": "no-store" });
+  // 2026-11-23 (owner "UYGULA 6"): "paylaşıldı" = on the site; Facebook/Instagram state shown apart
+  let social = {}, nextMeta = "";
+  try {
+    const ids = [];
+    for (const s of slots) for (const it of (s && s.items) || []) for (const id of [it.published, ...(it.shares || [])]) if (id && !ids.includes(id)) ids.push(id);
+    social = await metaStateFor(database, ids.slice(0, 90));
+    nextMeta = nextSlot((await plannerSettings(database)).times, Date.now());
+  } catch (e) { social = {}; }
+  return json({ slots, auto: flags.newsAuto, templates: TEMPLATE_COUNT, now: berlinSlot(), settings, backgrounds, status, social, nextMeta }, 200, { "cache-control": "no-store" });
 }
 
 export async function onRequestPost({ request, env }) {
@@ -80,6 +90,28 @@ export async function onRequestPost({ request, env }) {
     // the picture file stays in R2: stories already published with it still need it
     const s = await readSettings(database);
     if (s.bgPicks.includes(`b:${key}`)) await saveSettings(database, { bgPicks: s.bgPicks.filter((x) => x !== `b:${key}`) });
+    return json({ ok: true });
+  }
+
+  // 2026-11-23 (owner "UYGULA 1"): a tick is saved at once (stays after every new drawing of the list) and is shared
+  // by the auto step (urgent + first 3 + ticked). A tick shows a hidden topic again.
+  if (body.action === "pick") {
+    const s = await getSlot(database, slot);
+    const it = s && s.items.find((x) => x.id === body.id);
+    if (!it) return json({ error: "not_found" }, 404);
+    const on = body.on === true || body.on === "1" || body.on === 1;
+    const key = it.orig || it.title_de || "";
+    await setPicked(database, key, on);
+    if (on && it.hidden) { await setHidden(database, key, false); delete it.hidden; }
+    if (on) it.picked = true; else delete it.picked;
+    await saveItems(database, slot, s.items);
+    return json({ ok: true, picked: on });
+  }
+  // 2026-11-23 (owner "UYGULA 8"): topic tag of an own background (genel / spor / kultur / acil)
+  if (body.action === "bgTag") {
+    const key = cleanText(body.key, 120);
+    if (!/^stories\/news-bglib-[0-9a-f-]+\.(jpg|png)$/.test(key)) return json({ error: "bad_key" }, 400);
+    await setBackgroundTag(database, key, String(body.tag || ""));
     return json({ ok: true });
   }
 
@@ -163,6 +195,11 @@ export async function onRequestPost({ request, env }) {
     if (body.title_en != null) it.title_en = cleanText(body.title_en, 90);
     if (body.text_en != null) it.text_en = cleanLongText(body.text_en, 600);
     await saveItems(database, slot, s.items);
+    // 2026-11-23 (owner "UYGULA 10"): already shared -> the shared story gets the new text + a new picture
+    if (it.published) {
+      const r = await redrawEditedStory(env, database, it.published, origin, "item").catch((e) => ({ error: String((e && e.message) || e).slice(0, 120) }));
+      return json({ ok: true, redraw: r });
+    }
     return json({ ok: true });
   }
 
@@ -183,8 +220,12 @@ export async function onRequestPost({ request, env }) {
     const st = await readSettings(database);
     const pick = String(body.bgPick || "");
     if (!backgroundKey && /^b:stories\/news-bglib-[0-9a-f-]+\.(jpg|png)$/.test(pick)) backgroundKey = pick.slice(2);
+    const again = body.again === "1" || body.again === true;
+    // 2026-11-23 (owner "UYGULA 3"): not "again" -> the same fixed id as the auto step (a topic is never shared twice)
+    const storyIds = again ? null : Object.fromEntries(ids.map((id) => [id, `news-auto-${slot}-${id}`]));
     const res = await publishItems(env, database, slot, ids, {
-      lang: body.lang || st.lang, template: Number(body.template) || 0, backgroundKey, origin, again: body.again === "1" || body.again === true,
+      storyIds,
+      lang: body.lang || st.lang, template: Number(body.template) || 0, backgroundKey, origin, again,
       gapMinutes: body.gapMinutes != null && body.gapMinutes !== "" ? Math.min(120, Math.max(0, Number(body.gapMinutes) || 0)) : st.gap,
       useSettings: true,
     });

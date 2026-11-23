@@ -77,9 +77,14 @@ progress{width:100%;margin-top:8px}
       <p class="muted" id="quota"></p>
       <label for="mfile" data-i="file"></label><input id="mfile" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm">
       <label for="mcap" data-i="caption"></label><input id="mcap" type="text" maxlength="300">
+      <!-- 2026-11-23 (owner "UYGULA 11"): how long the upload stays in the sponsor story on the page -->
+      <label for="mdays" id="mdays-l">Wie lange sichtbar? · Ne kadar görünsün?</label>
+      <select id="mdays"><option value="1">1 Tag · 1 gün</option><option value="2">2 Tage · 2 gün</option><option value="3">3 Tage · 3 gün</option><option value="7">7 Tage · 7 gün</option></select>
       <p><button id="mbtn" class="btn" type="button" data-i="upload"></button></p>
       <progress id="mprog" class="hidden" max="100" value="0"></progress>
       <p id="mmsg" class="msg"></p>
+      <!-- 2026-11-23 (owner "UYGULA 12"): send own pictures/videos to customers (WhatsApp, Instagram …) -->
+      <p id="mshare-bar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button id="mshare" class="btn" type="button">📤 Teilen · Paylaş</button><small class="muted" id="mshare-t">Bilder antippen = auswählen (☑). Ohne Auswahl werden alle sichtbaren geteilt. · Seçmek için ☑ işaretle; seçim yoksa hepsi paylaşılır.</small></p>
       <div id="mlist" class="media"></div>
     </div>
 
@@ -109,6 +114,7 @@ progress{width:100%;margin-top:8px}
 </main>
 <script src="image-shrink.js?v=2"></script>
 <script src="video-check.js?v=1"></script>
+<script src="sponsor-share-media.js?v=1"></script>
 <script>
 (function () {
   "use strict";
@@ -182,6 +188,23 @@ progress{width:100%;margin-top:8px}
       mv.innerHTML = [["first", "⏮"], ["up", "◀"], ["down", "▶"], ["last", "⏭"]].map(function (b) { return '<button type="button" data-to="' + b[0] + '" title="' + t("mv_" + b[0]) + '">' + b[1] + "</button>"; }).join("");
       mv.querySelectorAll("button").forEach(function (b) { b.onclick = function () { b.disabled = true; api("moveMedia", { id: m.id, to: b.getAttribute("data-to") }).then(load); }; });
       fig.appendChild(mv);
+      // 2026-11-23 (owner "UYGULA 11-12"): visible days (change any time) + choose for sharing + share one
+      if (m.media_type === "image" || m.media_type === "video") {
+        var tr = lang === "tr";
+        var days = Number(m.days) || 1;
+        var left = m.created_at + days * 86400000 - Date.now();
+        var ex = document.createElement("div");
+        ex.style.cssText = "display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:4px 8px 8px;font-size:12px";
+        ex.innerHTML = '<label style="display:flex;gap:4px;align-items:center;margin:0"><input type="checkbox" class="msel" style="width:auto"> ☑</label>' +
+          '<select class="mdays" style="width:auto;padding:3px 6px;font-size:12px">' + [1, 2, 3, 7].map(function (d) { return '<option value="' + d + '"' + (d === days ? " selected" : "") + ">" + d + (tr ? " gün" : d === 1 ? " Tag" : " Tage") + "</option>"; }).join("") + "</select>" +
+          '<span class="muted">' + (left > 0 ? (tr ? "kalan " : "noch ") + (left > 86400000 ? Math.ceil(left / 86400000) + (tr ? " gün" : " T.") : Math.max(1, Math.round(left / 3600000)) + " h") : (tr ? "süresi doldu" : "abgelaufen")) + "</span>" +
+          '<button type="button" class="m1share" style="border:0;border-radius:8px;padding:4px 8px;background:#1f6feb;color:#fff;cursor:pointer">📤</button>';
+        ex.querySelector(".msel").checked = !!selected[m.id];
+        ex.querySelector(".msel").onchange = function () { if (this.checked) selected[m.id] = 1; else delete selected[m.id]; };
+        ex.querySelector(".mdays").onchange = function () { var sel = this; sel.disabled = true; api("setDays", { id: m.id, days: Number(sel.value) }).then(load); };
+        ex.querySelector(".m1share").onclick = function () { shareItems([m]); };
+        fig.appendChild(ex);
+      }
       list.appendChild(fig);
     });
   }
@@ -217,6 +240,7 @@ progress{width:100%;margin-top:8px}
   };
   function send(file) {
     var fd = new FormData(); fd.append("file", file); fd.append("caption", $("mcap").value);
+    fd.append("days", $("mdays").value); // 2026-11-23 (owner "UYGULA 11")
     var xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/sponsor-media"); xhr.setRequestHeader("x-sponsor-token", token);
     $("mprog").classList.remove("hidden"); $("mbtn").disabled = true;
@@ -229,6 +253,24 @@ progress{width:100%;margin-top:8px}
     };
     xhr.send(fd);
   }
+
+  // 2026-11-23 (owner "UYGULA 12"): share own pictures/videos with customers (text ends with My Kiez Berlin + app + /s/<id>)
+  var selected = {};
+  function mediaSrc(m) { return m.media_key.charAt(0) === "/" || m.media_key.indexOf("https://") === 0 ? m.media_key : "/media/" + m.media_key; }
+  function shareItems(list) {
+    if (!window.mkSponsorShare || !state) return;
+    var tr = lang === "tr";
+    msg("mmsg", tr ? "⏳ Hazırlanıyor…" : "⏳ Wird vorbereitet …", true);
+    window.mkSponsorShare(state.ad.name, state.ad.id, list.map(function (m) { return { url: mediaSrc(m), caption: m.caption || "" }; }), lang).then(function (r) {
+      msg("mmsg", r === "ok" ? (tr ? "✓ Paylaşıldı" : "✓ Geteilt") : r === "again" ? (tr ? "Dosyalar hazır – 📤 düğmesine bir kez daha bas." : "Dateien bereit – bitte 📤 noch einmal tippen.") : r === "cancel" ? "" : (tr ? "Metin + linkler kopyalandı – resimleri telefondan ekle." : "Text + Links kopiert – Bilder am Handy dazu."), r !== "cancel");
+    });
+  }
+  $("mshare").onclick = function () {
+    if (!state) return;
+    var live = state.media.filter(function (m) { return m.status === "live" && (m.media_type === "image" || m.media_type === "video"); });
+    var pick = live.filter(function (m) { return selected[m.id]; });
+    shareItems(pick.length ? pick : live.slice(0, 10));
+  };
 
   apply();
   if (token) load(); else showLogin();

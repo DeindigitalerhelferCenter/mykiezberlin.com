@@ -66,5 +66,8 @@ export async function onRequestPost({ request, env }) {
     .prepare(`INSERT INTO sponsor_media (id, ad_id, media_key, media_type, caption, status, bytes, created_at, by_admin) VALUES (?, ?, ?, ?, ?, 'live', ?, ?, ?)`)
     .bind(id, ad.id, key, isVideo ? "video" : "image", cleanText(form.get("caption"), 300), file.size, Date.now(), byAdmin)
     .run();
+  // 2026-11-23 (owner "UYGULA 11"): 1, 2, 3 or 7 days in the sponsor story (default 1 = as before)
+  const days = [1, 2, 3, 7].includes(Number(form.get("days"))) ? Number(form.get("days")) : 1;
+  if (days !== 1) await database.prepare(`UPDATE sponsor_media SET days = ? WHERE id = ?`).bind(days, id).run().catch(() => {});
   return json({ ok: true, id, url: `/media/${key}` }, 201);
 }

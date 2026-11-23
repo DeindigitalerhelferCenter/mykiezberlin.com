@@ -297,7 +297,7 @@ export async function onRequestPost({ request, env }) {
   if (!ad) return json({ error: "unauthorized" }, 401);
   if (action === "me") {
     const { results } = await database
-      .prepare(`SELECT id, media_key, media_type, caption, status, created_at FROM sponsor_media WHERE ad_id = ? ORDER BY ${MEDIA_ORDER} LIMIT 200`)
+      .prepare(`SELECT id, media_key, media_type, caption, status, created_at, days FROM sponsor_media WHERE ad_id = ? ORDER BY ${MEDIA_ORDER} LIMIT 200`) /* 2026-11-23: + days */
       .bind(ad.id)
       .all();
     const stats = await database.prepare(`SELECT SUM(imp) AS imp, SUM(clk) AS clk FROM ad_stats WHERE ad_id = ? AND day >= ?`).bind(ad.id, new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10)).first();
@@ -316,6 +316,13 @@ export async function onRequestPost({ request, env }) {
     if (!row) return json({ error: "not_found" }, 404);
     await deleteMedia(env, database, row);
     return json({ ok: true });
+  }
+  // 2026-11-23 (owner "UYGULA 11"): the sponsor changes how long an upload stays in the story (1, 2, 3 or 7 days)
+  if (action === "setDays") {
+    const days = [1, 2, 3, 7].includes(Number(body.days)) ? Number(body.days) : 1;
+    const r = await database.prepare(`UPDATE sponsor_media SET days = ? WHERE id = ? AND ad_id = ?`).bind(days, cleanText(body.id, 60), ad.id).run();
+    if (!r.meta || !r.meta.changes) return json({ error: "not_found" }, 404);
+    return json({ ok: true, days });
   }
   return json({ error: "bad_request" }, 400);
 }

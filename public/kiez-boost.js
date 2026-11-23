@@ -187,6 +187,25 @@
     box.querySelector(".mk-sps-prev").onclick = function () { step(-1); };
     box.querySelector(".mk-sps-next").onclick = function () { step(1); };
     box.querySelector(".mk-sps-more").onclick = function () { var id = s.id; closeViewer(); if (typeof window.mkSponsorInfo === "function") window.mkSponsorInfo(id); else if (typeof switchTab === "function") switchTab("sponsors"); };
+    // 2026-11-23 (owner "UYGULA 12"): share this picture/video (text ends with My Kiez Berlin + app + sponsor page)
+    if (typeof window.mkSponsorShare === "function") {
+      var sh = document.createElement("button");
+      sh.type = "button";
+      sh.className = "mk-sps-more mk-sps-share";
+      sh.style.marginTop = "6px";
+      sh.textContent = "📤 " + L("Teilen", "Paylaş", "Share");
+      sh.onclick = function (ev) {
+        ev.stopPropagation();
+        if (V && V.timer) clearTimeout(V.timer); // stay on this picture while sharing
+        var l = typeof currentLanguage === "string" && currentLanguage.indexOf("tr") === 0 ? "tr" : "de";
+        sh.textContent = "⏳";
+        window.mkSponsorShare(s.name, s.id, [{ url: m.url, caption: m.caption || "" }], l).then(function (r) {
+          sh.textContent = r === "again" ? "📤 " + L("Noch einmal tippen", "Bir kez daha bas", "Tap again") : r === "copied" ? "✓ " + L("Text kopiert", "Metin kopyalandı", "Text copied") : "📤 " + L("Teilen", "Paylaş", "Share");
+        });
+      };
+      var more = box.querySelector(".mk-sps-more");
+      more.parentNode.insertBefore(sh, more.nextSibling);
+    }
     box.onclick = function (ev) { if (ev.target === box) closeViewer(); };
     var now = box.querySelector(".mk-sps-bars .now b");
     var vid = box.querySelector("video");

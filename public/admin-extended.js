@@ -136,7 +136,14 @@ async function editStory(id) {
   const headline = prompt("Yeni başlık:");
   if (!headline) return;
   const subtext = prompt("Yeni açıklama:") || "";
-  await adminRequest("POST", { type: "story", id, action: "edit", headline, subtext });
+  const res = await adminRequest("POST", { type: "story", id, action: "edit", headline, subtext });
+  // 2026-11-23 (owner "UYGULA 10"): news picture drawn again with the new text -> say what happened
+  try {
+    const j = await res.json();
+    const r = j && j.redraw;
+    if (r && r.redrawn) alert("✅ Resim yeni metinle yeniden çizildi · Bild neu gezeichnet.\nFacebook/Telegram: düzeltilmiş hali tekrar gönderilir." + (r.igManual ? "\n⚠ Instagram'daki eski gönderiyi uygulamadan elle sil (Instagram API silmeye izin vermiyor)." : ""));
+    else if (r && r.error) alert("⚠ Metin kaydedildi ama resim çizilemedi: " + r.error);
+  } catch (e) { /* plain answer */ }
   loadModerationQueue();
 }
 

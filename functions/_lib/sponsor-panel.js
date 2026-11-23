@@ -16,6 +16,8 @@ export async function ensureSponsorTables(database) {
   // 2026-11-17 (owner): own order of the pictures/videos (admin or sponsor moves them). 0 = not moved -> by upload time.
   if (!sortReady) {
     await database.prepare(`ALTER TABLE sponsor_media ADD COLUMN sort INTEGER DEFAULT 0`).run().catch(() => {});
+    // 2026-11-23 (owner "UYGULA 11"): the sponsor chooses how long an upload stays in the story (1, 2, 3 or 7 days)
+    await database.prepare(`ALTER TABLE sponsor_media ADD COLUMN days INTEGER DEFAULT 1`).run().catch(() => {});
     sortReady = true;
   }
 }

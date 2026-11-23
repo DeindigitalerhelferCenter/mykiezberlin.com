@@ -96,6 +96,24 @@
 
   function slotLabel(s) { var p = s.split("-"); return p[2] + "." + p[1] + ". " + p[3] + ":00"; }
 
+  // 2026-11-23 (owner "UYGULA 6"): "paylaşıldı" was only the site – now Facebook/Instagram are shown apart
+  function metaBadge(j, it) {
+    var soc = (j && j.social) || {};
+    var ids = [it.published].concat(it.shares || []).filter(Boolean);
+    var m = null, single = null, hand = [];
+    ids.forEach(function (id) { var x = soc[id]; if (!x) return; if (x.meta) m = x.meta; if (x.single) single = x.single; (x.channels || []).forEach(function (c) { if (c !== "meta" && hand.indexOf(c) < 0) hand.push(c); }); });
+    var out;
+    if (single && (single.fb || single.ig)) out = '<b style="color:#3fb950">FB ' + (single.fb ? "✓" : "✕") + " · IG " + (single.ig ? "✓" : "✕") + "</b>";
+    else if (m && m.status === "manual") out = '<b style="color:#3fb950">FB/IG: elle paylaşıldı ✓</b>';
+    else if (m && m.status === "open") out = '<b style="color:#d29922">FB/IG: ⏳ ' + e(String(m.slot).slice(11)) + " toplusunda gönderiliyor</b>";
+    else if (m && m.status === "failed") out = '<b style="color:#f85149">FB/IG: ✕ gönderilemedi – sıradaki toplu paylaşımda tekrar</b>';
+    else if (m) out = '<b style="color:#3fb950">FB/IG: ✓ ' + e(String(m.slot).slice(11) || m.slot) + " toplusunda</b>";
+    else out = '<span style="color:#8b949e">FB/IG: sıradaki toplu ' + e(String((j && j.nextMeta) || "").slice(11) || "–") + "</span>";
+    if (hand.length) out += ' <span style="color:#8b949e">· elle: ' + e(hand.join(", ")) + "</span>";
+    return out + " ";
+  }
+  var BG_TAG_NAMES = { genel: "Genel", spor: "⚽ Spor", kultur: "🎭 Kültür", acil: "🚨 Polis-Acil" };
+
   // 2026-11-22 (owner: "otomatik haber paylaşmıyor"): clear status – is the auto mode really ON on the server, what happened last
   function hm(t) { if (!t) return "–"; try { return new Date(t).toLocaleString("de-DE", { timeZone: "Europe/Berlin", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }); } catch (x) { return "–"; } }
   function statusHtml(j) {
@@ -125,7 +143,9 @@
       BGS = j.backgrounds || [];
       var picked = function (k) { return ST.bgMode === "pick" && ST.bgPicks.indexOf(k) >= 0; };
       var thumb = function (k, small) {
-        return '<img data-bg="' + e(k) + '" src="' + e(small) + '" alt="" loading="lazy" style="width:34px;height:60px;border-radius:6px;cursor:pointer;object-fit:cover;border:3px solid ' + (picked(k) ? "#2ea043" : "transparent") + '">';
+        var tg = ""; BGS.forEach(function (b) { if ("b:" + b.key === k) tg = b.tag || ""; }); // 2026-11-23: topic tag
+        var tagCol = { spor: "#3fb950", kultur: "#a371f7", acil: "#f85149" }[tg];
+        return '<img data-bg="' + e(k) + '" src="' + e(small) + '" alt="" title="' + e(BG_TAG_NAMES[tg] || "Genel") + '" loading="lazy" style="width:34px;height:60px;border-radius:6px;cursor:pointer;object-fit:cover;border:3px solid ' + (picked(k) ? "#2ea043" : "transparent") + (tagCol ? ";outline:2px dashed " + tagCol : "") + '">';
       };
       var tplHtml = '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0">Arka plan: ' +
         '<button type="button" id="admin-news-rotate" style="' + BTN + (ST.bgMode === "rotate" ? ";border-color:#2ea043;background:#238636" : "") + '">🔄 Sırayla (hepsi)</button>';
@@ -133,7 +153,7 @@
       BGS.forEach(function (b) { tplHtml += thumb("b:" + b.key, "/media/" + b.key); });
       tplHtml += '<label style="' + BTN + ';background:#1f6feb">➕ Resim ekle (klasöre)<input type="file" id="admin-news-bgadd" accept="image/*,.heic,.heif" multiple style="display:none"></label><span id="admin-news-bgname" style="color:#8b949e"></span></div>' +
         '<div style="color:#8b949e;margin:-2px 0 8px">' + (ST.bgMode === "pick" && ST.bgPicks.length ? "✓ Seçili " + ST.bgPicks.length + " arka plan sırayla kullanılır (otomatik mod da)." : "🔄 Hazır 6 şablon + klasördeki " + BGS.length + " resim sırayla kullanılır.") + " Resme tıkla = büyük ön izleme, seç / kaldır / sil.</div>";
-      var head = '<label style="display:flex;gap:8px;align-items:center;margin:8px 0;font-weight:700"><input type="checkbox" id="admin-news-auto"' + (j.auto ? " checked" : "") + "> 🤖 Otomatik · Automatisch (her listede acil + ilk 3 konu · aralık, dil ve arka plan aşağıdaki ayarlara göre · kapalı haberler paylaşılmaz)</label>" +
+      var head = '<label style="display:flex;gap:8px;align-items:center;margin:8px 0;font-weight:700"><input type="checkbox" id="admin-news-auto"' + (j.auto ? " checked" : "") + "> 🤖 Otomatik · Automatisch (her listede acil + ilk 3 konu + işaretlediklerin · aralık, dil ve arka plan aşağıdaki ayarlara göre · kapalı haberler paylaşılmaz)</label>" +
         statusHtml(j) +
         tplHtml +
         '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">Dil: <select id="admin-news-lang" style="' + BTN + '">' + [["tr-de", "Türkçe + Deutsch"], ["tr-en", "Türkçe + English"], ["de", "Deutsch + Türkçe"], ["tr", "Sadece Türkçe"]].map(function (o) { return '<option value="' + o[0] + '"' + (ST.lang === o[0] ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") + "</select>" +
@@ -150,8 +170,8 @@
           s.items.map(function (it) {
             return '<div style="border:1px solid ' + (it.urgent ? "#f85149" : "#30363d") + ';border-radius:10px;padding:8px;margin:6px 0' + (it.hidden ? ";opacity:.45" : "") + '" data-slot="' + e(s.slot) + '" data-id="' + e(it.id) + '">' +
               (it.hidden ? '<b style="color:#d29922">🙈 kapalı – otomatik paylaşılmaz</b><br>' : "") +
-              '<label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="news-pick">' +
-              '<span style="flex:1">' + (it.urgent ? '<b style="color:#f85149">🚨 ACİL · EIL</b> ' : "") + (it.published ? '<b style="color:#3fb950">✓ paylaşıldı' + ((it.shares || []).length > 1 ? " (" + it.shares.length + "×)" : "") + "</b> " : "") + (it.written === false ? '<b style="color:#d29922">⏳ metin yazılıyor…</b> ' : "") + (it.renderError ? '<b style="color:#d29922">⚠ resim çizilemedi, eski yöntem kullanıldı</b> ' : "") +
+              '<label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="news-pick"' + (it.picked ? " checked" : "") + ' title="İşaretli = paylaşılır (otomatik adım da paylaşır) · markiert = wird geteilt">' + // 2026-11-23: tick saved on the server
+              '<span style="flex:1">' + (it.picked && !it.published ? '<b style="color:#58a6ff">☑ işaretli – sıradaki adımda paylaşılır</b> ' : "") + (it.urgent ? '<b style="color:#f85149">🚨 ACİL · EIL</b> ' : "") + (it.published ? '<b style="color:#3fb950">🌐 Sitede ✓' + ((it.shares || []).length > 1 ? " (" + it.shares.length + "×)" : "") + "</b> " + metaBadge(j, it) : "") + (it.written === false ? '<b style="color:#d29922">⏳ metin yazılıyor…</b> ' : "") + (it.renderError ? '<b style="color:#d29922">⚠ resim çizilemedi, eski yöntem kullanıldı</b> ' : "") +
               (it.noText ? '<b style="color:#f85149">⚠ metin yok – otomatik paylaşılmaz (metni yazıp elle paylaşabilirsin)</b> ' : "") + (it.textFromArticle ? '<b style="color:#8b949e">ℹ metin kaynağın ilk cümlelerinden</b> ' : "") + (it.bgNote ? '<small style="color:#d29922">⚠ arka plan: ' + e(it.bgNote) + '</small> ' : "") + // 2026-11-23
               '<small style="color:#8b949e">' + e(it.source) + ' · <a href="' + e(it.url) + '" target="_blank" rel="noopener" style="color:#58a6ff">kaynak ↗</a></small><br><small style="color:#8b949e">Orijinal: ' + e(it.orig) + "</small></span></label>" +
               '<input class="news-f" data-f="title_de" style="' + INP + ';margin-top:6px;font-weight:700" value="' + e(it.title_de) + '" placeholder="Titel (DE)">' +
@@ -165,7 +185,7 @@
               (it.hidden ? '<button type="button" class="news-hide" data-act="unhide" style="' + BTN + '">👁 Aç</button>' : '<button type="button" class="news-hide" data-act="hide" style="' + BTN + '">🙈 Kapat (paylaşma)</button>') +
               '<button type="button" class="news-del" style="' + BTN + ';background:#da3633">🗑 Sil</button>' + "</div></div>";
           }).join("") +
-          '<button type="button" class="news-publish" data-slot="' + e(s.slot) + '" style="' + BTN + ';background:#2ea043;margin-top:6px">📤 Seçilenleri paylaş (paylaşılanlar tekrar · aralık + arka plan ayarlarına göre)</button> <span class="news-out"></span></details>';
+          '<button type="button" class="news-publish" data-slot="' + e(s.slot) + '" style="' + BTN + ';background:#2ea043;margin-top:6px">📤 Seçilenleri şimdi paylaş (paylaşılmış olanlar atlanır · tekrar için 🔁 · aralık + arka plan ayarlarına göre)</button> <span class="news-out"></span></details>';
       }).join("");
       bind(j);
     });
@@ -201,6 +221,24 @@
           api("POST", { action: "bgDelete", key: k.slice(2) }).then(render);
         } : null;
         lightbox(bgSrc(k), (k.charAt(0) === "t" ? "Şablon " + k.slice(1) : "Kendi resmin") + " · metinsiz", toggle, del, on ? "✕ Seçimi kaldır" : "✓ Seç (sadece seçilenler kullanılır)");
+        // 2026-11-23 (owner "UYGULA 8"): topic of this background – a sport picture only for sport news, a police/fire
+        // picture only for police/accident news; urgent news without such a picture get the red EIL design
+        if (k.charAt(0) === "b") {
+          var cur = ""; BGS.forEach(function (b) { if ("b:" + b.key === k) cur = b.tag || "genel"; });
+          var lb = document.getElementById("admin-news-lb");
+          var row = document.createElement("div");
+          row.style.cssText = "display:flex;gap:6px;flex-wrap:wrap;justify-content:center;color:#fff;font-size:13px;align-items:center";
+          row.innerHTML = "Konu · Thema: " + ["genel", "spor", "kultur", "acil"].map(function (t) {
+            return '<button type="button" data-tag="' + t + '" style="' + BTN + (cur === t ? ";background:#238636;border-color:#2ea043" : "") + '">' + BG_TAG_NAMES[t] + "</button>";
+          }).join("");
+          if (lb) lb.appendChild(row);
+          row.querySelectorAll("[data-tag]").forEach(function (b) {
+            b.onclick = function (ev) {
+              ev.stopPropagation();
+              api("POST", { action: "bgTag", key: k.slice(2), tag: b.getAttribute("data-tag") }).then(function () { if (lb) lb.remove(); render(); });
+            };
+          });
+        }
       };
     });
     var add = document.getElementById("admin-news-bgadd");
@@ -267,7 +305,27 @@
         var box = f.closest("[data-id]");
         var body = { action: "edit", slot: box.getAttribute("data-slot"), id: box.getAttribute("data-id") };
         body[f.getAttribute("data-f")] = f.value;
-        api("POST", body);
+        api("POST", body).then(function (r) {
+          // 2026-11-23 (owner "UYGULA 10"): a shared story got the new text + a new picture
+          var rd = r && r.redraw;
+          if (!rd) return;
+          var note = document.createElement("div");
+          note.style.cssText = "margin-top:4px;font-weight:700;color:" + (rd.redrawn ? "#3fb950" : "#d29922");
+          note.textContent = rd.redrawn ? "✓ Paylaşılan story yeni metinle güncellendi (resim yeniden çizildi). FB/Telegram tekrar gönderilir." + (rd.igManual ? " ⚠ Instagram'daki eskisini uygulamadan elle sil." : "") : "⚠ Story güncellenemedi: " + (rd.error || "?");
+          f.parentNode.insertBefore(note, f.nextSibling);
+          setTimeout(function () { note.remove(); }, 15000);
+        });
+      };
+    });
+    // 2026-11-23 (owner "UYGULA 1"): a tick is saved on the server at once (stays when the list is drawn again)
+    document.querySelectorAll("#admin-news .news-pick").forEach(function (c) {
+      c.onchange = function () {
+        var box = c.closest("[data-id]");
+        c.disabled = true;
+        api("POST", { action: "pick", slot: box.getAttribute("data-slot"), id: box.getAttribute("data-id"), on: c.checked }).then(function (r) {
+          c.disabled = false;
+          if (!r || !r.ok) { c.checked = !c.checked; alert("İşaret kaydedilemedi: " + ((r && r.error) || "?")); }
+        });
       };
     });
     document.querySelectorAll("#admin-news .news-publish").forEach(function (btn) {
@@ -280,12 +338,13 @@
         if (!ids.length) { out.textContent = "Önce konu seç."; return; }
         btn.disabled = true;
         var fd = new FormData();
-        fd.append("action", "publish"); fd.append("slot", slot); fd.append("ids", ids.join(",")); fd.append("again", "1");
+        fd.append("action", "publish"); fd.append("slot", slot); fd.append("ids", ids.join(",")); fd.append("again", "0"); // 2026-11-23 (owner "UYGULA 3"): shared ones are skipped (🔁 = again)
         fd.append("lang", document.getElementById("admin-news-lang").value);
         fd.append("gapMinutes", document.getElementById("admin-news-gap").value);
         fd.append("template", "0");
         api("POST", fd, true).then(function (r) {
-          out.textContent = r.ok ? "✓ " + r.published + " story paylaşıldı / planlandı" : "Hata: " + (r.error || "?");
+          var skipped = ids.length - (r.published || 0);
+          out.textContent = r.ok ? "✓ " + r.published + " story paylaşıldı / planlandı" + (skipped > 0 ? " · " + skipped + " zaten paylaşılmıştı (atlandı)" : "") : "Hata: " + (r.error || "?");
           setTimeout(render, 1500);
         });
       };
