@@ -205,7 +205,7 @@ function toBase64(buffer) {
 // picture (dark picture -> light text, light picture -> dark text; accent colour from the picture's own colour),
 // a soft shadow so it stays readable on photos. Size follows the text length (binary search), with an upper limit,
 // and more room between the lines.
-const SAFE_TOP = 540, SAFE_BOTTOM = 1700; // under the logo, over the address
+const SAFE_TOP = 600, SAFE_BOTTOM = 1700; // under the logo, over the address (2026-11-23: 540 -> 600, some logos are bigger)
 const AREA_CLEAN = SAFE_BOTTOM - SAFE_TOP;
 
 function hsl2hex(h, s, l) {

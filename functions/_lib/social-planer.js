@@ -16,7 +16,7 @@ import { metaReady, metaEnv } from "./meta-social.js";
 const SITE = "https://mykiezberlin.com";
 const GRAPH = "https://graph.facebook.com/v21.0";
 const LATE_MS = 3 * 3600 * 1000;
-const DEFAULTS = { times: ["08:00", "16:00", "23:00"], telegram: true, meta: true, pack: true };
+const DEFAULTS = { times: ["08:00", "12:00", "18:00", "22:00"], telegram: true, meta: true, pack: true }; // 2026-11-23 (owner): 8/12/18/22 (was 8/16/23)
 export const PACK_CHANNELS = ["tiktok", "whatsapp"];
 let lastCheck = 0;
 
@@ -46,7 +46,9 @@ export async function plannerSettings(database) {
   const row = await database.prepare(`SELECT value FROM social_state WHERE key = 'settings'`).first();
   let s = {};
   try { s = JSON.parse((row && row.value) || "{}") || {}; } catch (e) { s = {}; }
-  const times = cleanTimes(s.times);
+  let times = cleanTimes(s.times);
+  // 2026-11-23 (owner): the old default 8/16/23 becomes 8/12/18/22 once; times saved later by the admin stay
+  if (!s.timesV2 && times.join(",") === "08:00,16:00,23:00") times = DEFAULTS.times;
   return { ...DEFAULTS, ...s, times: times.length ? times : DEFAULTS.times };
 }
 
@@ -55,6 +57,7 @@ export async function saveSettings(database, body) {
   const times = cleanTimes(body.times);
   const s = {
     times: times.length ? times : old.times,
+    timesV2: true,
     telegram: body.telegram === undefined ? old.telegram : Boolean(body.telegram),
     meta: body.meta === undefined ? old.meta : Boolean(body.meta),
     pack: body.pack === undefined ? old.pack : Boolean(body.pack),
@@ -200,7 +203,8 @@ export async function runSlot(env, database, slot) {
       if (!todo.length) result.meta = "nichts neu";
       else {
         await markDone(database, "meta", todo.map((x) => x.id), slot); // never twice, even if the post fails
-        const r = await postCollection(await metaEnv(env, database), todo, collectionText(todo, now)) // 2026-11-23: user token -> page token.catch(() => ({ fb: "", ig: "" }));
+        // 2026-11-23: user token -> page token (the .catch was lost behind a comment – back now)
+        const r = await postCollection(await metaEnv(env, database), todo, collectionText(todo, now)).catch(() => ({ fb: "", ig: "" }));
         result.meta = `${todo.length} Bilder · FB ${r.fb ? "ok" : "Fehler"} · IG ${r.ig ? "ok" : env.IG_USER_ID ? "Fehler" : "kein IG_USER_ID"}`;
       }
     }

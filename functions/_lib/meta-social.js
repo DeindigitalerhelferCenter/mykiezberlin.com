@@ -55,7 +55,7 @@ async function ensureTables(database) {
 }
 
 /** Facebook: lasting post + page story. */
-async function postFacebook(env, story, media, isVideo) {
+async function postFacebook(env, story, media, isVideo, storyNow = false) {
   const page = env.FB_PAGE_ID;
   const out = { post: "", story: "" };
   if (isVideo) {
@@ -65,6 +65,9 @@ async function postFacebook(env, story, media, isVideo) {
   } else if (media) {
     const p = await graph(env, `${page}/photos`, { url: media, caption: caption(story) });
     out.post = (p && (p.post_id || p.id)) || "";
+    // 2026-11-23 (owner): post + story at once took longer than 30 s (the run was cut, nothing was saved, no story).
+    // Now: only the post here; the story is made in the next run (fb_story = "todo", finishFacebookStories).
+    if (!storyNow) { out.story = out.post ? "todo" : ""; return out; }
     const up = await graph(env, `${page}/photos`, { url: media, published: "false" });
     if (up && up.id) {
       const s = await graph(env, `${page}/photo_stories`, { photo_id: up.id });
@@ -115,7 +118,19 @@ async function finishInstagramVideos(env, database) {
       if (s && s.status_code === "FINISHED") {
         const p = await graph(env, `${env.IG_USER_ID}/media_publish`, { creation_id: w[k] });
         done[k] = (p && p.id) || "failed";
-      } else if (s && s.status_code === "ERROR") done[k] = "failed";
+        if (!(p && p.id)) {
+          // 2026-11-23: the post was online although "failed" was written -> ask Instagram again
+          const again = await graphGet(env, w[k], "status_code");
+          if (again && again.status_code === "PUBLISHED") done[k] = "published";
+        }
+      } else if (s && s.status_code === "PUBLISHED") done[k] = "published"; // 2026-11-23: published in a run that was cut
+      else if (s && s.status_code === "ERROR") done[k] = "failed";
+      if (done[k]) {
+        // 2026-11-23: saved at once (a cut run does not publish twice)
+        const col = k === "story" ? "ig_story" : "ig_post";
+        const rest = { ...w }; for (const d of Object.keys(done)) delete rest[d];
+        await database.prepare(`UPDATE meta_sent SET ${col} = ?, ig_wait = ? WHERE story_id = ?`).bind(done[k], Object.keys(rest).some((x) => rest[x]) ? JSON.stringify(rest) : "", r.story_id).run();
+      }
     }
     if (done.reel) { await database.prepare(`UPDATE meta_sent SET ig_post = ? WHERE story_id = ?`).bind(done.reel, r.story_id).run(); delete w.reel; }
     if (done.story) { await database.prepare(`UPDATE meta_sent SET ig_story = ? WHERE story_id = ?`).bind(done.story, r.story_id).run(); delete w.story; }
@@ -136,6 +151,7 @@ export async function metaSweep(env, database) {
     if (!lock.meta || !lock.meta.changes) return;
     env = await metaEnv(env, database); // 2026-11-23: user token -> page token
     await finishInstagramVideos(env, database).catch(() => {});
+    if (await finishFacebookStories(env, database).catch(() => false)) return; // 2026-11-23: one heavy step per run
     // 2026-11-23: a run that was cut after Facebook (all result fields empty, older than 2 min) -> only Instagram now,
     // Facebook is NOT sent again (no double post)
     const cutRow = await database.prepare(`SELECT m.story_id, s.headline, s.subtext, s.kiez, s.media_key, s.media_type FROM meta_sent m JOIN stories s ON s.id = m.story_id
@@ -260,4 +276,23 @@ export async function metaStatus(env, database) {
     out.since = since ? Number(since.value) : 0;
   } catch (e) { /* ignore */ }
   return out;
+}
+
+// ---- 2026-11-23 (owner): Facebook story one run after the post (a post + story in one run was cut at 30 s) ----
+async function finishFacebookStories(env, database) {
+  const row = await database.prepare(`SELECT m.story_id, s.media_key FROM meta_sent m JOIN stories s ON s.id = m.story_id WHERE m.fb_story = 'todo' LIMIT 1`).first();
+  if (!row) return false;
+  // mark first: a cut run never makes two stories
+  await database.prepare(`UPDATE meta_sent SET fb_story = 'working' WHERE story_id = ? AND fb_story = 'todo'`).bind(row.story_id).run();
+  lastGraphError = "";
+  let id = "";
+  if (row.media_key) {
+    const up = await graph(env, `${env.FB_PAGE_ID}/photos`, { url: `${SITE}/media/${row.media_key}`, published: "false" });
+    if (up && up.id) {
+      const st = await graph(env, `${env.FB_PAGE_ID}/photo_stories`, { photo_id: up.id });
+      id = (st && (st.post_id || st.id || "ok")) || "";
+    }
+  }
+  await database.prepare(`UPDATE meta_sent SET fb_story = ?, log = COALESCE(log, '') || ? WHERE story_id = ?`).bind(id || "failed", lastGraphError ? ` | fb_story: ${lastGraphError}` : "", row.story_id).run();
+  return true;
 }

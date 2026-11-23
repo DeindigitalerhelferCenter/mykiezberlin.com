@@ -11,7 +11,7 @@ import { readFlags } from "../api/flags.js";
 import { renderNewsImage } from "./news-image.js";
 
 export const NEWS_SLOTS = [6, 8, 10, 12, 14, 16, 18, 20, 22];
-export const NEWS_TOPICS = 5;
+export const NEWS_TOPICS = 10; // 2026-11-23 (owner): 10 topics per list (was 5)
 export const AUTO_COUNT = 3;
 export const TEMPLATE_COUNT = 6;
 const AI_MODELS = ["@cf/meta/llama-4-scout-17b-16e-instruct", "@cf/mistralai/mistral-small-3.1-24b-instruct"];
@@ -141,6 +141,11 @@ export async function collectNews() {
     rss("https://www.morgenpost.de/berlin/rss", "Berliner Morgenpost"),
     rss("https://taz.de/!p4649;rss/", "taz Berlin"),
     rss("https://www.berliner-kurier.de/feed.xml", "Berliner Kurier"),
+    // 2026-11-23 (owner: "spor veya diğer dallarda Berlin ve Almanya'daki önemli haberler"): sport, culture, economy (checked: work)
+    tagesschau("ressort=sport", "tagesschau Sport"),
+    rss("https://www.rbb24.de/sport/index.xml/feed=rss.xml", "rbb24 Sport", 8),
+    rss("https://www.rbb24.de/kultur/index.xml/feed=rss.xml", "rbb24 Kultur", 6),
+    tagesschau("ressort=wirtschaft", "tagesschau Wirtschaft"),
   ]);
   const since = Date.now() - 12 * 3600000;
   const seen = new Set();
@@ -149,7 +154,8 @@ export async function collectNews() {
     if (seen.has(k) || (n.date && n.date < since)) return false;
     seen.add(k);
     return true;
-  }).sort((a, b) => b.date - a.date).slice(0, 40);
+  }).sort((a, b) => b.date - a.date).filter((n, i, arr) => !arr.slice(0, i).some((m) => sameTopic(m.title, n.title))) // 2026-11-23: same event from two sources = once
+    .slice(0, 70);
 }
 
 // 2026-11-22 (owner): the text must stay close to the real source -> read the first paragraphs of the article
@@ -228,6 +234,7 @@ async function aiPickFast(env, news) {
   const list = news.map((n, i) => `${i}. [${n.source}] ${n.title}`).join("\n");
   const prompt = `Du bist Redakteur der Berliner Nachbarschafts-App "My Kiez Berlin". Aktuelle Meldungen:\n${list}\n\n` +
     `Wähle die ${NEWS_TOPICS + 3} wichtigsten Themen für Menschen in Berlin (Berlin zuerst). Echte Eil-/Warnmeldungen: "u": true. ` +
+    `Jedes Thema nur EINMAL: keine zwei Meldungen über dasselbe Ereignis. Mische die Bereiche: Berlin, Deutschland, Sport, Kultur, Wirtschaft. ` + // 2026-11-23 (owner)
     `Antworte NUR mit JSON: [{"i": Nummer, "u": false}]`;
   for (const model of AI_MODELS) {
     try {
@@ -255,8 +262,11 @@ export async function pickList(env, opts = {}) {
   const skip = opts.exclude instanceof Set ? opts.exclude : new Set();
   const all = await collectNews();
   // 2026-11-22 (owner): "Şimdi analiz et" must bring NEW topics – shown / deleted ones are left out (if enough are left)
-  const fresh = all.filter((n) => !skip.has(cut(n.title, 160)));
-  const news = fresh.length >= 4 ? fresh : all.filter((n) => !opts.blocked || !opts.blocked.has(cut(n.title, 160)));
+  const skipList = [...skip];
+  // 2026-11-23 (owner: "aynı veya çok yakın haberler kesinlikle gelmemeli"): also near topics are left out, and the
+  // old fallback (all news again when few were new) is gone – better fewer topics than the same ones again
+  const fresh = all.filter((n) => !skip.has(cut(n.title, 160)) && !skipList.some((x) => sameTopic(x, n.title)));
+  const news = fresh;
   // 2026-11-22: fast choice first (numbers only, max 9 s per model); the old full pick only with opts.fullPick
   const fast = opts.fullPick ? null : await aiPickFast(env, news);
   if (fast) {
@@ -265,6 +275,8 @@ export async function pickList(env, opts = {}) {
       if (!n) return null;
       return { urgent: !!p.urgent || isUrgent(n), source: n.source, url: n.url, teaser: cut(n.teaser, 400), title_de: cut(n.title, 90), text_de: cut(n.teaser, 420), title_tr: "", text_tr: "", title_en: "", text_en: "", orig: cut(n.title, 160), written: false };
     }).filter(Boolean).slice(0, NEWS_TOPICS + 3);
+    const outU = dropSameTopics(out, (x) => x.orig); // 2026-11-23: the AI may pick one event twice
+    out.length = 0; out.push(...outU);
     if (out.length) {
       const u = out.filter((x) => x.urgent).slice(0, 3);
       const r = out.filter((x) => !x.urgent).slice(0, NEWS_TOPICS);
@@ -361,6 +373,7 @@ export async function getSlot(database, slot) {
 }
 
 export async function saveItems(database, slot, items) {
+  await applyAdminChoices(database, items); // 2026-11-23: hidden / deleted by the admin stay so
   await database.prepare(`UPDATE news_slots SET items = ? WHERE slot = ?`).bind(JSON.stringify(items), slot).run();
 }
 
@@ -390,7 +403,8 @@ export async function ensureCurrentSlot(env, database, opts = {}) {
     return have;
   }
   const blocked = new Set(await readBlocked(database).catch(() => []));
-  const items = await pickList(env, { exclude: blocked, blocked }).catch(() => []);
+  const seen = await seenTopics(database).catch(() => blocked); // 2026-11-23 (owner): no topic of the last 24 h again
+  const items = await pickList(env, { exclude: seen, blocked }).catch(() => []);
   await saveItems(database, slot, items);
   if (items.length && opts.write) { await writeSome(env, items, opts.write); await saveItems(database, slot, items); }
   return getSlot(database, slot);
@@ -462,7 +476,7 @@ export async function publishItems(env, database, slot, ids, opts = {}) {
     let overlay = null;
     try {
       const png = await renderNewsImage(p, { theme, logo, background });
-      mediaKey = `stories/news-${id}-v4.png`; // 2026-11-23: "-v4" = clean layout on own backgrounds (was -v3)
+      mediaKey = `stories/news-${id}-v5.png`; // 2026-11-23: "-v5" = better Turkish + more room under the logo (was -v4)
       await env.BUCKET.put(mediaKey, png, { httpMetadata: { contentType: "image/png" } });
     } catch (e) {
       it.renderError = String((e && e.message) || e).slice(0, 120);
@@ -539,7 +553,7 @@ export async function upgradeOldNews(env, database, origin) {
 export async function redrawNews(env, database, origin, limit = 2) {
   if (!env.BUCKET) return 0;
   const { results } = await database
-    .prepare(`SELECT id, headline, subtext, link, kind, media_key FROM stories WHERE status = 'approved' AND media_key LIKE 'stories/news-%.png' AND media_key NOT LIKE '%-v4.png' AND media_key NOT LIKE 'stories/news-render-check%' AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT ?`)
+    .prepare(`SELECT id, headline, subtext, link, kind, media_key FROM stories WHERE status = 'approved' AND media_key LIKE 'stories/news-%.png' AND media_key NOT LIKE '%-v5.png' AND media_key NOT LIKE 'stories/news-render-check%' AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT ?`)
     .bind(Date.now(), limit)
     .all();
   if (!results.length) return 0;
@@ -573,7 +587,7 @@ export async function redrawNews(env, database, origin, limit = 2) {
     }
     try {
       const png = await renderNewsImage(p, { theme: it && it.theme != null ? it.theme : await nextTheme(database), logo, background }); // 2026-11-22: same colour as before
-      const key = `stories/news-${r.id}-v4.png`; // 2026-11-23: clean layout (was -v3)
+      const key = `stories/news-${r.id}-v5.png`; // 2026-11-23: better Turkish + room under the logo (was -v4)
       await env.BUCKET.put(key, png, { httpMetadata: { contentType: "image/png" } });
       await database.prepare(`UPDATE stories SET media_key = ?, overlay = NULL WHERE id = ?`).bind(key, r.id).run();
       done++;
@@ -674,6 +688,7 @@ export function trMissing(it) {
   if (t === String(it.title_de || "").trim() || (x && x === String(it.text_de || "").trim())) return true;
   const s = `${t} ${x}`;
   if (/[äÄß]/.test(s)) return true;
+  if (badTr(t, it.title_de)) return true; // 2026-11-23: menu path / doubled word / German in the title
   if (TR_ONLY.test(s)) return (s.match(DE_WORDS) || []).length >= 3;
   return (s.match(DE_WORDS) || []).length > 0 && !TR_WORDS.test(s);
 }
@@ -681,11 +696,21 @@ export function trMissing(it) {
 async function translateDeTr(env, text) {
   const src = String(text || "").trim();
   if (!src || !env.AI) return "";
+  // 2026-11-23 (owner: çeviri kötü): the AI model first (better Turkish), checked; the fast model only as a reserve
+  for (const model of AI_MODELS) {
+    try {
+      const out = await withTimeout(env.AI.run(model, { messages: [
+        { role: "system", content: "Du bist ein professioneller Übersetzer Deutsch -> Türkisch für eine Nachrichten-App. Natürliches, korrektes Türkisch. Eigennamen, Orte und Zahlen bleiben gleich. Nichts hinzufügen, nichts weglassen." },
+        { role: "user", content: `Übersetze ins Türkische. Antworte NUR mit der Übersetzung:\n\n${src}` }], max_tokens: 400, temperature: 0.1 }), 8000, null);
+      const t = String((out && (out.response || out)) || "").trim().replace(/^["„“]+|["“”]+$/g, "").trim();
+      if (t && t !== src && typeof t === "string" && !badTr(t, src)) return t;
+    } catch (e) { /* next */ }
+  }
   for (const args of [{ text: src, source_lang: "de", target_lang: "tr" }, { text: src, source_lang: "german", target_lang: "turkish" }]) {
     try {
       const out = await withTimeout(env.AI.run("@cf/meta/m2m100-1.2b", args), 7000, null);
       const t = out && (out.translated_text || out.response);
-      if (t && String(t).trim() && String(t).trim() !== src) return String(t).trim();
+      if (t && String(t).trim() && String(t).trim() !== src && !badTr(String(t).trim(), src)) return String(t).trim(); // 2026-11-23: checked
     } catch (e) { /* next */ }
   }
   for (const model of AI_MODELS) {
@@ -707,4 +732,74 @@ export async function ensureTr(env, it) {
   const ok = !trMissing(it);
   if (!ok) it.trFail = (it.trFail || 0) + 1; else delete it.trFail;
   return ok;
+}
+
+// ---- 2026-11-23 (owner: "aynı haberler tekrar gelmemeli", "silinen haber bir daha çıkmamalı") ----
+// Same event from two sources, or a topic close to a deleted / already shown one, is recognised by the important
+// words of the title (word starts, 7 letters): 2 of the words and half of the shorter title, or 3 words -> same topic.
+const TOPIC_STOP = new Set(["berlin", "berliner", "berlins", "brandenburg", "nach", "über", "uber", "wird", "werden", "wurde", "haben", "sind", "nicht", "einem", "einer", "eines", "diese", "dieser", "dieses", "mehr", "auch", "noch", "sich", "beim", "gegen", "unter", "zwischen", "wegen", "seit", "heute", "jetzt", "neue", "neuen", "neuer", "neues", "ersten", "erste", "zwei", "drei", "sagt", "soll", "sollen", "will", "kann", "alle", "viele", "sein", "seine", "ihre", "dass", "ohne", "aber", "oder", "wenn", "doch", "schon", "immer", "liveblog", "live", "news", "aktuell", "video", "fotos", "bilder", "deutschland", "deutsche", "deutschen", "polizei", "polizeimeldung", "sucht", "zeugen", "mann", "frau", "jahre", "jähriger", "jährige", "prozent", "euro", "uhr"]);
+export function topicWords(s) {
+  return new Set(String(s || "").toLowerCase().replace(/[^a-z0-9äöüßğışçé]+/g, " ").split(" ")
+    .filter((w) => w.length >= 4 && !TOPIC_STOP.has(w)).map((w) => w.slice(0, 7)));
+}
+export function sameTopic(a, b) {
+  const A = topicWords(a), B = topicWords(b);
+  if (!A.size || !B.size) return String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase();
+  let n = 0;
+  for (const w of A) if (B.has(w)) n++;
+  return n >= 3 || (n >= 2 && n / Math.min(A.size, B.size) >= 0.5);
+}
+function dropSameTopics(list, getTitle) {
+  const out = [];
+  for (const x of list) if (!out.some((y) => sameTopic(getTitle(y), getTitle(x)))) out.push(x);
+  return out;
+}
+
+/** Topics of the last 24 h (all lists) + deleted topics: a new analysis must not bring them again. */
+export async function seenTopics(database) {
+  const seen = new Set(await readBlocked(database).catch(() => []));
+  const { results } = await database.prepare(`SELECT items FROM news_slots WHERE created_at > ?`).bind(Date.now() - 24 * 3600000).all().catch(() => ({ results: [] }));
+  for (const r of results || []) { try { for (const x of JSON.parse(r.items || "[]")) { if (x.orig) seen.add(x.orig); if (x.title_de) seen.add(x.title_de); } } catch (e) { /* skip */ } }
+  return seen;
+}
+
+// ---- 2026-11-23 (owner: "kapat butonuna basıyorum, sonra tekrar açılıyor") ----
+// Cause: the background work read the list, wrote texts for ~30 s and then saved ITS old copy of the list – the
+// "hidden" mark (and a deletion) the admin made in between was overwritten. Now the admin's choice is kept apart
+// (news_state 'hidden' = {topic: true/false}, deleted = 'blocked') and laid over the list at every save.
+export async function readHidden(database) {
+  const row = await database.prepare(`SELECT value FROM news_state WHERE id = 'hidden'`).first().catch(() => null);
+  try { return JSON.parse((row && row.value) || "{}") || {}; } catch (e) { return {}; }
+}
+export async function setHidden(database, key, on) {
+  if (!key) return;
+  const map = await readHidden(database);
+  map[key] = !!on;
+  const keys = Object.keys(map);
+  for (const k of keys.slice(0, Math.max(0, keys.length - 600))) delete map[k];
+  await database.prepare(`INSERT INTO news_state (id, value) VALUES ('hidden', ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value`).bind(JSON.stringify(map)).run();
+}
+async function applyAdminChoices(database, items) {
+  try {
+    const blocked = new Set(await readBlocked(database));
+    const hidden = await readHidden(database);
+    const key = (x) => x.orig || x.title_de || "";
+    for (let i = items.length - 1; i >= 0; i--) if (blocked.has(key(items[i]))) items.splice(i, 1);
+    for (const x of items) if (Object.prototype.hasOwnProperty.call(hidden, key(x))) { if (hidden[key(x)]) x.hidden = true; else delete x.hidden; }
+  } catch (e) { /* keep the list as it is */ }
+  return items;
+}
+
+// ---- 2026-11-23 (owner: çeviri kalitesi) ----
+// The fast translation model made "Haberler > Günaydın Haberleri > …" and "inşaat ve inşaat tehlikesi".
+// Now the AI model translates first; a result with a menu path (">"), a doubled word or German words is not taken.
+export function badTr(t, src) {
+  const s = String(t || "").trim();
+  if (!s) return true;
+  if (/[>»|]/.test(s) && !/[>»|]/.test(String(src || ""))) return true;
+  if (s.length < 120 /* titles only */ && /\b([a-zçğıöşü]{4,})\b[^.!?]{0,40}\b\1\b/i.test(s) && !/\b([a-zäöüß]{4,})\b[^.!?]{0,40}\b\1\b/i.test(String(src || ""))) return true;
+  if (/[äÄß]/.test(s)) return true;
+  if ((s.match(DE_WORDS) || []).length >= 2) return true;
+  if (src && s.length > String(src).length * 2.6 + 20) return true;
+  return false;
 }

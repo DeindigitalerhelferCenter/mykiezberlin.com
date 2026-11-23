@@ -6,6 +6,7 @@
 //   JSON {action:"edit", slot, id, title_de, text_de, title_tr, text_tr}
 //   JSON {action:"refresh"} -> builds the current list again (only not yet published topics are lost)
 import { cleanLongText, cleanText, db, isAdmin, json, noDb } from "../_lib/util.js";
+import { setHidden, seenTopics } from "../_lib/news-auto.js";
 import { addBlocked, berlinSlot, buildList, ensureCurrentSlot, ensureNews, getSlot, listBackgrounds, newsParts, pickList, publishItems, readBlocked, readSettings, saveItems, saveSettings, TEMPLATE_COUNT } from "../_lib/news-auto.js";
 import { renderNewsImage } from "../_lib/news-image.js";
 import { readFlags } from "./flags.js";
@@ -92,6 +93,7 @@ export async function onRequestPost({ request, env }) {
       await saveItems(database, slot, s.items.filter((x) => x.id !== body.id)); // published stories stay online
     } else {
       it.hidden = body.action === "hide";
+      await setHidden(database, it.orig || it.title_de || "", it.hidden); // 2026-11-23: kept apart, the background work cannot undo it
       await saveItems(database, slot, s.items);
     }
     return json({ ok: true });
@@ -109,6 +111,7 @@ export async function onRequestPost({ request, env }) {
     for (const r of daySlots || []) { try { for (const x of JSON.parse(r.items || "[]")) if (x.orig) seen.add(x.orig); } catch (e) { /* skip */ } }
     const blocked = new Set(await readBlocked(database));
     for (const b of blocked) seen.add(b);
+    for (const b of await seenTopics(database).catch(() => [])) seen.add(b); // 2026-11-23: last 24 h too
     const fresh = (await pickList(env, { exclude: seen, blocked })).filter((x) => !keep.some((k) => k.orig === x.orig));
     if (body.auto === "1" || body.auto === true) await database.prepare(`UPDATE news_slots SET auto_done = 0 WHERE slot = ?`).bind(cur).run();
     const items = [...keep, ...fresh].map((x, i) => ({ ...x, id: x.published ? x.id : `r${Date.now() % 100000}-${i}` }));

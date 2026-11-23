@@ -87,6 +87,64 @@
     view.insertBefore(bar, view.firstChild);
   }
 
+  // ---- 2026-11-23 (owner: "Hepsini kapat / Hepsini aç çalışmıyor") ----
+  // Cause: only h2/h3 headings were switches. Most cards (📰 Haber story'leri, 🗓️ Social-Planer, Telegram, Sponsoren,
+  // Kasa …) start with a bold title (<b>) and plain text, so "Hepsini kapat" left them open. Now every card in the admin
+  // view is a switch too: its first line (title) stays, the rest is cut off (also plain text) – nothing is removed.
+  var NOCARD = ["mk-fold-bar"];
+  function cardHead(c) {
+    if (!c || c.nodeType !== 1 || NOCARD.indexOf(c.id) >= 0 || /mk-admin-quicknav/.test(c.className || "")) return null;
+    for (var i = 0; i < SKIP.length; i++) if (c.id === SKIP[i]) return null;
+    if (/^(H2|H3|DETAILS|SCRIPT|STYLE)$/.test(c.tagName)) return null;
+    var head = c.firstElementChild;
+    if (head && c.children.length === 1 && head.firstElementChild && !/^(H2|H3|B|STRONG)$/.test(head.tagName)) { c = head; head = c.firstElementChild; }
+    if (!head || c.children.length < 2) return null;
+    if (head.hasAttribute("data-fold") && !head.hasAttribute("data-fold-card")) return null; // already a heading switch
+    if (/^(H2|H3)$/.test(head.tagName) || /^(INPUT|BUTTON|TEXTAREA|SELECT|IMG)$/.test(head.tagName)) return null;
+    return { card: c, head: head };
+  }
+  function applyCard(card, head) {
+    var closed = state[head.getAttribute("data-fold")] === 1;
+    var arrow = head.querySelector(".mk-fold-arrow");
+    if (arrow) arrow.textContent = closed ? "▸ " : "▾ ";
+    if (closed) {
+      if (!card.hasAttribute("data-fold-clip")) card.setAttribute("data-fold-clip", JSON.stringify([card.style.maxHeight || "", card.style.overflow || ""]));
+      var top = card.getBoundingClientRect().top, hb = head.getBoundingClientRect();
+      var hgt = hb.height ? Math.ceil(hb.bottom - top) + 10 : 44;
+      card.style.maxHeight = Math.max(30, Math.min(hgt, 90)) + "px";
+      card.style.overflow = "hidden";
+    } else if (card.hasAttribute("data-fold-clip")) {
+      var old = ["", ""];
+      try { old = JSON.parse(card.getAttribute("data-fold-clip")) || old; } catch (e) {}
+      card.style.maxHeight = old[0]; card.style.overflow = old[1];
+      card.removeAttribute("data-fold-clip");
+    }
+  }
+  function prepareCard(c) {
+    var x = cardHead(c);
+    if (!x) return;
+    var head = x.head, card = x.card;
+    if (!head.hasAttribute("data-fold")) {
+      var name = "card:" + (card.id || c.id || nameOf(head));
+      if (name === "card:") return;
+      head.setAttribute("data-fold", name);
+      head.setAttribute("data-fold-card", "1");
+      head.style.cursor = "pointer";
+      head.title = "Aç / kapat · öffnen / schließen";
+      var a = document.createElement("span");
+      a.className = "mk-fold-arrow";
+      a.style.cssText = "color:#8b949e;font-weight:800";
+      head.insertBefore(a, head.firstChild);
+      head.addEventListener("click", function (ev) {
+        if (ev.target.closest("button, a, input, select, textarea, label")) return;
+        state[name] = state[name] === 1 ? 0 : 1;
+        save();
+        scan();
+      });
+    }
+    applyCard(card, head);
+  }
+
   var busy = false;
   function scan() {
     var view = document.getElementById("admin-main-view");
@@ -100,6 +158,10 @@
         var n = b.nextElementSibling;
         if (n && n.tagName === "TABLE" && !b.closest("table")) prepare(b);
       });
+      Array.prototype.slice.call(view.children).forEach(prepareCard); // 2026-11-23: every card is a switch too
+      if (!view.querySelector("h2, h3") && view.querySelector("[data-fold-card]")) toolbar(view);
+      var bar = document.getElementById("mk-fold-bar"); // 2026-11-23: cards put on top later (📰 Haber) -> the bar stays first
+      if (bar && bar.parentNode === view && view.firstElementChild !== bar) view.insertBefore(bar, view.firstChild);
     } finally {
       busy = false;
     }
