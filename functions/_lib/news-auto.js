@@ -307,7 +307,9 @@ export async function writeSome(env, items, max = 2) {
   const todo = items.filter((x) => x.written === false).slice(0, max);
   for (const it of todo) {
     const article = await withTimeout(articleText(it.url), 6000, "");
-    const w = await withTimeout(aiWrite(env, [{ source: it.source, title: it.orig, teaser: it.teaser || "", article }]), 16000, null); // 2026-11-22: max 16 s, else the short text stays
+    // 2026-11-23 (owner "UYGULA 1-4"): the 3rd try does not ask the AI again (30 s limit) – it takes the article text
+    const lastTry = (it.tries || 0) >= 2;
+    const w = lastTry ? null : await withTimeout(aiWrite(env, [{ source: it.source, title: it.orig, teaser: it.teaser || "", article }]), 16000, null); // 2026-11-22: max 16 s, else the short text stays
     const x = w && w[0];
     if (x) {
       if (x.tr_title) it.title_tr = cut(x.tr_title, 90);
@@ -317,10 +319,18 @@ export async function writeSome(env, items, max = 2) {
       if (x.en_title) it.title_en = cut(x.en_title, 90);
       if (x.en_text) it.text_en = cut(x.en_text, 420);
     }
+    // 2026-11-23 (owner: "metin boş yayınlandı"): no text (AI failed, source without short text) -> not "done":
+    // the AI tries again (up to 3 times); then the first sentences of the article itself (not too short), translated
+    if (!hasText(it) && !lastTry) { it.tries = (it.tries || 0) + 1; continue; }
+    if (!hasText(it)) {
+      const t = firstSentences(article || it.teaser || "");
+      if (t) { it.text_de = t; it.text_tr = ""; it.textFromArticle = true; }
+    }
     // 2026-11-23: Turkish missing / German -> translate; try the whole step up to 3 times before giving up
     const trOk = await withTimeout(ensureTr(env, it), 12000, false);
     it.tries = (it.tries || 0) + 1;
     if (!trOk && it.tries < 3) continue;
+    if (!hasText(it)) it.noText = true; else delete it.noText; // 2026-11-23: not shared by the auto mode, shown in the panel
     it.written = true; // also when the AI failed: the short texts from step 1 stay
     delete it.teaser;
   }
@@ -469,6 +479,20 @@ export async function publishItems(env, database, slot, ids, opts = {}) {
       const c = await chooseBackground(database, settings);
       theme = c.theme;
       if (c.backgroundKey) { itemBgKey = c.backgroundKey; background = await loadBg(c.backgroundKey); } else background = null;
+      if (c.backgroundKey && !background) {
+        // 2026-11-23 (owner "UYGULA 3"): the picture could not be loaded -> once more, then another own background
+        // (before: the old box template was used without a word)
+        bgCache.delete(c.backgroundKey);
+        background = await loadBg(c.backgroundKey);
+        if (!background) {
+          for (const b of await listBackgrounds(database).catch(() => [])) {
+            if (b.key === c.backgroundKey) continue;
+            background = await loadBg(b.key);
+            if (background) { itemBgKey = b.key; break; }
+          }
+        }
+        it.bgNote = background ? (itemBgKey === c.backgroundKey ? "bg loaded on 2nd try" : `bg ${c.backgroundKey.slice(-12)} failed, other used`) : "no own background could be loaded";
+      }
     } else theme = await nextTheme(database);
     it.theme = theme; it.lang = lang; if (itemBgKey) it.bg = itemBgKey; else delete it.bg; // for a later redraw
     // the picture with all text inside; if drawing fails: template + text layer (older way)
@@ -553,7 +577,7 @@ export async function upgradeOldNews(env, database, origin) {
 export async function redrawNews(env, database, origin, limit = 2) {
   if (!env.BUCKET) return 0;
   const { results } = await database
-    .prepare(`SELECT id, headline, subtext, link, kind, media_key FROM stories WHERE status = 'approved' AND media_key LIKE 'stories/news-%.png' AND media_key NOT LIKE '%-v5.png' AND media_key NOT LIKE 'stories/news-render-check%' AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT ?`)
+    .prepare(`SELECT id, headline, subtext, link, kind, media_key FROM stories WHERE status = 'approved' AND media_key LIKE 'stories/news-%.png' AND media_key NOT LIKE '%-v5.png' AND media_key NOT LIKE '%-v5k.png' AND media_key NOT LIKE 'stories/news-render-check%' AND approved_at + duration_hours * 3600000 > ? ORDER BY approved_at DESC LIMIT ?`)
     .bind(Date.now(), limit)
     .all();
   if (!results.length) return 0;
@@ -565,6 +589,19 @@ export async function redrawNews(env, database, origin, limit = 2) {
   let done = 0;
   for (const r of results) {
     const it = byStory.get(r.id);
+    if (!it && r.media_key) {
+      // 2026-11-23 (owner "UYGULA 2"): the topic is no longer in a list (e.g. deleted after sharing) -> the full texts are
+      // unknown; drawing again from the story row lost the 2nd (German) title. Now the old picture stays as it is
+      // (copied to "-v5k", so it is not taken again and the next ones are drawn).
+      const old = await env.BUCKET.get(r.media_key).catch(() => null);
+      if (old) {
+        const keepKey = `stories/news-${r.id}-v5k.png`;
+        await env.BUCKET.put(keepKey, await old.arrayBuffer(), { httpMetadata: { contentType: "image/png" } });
+        await database.prepare(`UPDATE stories SET media_key = ? WHERE id = ?`).bind(keepKey, r.id).run();
+        done++;
+        continue;
+      }
+    }
     let p;
     let background = null;
     if (it) {
@@ -644,13 +681,14 @@ export async function newsSweep(env, database, origin) {
     await sweepLog(database, step);
     if (!busy) {
       await upgradeOldNews(env, database, origin).catch(() => {});
+      await fixNews2311(env, database).catch(() => {}); // 2026-11-23: once
       const rd = await redrawNews(env, database, origin, 1).catch((e) => { sweepLog(database, "redraw", e); return -1; }); // 2026-11-22: once for the older pictures (1 per step: 30 s limit)
       if (rd) await sweepLog(database, `redraw ${rd}`);
     }
     if (!s || s.auto_done || s.items.some((x) => x.written === false)) return;
     const flags = await readFlags(database);
     if (!flags.newsAuto || !s.items.length) { await sweepLog(database, flags.newsAuto ? "empty list" : "auto off"); return; }
-    const vis = s.items.filter((x) => !x.hidden); // 2026-11-22: hidden ("kapalı") topics are not shared
+    const vis = s.items.filter((x) => !x.hidden && !x.noText); // 2026-11-22: hidden ("kapalı") topics are not shared; 2026-11-23: nor topics without text
     const ids = [...vis.filter((x) => x.urgent).map((x) => x.id), ...vis.filter((x) => !x.urgent).slice(0, AUTO_COUNT).map((x) => x.id)];
     // 2026-11-22 (owner: "otomatik haber çalışmıyor"): ONE picture per step (3–4 at once were cut after 30 s);
     // times stay: first one now, the next ones + interval; auto_done only when all are out.
@@ -686,6 +724,7 @@ export function trMissing(it) {
   const t = String(it.title_tr || "").trim(), x = String(it.text_tr || "").trim();
   if (!t) return true;
   if (t === String(it.title_de || "").trim() || (x && x === String(it.text_de || "").trim())) return true;
+  if (!x && String(it.text_de || "").trim()) return true; // 2026-11-23: German text there, Turkish text missing
   const s = `${t} ${x}`;
   if (/[äÄß]/.test(s)) return true;
   if (badTr(t, it.title_de)) return true; // 2026-11-23: menu path / doubled word / German in the title
@@ -802,4 +841,37 @@ export function badTr(t, src) {
   if ((s.match(DE_WORDS) || []).length >= 2) return true;
   if (src && s.length > String(src).length * 2.6 + 20) return true;
   return false;
+}
+
+// ---- 2026-11-23 (owner "UYGULA 1-4", "çok kısa da olmasın") ----
+function hasText(it) {
+  return String(it.text_de || "").trim().length >= 120 || String(it.text_tr || "").trim().length >= 120;
+}
+/** First sentences of the article: at least ~260 characters when the article has them, at most 420 (whole sentences). */
+export function firstSentences(text) {
+  const src = String(text || "").replace(/\s+/g, " ").trim();
+  if (!src) return "";
+  const parts = src.split(/(?<=[.!?…])\s+(?=[A-ZÄÖÜ0-9„"])/).map((x) => x.trim()).filter((x) => x.length > 20 && !/cookie|javascript|abonn|newsletter|©|zum artikel|weiterlesen|mehr zum thema/i.test(x));
+  let out = "";
+  for (const p of parts) {
+    if (out && (out + " " + p).length > 420) break;
+    out = out ? `${out} ${p}` : p;
+    if (out.length >= 260) break;
+  }
+  if (out.length < 120 && src.length > out.length) out = src.length <= 420 ? src : cut(src, 418).replace(/\s+\S*$/, "") + " …";
+  return cut(out, 420);
+}
+
+/** One time (owner "UYGULA 4"): the hospital fire story of 23.11 08:00 gets its first picture back (with the German title). */
+export async function fixNews2311(env, database) {
+  const flag = await database.prepare(`SELECT value FROM news_state WHERE id = 'fix2311'`).first().catch(() => null);
+  if (flag || !env.BUCKET) return;
+  const id = "news-auto-2026-11-23-08-r77303-0";
+  const old = await env.BUCKET.get(`stories/news-${id}-v4.png`).catch(() => null);
+  if (old) {
+    const key = `stories/news-${id}-v5k.png`;
+    await env.BUCKET.put(key, await old.arrayBuffer(), { httpMetadata: { contentType: "image/png" } });
+    await database.prepare(`UPDATE stories SET media_key = ? WHERE id = ?`).bind(key, id).run();
+  }
+  await database.prepare(`INSERT INTO news_state (id, value) VALUES ('fix2311', ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value`).bind(old ? "done" : "no v4").run();
 }
