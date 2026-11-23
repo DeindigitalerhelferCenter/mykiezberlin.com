@@ -1899,6 +1899,8 @@ fun AdminShareRow(story: KiezStory) {
     val context = LocalContext.current
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     var busy by remember { mutableStateOf(false) }
+    var askFor by remember(story.id) { mutableStateOf<String?>(null) } // 2026-11-23 (v1.51)
+    var askMsg by remember(story.id) { mutableStateOf("") }
     val targets = listOf(
         Triple("whatsapp", "WhatsApp", Color(0xFF25D366)),
         Triple("instagram", "Instagram", Color(0xFFC13584)),
@@ -1923,12 +1925,41 @@ fun AdminShareRow(story: KiezStory) {
                                 }
                                 com.example.util.StoryShareHelper.share(context, story, key, media)
                                 busy = false
+                                askFor = key; askMsg = "" // 2026-11-23 (v1.51): ask "Paylaştım?" after sharing
                             }
                         }
                         .padding(vertical = 8.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(if (busy) "…" else label, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                }
+            }
+        }
+        // 2026-11-23 (owner "UYGULA 1", v1.51): confirm the manual share -> saved on the server (same as the web)
+        val ask = askFor
+        if (ask != null || askMsg.isNotBlank()) {
+            Spacer(modifier = Modifier.height(6.dp))
+            if (askMsg.isNotBlank()) {
+                Text(askMsg, color = Color.White, fontSize = 11.sp)
+            } else if (ask != null) {
+                val name = targets.firstOrNull { it.first == ask }?.second ?: ask
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                    Text("$name: paylaştın mı? · geteilt?", color = Color.White, fontSize = 11.sp, modifier = Modifier.weight(1f))
+                    Box(
+                        modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(Color(0xFF238636)).clickable {
+                            askMsg = "…"
+                            scope.launch {
+                                val ok = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                                    com.example.util.StoryShareHelper.markShared(context, ask, story.id)
+                                }
+                                askMsg = if (ok) "✓ Kaydedildi – $name için bir daha önerilmez" else "Kaydedilemedi (internet / admin girişi?)"
+                                askFor = null
+                            }
+                        }.padding(horizontal = 10.dp, vertical = 6.dp)
+                    ) { Text("✓ Paylaştım", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold) }
+                    Box(
+                        modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(Color(0xFF30363D)).clickable { askFor = null; askMsg = "" }.padding(horizontal = 10.dp, vertical = 6.dp)
+                    ) { Text("✕ Hayır", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold) }
                 }
             }
         }

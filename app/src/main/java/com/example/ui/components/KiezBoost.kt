@@ -362,6 +362,9 @@ fun SponsorStoryCircle(group: SponsorStoryGroup, onClick: () -> Unit) {
 fun SponsorStoryViewer(groups: List<SponsorStoryGroup>, startGroup: Int, startMedia: Int, language: AppLanguage, onClose: () -> Unit) {
     var gi by remember { mutableIntStateOf(startGroup.coerceIn(0, (groups.size - 1).coerceAtLeast(0))) }
     var mi by remember { mutableIntStateOf(startMedia) }
+    val shareCtx = LocalContext.current // 2026-11-23 (v1.51): share button
+    val shareScope = rememberCoroutineScope()
+    var shareBusy by remember { mutableStateOf(false) }
     val g = groups.getOrNull(gi) ?: run { onClose(); return }
     val m = g.media.getOrNull(mi) ?: g.media.first()
     fun step(d: Int) {
@@ -435,6 +438,20 @@ fun SponsorStoryViewer(groups: List<SponsorStoryGroup>, startGroup: Int, startMe
                     }.padding(12.dp),
                     contentAlignment = Alignment.Center
                 ) { Text("🤝 " + pk(language, "Zum Sponsor", "Sponsora git", "Open sponsor") + " →", color = Navy, fontWeight = FontWeight.ExtraBold) }
+                // 2026-11-23 (owner "UYGULA 2", v1.51): share this picture/video (sponsor page + My Kiez Berlin + app link)
+                Box(
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0xFF1F6FEB)).clickable(enabled = !shareBusy) {
+                        shareBusy = true
+                        val item = m
+                        val group = g
+                        shareScope.launch {
+                            val media = withContext(Dispatchers.IO) { com.example.util.StoryShareHelper.prepareSponsorMedia(shareCtx, item.url, item.isVideo) }
+                            com.example.util.StoryShareHelper.startSponsorShare(shareCtx, com.example.util.StoryShareHelper.sponsorText(group.name, group.id, item.caption, language == AppLanguage.TURKISH), media)
+                            shareBusy = false
+                        }
+                    }.padding(12.dp),
+                    contentAlignment = Alignment.Center
+                ) { Text(if (shareBusy) "⏳" else "📤 " + pk(language, "Teilen", "Paylaş", "Share"), color = Color.White, fontWeight = FontWeight.ExtraBold) }
             }
         }
     }
