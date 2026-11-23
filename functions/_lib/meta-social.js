@@ -135,7 +135,7 @@ export async function metaSweep(env, database) {
     const { results } = await database
       .prepare(`SELECT s.id, s.headline, s.subtext, s.kiez, s.media_key, s.media_type FROM stories s
         LEFT JOIN meta_sent m ON m.story_id = s.id
-        WHERE m.story_id IS NULL AND s.by_admin = 1 AND s.status = 'approved' AND s.approved_at <= ? AND s.approved_at >= ? AND s.approved_at > ?
+        WHERE m.story_id IS NULL AND s.by_admin = 1 AND s.status = 'approved' AND s.media_key NOT LIKE 'stories/news-%' /* 2026-11-23 (owner "öneri"): news only in the 8/16/23 collections */ AND s.approved_at <= ? AND s.approved_at >= ? AND s.approved_at > ?
           AND s.approved_at + s.duration_hours * 3600000 > ?
         ORDER BY s.approved_at ASC LIMIT ?`)
       .bind(now, since, now - MAX_AGE_MS, now, PER_RUN)
@@ -231,6 +231,11 @@ export async function metaStatus(env, database) {
       checkCache = { at: Date.now(), page: (pg && pg.name) || null, instagram: (ig && ig.username) || null, tokenIsPage: !!(dbg && dbg.id === String(env.FB_PAGE_ID)) };
     }
     if (checkCache) out.check = checkCache;
+    // 2026-11-23: last sends (ids only, no texts) to check a test
+    const { results: sent } = await database.prepare(`SELECT story_id, sent_at, fb_post, fb_story, ig_post, ig_story, ig_wait, log FROM meta_sent ORDER BY sent_at DESC LIMIT 5`).all();
+    out.sent = sent || [];
+    const since = await database.prepare(`SELECT value FROM meta_state WHERE key = 'since'`).first();
+    out.since = since ? Number(since.value) : 0;
   } catch (e) { /* ignore */ }
   return out;
 }
