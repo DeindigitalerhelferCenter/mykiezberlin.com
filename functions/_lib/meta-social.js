@@ -11,7 +11,7 @@
 
 const SITE = "https://mykiezberlin.com";
 const GRAPH = "https://graph.facebook.com/v21.0";
-const PER_RUN = 2;
+const PER_RUN = 1; // 2026-11-23: was 2 – one story per run, so a run is never cut
 const RUN_EVERY_MS = 60 * 1000;
 const MAX_AGE_MS = 6 * 3600 * 1000;
 
@@ -36,8 +36,10 @@ async function graph(env, path, params) {
   const body = new URLSearchParams({ ...params, access_token: env.META_PAGE_TOKEN });
   const res = await fetch(`${GRAPH}/${path}`, { method: "POST", body });
   const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data || data.error) lastGraphError = `${path.split("/").pop()}: ${String((data && data.error && data.error.message) || res.status).slice(0, 140)}`; // 2026-11-23
   return res.ok && data && !data.error ? data : null;
 }
+let lastGraphError = "";
 
 async function graphGet(env, path, fields) {
   const res = await fetch(`${GRAPH}/${path}?fields=${encodeURIComponent(fields)}&access_token=${encodeURIComponent(env.META_PAGE_TOKEN)}`);
@@ -90,10 +92,12 @@ async function postInstagram(env, story, media, isVideo) {
     out.wait = JSON.stringify({ reel: (reel && reel.id) || "", story: (st && st.id) || "" });
     return out;
   }
+  // 2026-11-23: the background work is cut after ~30 s -> pictures: only make the containers now, they are
+  // published in the next run (finishInstagramVideos) when Instagram says FINISHED
   const st = await graph(env, `${ig}/media`, { media_type: "STORIES", image_url: media });
-  if (st && st.id) out.story = await publish(st.id);
   const feed = await graph(env, `${ig}/media`, { image_url: media, caption: caption(story).slice(0, 2100) });
-  if (feed && feed.id) out.post = await publish(feed.id);
+  out.wait = JSON.stringify({ story: (st && st.id) || "", feed: (feed && feed.id) || "" });
+  if (!st && !feed) out.wait = "";
   return out;
 }
 
@@ -105,7 +109,7 @@ async function finishInstagramVideos(env, database) {
     let w = {};
     try { w = JSON.parse(r.ig_wait) || {}; } catch (e) { w = {}; }
     const done = {};
-    for (const k of ["reel", "story"]) {
+    for (const k of ["reel", "story", "feed"]) { // 2026-11-23: + "feed" (picture post)
       if (!w[k]) continue;
       const s = await graphGet(env, w[k], "status_code");
       if (s && s.status_code === "FINISHED") {
@@ -115,7 +119,8 @@ async function finishInstagramVideos(env, database) {
     }
     if (done.reel) { await database.prepare(`UPDATE meta_sent SET ig_post = ? WHERE story_id = ?`).bind(done.reel, r.story_id).run(); delete w.reel; }
     if (done.story) { await database.prepare(`UPDATE meta_sent SET ig_story = ? WHERE story_id = ?`).bind(done.story, r.story_id).run(); delete w.story; }
-    await database.prepare(`UPDATE meta_sent SET ig_wait = ? WHERE story_id = ?`).bind(w.reel || w.story ? JSON.stringify(w) : "", r.story_id).run();
+    if (done.feed) { await database.prepare(`UPDATE meta_sent SET ig_post = ? WHERE story_id = ?`).bind(done.feed, r.story_id).run(); delete w.feed; }
+    await database.prepare(`UPDATE meta_sent SET ig_wait = ? WHERE story_id = ?`).bind(w.reel || w.story || w.feed ? JSON.stringify(w) : "", r.story_id).run();
   }
 }
 
@@ -142,12 +147,14 @@ export async function metaSweep(env, database) {
       .all();
     for (const story of results || []) {
       await database.prepare(`INSERT OR IGNORE INTO meta_sent (story_id, sent_at) VALUES (?, ?)`).bind(story.id, now).run(); // never twice
+      lastGraphError = "";
       const media = story.media_key ? `${SITE}/media/${story.media_key}` : "";
       const isVideo = story.media_type === "video";
-      const fb = await postFacebook(env, story, media, isVideo).catch(() => ({ post: "", story: "" }));
+      const fb = await postFacebook(env, story, media, isVideo).catch((e) => ({ post: "", story: "", err: String((e && e.message) || e).slice(0, 150) }));
+      await database.prepare(`UPDATE meta_sent SET fb_post = ?, fb_story = ?, log = ? WHERE story_id = ?`).bind(fb.post, fb.story, fb.err || lastGraphError || "", story.id).run(); // 2026-11-23: saved at once
       const ig = await postInstagram(env, story, media, isVideo).catch(() => ({ post: "", story: "", wait: "" }));
-      await database.prepare(`UPDATE meta_sent SET fb_post = ?, fb_story = ?, ig_post = ?, ig_story = ?, ig_wait = ? WHERE story_id = ?`)
-        .bind(fb.post, fb.story, ig.post, ig.story, ig.wait, story.id).run();
+      await database.prepare(`UPDATE meta_sent SET fb_post = ?, fb_story = ?, ig_post = ?, ig_story = ?, ig_wait = ?, log = ? WHERE story_id = ?`)
+        .bind(fb.post, fb.story, ig.post, ig.story, ig.wait, (fb.err || "") + (lastGraphError ? ` | ${lastGraphError}` : ""), story.id).run();
     }
   } catch (e) {
     // Facebook / Instagram must never break the story list
@@ -229,6 +236,10 @@ export async function metaStatus(env, database) {
       const ig = env.IG_USER_ID ? await graphGet(menv, env.IG_USER_ID, "username") : null;
       const dbg = await graphGet(menv, "me", "id,name");
       checkCache = { at: Date.now(), page: (pg && pg.name) || null, instagram: (ig && ig.username) || null, tokenIsPage: !!(dbg && dbg.id === String(env.FB_PAGE_ID)) };
+      const fp = await graphGet(menv, `${env.FB_PAGE_ID}/posts`, "id,created_time"); // 2026-11-23: last posts (ids + time only)
+      const im = env.IG_USER_ID ? await graphGet(menv, `${env.IG_USER_ID}/media`, "id,timestamp,media_type") : null;
+      checkCache.fbPosts = ((fp && fp.data) || []).slice(0, 3);
+      checkCache.igMedia = ((im && im.data) || []).slice(0, 3);
     }
     if (checkCache) out.check = checkCache;
     // 2026-11-23: last sends (ids only, no texts) to check a test
