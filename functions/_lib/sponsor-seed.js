@@ -307,7 +307,7 @@ export const SPONSOR_SEED = [
     cta_de: "Jetzt anrufen", cta_tr: "Hemen ara", cta_en: "Call now",
     link_web: "https://www.aktiv-zulassungsdienst.de", link_wa: "", link_tel: "030 81797600", link_ig: "",
     extra: { category: { de: "Kfz-Zulassungsdienst", tr: "Araç tescil hizmeti", en: "Vehicle registration service" }, address: "Heimstraße 9a, 10965 Berlin", hours: "Mo–Do 07:30–12:30 & 13:30–17:00, Fr 08:30–14:30", email: "info@aktiv-zulassungsdienst.de", contact: "Mehmet Cakmak", fax: "030 81797622", primary: "tel",
-      description: "Ihr Zulassungsdienst in Berlin-Kreuzberg: Anmeldung, Ummeldung, Abmeldung, Kurzzeitkennzeichen (5 Tage), Zoll-Zulassung, Wunschkennzeichen, Kfz-Schilder und Fahrtenbücher. Abholung und Zustellung Ihrer Unterlagen in Berlin und Umgebung. Individuelle Preise für Gewerbe, Firmen und Freiberufler.\nIm selben Büro: DEVK Versicherung · Mert Cakmak e. K. – Versicherung, Vorsorge, Finanzierung. Fahranfänger starten mit SF2 (55 %) oder SF15 (30 %).\n\nBerlin-Kreuzberg'de araç tescil hizmeti: kayıt, nakil, kayıt silme, kısa süreli plaka (5 gün), gümrük tescili, özel plaka, plakalar. Evraklarınızı Berlin ve çevresinde alıp getiriyoruz. Aynı ofiste: DEVK sigorta (Mert Cakmak).\n\nHotline: 030 817 97 600\nMobil: 0172 979 36 55\nMobil: 0176 84 54 31 85" },
+      description: "Ihr Zulassungsdienst in Berlin-Kreuzberg: Anmeldung, Ummeldung, Abmeldung, Kurzzeitkennzeichen (5 Tage), Zoll-Zulassung, Wunschkennzeichen, Kfz-Schilder und Fahrtenbücher. Abholung und Zustellung Ihrer Unterlagen in Berlin und Umgebung. Individuelle Preise für Gewerbe, Firmen und Freiberufler.\n⭐ Google: 4,9 von 5 (192 Bewertungen)\nIm selben Büro: DEVK Versicherung · Mert Cakmak e. K. – Versicherung, Vorsorge, Finanzierung. Fahranfänger starten mit SF2 (55 %) oder SF15 (30 %).\n\nBerlin-Kreuzberg'de araç tescil hizmeti: kayıt, nakil, kayıt silme, kısa süreli plaka (5 gün), gümrük tescili, özel plaka, plakalar. Evraklarınızı Berlin ve çevresinde alıp getiriyoruz. Aynı ofiste: DEVK sigorta (Mert Cakmak).\n\nHotline: 030 817 97 600\nMobil: 0172 979 36 55\nMobil: 0176 84 54 31 85" },
   },
   // Lyas: Excel row 30. Owner: name "Aesthetic Laser Lyas", Kiez Britz (12347), text DE + TR + RU + EN,
   // WhatsApp for women +49 176 43459085, phone/WhatsApp only for men 0163 0078766. Black Week coupon ends 27.11.2026.
@@ -398,6 +398,39 @@ export async function seedSponsors(database) {
   await applyMaxatYusufFix(database);
   await applyEmPerformanceMediaFix(database);
   await applyAktivLyasMediaFix(database);
+  await applyAktivLyasMoreFix(database);
+}
+
+// 2026-11-24 later (owner): Aktiv – 3 pictures cut from the owner's Google Maps screenshot (side, office, sign) + Google
+// rating in the text; Lyas – cover moved down (new file name because of the asset cache) + 3 Instagram reels
+// (DgGG8RJB6Lv, C7XKFjAAGx3, DYPyuAWxU8y; DfC3kH1tAcC is age/region restricted and could not be downloaded). Runs once.
+const AKTIV_LYAS_MORE = [
+  ["g-aktiv-zulassungsdienst-2", "aktiv-zulassungsdienst", "/assets/sponsors/gallery/aktiv-zulassungsdienst-2.webp", "image", "Heimstraße 9a · Kreuzberg"],
+  ["g-aktiv-zulassungsdienst-3", "aktiv-zulassungsdienst", "/assets/sponsors/gallery/aktiv-zulassungsdienst-3.webp", "image", "Unser Büro · Ofisimiz"],
+  ["g-aktiv-zulassungsdienst-4", "aktiv-zulassungsdienst", "/assets/sponsors/gallery/aktiv-zulassungsdienst-4.webp", "image", "Anmeldung · Ummeldung · Abmeldung · Kurzzeit · Schilder"],
+  ["v-laser-lyas-1", "laser-lyas", "/assets/sponsors/gallery/laser-lyas-video-1.mp4", "video", "Aesthetic Laser Lyas"],
+  ["v-laser-lyas-2", "laser-lyas", "/assets/sponsors/gallery/laser-lyas-video-2.mp4", "video", "Aesthetic Laser Lyas"],
+  ["v-laser-lyas-3", "laser-lyas", "/assets/sponsors/gallery/laser-lyas-video-3.mp4", "video", "Aesthetic Laser Lyas"],
+];
+async function applyAktivLyasMoreFix(database) {
+  const id = "fix:2026-11-24-aktiv-lyas-2";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  await ensureSponsorTables(database);
+  const now = Date.now();
+  const ops = AKTIV_LYAS_MORE.map(([mid, adId, key, type, caption], i) =>
+    database.prepare(`INSERT OR IGNORE INTO sponsor_media (id, ad_id, media_key, media_type, caption, status, bytes, created_at, by_admin) VALUES (?, ?, ?, ?, ?, 'live', 0, ?, 1)`)
+      .bind(mid, adId, key, type, caption, now + i));
+  ops.push(database.prepare(`UPDATE ads SET image = ?, updated_at = ? WHERE id = 'laser-lyas' AND image = '/assets/sponsors/laser-lyas.webp'`).bind("/assets/sponsors/laser-lyas-2.webp", now));
+  const a = SPONSOR_SEED.find((x) => x.id === "aktiv-zulassungsdienst");
+  const row = await database.prepare(`SELECT extra FROM ads WHERE id = 'aktiv-zulassungsdienst'`).first();
+  if (a && row) {
+    let extra = {};
+    try { extra = JSON.parse(row.extra || "{}") || {}; } catch (e) { extra = {}; }
+    extra.description = a.extra.description;
+    ops.push(database.prepare(`UPDATE ads SET extra = ?, updated_at = ? WHERE id = 'aktiv-zulassungsdienst'`).bind(JSON.stringify(extra), now));
+  }
+  ops.push(database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now));
+  await database.batch(ops);
 }
 
 // 2026-11-24 (owner): "neue sponsoren.zip" – Aktiv Zulassungsdienst (1 shop picture; the Google Maps screenshot is not used)
