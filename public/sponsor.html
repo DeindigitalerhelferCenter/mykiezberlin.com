@@ -47,6 +47,15 @@ label.mpick:hover{filter:brightness(1.08)}.mpick-in:focus-visible+label.mpick{ou
 .mpick-list img,.mpick-list video{width:100%;height:100%;object-fit:cover;display:block}.mpick-list span{position:absolute;left:3px;bottom:3px;background:rgba(0,0,0,.65);color:#fff;font-size:10px;border-radius:5px;padding:0 4px}
 .mpick-list div.done{outline:3px solid #15803D}.mpick-list div.fail{outline:3px solid #B91C1C}
 #mpick-n{font-weight:800;margin-top:6px}
+/* 2026-11-25 (owner): main pictures (cover + logo) + days per package */
+.mainpics{display:grid;grid-template-columns:2fr 1fr;gap:14px}@media(max-width:560px){.mainpics{grid-template-columns:1fr}}
+.mainpic{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.mainpic b{font-size:14px}.mainpic .ph{position:relative;border-radius:10px;overflow:hidden;background:#e5e7eb;aspect-ratio:16/10;display:flex;align-items:center;justify-content:center}
+.mainpic.logo .ph{aspect-ratio:1;background:#fff}.mainpic img{width:100%;height:100%;object-fit:cover;display:block}.mainpic.logo img{object-fit:contain}
+.mainpic .lock{position:absolute;left:6px;top:6px;background:rgba(0,0,0,.6);color:#fff;font-size:11px;border-radius:6px;padding:1px 6px}
+.mainpic .row{display:flex;gap:6px;flex-wrap:wrap}.mainpic .row button{flex:1;min-width:110px;border:0;border-radius:10px;padding:10px;font-weight:800;cursor:pointer;color:#fff;background:var(--blue)}
+.mainpic .row button.del{background:#fff;color:#B91C1C;border:2px solid #FCA5A5}
+input.mdays-n{width:90px!important;padding:6px 8px!important}
 </style>
 </head>
 <body>
@@ -75,6 +84,20 @@ label.mpick:hover{filter:brightness(1.08)}.mpick-in:focus-visible+label.mpick{ou
       </div>
     </div>
 
+    <!-- 2026-11-25 (owner): the sponsor sees his fixed main pictures (cover + logo) and can change them himself -->
+    <div class="card" id="maincard">
+      <h2>🖼️ <span id="main-h">Hauptbilder · Ana tanıtım resimleri</span></h2>
+      <p class="muted" id="main-t"></p>
+      <div class="mainpics">
+        <div class="mainpic" data-which="image"><b id="main-cover-l"></b><div class="ph"><span class="lock">🔒</span><img alt=""></div>
+          <div class="row"><button type="button" class="chg"></button><button type="button" class="del"></button></div></div>
+        <div class="mainpic logo" data-which="logo"><b id="main-logo-l"></b><div class="ph"><span class="lock">🔒</span><img alt=""></div>
+          <div class="row"><button type="button" class="chg"></button><button type="button" class="del"></button></div></div>
+      </div>
+      <input type="file" id="mainfile" class="mpick-in" accept="image/jpeg,image/png,image/webp">
+      <p id="mainmsg" class="msg"></p>
+    </div>
+
     <div class="card">
       <h2>📸 <span data-i="media_h"></span></h2>
       <p class="muted" data-i="period_txt"></p>
@@ -85,6 +108,9 @@ label.mpick:hover{filter:brightness(1.08)}.mpick-in:focus-visible+label.mpick{ou
       <p class="muted" id="quota"></p>
       <label for="mfile" data-i="file"></label><input id="mfile" class="mpick-in" type="file" multiple accept="image/jpeg,image/png,image/webp,video/mp4,video/webm">
       <label for="mfile" class="mpick" id="mpick">📁 Bilder / Videos auswählen · Resim / video seç</label>
+      <!-- 2026-11-25 (owner): a whole folder at once (all pictures/videos in it) -->
+      <input id="mfolder" class="mpick-in" type="file" multiple webkitdirectory directory>
+      <label for="mfolder" class="mpick" id="mfolder-l" style="background:#0F766E;box-shadow:0 4px 14px rgba(15,118,110,.3)">📂 Ganzen Ordner wählen · Tüm klasörü seç</label>
       <div id="mpick-n" class="muted"></div><div id="mpick-list" class="mpick-list"></div>
       <label for="mcap" data-i="caption"></label><input id="mcap" type="text" maxlength="300">
       <!-- 2026-11-23 (owner "UYGULA 11"): how long the upload stays in the sponsor story on the page -->
@@ -184,6 +210,7 @@ label.mpick:hover{filter:brightness(1.08)}.mpick-in:focus-visible+label.mpick{ou
     $("sviews").textContent = state.stats.views; $("sclicks").textContent = state.stats.clicks;
     document.querySelectorAll("input[name=period]").forEach(function (r) { r.checked = r.value === ad.media_period; });
     $("quota").textContent = state.quota && state.quota.unlimited ? "♾️ " + (lang === "tr" ? "Güvenilir hesap – sınır yok." : "Vertrauens-Konto – ohne Limit.") : t("quota")(state.quota); // 2026-11-21
+    try { mainPics(); uploadDays(); } catch (e) {} // 2026-11-25 (owner)
     var list = $("mlist"); list.innerHTML = "";
     state.media.forEach(function (m) {
       var fig = document.createElement("figure");
@@ -207,18 +234,94 @@ label.mpick:hover{filter:brightness(1.08)}.mpick-in:focus-visible+label.mpick{ou
         var ex = document.createElement("div");
         ex.style.cssText = "display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:4px 8px 8px;font-size:12px";
         ex.innerHTML = '<label style="display:flex;gap:4px;align-items:center;margin:0"><input type="checkbox" class="msel" style="width:auto"> ☑</label>' +
-          '<select class="mdays" style="width:auto;padding:3px 6px;font-size:12px">' + [1, 2, 3, 7].map(function (d) { return '<option value="' + d + '"' + (d === days ? " selected" : "") + ">" + d + (tr ? " gün" : d === 1 ? " Tag" : " Tage") + "</option>"; }).join("") + "</select>" +
+          daysField(days, "mdays") +
           '<span class="muted">' + (left > 0 ? (tr ? "kalan " : "noch ") + (left > 86400000 ? Math.ceil(left / 86400000) + (tr ? " gün" : " T.") : Math.max(1, Math.round(left / 3600000)) + " h") : (tr ? "süresi doldu" : "abgelaufen")) + "</span>" +
           '<button type="button" class="m1share" style="border:0;border-radius:8px;padding:4px 8px;background:#1f6feb;color:#fff;cursor:pointer">📤</button>';
         ex.querySelector(".msel").checked = !!selected[m.id];
         ex.querySelector(".msel").onchange = function () { if (this.checked) selected[m.id] = 1; else delete selected[m.id]; };
-        ex.querySelector(".mdays").onchange = function () { var sel = this; sel.disabled = true; api("setDays", { id: m.id, days: Number(sel.value) }).then(load); };
+        ex.querySelector(".mdays").onchange = function () { var sel = this; var v = cleanDays(sel.value); if (!v) { sel.value = days; return; } sel.disabled = true; api("setDays", { id: m.id, days: v }).then(load); };
         ex.querySelector(".m1share").onclick = function () { shareItems([m]); };
         fig.appendChild(ex);
       }
       list.appendChild(fig);
     });
   }
+  // 2026-11-25 (owner): days in the sponsor story per package – Basic 1/2/3/7 (list), Plus 1–14 (type it), Premium any number
+  function daysMax() { return state && state.ad && state.ad.days_max != null ? Number(state.ad.days_max) : 7; }
+  function cleanDays(v) {
+    var n = Math.floor(Number(v)), max = daysMax();
+    if (!(n >= 1)) return 0;
+    if (max === 7) return [1, 2, 3, 7].indexOf(n) >= 0 ? n : 0;
+    return max ? Math.min(n, max) : n;
+  }
+  function daysField(cur, cls, id) {
+    var tr = lang === "tr", max = daysMax();
+    if (max === 7) return '<select class="' + cls + '"' + (id ? ' id="' + id + '"' : "") + ' style="width:auto;padding:3px 6px;font-size:12px">' + [1, 2, 3, 7].map(function (d) { return '<option value="' + d + '"' + (d === cur ? " selected" : "") + ">" + d + (tr ? " gün" : d === 1 ? " Tag" : " Tage") + "</option>"; }).join("") + "</select>";
+    return '<input type="number" inputmode="numeric" min="1"' + (max ? ' max="' + max + '"' : "") + ' step="1" class="' + cls + ' mdays-n"' + (id ? ' id="' + id + '"' : "") + ' value="' + cur + '" title="' + (max ? (tr ? "1–" + max + " gün" : "1–" + max + " Tage") : (tr ? "istediğin kadar gün" : "beliebig viele Tage")) + '"> ' + (tr ? "gün" : "Tage");
+  }
+  // the upload form: list (Basic) or a number field (Plus up to 14, Premium free)
+  function uploadDays() {
+    var old = $("mdays"), max = daysMax(), tr = lang === "tr";
+    if (!old || old.dataset.max === String(max)) return;
+    var wrap = document.createElement("span");
+    wrap.innerHTML = daysField(Number(old.value) || 1, "", "mdays");
+    var neu = wrap.querySelector("#mdays");
+    neu.dataset.max = String(max);
+    old.replaceWith(neu);
+    if (neu.tagName === "INPUT") {
+      neu.style.cssText = "width:140px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit";
+      neu.insertAdjacentHTML("afterend", ' <span class="muted" id="mdays-hint">' + (max ? (tr ? "gün (en fazla " + max + ")" : "Tage (höchstens " + max + ")") : (tr ? "gün – istediğin kadar" : "Tage – so viele du willst")) + "</span>");
+      neu.addEventListener("change", function () { var v = cleanDays(neu.value); neu.value = v || 1; });
+    }
+  }
+  function mainPics() {
+    var ad = state.ad, tr = lang === "tr";
+    $("main-t").textContent = tr ? "Kartında herkesin gördüğü kapak resmi ve logo. 🔒 Korumalı: sadece sen (bu giriş linkiyle) değiştirebilirsin; eski resim yedekte kalır. Değişiklik hemen sitede görünür."
+      : "Titelbild und Logo, die alle auf deiner Karte sehen. 🔒 Geschützt: nur du (mit diesem Login-Link) kannst sie ändern, das alte Bild bleibt als Sicherung. Die Änderung ist sofort auf der Seite.";
+    $("main-cover-l").textContent = tr ? "Kapak / tanıtım resmi" : "Titelbild / Werbebild";
+    $("main-logo-l").textContent = "Logo";
+    document.querySelectorAll(".mainpic").forEach(function (box) {
+      var w = box.getAttribute("data-which"), url = w === "logo" ? ad.logo : ad.image;
+      var img = box.querySelector("img");
+      if (url) { img.src = url; img.style.display = ""; } else { img.removeAttribute("src"); img.style.display = "none"; }
+      box.querySelector(".chg").textContent = tr ? "🔄 Değiştir" : "🔄 Ändern";
+      box.querySelector(".del").textContent = tr ? "🗑️ Sil + yenisini yükle" : "🗑️ Löschen + neues hochladen";
+    });
+  }
+  var mainWhich = "";
+  function mainPick(which, del) {
+    var tr = lang === "tr";
+    if (del && !confirm(tr ? "Bu resim silinsin mi? Kartın boş kalmaması için hemen yerine yeni bir resim seçmen gerekiyor. (Eski resim yedekte kalır.)"
+      : "Dieses Bild löschen? Damit deine Karte nicht leer ist, wählst du gleich ein neues Bild. (Das alte bleibt als Sicherung.)")) return;
+    mainWhich = which;
+    $("mainfile").value = "";
+    $("mainfile").click();
+  }
+  document.querySelectorAll(".mainpic").forEach(function (box) {
+    box.querySelector(".chg").onclick = function () { mainPick(box.getAttribute("data-which"), false); };
+    box.querySelector(".del").onclick = function () { mainPick(box.getAttribute("data-which"), true); };
+  });
+  $("mainfile").addEventListener("change", function () {
+    var f = this.files && this.files[0], tr = lang === "tr", which = mainWhich;
+    if (!f || !which) return;
+    if (!/^image\/(jpeg|png|webp)$/.test(f.type)) { msg("mainmsg", errText({ error: "unsupported_file" }), false); return; }
+    msg("mainmsg", tr ? "⏳ Yükleniyor…" : "⏳ Wird hochgeladen …", true);
+    (window.mkShrinkImage ? window.mkShrinkImage(f) : Promise.resolve(f)).catch(function () { return f; }).then(function (small) {
+      return new Promise(function (ok) { var r = new FileReader(); r.onload = function () { ok(r.result); }; r.onerror = function () { ok(""); }; r.readAsDataURL(small); });
+    }).then(function (data) {
+      return api("setMainImage", { which: which, data: data });
+    }).then(function (j) {
+      if (j.ok) { msg("mainmsg", tr ? "✓ Değiştirildi – şimdi sitede." : "✓ Geändert – jetzt auf der Seite.", true); state.ad[which === "logo" ? "logo" : "image"] = j.url; mainPics(); }
+      else msg("mainmsg", errText(j), false);
+    });
+  });
+  // a whole folder: only pictures/videos from it, then the same preview + upload as "choose"
+  $("mfolder").addEventListener("change", function () {
+    picked = Array.prototype.slice.call(this.files || []).filter(function (f) { return /^(image\/(jpeg|png|webp)|video\/(mp4|webm))$/.test(f.type); });
+    pickInfo();
+    if (!picked.length) msg("mmsg", lang === "tr" ? "Bu klasörde resim/video yok." : "In diesem Ordner sind keine Bilder/Videos.", false);
+  });
+
   function fill() { FIELDS.forEach(function (k) { $("f_" + k).value = state.ad[k] || ""; }); maps(state.ad); }
 
   function load() {

@@ -30,7 +30,7 @@ export async function onRequestGet({ env }) {
     .prepare(
       `SELECT m.id, m.ad_id, m.media_key, m.media_type, m.caption, m.created_at, COALESCE(m.days, 1) AS days, a.name, a.image, a.extra
        FROM sponsor_media m JOIN ads a ON a.id = m.ad_id
-       WHERE m.status = 'live' AND m.created_at > ? AND m.created_at + COALESCE(m.days, 1) * 86400000 > ? AND m.media_type IN ('image', 'video')
+       WHERE m.status = 'live' AND (m.created_at > ? OR m.days > 7) AND m.created_at + COALESCE(m.days, 1) * 86400000 > ? AND m.media_type IN ('image', 'video')
          AND a.active = 1 AND (a.start_at = 0 OR a.start_at <= ?) AND (a.end_at = 0 OR a.end_at > ?)
        ORDER BY m.created_at ASC LIMIT 2000`
     )

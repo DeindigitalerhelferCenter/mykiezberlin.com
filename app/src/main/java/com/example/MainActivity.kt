@@ -48,6 +48,9 @@ import com.example.ui.theme.MyApplicationTheme
 import com.example.ui.viewmodel.AppScreen
 import com.example.ui.viewmodel.MyKiezViewModel
 
+// 2026-11-25 (owner "B 1"): extra werben box above the bottom bar + window at the page end are off (only the box in the page)
+private const val END_EXTRA = false
+
 class MainActivity : ComponentActivity() {
     // Compose state, so a notification tap also navigates while the app is already open.
     private var launchTarget by mutableStateOf<String?>(null)
@@ -263,10 +266,12 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                 // the page could not scroll further down = its end
                 if (available.y < -2f && pageEndArmed && com.example.ui.components.KiezBoost.on(boostContext)) {
                     pageEndArmed = false
-                    pageEndShown = true
+                    // 2026-11-25 (owner "B 1"): only the fixed werben box inside the page stays – no extra box above the
+                    // bottom bar and no window any more (set END_EXTRA = true to bring them back)
+                    pageEndShown = END_EXTRA
                     // 2026-11-24 (owner): every 3rd time (was 2nd), once while the app runs, never over another window
                     val kb = com.example.ui.components.KiezBoost
-                    if (kb.nextBottomCount(boostContext) % 3 == 0 && !kb.werbenShownThisRun && !kb.popupOpen.value) { kb.werbenShownThisRun = true; werbenPopup = true }
+                    if (END_EXTRA && kb.nextBottomCount(boostContext) % 3 == 0 && !kb.werbenShownThisRun && !kb.popupOpen.value) { kb.werbenShownThisRun = true; werbenPopup = true }
                 }
                 return androidx.compose.ui.geometry.Offset.Zero
             }

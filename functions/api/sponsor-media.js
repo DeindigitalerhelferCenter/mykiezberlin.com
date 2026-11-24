@@ -4,7 +4,7 @@
 //      The sponsor's package decides how many per day or per week (see MEDIA_QUOTA in _lib/plans.js).
 //      Uploads are online at once; the admin sees them in the admin panel and can hide or delete them.
 import { cleanText, db, isAdmin, json, noDb } from "../_lib/util.js";
-import { mediaQuota, parseExtra } from "../_lib/plans.js";
+import { cleanStoryDays, mediaQuota, parseExtra } from "../_lib/plans.js";
 import { ensureSponsorTables, MEDIA_ORDER, sponsorFromToken } from "../_lib/sponsor-panel.js";
 import { isVipAd } from "../_lib/story-vip.js";
 import { BIG_TYPES, bigRef } from "../_lib/big-upload.js";
@@ -74,7 +74,8 @@ export async function onRequestPost({ request, env }) {
     .bind(id, ad.id, key, isVideo ? "video" : "image", cleanText(form.get("caption"), 300), file.size, Date.now(), byAdmin)
     .run();
   // 2026-11-23 (owner "UYGULA 11"): 1, 2, 3 or 7 days in the sponsor story (default 1 = as before)
-  const days = [1, 2, 3, 7].includes(Number(form.get("days"))) ? Number(form.get("days")) : 1;
+  // 2026-11-25 (owner): Basic 1/2/3/7, Plus up to 14, Premium any number (lib/plans.js cleanStoryDays)
+  const days = cleanStoryDays(ad.plan, form.get("days"));
   if (days !== 1) await database.prepare(`UPDATE sponsor_media SET days = ? WHERE id = ?`).bind(days, id).run().catch(() => {});
   return json({ ok: true, id, url: `/media/${key}` }, 201);
 }

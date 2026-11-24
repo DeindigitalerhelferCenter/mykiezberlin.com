@@ -58,3 +58,22 @@ export function mediaQuota(plan, period) {
   const p = period === "day" ? "day" : "week";
   return { period: p, images: q[p][0], videos: q[p][1], windowMs: p === "day" ? 86400000 : 7 * 86400000 };
 }
+
+// 2026-11-25 (owner): how many days an own picture/video stays in the sponsor story.
+//   Basic (s): 1, 2, 3 or 7 days (as before) · Plus (m, banner): any number 1–14 · Premium (l) + Gründungspartner (gp): any number, no limit
+// storyDaysMax -> 7 | 14 | 0 (0 = no limit). Keep in sync with public/sponsor.html.
+export const STORY_DAYS_FIXED = [1, 2, 3, 7];
+const NO_LIMIT_DAYS = 36500; // technical ceiling only (100 years) so the number stays a sane integer
+export function storyDaysMax(plan) {
+  const p = String(plan || "").toLowerCase();
+  if (p === "l" || p === "gp") return 0;
+  if (p === "m" || p === "banner") return 14;
+  return 7;
+}
+export function cleanStoryDays(plan, value) {
+  const n = Math.floor(Number(value));
+  if (!Number.isFinite(n) || n < 1) return 1;
+  const max = storyDaysMax(plan);
+  if (max === 7) return STORY_DAYS_FIXED.includes(n) ? n : 1;
+  return Math.min(n, max || NO_LIMIT_DAYS);
+}

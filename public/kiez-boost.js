@@ -328,10 +328,14 @@
     lsSet(BOTTOM_STORE, String(n));
     // 2026-11-24 (owner): was every 2nd time and could open over other windows -> only every 3rd time, at most once per
     // visit, never while another window is open, and it closes by itself after 3 s.
+    // 2026-11-25 (owner "B 1"): only ONE werben box at the end of the page – the fixed one in the page stays,
+    // this window does not open any more (END_POPUP = true brings it back)
+    if (!END_POPUP) return;
     if (n % 3 !== 0 || ssGet(POP_SEEN) || anyOpen()) return;
     if (Date.now() - lastPop > 60000) { lastPop = Date.now(); ssSet(POP_SEEN, "1"); popup(true); }
   }, { passive: true });
   var POP_SEEN = "mk_b2b_pop_seen";
+  var END_POPUP = false;
   function ssGet(k) { try { return sessionStorage.getItem(k) || ""; } catch (x) { return ""; } }
   function ssSet(k, v) { try { sessionStorage.setItem(k, v); } catch (x) {} }
   // any window / sheet already open? (help, Black Friday, story viewer, sponsor info …) -> do not open another one

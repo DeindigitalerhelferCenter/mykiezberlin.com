@@ -11,7 +11,7 @@
 //   adminUpdate {adId, fields} -> same fields as the sponsor can edit (emergency edit)
 import { cleanText, db, ipHash, isAdmin, json, noDb } from "../_lib/util.js";
 import { isBlockedUrl } from "../_lib/blocklist.js";
-import { mediaQuota, parseExtra, planRule } from "../_lib/plans.js";
+import { cleanStoryDays, mediaQuota, parseExtra, planRule, storyDaysMax } from "../_lib/plans.js";
 import { isVipAd } from "../_lib/story-vip.js";
 import { sendMail } from "../_lib/mail.js";
 import { adsForEmail, createSponsorToken, ensureSponsorTables, MEDIA_ORDER, moveSponsorMedia, panelUrl, sponsorFromToken, TOKEN_DAYS } from "../_lib/sponsor-panel.js";
@@ -59,6 +59,7 @@ function shape(ad) {
     link_tel: ad.link_tel, link_wa: ad.link_wa, link_web: ad.link_web, link_ig: ad.link_ig,
     email: extra.email || "", media_period: extra.media_period === "day" ? "day" : "week",
     end_at: ad.end_at || 0, active: ad.active,
+    days_max: storyDaysMax(ad.plan), // 2026-11-25 (owner): 7 = 1/2/3/7, 14 = up to 14, 0 = no limit
   };
 }
 
@@ -317,9 +318,35 @@ export async function onRequestPost({ request, env }) {
     await deleteMedia(env, database, row);
     return json({ ok: true });
   }
+  // 2026-11-25 (owner): the sponsor sees and changes his main pictures (cover = ads.image, logo = extra.logo).
+  // Only with his own login link; the old picture stays in R2 and in extra.main_history (last 10) as a backup.
+  // A main picture can not be removed without a new one (the card would be empty) – "delete" in the panel = replace.
+  if (action === "setMainImage") {
+    if (!env.BUCKET) return json({ error: "r2_unbound" }, 503);
+    const which = body.which === "logo" ? "logo" : body.which === "image" ? "image" : "";
+    if (!which) return json({ error: "bad_request" }, 400);
+    const m = String(body.data || "").match(/^data:(image\/(?:webp|jpeg|png));base64,([A-Za-z0-9+/=]+)$/);
+    if (!m) return json({ error: "unsupported_file" }, 415);
+    const bin = Uint8Array.from(atob(m[2]), (c) => c.charCodeAt(0));
+    if (bin.length > 6 * 1024 * 1024) return json({ error: "file_too_large" }, 413);
+    if (bin.length < 500) return json({ error: "missing_file" }, 400);
+    const ext = m[1] === "image/webp" ? "webp" : m[1] === "image/png" ? "png" : "jpg";
+    const key = `ads/main/${ad.id}/${which}-${Date.now().toString(36)}.${ext}`; // always a new name (/media is cached)
+    await env.BUCKET.put(key, bin, { httpMetadata: { contentType: m[1] } });
+    const url = `/media/${key}`;
+    const extra = parseExtra(ad.extra);
+    const old = which === "logo" ? extra.logo || "" : ad.image || "";
+    extra.main_history = [{ which, url: old, at: Date.now() }, ...(Array.isArray(extra.main_history) ? extra.main_history : [])].filter((h) => h.url).slice(0, 10);
+    if (which === "logo") extra.logo = url;
+    await database
+      .prepare(`UPDATE ads SET image = ?, extra = ?, updated_at = ? WHERE id = ?`)
+      .bind(which === "image" ? url : ad.image, JSON.stringify(extra), Date.now(), ad.id)
+      .run();
+    return json({ ok: true, which, url });
+  }
   // 2026-11-23 (owner "UYGULA 11"): the sponsor changes how long an upload stays in the story (1, 2, 3 or 7 days)
   if (action === "setDays") {
-    const days = [1, 2, 3, 7].includes(Number(body.days)) ? Number(body.days) : 1;
+    const days = cleanStoryDays(ad.plan, body.days); // 2026-11-25 (owner): Basic 1/2/3/7, Plus ≤ 14, Premium free
     const r = await database.prepare(`UPDATE sponsor_media SET days = ? WHERE id = ? AND ad_id = ?`).bind(days, cleanText(body.id, 60), ad.id).run();
     if (!r.meta || !r.meta.changes) return json({ error: "not_found" }, 404);
     return json({ ok: true, days });
