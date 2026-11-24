@@ -51,6 +51,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.res.painterResource
+import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import com.example.R
 
 /**
  * 2026-11-17 (owner): own social media of My Kiez Berlin + "Mitmachen · Paylaş" box.
@@ -102,8 +109,25 @@ object MkSocial {
     }
 }
 
+/** 2026-11-24 (owner): real brand logo (same Bootstrap Icons as the website); TikTok with its cyan/red edges. */
 @Composable
-private fun SocialButton(label: String, background: Brush, modifier: Modifier, glow: Boolean = false, onClick: () -> Unit) {
+private fun BrandIcon(res: Int, size: Dp, tiktok: Boolean = false) {
+    Box(contentAlignment = Alignment.Center) {
+        if (tiktok) {
+            Icon(painterResource(res), null, tint = Color(0xFF25F4EE), modifier = Modifier.size(size).offset((-1).dp, (-1).dp))
+            Icon(painterResource(res), null, tint = Color(0xFFFE2C55), modifier = Modifier.size(size).offset(1.dp, 1.dp))
+        }
+        Icon(painterResource(res), null, tint = Color.White, modifier = Modifier.size(size))
+    }
+}
+
+// brand colours (same as web social.js, 2026-11-24)
+private val FbBlue = Color(0xFF0866FF)
+private val TgBlue = Color(0xFF26A5E4)
+private val YtRed = Color(0xFFFF0000)
+
+@Composable
+private fun SocialButton(label: String, background: Brush, modifier: Modifier, glow: Boolean = false, icon: Int = 0, tiktok: Boolean = false, onClick: () -> Unit) {
     var m = modifier
     if (glow) {
         val t = rememberInfiniteTransition(label = "waGlow")
@@ -114,7 +138,11 @@ private fun SocialButton(label: String, background: Brush, modifier: Modifier, g
         m.clip(RoundedCornerShape(14.dp)).background(background).clickable(onClick = onClick).height(46.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(label, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 14.sp)
+        if (icon != 0) Row(verticalAlignment = Alignment.CenterVertically) {
+            BrandIcon(icon, 18.dp, tiktok)
+            Spacer(Modifier.width(8.dp))
+            Text(label, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 14.sp)
+        } else Text(label, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 14.sp)
     }
 }
 
@@ -122,20 +150,20 @@ private fun SocialButton(label: String, background: Brush, modifier: Modifier, g
 fun SocialButtonsRow() {
     val context = LocalContext.current
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SocialButton("💬 WhatsApp", Brush.linearGradient(listOf(Color(0xFF25D366), Color(0xFF1EBE5A))), Modifier.fillMaxWidth(), glow = true) { MkSocial.open(context, MkSocial.WHATSAPP) }
+        SocialButton("WhatsApp", Brush.linearGradient(listOf(Color(0xFF25D366), Color(0xFF25D366))), Modifier.fillMaxWidth(), glow = true, icon = R.drawable.ic_social_whatsapp) { MkSocial.open(context, MkSocial.WHATSAPP) }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            SocialButton("📸 Instagram", Brush.linearGradient(listOf(Color(0xFFFEDA75), Color(0xFFFA7E1E), Color(0xFFD62976), Color(0xFF962FBF), Color(0xFF4F5BD5))), Modifier.weight(1f)) { MkSocial.open(context, MkSocial.INSTAGRAM) }
-            SocialButton("f  Facebook", Brush.linearGradient(listOf(Color(0xFF1877F2), Color(0xFF1877F2))), Modifier.weight(1f)) { MkSocial.open(context, MkSocial.FACEBOOK) }
+            SocialButton("Instagram", Brush.linearGradient(listOf(Color(0xFFFEDA75), Color(0xFFFA7E1E), Color(0xFFD62976), Color(0xFF962FBF), Color(0xFF4F5BD5))), Modifier.weight(1f), icon = R.drawable.ic_social_instagram) { MkSocial.open(context, MkSocial.INSTAGRAM) }
+            SocialButton("Facebook", Brush.linearGradient(listOf(FbBlue, FbBlue)), Modifier.weight(1f), icon = R.drawable.ic_social_facebook) { MkSocial.open(context, MkSocial.FACEBOOK) }
         }
         // 2026-11-19 (owner): TikTok + YouTube (YouTube grey until the channel is open)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            SocialButton("♪  TikTok", Brush.linearGradient(listOf(Color(0xFF010101), Color(0xFF25F4EE).copy(alpha = 0.55f), Color(0xFFFE2C55))), Modifier.weight(1f)) { MkSocial.open(context, MkSocial.TIKTOK) }
-            if (MkSocial.YOUTUBE.isNotBlank()) SocialButton("▶  YouTube", Brush.linearGradient(listOf(Color(0xFFFF0000), Color(0xFFCC0000))), Modifier.weight(1f)) { MkSocial.open(context, MkSocial.YOUTUBE) }
-            else SocialButton("▶  YouTube · bald", Brush.linearGradient(listOf(Color(0xFF9CA3AF), Color(0xFF9CA3AF))), Modifier.weight(1f)) { }
+            SocialButton("TikTok", Brush.linearGradient(listOf(Color.Black, Color.Black)), Modifier.weight(1f), icon = R.drawable.ic_social_tiktok, tiktok = true) { MkSocial.open(context, MkSocial.TIKTOK) }
+            if (MkSocial.YOUTUBE.isNotBlank()) SocialButton("YouTube", Brush.linearGradient(listOf(YtRed, YtRed)), Modifier.weight(1f), icon = R.drawable.ic_social_youtube) { MkSocial.open(context, MkSocial.YOUTUBE) }
+            else SocialButton("YouTube · bald", Brush.linearGradient(listOf(YtRed, YtRed)), Modifier.weight(1f), icon = R.drawable.ic_social_youtube) { } // 2026-11-24 (owner): red like the real one, no link yet
         }
         if (MkSocial.TELEGRAM.isNotBlank() || MkSocial.WA_CHANNEL.isNotBlank()) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (MkSocial.TELEGRAM.isNotBlank()) SocialButton("✈  Telegram", Brush.linearGradient(listOf(Color(0xFF229ED9), Color(0xFF229ED9))), Modifier.weight(1f)) { MkSocial.open(context, MkSocial.TELEGRAM) }
-            if (MkSocial.WA_CHANNEL.isNotBlank()) SocialButton("📣  WhatsApp-Kanal", Brush.linearGradient(listOf(Color(0xFF128C7E), Color(0xFF128C7E))), Modifier.weight(1f)) { MkSocial.open(context, MkSocial.WA_CHANNEL) }
+            if (MkSocial.TELEGRAM.isNotBlank()) SocialButton("Telegram", Brush.linearGradient(listOf(TgBlue, TgBlue)), Modifier.weight(1f), icon = R.drawable.ic_social_telegram) { MkSocial.open(context, MkSocial.TELEGRAM) }
+            if (MkSocial.WA_CHANNEL.isNotBlank()) SocialButton("WhatsApp-Kanal", Brush.linearGradient(listOf(Color(0xFF128C7E), Color(0xFF128C7E))), Modifier.weight(1f), icon = R.drawable.ic_social_megaphone) { MkSocial.open(context, MkSocial.WA_CHANNEL) }
         }
         // 2026-11-21 (owner): WhatsApp Kiez groups – same as web wa-grow.js
         if (MkSocial.WA_GROUPS.isNotEmpty()) {
@@ -153,13 +181,13 @@ fun SocialButtonsRow() {
 
 /** One round social bubble: brand colour + white symbol; spins 360° before the app opens (owner 2026-11-19). */
 @Composable
-private fun SocialBubble(symbol: String, background: Brush, description: String, enabled: Boolean = true, symbolSize: Int = 17, onOpen: () -> Unit) {
+private fun SocialBubble(symbol: String, background: Brush, description: String, enabled: Boolean = true, symbolSize: Int = 17, icon: Int = 0, tiktok: Boolean = false, onOpen: () -> Unit) {
     val scope = rememberCoroutineScope()
     val angle = remember { Animatable(0f) }
     Box(
         Modifier
             .size(38.dp)
-            .graphicsLayer { rotationZ = angle.value; alpha = if (enabled) 1f else 0.45f }
+            .graphicsLayer { rotationZ = angle.value } // 2026-11-24 (owner): YouTube not open yet but full red, not faded
             .shadow(3.dp, CircleShape)
             .clip(CircleShape)
             .background(background)
@@ -175,7 +203,8 @@ private fun SocialBubble(symbol: String, background: Brush, description: String,
             },
         contentAlignment = Alignment.Center
     ) {
-        Text(symbol, color = Color.White, fontWeight = FontWeight.Black, fontSize = symbolSize.sp)
+        if (icon != 0) BrandIcon(icon, 18.dp, tiktok)
+        else Text(symbol, color = Color.White, fontWeight = FontWeight.Black, fontSize = symbolSize.sp)
     }
 }
 
@@ -193,13 +222,13 @@ fun SocialRoundRow(modifier: Modifier = Modifier) {
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        SocialBubble("✆", Brush.linearGradient(listOf(Color(0xFF25D366), Color(0xFF1EBE5A))), "WhatsApp") { MkSocial.open(context, MkSocial.WHATSAPP) }
-        SocialBubble("◎", Brush.linearGradient(listOf(Color(0xFFFEDA75), Color(0xFFFA7E1E), Color(0xFFD62976), Color(0xFF962FBF), Color(0xFF4F5BD5))), "Instagram", symbolSize = 19) { MkSocial.open(context, MkSocial.INSTAGRAM) }
-        SocialBubble("f", Brush.linearGradient(listOf(Color(0xFF1877F2), Color(0xFF1877F2))), "Facebook", symbolSize = 20) { MkSocial.open(context, MkSocial.FACEBOOK) }
-        SocialBubble("♪", Brush.linearGradient(listOf(Color(0xFF010101), Color(0xFF333333))), "TikTok", symbolSize = 19) { MkSocial.open(context, MkSocial.TIKTOK) }
-        SocialBubble("▶", Brush.linearGradient(listOf(Color(0xFFFF0000), Color(0xFFCC0000))), if (MkSocial.YOUTUBE.isBlank()) "YouTube – bald" else "YouTube", enabled = MkSocial.YOUTUBE.isNotBlank(), symbolSize = 14) { MkSocial.open(context, MkSocial.YOUTUBE) }
-        if (MkSocial.TELEGRAM.isNotBlank()) SocialBubble("✈", Brush.linearGradient(listOf(Color(0xFF229ED9), Color(0xFF229ED9))), "Telegram", symbolSize = 17) { MkSocial.open(context, MkSocial.TELEGRAM) }
-        if (MkSocial.WA_CHANNEL.isNotBlank()) SocialBubble("📣", Brush.linearGradient(listOf(Color(0xFF128C7E), Color(0xFF128C7E))), "WhatsApp-Kanal", symbolSize = 16) { MkSocial.open(context, MkSocial.WA_CHANNEL) }
+        SocialBubble("✆", Brush.linearGradient(listOf(Color(0xFF25D366), Color(0xFF25D366))), "WhatsApp", icon = R.drawable.ic_social_whatsapp) { MkSocial.open(context, MkSocial.WHATSAPP) }
+        SocialBubble("◎", Brush.linearGradient(listOf(Color(0xFFFEDA75), Color(0xFFFA7E1E), Color(0xFFD62976), Color(0xFF962FBF), Color(0xFF4F5BD5))), "Instagram", symbolSize = 19, icon = R.drawable.ic_social_instagram) { MkSocial.open(context, MkSocial.INSTAGRAM) }
+        SocialBubble("f", Brush.linearGradient(listOf(FbBlue, FbBlue)), "Facebook", symbolSize = 20, icon = R.drawable.ic_social_facebook) { MkSocial.open(context, MkSocial.FACEBOOK) }
+        SocialBubble("♪", Brush.linearGradient(listOf(Color.Black, Color.Black)), "TikTok", symbolSize = 19, icon = R.drawable.ic_social_tiktok, tiktok = true) { MkSocial.open(context, MkSocial.TIKTOK) }
+        SocialBubble("▶", Brush.linearGradient(listOf(YtRed, YtRed)), if (MkSocial.YOUTUBE.isBlank()) "YouTube – bald" else "YouTube", enabled = MkSocial.YOUTUBE.isNotBlank(), symbolSize = 14, icon = R.drawable.ic_social_youtube) { MkSocial.open(context, MkSocial.YOUTUBE) }
+        if (MkSocial.TELEGRAM.isNotBlank()) SocialBubble("✈", Brush.linearGradient(listOf(TgBlue, TgBlue)), "Telegram", symbolSize = 17, icon = R.drawable.ic_social_telegram) { MkSocial.open(context, MkSocial.TELEGRAM) }
+        if (MkSocial.WA_CHANNEL.isNotBlank()) SocialBubble("📣", Brush.linearGradient(listOf(Color(0xFF128C7E), Color(0xFF128C7E))), "WhatsApp-Kanal", symbolSize = 16, icon = R.drawable.ic_social_megaphone) { MkSocial.open(context, MkSocial.WA_CHANNEL) }
         SocialBubble("i", Brush.linearGradient(listOf(Color(0xFF0F766E), Color(0xFF0F766E))), "Info – Mitmachen · Paylaş", symbolSize = 18) { info = true }
     }
     if (info) {

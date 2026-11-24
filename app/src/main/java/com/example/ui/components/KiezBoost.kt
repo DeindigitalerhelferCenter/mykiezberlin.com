@@ -59,6 +59,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -141,6 +142,11 @@ object KiezBoost {
     fun openSponsorLogin(context: Context) {
         runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("$SITE/sponsor")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
     }
+
+    // 2026-11-24 (owner): only ONE window at a time (werben window / Black Friday), the page-end window only every
+    // 3rd time and at most once while the app runs; both close by themselves after 3 s.
+    val popupOpen = mutableStateOf(false)
+    var werbenShownThisRun = false
 
     // page end: every 2nd time a window (counter stays on the phone)
     private const val PREFS = "mk_boost"
@@ -599,18 +605,56 @@ fun WerbenCta(language: AppLanguage, compact: Boolean = false, modifier: Modifie
 }
 
 @Composable
-fun WerbenPopup(language: AppLanguage, onClose: () -> Unit) {
+fun WerbenPopup(language: AppLanguage, autoClose: Boolean = true, onClose: () -> Unit) {
+    val keep = remember { mutableStateOf(false) }
+    PopupOpenFlag()
     Dialog(onDismissRequest = onClose) {
-        Box(Modifier.clip(RoundedCornerShape(20.dp)).background(Brush.linearGradient(listOf(Navy, Blue))).padding(8.dp)) {
+        Box(Modifier.clip(RoundedCornerShape(20.dp)).background(Brush.linearGradient(listOf(Navy, Blue))).holdOnTouch(keep).padding(8.dp)) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { TextButton(onClick = onClose) { Text("✕", color = Color.White, fontSize = 20.sp) } }
                 Text("📣", fontSize = 44.sp)
                 WerbenCta(language)
+                if (autoClose) AutoCloseBar(keep.value, onClose)
             }
         }
     }
 }
 
+
+/** 2026-11-24 (owner): marks "a window is open" while this composable is shown (see KiezBoost.popupOpen). */
+@Composable
+private fun PopupOpenFlag() {
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        KiezBoost.popupOpen.value = true
+        onDispose { KiezBoost.popupOpen.value = false }
+    }
+}
+
+/** a touch on the window keeps it open (the 3 s timer stops) */
+private fun Modifier.holdOnTouch(keep: androidx.compose.runtime.MutableState<Boolean>): Modifier =
+    this.pointerInput(Unit) {
+        awaitPointerEventScope {
+            while (true) {
+                val ev = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                if (ev.changes.any { it.pressed }) keep.value = true
+            }
+        }
+    }
+
+/** 2026-11-24 (owner): thin gold bar, the window closes by itself after 3 s (unless it was touched). */
+@Composable
+private fun AutoCloseBar(keep: Boolean, onClose: () -> Unit) {
+    val left = remember { Animatable(1f) }
+    LaunchedEffect(keep) {
+        if (keep) { left.stop(); return@LaunchedEffect }
+        left.animateTo(0f, tween(3000, easing = androidx.compose.animation.core.LinearEasing))
+        onClose()
+    }
+    if (keep) return
+    Box(Modifier.padding(top = 10.dp, bottom = 4.dp).fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)).background(Color.White.copy(alpha = 0.25f))) {
+        Box(Modifier.fillMaxWidth(left.value).height(4.dp).background(Gold))
+    }
+}
 
 // ---------------- 7. Black Friday (2026-11-22, owner) ----------------
 // The first 100 sponsors 3 months free, then Kiez Basic 29 / Plus 49 / Premium 89 € a month – MONATLICH KÜNDBAR.
@@ -670,15 +714,20 @@ fun BlackFridayPopupHost(language: AppLanguage) {
     LaunchedEffect(s?.active) {
         if (s?.active == true) {
             delay(15_000)
-            if (BlackFridayRepo.shouldShowToday(context)) show = true
+            // 2026-11-24 (owner): never together with another window – wait until it is closed (max. 2 min)
+            var waited = 0
+            while (KiezBoost.popupOpen.value && waited < 120) { delay(2000); waited += 2 }
+            if (!KiezBoost.popupOpen.value && BlackFridayRepo.shouldShowToday(context)) show = true
         }
     }
     if (!show || s == null) return
     val (h, t, k) = bfTexts(language, s)
     val v = glow()
+    val keep = remember { mutableStateOf(false) }
+    PopupOpenFlag()
     Dialog(onDismissRequest = { show = false }) {
         Column(
-            Modifier.glowBox(v, Gold, RoundedCornerShape(20.dp)).clip(RoundedCornerShape(20.dp)).background(Brush.linearGradient(listOf(Color.Black, Color(0xFF1F1F1F), Color(0xFF3A2C00)))).padding(20.dp),
+            Modifier.holdOnTouch(keep).glowBox(v, Gold, RoundedCornerShape(20.dp)).clip(RoundedCornerShape(20.dp)).background(Brush.linearGradient(listOf(Color.Black, Color(0xFF1F1F1F), Color(0xFF3A2C00)))).padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { TextButton(onClick = { show = false }) { Text("✕", color = Color.White, fontSize = 18.sp) } }
@@ -691,6 +740,7 @@ fun BlackFridayPopupHost(language: AppLanguage) {
             Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(Gold).clickable { show = false; KiezBoost.werbenRequest.value = true }.padding(12.dp), contentAlignment = Alignment.Center) {
                 Text(pk(language, "Jetzt Gratis-Platz sichern →", "Ücretsiz yerini hemen ayırt →", "Claim your free place →"), color = Color.Black, fontWeight = FontWeight.Black)
             }
+            AutoCloseBar(keep.value) { show = false } // 2026-11-24 (owner): closes itself after 3 s too
         }
     }
 }

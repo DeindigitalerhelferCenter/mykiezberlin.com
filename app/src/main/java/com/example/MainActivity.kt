@@ -245,6 +245,8 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
     val boostContext = androidx.compose.ui.platform.LocalContext.current
     val boostOn = com.example.ui.components.KiezBoost.on(boostContext)
     LaunchedEffect(uiState.currentScreen) { headerShown = true; pageEndShown = false; pageEndArmed = true }
+    // 2026-11-24 (owner): the werben box at the page end goes away by itself after 3 s
+    LaunchedEffect(pageEndShown) { if (pageEndShown) { kotlinx.coroutines.delay(3000); pageEndShown = false } }
     com.example.ui.components.SponsorStoriesLoader()
     val boostNav by com.example.ui.components.KiezBoost.navRequest
     LaunchedEffect(boostNav) { boostNav?.let { viewModel.navigateTo(it); com.example.ui.components.KiezBoost.navRequest.value = null } }
@@ -262,7 +264,9 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                 if (available.y < -2f && pageEndArmed && com.example.ui.components.KiezBoost.on(boostContext)) {
                     pageEndArmed = false
                     pageEndShown = true
-                    if (com.example.ui.components.KiezBoost.nextBottomCount(boostContext) % 2 == 0) werbenPopup = true
+                    // 2026-11-24 (owner): every 3rd time (was 2nd), once while the app runs, never over another window
+                    val kb = com.example.ui.components.KiezBoost
+                    if (kb.nextBottomCount(boostContext) % 3 == 0 && !kb.werbenShownThisRun && !kb.popupOpen.value) { kb.werbenShownThisRun = true; werbenPopup = true }
                 }
                 return androidx.compose.ui.geometry.Offset.Zero
             }
