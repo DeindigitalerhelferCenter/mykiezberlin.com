@@ -296,6 +296,35 @@ export const SPONSOR_SEED = [
     extra: { category: { de: "Kfz · Softwareoptimierung", tr: "Araç · Yazılım optimizasyonu", en: "Cars · Software tuning" }, address: "14059 Berlin · Vor-Ort-Service in Berlin & Umgebung", hours: "Nach Terminvereinbarung", email: "em-performance60@outlook.com", primary: "wa",
       description: "Professionelle Custom-Softwareoptimierung für Motor & Getriebe – alle Marken (BMW, Audi, Mercedes u. a.).\nLeistungssteigerung / Chiptuning (Stage 1/2/3), Getriebeoptimierung, Schubabschaltung, Pops and Bangs / AK-47, Verbrauchsoptimierung, AGR/DPF/AdBlue-Lösungen, Codierung, individuelle Softwarelösungen. Rückrüstung jederzeit möglich.\nVor-Ort-Service möglich · Termin nach Vereinbarung.\nTelefon / WhatsApp: 0176 84004379" },
   },
+  // ---- 2026-11-24 (owner): "neue sponsoren.zip" – Aktiv Zulassungsdienst = Basic, Aesthetic Laser Lyas = Plus ----
+  // Aktiv: not in the Excel list, data from aktiv-zulassungsdienst.de (home + Impressum). Owner: mobile 0172 979 36 55 first,
+  // the other mobile also on the page, DEVK office in the same shop mentioned.
+  {
+    id: "aktiv-zulassungsdienst", plan: "s", name: "Aktiv Zulassungsdienst", kieze: "Kreuzberg",
+    headline_de: "Kfz-Zulassung in Berlin: An-, Um- & Abmeldung, Kurzzeit, Wunschkennzeichen & Schilder – mit Abhol- und Bringservice",
+    headline_tr: "Berlin'de araç tescil: kayıt, nakil ve kayıt silme, kısa süreli plaka, özel plaka ve plakalar – evrak alıp getirme hizmeti",
+    headline_en: "Vehicle registration in Berlin: register, transfer & deregister, short-term & custom plates – with pick-up and delivery",
+    cta_de: "Jetzt anrufen", cta_tr: "Hemen ara", cta_en: "Call now",
+    link_web: "https://www.aktiv-zulassungsdienst.de", link_wa: "", link_tel: "030 81797600", link_ig: "",
+    extra: { category: { de: "Kfz-Zulassungsdienst", tr: "Araç tescil hizmeti", en: "Vehicle registration service" }, address: "Heimstraße 9a, 10965 Berlin", hours: "Mo–Do 07:30–12:30 & 13:30–17:00, Fr 08:30–14:30", email: "info@aktiv-zulassungsdienst.de", contact: "Mehmet Cakmak", fax: "030 81797622", primary: "tel",
+      description: "Ihr Zulassungsdienst in Berlin-Kreuzberg: Anmeldung, Ummeldung, Abmeldung, Kurzzeitkennzeichen (5 Tage), Zoll-Zulassung, Wunschkennzeichen, Kfz-Schilder und Fahrtenbücher. Abholung und Zustellung Ihrer Unterlagen in Berlin und Umgebung. Individuelle Preise für Gewerbe, Firmen und Freiberufler.\nIm selben Büro: DEVK Versicherung · Mert Cakmak e. K. – Versicherung, Vorsorge, Finanzierung. Fahranfänger starten mit SF2 (55 %) oder SF15 (30 %).\n\nBerlin-Kreuzberg'de araç tescil hizmeti: kayıt, nakil, kayıt silme, kısa süreli plaka (5 gün), gümrük tescili, özel plaka, plakalar. Evraklarınızı Berlin ve çevresinde alıp getiriyoruz. Aynı ofiste: DEVK sigorta (Mert Cakmak).\n\nHotline: 030 817 97 600\nMobil: 0172 979 36 55\nMobil: 0176 84 54 31 85" },
+  },
+  // Lyas: Excel row 30. Owner: name "Aesthetic Laser Lyas", Kiez Britz (12347), text DE + TR + RU + EN,
+  // WhatsApp for women +49 176 43459085, phone/WhatsApp only for men 0163 0078766. Black Week coupon ends 27.11.2026.
+  {
+    id: "laser-lyas", plan: "m", name: "Aesthetic Laser Lyas", kieze: "Britz",
+    headline_de: "Premium-Laserhaarentfernung für Frauen in Britz – Dioden- & Alexandritlaser, Ganzkörper 5 Zonen 249 €",
+    headline_tr: "Britz'te kadınlara premium lazer epilasyon – diyot ve aleksandrit lazer, tüm vücut 5 bölge 249 €",
+    headline_en: "Premium laser hair removal for women in Britz – diode & alexandrite laser, full body 5 zones €249",
+    cta_de: "WhatsApp schreiben", cta_tr: "WhatsApp yaz", cta_en: "Message on WhatsApp",
+    link_web: "", link_wa: "+4917643459085", link_tel: "+49 176 43459085", link_ig: IG("@aesthetic.laser.lyas"),
+    extra: { category: { de: "Kosmetik · Laser-Haarentfernung", tr: "Kozmetik · Lazer epilasyon", en: "Beauty · Laser hair removal" }, address: "Tempelhofer Weg 91, 12347 Berlin", hours: "Termin nach Vereinbarung", primary: "wa",
+      coupon: { code: "BLACK WEEK", until: Date.parse("2026-11-27T23:59:59+01:00"),
+        de: "23.–27.11.: 1 Zone −10 %, 2 Zonen −15 %, 3 Zonen −20 % (Neukundinnen, erste Sitzung)",
+        tr: "23–27.11.: 1 bölge %10, 2 bölge %15, 3 bölge %20 indirim (yeni müşteriler, ilk seans)",
+        en: "23–27 Nov: 1 zone −10%, 2 zones −15%, 3 zones −20% (new clients, first session)" },
+      description: "🇩🇪 Premium-Laserhaarentfernung für Frauen mit Dioden- und Alexandritlaser – sichtbare Ergebnisse. Ganzkörper 5 Zonen 249 €, alle Zonen 349 €. Kostenloses Beratungsgespräch per WhatsApp. Gutscheine für Laser-Haarentfernung – das perfekte Geschenk.\n\n🇹🇷 Kadınlara diyot ve aleksandrit lazer ile premium lazer epilasyon – görünür sonuçlar. Tüm vücut 5 bölge 249 €, tüm bölgeler 349 €. WhatsApp üzerinden ücretsiz danışmanlık. Hediye çeki mevcut.\n\n🇷🇺 Премиальная лазерная эпиляция для женщин (диодный и александритовый лазер) – видимый результат. Всё тело 5 зон 249 €, все зоны 349 €. Бесплатная консультация в WhatsApp. Подарочные сертификаты.\n\n🇬🇧 Premium laser hair removal for women with diode and alexandrite laser – visible results. Full body 5 zones €249, all zones €349. Free consultation via WhatsApp. Gift vouchers available.\n\n👩 Frauen / Kadınlar / Женщины / Women – WhatsApp: +49 176 43459085\n👨 Nur für Männer / Sadece erkekler / Только для мужчин / Men only – Telefon & WhatsApp: 0163 0078766\n📸 Instagram: @aesthetic.laser.lyas" },
+  },
   {
     id: "packpress", plan: "m", name: "PackPress", kieze: "",
     headline_de: "Bedruckte Verpackungen mit Ihrem Logo: Pizzakartons, Burgerboxen, Tüten, Becher & Dönerpapier",
@@ -368,6 +397,29 @@ export async function seedSponsors(database) {
   await applyRestoreOptimizedFix(database);
   await applyMaxatYusufFix(database);
   await applyEmPerformanceMediaFix(database);
+  await applyAktivLyasMediaFix(database);
+}
+
+// 2026-11-24 (owner): "neue sponsoren.zip" – Aktiv Zulassungsdienst (1 shop picture; the Google Maps screenshot is not used)
+// and Aesthetic Laser Lyas (all 5 pictures) in their gallery / story folder. Runs once.
+const AKTIV_LYAS_MEDIA = [
+  ["g-aktiv-zulassungsdienst-1", "aktiv-zulassungsdienst", "/assets/sponsors/gallery/aktiv-zulassungsdienst-1.webp", "Heimstraße 9a, 10965 Berlin · Hotline 030 817 97 600"],
+  ["g-laser-lyas-1", "laser-lyas", "/assets/sponsors/gallery/laser-lyas-1.webp", "Gutscheine für Laser-Haarentfernung · Hediye çeki"],
+  ["g-laser-lyas-2", "laser-lyas", "/assets/sponsors/gallery/laser-lyas-2.webp", "Aesthetic Laser Lyas"],
+  ["g-laser-lyas-3", "laser-lyas", "/assets/sponsors/gallery/laser-lyas-3.webp", "Laser Behandlung · Tempelhofer Weg 91"],
+  ["g-laser-lyas-4", "laser-lyas", "/assets/sponsors/gallery/laser-lyas-4.webp", "Kostenlose Beratung per WhatsApp · Ücretsiz danışmanlık"],
+  ["g-laser-lyas-5", "laser-lyas", "/assets/sponsors/gallery/laser-lyas-5.webp", "Dioden- & Alexandritlaser · Diyot ve aleksandrit lazer"],
+];
+async function applyAktivLyasMediaFix(database) {
+  const id = "fix:2026-11-24-aktiv-lyas";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  await ensureSponsorTables(database);
+  const now = Date.now();
+  const ops = AKTIV_LYAS_MEDIA.map(([mid, adId, key, caption], i) =>
+    database.prepare(`INSERT OR IGNORE INTO sponsor_media (id, ad_id, media_key, media_type, caption, status, bytes, created_at, by_admin) VALUES (?, ?, ?, 'image', ?, 'live', 0, ?, 1)`)
+      .bind(mid, adId, key, caption, now + i));
+  ops.push(database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now));
+  await database.batch(ops);
 }
 
 // 2026-11-22 (owner): EM-Performance – 4 pictures + the 3 most-viewed Instagram reels (@emperformance60: DKrTZmWtvNn 1.775,

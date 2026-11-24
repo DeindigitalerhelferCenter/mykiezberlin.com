@@ -67,7 +67,9 @@ export async function onRequestGet({ request, env }) {
         cta_de: ad.cta_de, cta_tr: ad.cta_tr, cta_en: ad.cta_en,
         link_web: safeLink(ad.link_web), link_wa: ad.link_wa, link_tel: ad.link_tel, link_ig: safeLink(ad.link_ig),
         kieze: ad.kieze || "", plan: ad.plan || "", size: rule.size, weight: turns(ad), goal: monthlyGoal(ad.plan),
-        logo: extra.logo || "", category: extra.category || null, address: extra.address || "", hours: extra.hours || "", coupon: extra.coupon || null,
+        logo: extra.logo || "", category: extra.category || null, address: extra.address || "", hours: extra.hours || "",
+        // 2026-11-24: a coupon with "until" (ms) is hidden after that time (e.g. Black Week of laser-lyas)
+        coupon: extra.coupon && !(extra.coupon.until && Date.now() > extra.coupon.until) ? extra.coupon : null,
         // Contact sheet (2026-11-11): shown when the card is tapped; primary = "tel" | "wa" | "" (web/info)
         email: extra.email || "", contact: extra.contact || "", fax: extra.fax || "", primary: extra.primary || "",
         // 2026-11-13: long text from the sponsor panel
