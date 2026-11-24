@@ -965,7 +965,11 @@ applyDarkMode();
 document.addEventListener("DOMContentLoaded", () => {
   updateStaticLabels();
   loadSubmissions();
-  setInterval(refreshSharedContent, SHARED_REFRESH_MS);
+  // 2026-11-25 (owner): D1 read limit – no refresh while the tab is in the background, every 2 min instead of 1 when
+  // visible, and once at once when the page comes back to the front
+  let lastShared = Date.now();
+  setInterval(() => { if (!document.hidden && Date.now() - lastShared >= 2 * SHARED_REFRESH_MS - 1000) { lastShared = Date.now(); refreshSharedContent(); } }, SHARED_REFRESH_MS);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && Date.now() - lastShared > SHARED_REFRESH_MS) { lastShared = Date.now(); refreshSharedContent(); } });
   if (setting(STORAGE_LOCATION_KEY)) {
     navigator.geolocation?.getCurrentPosition((pos) => {
       userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };

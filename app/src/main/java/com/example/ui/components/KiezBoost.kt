@@ -320,6 +320,7 @@ fun SponsorStoriesLoader() {
     LaunchedEffect(Unit) {
         KiezBoost.init(context)
         while (true) {
+            if (!com.example.util.AppVisible.on) { delay(30_000L); continue } // 2026-11-25 (owner): D1 read limit
             if (KiezBoost.on(context)) SponsorStoriesRepo.load()
             KiezBoost.loadFlags()
             BlackFridayRepo.load()

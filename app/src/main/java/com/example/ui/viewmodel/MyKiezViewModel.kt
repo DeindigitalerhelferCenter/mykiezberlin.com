@@ -448,7 +448,8 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
         // Periodic 60s background refresh for live, stories, reporter, and submissions
         viewModelScope.launch {
             while (isActive) {
-                delay(60_000L)
+                delay(120_000L) // 2026-11-25 (owner): was 60 s – D1 read limit
+                if (!com.example.util.AppVisible.on) continue // app in the background: no requests
                 try {
                     LiveAlertsRepository.fetchLiveAlerts()
                     LiveBerlinFeedRepository.fetchLiveApi()

@@ -102,6 +102,7 @@ object LiveAlertsRepository {
             // Continuous polling every 45 seconds
             while (isActive) {
                 delay(45_000L)
+                if (!com.example.util.AppVisible.on) continue // 2026-11-25 (owner): not while the app is in the background
                 fetchLiveAlerts()
             }
         }

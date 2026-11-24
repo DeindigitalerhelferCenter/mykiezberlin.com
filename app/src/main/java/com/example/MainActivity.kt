@@ -131,6 +131,10 @@ class MainActivity : ComponentActivity() {
 
     // Coming back to the app refreshes weather, quotes and sport right away instead of
     // waiting for the next 60 s / 15 min cycle (Android pauses network while in background).
+    // 2026-11-25 (owner): D1 read limit – the 60 s refresh loops pause while the app is not on the screen
+    override fun onStart() { super.onStart(); com.example.util.AppVisible.on = true }
+    override fun onStop() { super.onStop(); com.example.util.AppVisible.on = false }
+
     override fun onResume() {
         super.onResume()
         com.example.data.repository.LiveBerlinFeedRepository.refreshLiveFeeds()

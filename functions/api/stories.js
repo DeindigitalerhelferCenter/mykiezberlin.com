@@ -47,6 +47,7 @@ const USER_DURATIONS = [24, 48];
 // Duplicates are checked against stories of the last 30 days that were not rejected.
 const DUPLICATE_WINDOW_MS = 30 * 24 * HOUR_MS;
 
+let lastCleanup = 0;
 export async function onRequestGet({ request, env, waitUntil }) {
   const database = await db(env);
   if (!database) return noDb();
@@ -61,8 +62,13 @@ export async function onRequestGet({ request, env, waitUntil }) {
   }
   // 2026-11-14 (owner): list of the story folders for web and app
   if (params.get("cats")) return json({ cats: STORY_CATS }, 200, { "cache-control": "public, max-age=3600" });
-  waitUntil(cleanupExpiredStories(env));
-  waitUntil(cleanupStoryMedia(env, database).catch(() => {})); // 2026-11-14: rejected / long-waiting media
+  // 2026-11-25 (owner): these scans ran on EVERY story request (every open page, every minute) and used up the daily
+  // D1 read limit -> now at most once in 10 minutes per server instance
+  if (Date.now() - lastCleanup > 10 * 60000) {
+    lastCleanup = Date.now();
+    waitUntil(cleanupExpiredStories(env));
+    waitUntil(cleanupStoryMedia(env, database).catch(() => {})); // 2026-11-14: rejected / long-waiting media
+  }
   waitUntil(telegramSweep(env, database)); // 2026-11-19 (owner): new live stories -> Telegram channel
   waitUntil(metaSweep(env, database)); // 2026-11-21 (owner): admin stories -> Facebook + Instagram (needs META_PAGE_TOKEN)
   waitUntil(newsSweep(env, database, new URL(request.url).origin)); // 2026-11-22 (owner): news lists every 2 h (+ auto mode)

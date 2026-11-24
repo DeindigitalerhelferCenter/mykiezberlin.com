@@ -897,7 +897,7 @@ document.addEventListener("DOMContentLoaded", () => {
   updateStaticLabels();
   refreshLive();
   loadServerStories();
-  setInterval(refreshLive, LIVE_REFRESH_MS);
+  setInterval(() => { if (!document.hidden) refreshLive(); }, LIVE_REFRESH_MS); // 2026-11-25: not in a background tab
   setInterval(() => {
     sponsorIndex += 1;
     if (currentTab === "home" && !document.getElementById("global-search-input")?.value) renderTabContent();
