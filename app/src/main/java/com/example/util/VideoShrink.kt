@@ -93,9 +93,10 @@ object VideoShrink {
     }
 
     /** Video from the gallery -> file to upload (made smaller), or an error code. Never throws. */
-    suspend fun prepare(context: Context, uri: Uri): Result {
+    // 2026-11-24 (owner, v1.53): unlimited = admin / trusted account – no 3-minute and no 50 MB limit (still made smaller)
+    suspend fun prepare(context: Context, uri: Uri, unlimited: Boolean = false): Result {
         val i = info(context, uri)
-        if (i != null && i.seconds > MAX_SECONDS) return Result(null, "video/mp4", "VIDEO_LONG")
+        if (!unlimited && i != null && i.seconds > MAX_SECONDS) return Result(null, "video/mp4", "VIDEO_LONG")
         val out = File(context.cacheDir, "upload_${System.currentTimeMillis()}.mp4")
         val small: ByteArray? = try {
             if (convert(context, uri, out, i?.width ?: 0, i?.height ?: 0) && out.length() > 0) out.readBytes() else null
@@ -107,9 +108,9 @@ object VideoShrink {
         val originalSize = try { context.contentResolver.openAssetFileDescriptor(uri, "r")?.use { it.length } ?: -1L } catch (_: Exception) { -1L }
         // use the smaller one; the original only when it fits the server limit
         if (small != null && (originalSize <= 0 || small.size < originalSize)) {
-            return if (small.size <= MAX_BYTES) Result(small, "video/mp4") else Result(null, "video/mp4", "FILE")
+            return if (unlimited || small.size <= MAX_BYTES) Result(small, "video/mp4") else Result(null, "video/mp4", "FILE")
         }
-        if (originalSize in 1..MAX_BYTES.toLong()) {
+        if (originalSize in 1..(if (unlimited) Long.MAX_VALUE else MAX_BYTES.toLong())) {
             val bytes = withContext(Dispatchers.IO) { context.contentResolver.openInputStream(uri)?.use { it.readBytes() } }
             val type = context.contentResolver.getType(uri) ?: "video/mp4"
             if (bytes != null) return Result(bytes, if (type.startsWith("video/")) type else "video/mp4")

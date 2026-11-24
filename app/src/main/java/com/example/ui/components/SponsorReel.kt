@@ -56,6 +56,10 @@ fun SponsorReelRow(ad: ServerAd, language: AppLanguage) {
     val tiles = own.ifEmpty { listOf(ad.image, ad.logo).filter { it.isNotBlank() }.distinct().map { it to false } }
     if (tiles.isEmpty()) return
     val context = androidx.compose.ui.platform.LocalContext.current
+    // 2026-11-24 (owner, v1.53): tap = full screen that runs by itself (carousel), Instagram links still open outside
+    val viewable = tiles.filter { !it.first.contains("instagram.com/") }
+    var openAt by remember { mutableStateOf(-1) }
+    if (openAt >= 0) SponsorGalleryViewer(viewable, openAt, language) { openAt = -1 }
     Column(Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 8.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
         Text(
             if (own.isNotEmpty()) "📸 " + (if (language == AppLanguage.TURKISH) "Fotoğraf & videolar (${own.size})" else "Fotos & Videos (${own.size})")
@@ -76,7 +80,11 @@ fun SponsorReelRow(ad: ServerAd, language: AppLanguage) {
                             Text("Instagram", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                             Text(if (t.first.contains("/reel/")) "▶ Reel" else "Post", color = Color.White, fontSize = 9.sp)
                         }
-                    } else MediaPreview(t.first, t.second, Modifier.fillMaxSize(), cornerDp = 9) // tap = full screen (picture or video)
+                    } else Box(Modifier.fillMaxSize()) {
+                        MediaPreview(t.first, t.second, Modifier.fillMaxSize(), cornerDp = 9)
+                        // the carousel opens instead of the single full-screen view
+                        Box(Modifier.matchParentSize().clickable { openAt = viewable.indexOf(t).coerceAtLeast(0) })
+                    }
                 }
             }
         }

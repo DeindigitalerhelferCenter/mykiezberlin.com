@@ -226,7 +226,7 @@ object AdsRepository {
         client.newCall(Request.Builder().url("https://mykiezberlin.com/api/sponsor-media?ad=" + android.net.Uri.encode(adId)).build()).execute().use { resp ->
             if (!resp.isSuccessful) emptyList() else {
                 val arr = JSONObject(resp.body?.string() ?: "{}").optJSONArray("media") ?: JSONArray()
-                (0 until minOf(arr.length(), 12)).map { i ->
+                (0 until minOf(arr.length(), 100)).map { i -> // 2026-11-24: was 12 (trusted sponsors have no limit)
                     val m = arr.getJSONObject(i)
                     Pair(m.optString("url").let { if (it.startsWith("https://")) it else "https://mykiezberlin.com$it" }, m.optString("media_type") == "video") // 2026-11-14: instagram links stay as they are
                 }

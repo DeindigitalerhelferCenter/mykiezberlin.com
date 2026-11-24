@@ -195,13 +195,18 @@ object StoryExtraDraft {
     fun addTo(builder: MultipartBody.Builder) {
         val ctx = KiezBoost.appContext ?: return
         if (!StoryKeyStore.valid()) return
-        uris.take(9).forEachIndexed { i, u ->
+        // 2026-11-24 (owner, v1.53): no file and no size limit any more (was 9 + 5/50 MB). Files over 20 MB go in parts
+        // through /api/big-upload (the form then carries "r2big:…"); MAX_IMAGE / MAX_VIDEO are not used any more.
+        uris.take(499).forEachIndexed { i, u ->
             runCatching {
                 val uri = Uri.parse(u)
                 val mime = ctx.contentResolver.getType(uri) ?: "image/jpeg"
-                val bytes = ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return@runCatching
                 val video = mime.startsWith("video/")
-                if (bytes.size > (if (video) MAX_VIDEO else MAX_IMAGE)) return@runCatching
+                if (com.example.util.BigUpload.sizeOf(ctx, uri) > com.example.util.BigUpload.LIMIT) {
+                    val ref = com.example.util.BigUpload.upload(ctx, uri, mime, mapOf("x-story-key" to StoryKeyStore.key.trim().lowercase()))
+                    if (ref != null) { builder.addFormDataPart("file", ref); return@runCatching }
+                }
+                val bytes = ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return@runCatching
                 val ext = when { mime.contains("png") -> "png"; mime.contains("webp") -> "webp"; mime.contains("webm") -> "webm"; video -> "mp4"; else -> "jpg" }
                 builder.addFormDataPart("file", "extra_${i + 2}.$ext", bytes.toRequestBody(mime.toMediaType()))
             }
@@ -220,17 +225,17 @@ fun StoryKeyFields(language: AppLanguage) {
     var input by remember { mutableStateOf("") }
     var msg by remember { mutableStateOf("") }
     val picker = androidx.activity.compose.rememberLauncherForActivityResult(
-        androidx.activity.result.contract.ActivityResultContracts.PickMultipleVisualMedia(9)
-    ) { list -> list.forEach { u -> if (StoryExtraDraft.uris.size < 9) StoryExtraDraft.uris.add(u.toString()) } }
+        androidx.activity.result.contract.ActivityResultContracts.PickMultipleVisualMedia(50) // 2026-11-24: no limit (50 per pick, pick again for more)
+    ) { list -> list.forEach { u -> StoryExtraDraft.uris.add(u.toString()) } }
 
     if (StoryKeyStore.valid()) {
         Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(Color(0xFFE8F5E9)).padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("🔑 " + pk(language, "Vertrauens-Konto", "Güvenilir hesap") + (if (StoryKeyStore.name.isNotBlank()) " · ${StoryKeyStore.name}" else "") + ": " +
-                pk(language, "ohne Tageslimit, bis 10 Bilder/Videos, sofort online.", "günlük sınır yok, 10 resim/videoya kadar, hemen yayında."),
+                pk(language, "ohne Limit – Bilder, Videos und Text, sofort online.", "sınır yok – resim, video ve metin, hemen yayında."),
                 fontSize = 12.sp, color = Color(0xFF1B5E20), fontWeight = FontWeight.SemiBold)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TextButton(onClick = { picker.launch(androidx.activity.result.PickVisualMediaRequest(androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageAndVideo)) }) {
-                    Text("➕ " + pk(language, "Weitere Bilder/Videos", "Başka resim/video ekle") + " (${StoryExtraDraft.uris.size}/9)", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    Text("➕ " + pk(language, "Weitere Bilder/Videos", "Başka resim/video ekle") + " (${StoryExtraDraft.uris.size})", fontWeight = FontWeight.Bold, fontSize = 12.sp)
                 }
                 if (StoryExtraDraft.uris.isNotEmpty()) TextButton(onClick = { StoryExtraDraft.clear() }) { Text("✕", fontSize = 12.sp) }
             }

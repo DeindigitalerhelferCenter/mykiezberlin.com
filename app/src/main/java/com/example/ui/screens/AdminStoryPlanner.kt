@@ -144,7 +144,7 @@ private fun pickDateTime(context: Context, initial: Long, onPicked: (Long) -> Un
 private fun readMedia(context: Context, uri: Uri, isVideo: Boolean): Pair<ByteArray, String>? {
     // 2026-11-17 (owner): videos are made smaller (720p, max. 3 minutes) before upload
     if (isVideo) {
-        val v = kotlinx.coroutines.runBlocking { com.example.util.VideoShrink.prepare(context, uri) }
+        val v = kotlinx.coroutines.runBlocking { com.example.util.VideoShrink.prepare(context, uri, unlimited = true) } // 2026-11-24: admin no limit
         return v.bytes?.let { it to v.mimeType }
     }
     val type = context.contentResolver.getType(uri) ?: if (isVideo) "video/mp4" else "image/jpeg"
@@ -191,9 +191,12 @@ private fun uploadPlanned(context: Context, token: String, row: PlanRow): String
     if (row.uri != null) {
         val media = (if (!row.isVideo && overlay != null) readMediaWithText(context, row.uri, overlay) else readMedia(context, row.uri, row.isVideo))
             ?: return if (row.isVideo) "Video zu lang (max. 3 Min.) oder zu groß · Video çok uzun (en fazla 3 dk) veya çok büyük" else "Datei nicht lesbar"
-        if (row.isVideo && media.first.size > 50_000_000) return "Video größer als 50 MB"
+        // 2026-11-24 (owner, v1.53): admin has no size limit – a file over 20 MB goes in parts (/api/big-upload)
+        val ref = if (media.first.size > com.example.util.BigUpload.LIMIT) com.example.util.BigUpload.uploadBytes(media.first, media.second, mapOf("x-admin-token" to token)) else null
+        if (ref == null && row.isVideo && media.first.size > 95_000_000) return "Video zu groß zum Senden · video gönderilemedi"
         val ext = when (media.second) { "image/png" -> "png"; "image/webp" -> "webp"; "video/mp4" -> "mp4"; "video/webm" -> "webm"; else -> "jpg" }
-        builder.addFormDataPart("file", "story.$ext", media.first.toRequestBody(media.second.toMediaType()))
+        if (ref != null) builder.addFormDataPart("file", ref)
+        else builder.addFormDataPart("file", "story.$ext", media.first.toRequestBody(media.second.toMediaType()))
     }
     val req = Request.Builder().url("https://mykiezberlin.com/api/stories").header("x-admin-token", token).post(builder.build()).build()
     return plannerClient.newCall(req).execute().use { resp ->
