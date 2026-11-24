@@ -11,6 +11,7 @@ import { readFlags } from "../api/flags.js";
 import { renderNewsImage } from "./news-image.js";
 import { metaDeleteStory } from "./meta-social.js"; // 2026-11-23: edited story -> old Facebook post out
 import { telegramDeleteStory } from "./telegram.js";
+import { tidy } from "./text-polish.js";
 
 export const NEWS_SLOTS = [6, 8, 10, 12, 14, 16, 18, 20, 22];
 export const NEWS_TOPICS = 10; // 2026-11-23 (owner): 10 topics per list (was 5)
@@ -792,8 +793,9 @@ async function translateDeTr(env, text) {
 export async function ensureTr(env, it) {
   if (!trMissing(it)) return true;
   const [t, x] = await Promise.all([translateDeTr(env, it.title_de), it.text_de ? translateDeTr(env, it.text_de) : Promise.resolve("")]);
-  if (t) it.title_tr = cut(t, 90);
-  if (x) it.text_tr = cut(x, 420);
+  // 2026-11-24 (owner): fixed writing rules (capital letters, spaces, full stop) – see _lib/text-polish.js
+  if (t) it.title_tr = cut(tidy(t, "tr", "headline"), 90);
+  if (x) it.text_tr = cut(tidy(x, "tr", "text"), 420);
   const ok = !trMissing(it);
   if (!ok) it.trFail = (it.trFail || 0) + 1; else delete it.trFail;
   return ok;

@@ -162,6 +162,26 @@ async function plannerAiFill(row, force) {
   renderPlannerRows();
 }
 
+// 2026-11-24 (owner): "🔤 Düzelt" – the text in the row (TR + DE) is checked: grammar, capital letters, full stops,
+// commas, words left untranslated. The server keeps a part when the AI answer looks wrong.
+async function plannerPolish(key) {
+  const row = plannerRows.find((r) => r.key === key);
+  if (!row || (!row.headline.trim() && !row.subtext.trim())) return;
+  row.polish = "busy";
+  renderPlannerRows();
+  try {
+    const res = await fetch("/api/story-ai", { method: "POST", headers: { "content-type": "application/json", "x-admin-token": plannerToken() }, body: JSON.stringify({ action: "polish", headline: row.headline, subtext: row.subtext }) });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    if (data.headline) row.headline = data.headline;
+    if (data.subtext) row.subtext = data.subtext;
+    row.polish = "ok";
+  } catch (e) {
+    row.polish = "error";
+  }
+  renderPlannerRows();
+}
+
 function plannerAiButton(key) {
   const row = plannerRows.find((r) => r.key === key);
   if (row) plannerAiFill(row, true);
@@ -334,6 +354,7 @@ function renderPlannerRows() {
           <span style="color: #8b949e;">${row.status === "ok" ? "✅ Planlandı" : row.status === "error" ? `❌ ${adminEsc(row.error || "Hata")}` : row.status === "busy" ? "⏳ Yükleniyor…" : row.ai === "busy" ? "✨ KI resmi okuyor…" : row.ai === "error" ? `KI: ${adminEsc(row.aiError || "Fehler")} · ` + `${Math.max(1, Math.ceil((row.end - row.start) / 3600000))} saat yayında` : `${Math.max(1, Math.ceil((row.end - row.start) / 3600000))} saat yayında`}${row.aiDate ? ` · 📅 Tarih resimden: ${adminEsc(row.aiDate)}` : ""}</span>
           <span style="display: flex; gap: 5px;">
             ${row.file ? `<button class="chip-btn" title="Resimden yeniden doldur" onclick="plannerAiButton(${row.key})">${row.ai === "busy" ? "⏳ KI…" : row.ai === "ok" ? "✨ KI ✓" : row.ai === "error" ? `✨ KI ✗` : "✨ KI"}</button>` : ""}
+            ${row.headline.trim() || row.subtext.trim() ? `<button class="chip-btn" title="Dilbilgisi, büyük/küçük harf, noktalama ve çeviriyi kontrol et" onclick="plannerPolish(${row.key})">${row.polish === "busy" ? "⏳ Düzelt…" : row.polish === "ok" ? "🔤 Düzelt ✓" : row.polish === "error" ? "🔤 Düzelt ✗" : "🔤 Düzelt"}</button>` : ""}
             <button class="chip-btn" onclick="plannerStartNow(${row.key})">▶️ Şimdi</button>
             <button class="chip-btn" onclick="plannerRemove(${row.key})">Kaldır</button>
           </span>

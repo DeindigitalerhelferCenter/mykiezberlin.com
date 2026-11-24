@@ -3,6 +3,23 @@
 // Form field "image": JPEG/PNG/WebP, max 4 MB (the clients send a reduced copy).
 import { isAdmin, json } from "../_lib/util.js";
 import kiezData from "../_lib/kieze.json";
+import { finishPair, mixedLang, tidy } from "../_lib/text-polish.js";
+
+// 2026-11-24: planner text "TR · DE" + "🇹🇷 …\n\n🇩🇪 …" -> both languages checked and corrected, same layout back.
+// Text without flags (only one language) is corrected as it is and the other language is added.
+async function polishStoryText(env, headline, subtext) {
+  const hp = headline.split(" · ");
+  let hTr = hp.length > 1 ? hp[0] : "", hDe = hp.length > 1 ? hp.slice(1).join(" · ") : "";
+  if (hp.length === 1) { if (mixedLang(headline, "de") || /[şğıİ]/.test(headline)) hTr = headline; else hDe = headline; }
+  const tr = subtext.match(/🇹🇷\s*([\s\S]*?)(?=\n*🇩🇪|$)/), de = subtext.match(/🇩🇪\s*([\s\S]*?)(?=\n*🇹🇷|$)/);
+  let tTr = tr ? tr[1].trim() : "", tDe = de ? de[1].trim() : "";
+  if (!tr && !de && subtext.trim()) { if (/[şğıİ]/.test(subtext)) tTr = subtext.trim(); else tDe = subtext.trim(); }
+  const d = await finishPair(env, { hDe, hTr, tDe, tTr }).catch(() => ({ hDe: tidy(hDe, "de", "headline"), hTr: tidy(hTr, "tr", "headline"), tDe: tidy(tDe, "de", "text"), tTr: tidy(tTr, "tr", "text") }));
+  return {
+    headline: [d.hTr, d.hDe].filter(Boolean).join(" · ").slice(0, 1000),
+    subtext: [d.tTr && "🇹🇷 " + d.tTr, d.tDe && "🇩🇪 " + d.tDe].filter(Boolean).join("\n\n"),
+  };
+}
 
 const MODELS = ["@cf/meta/llama-4-scout-17b-16e-instruct", "@cf/mistralai/mistral-small-3.1-24b-instruct"];
 const KINDS = ["news", "event", "info", "traffic", "warn", "politics", "sport", "kultur", "angebot"];
@@ -109,6 +126,13 @@ function webLink(value) {
 export async function onRequestPost({ request, env }) {
   if (!(await isAdmin(request, env))) return json({ error: "unauthorized" }, 401);
   if (!env.AI) return json({ error: "ai_unbound" }, 503);
+  // 2026-11-24 (owner): "🔤 Düzelt" in the story planner – checks the text that is already in the form
+  // JSON { action: "polish", headline, subtext } -> { headline, subtext } (same layout: "TR · DE", "🇹🇷 …\n\n🇩🇪 …")
+  if ((request.headers.get("content-type") || "").includes("application/json")) {
+    const b = await request.json().catch(() => ({}));
+    if (b.action !== "polish") return json({ error: "unknown_action" }, 400);
+    return json(await polishStoryText(env, String(b.headline || ""), String(b.subtext || "")));
+  }
   const form = await request.formData().catch(() => null);
   const file = form && form.get("image");
   if (!file || typeof file === "string" || !file.size) return json({ error: "missing_image" }, 400);
@@ -139,6 +163,13 @@ export async function onRequestPost({ request, env }) {
   let hTr = clean(data.headline_tr, 70);
   let tDe = clean(data.text_de, 400);
   let tTr = clean(data.text_tr, 400);
+  // 2026-11-24 (owner): 100 % translated + correct writing – good model for missing / mixed parts, AI check, fixed rules
+  // (see _lib/text-polish.js). The old m2m100 helpers below stay as the last reserve.
+  const done = await finishPair(env, { hDe, hTr, tDe, tTr }).catch(() => null);
+  if (done) {
+    hDe = clean(done.hDe, 70) || hDe; hTr = clean(done.hTr, 70) || hTr;
+    tDe = clean(done.tDe, 400) || tDe; tTr = clean(done.tTr, 400) || tTr;
+  }
   if (!hDe || !tDe) {
     const [h, t] = await Promise.all([hDe ? hDe : toGerman(env, hTr), tDe ? tDe : toGerman(env, tTr)]);
     hDe = clean(h, 70) || hDe;
