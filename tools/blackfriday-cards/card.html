@@ -1,0 +1,78 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root { --gold:#F5B800; --red:#E30613; --ink:#0A0A0D; }
+  * { box-sizing:border-box; margin:0; padding:0 }
+  html,body { background:var(--ink) }
+  .card { position:relative; overflow:hidden; color:#fff; font-family:Inter,system-ui,sans-serif;
+    background: radial-gradient(1200px 700px at 85% -10%, rgba(245,184,0,.22), transparent 60%),
+                radial-gradient(900px 600px at -10% 110%, rgba(227,6,19,.25), transparent 60%), var(--ink); }
+  .grain { position:absolute; inset:0; background-image: repeating-linear-gradient(135deg, rgba(255,255,255,.025) 0 2px, transparent 2px 9px); pointer-events:none }
+  .stripe { position:absolute; left:-10%; right:-10%; height:64px; background:var(--gold); color:var(--ink); transform:rotate(-6deg);
+    font:900 30px/64px "Archivo Black",sans-serif; letter-spacing:4px; white-space:nowrap; overflow:hidden }
+  .logo { background:#fff; border-radius:28px; padding:14px 18px; display:inline-flex; align-items:center; gap:14px; box-shadow:0 10px 40px rgba(0,0,0,.45) }
+  .logo img { height:96px }
+  .logo span { color:var(--ink); font:800 22px/1.15 Inter; max-width:200px }
+  h1 { font-family:"Archivo Black",sans-serif; line-height:.9; letter-spacing:-1px }
+  h1 .b { color:#fff } h1 .f { color:var(--gold) }
+  .free { display:inline-block; background:var(--red); color:#fff; font:900 1em "Archivo Black"; padding:.12em .4em; border-radius:.2em; transform:rotate(-2deg) }
+  .sub { color:#E9E9EE; font-weight:700 }
+  .bar { height:22px; border-radius:22px; background:rgba(255,255,255,.14); overflow:hidden }
+  .bar i { display:block; height:100%; background:linear-gradient(90deg,var(--gold),#FF5722); border-radius:22px }
+  .left { font-weight:800 } .left b { color:var(--gold) }
+  .prices { display:flex; gap:14px }
+  .p { flex:1; border:2px solid rgba(255,255,255,.2); border-radius:16px; padding:10px 8px; text-align:center; font-size:20px }
+  .p small { display:block; font-weight:700; opacity:.8 } .p b { font:900 34px "Archivo Black"; color:#fff }
+  .p.hl { border-color:var(--gold); background:rgba(245,184,0,.1) }
+  .cta { display:flex; align-items:center; gap:22px }
+  .qr { background:#fff; padding:10px; border-radius:16px; flex:none }
+  .url { font:900 34px "Archivo Black"; color:var(--gold) }
+  .small { opacity:.85; font-weight:700 }
+</style></head>
+<body>
+<div id="root"></div>
+<script>
+const q = Object.fromEntries(new URLSearchParams(location.hash.slice(1)));
+const W = +q.w, H = +q.h, lang = q.lang || "de", left = +q.left || 68, total = 100, taken = total - left;
+const T = {
+  de: { tag:"Nur bis 30.11.2026", brand:"Dein Betrieb im Kiez – sichtbar für ganz Berlin", h2:"3 MONATE", free:"GRATIS",
+        sub:"Für die ersten 100 Betriebe: Sponsor bei My Kiez Berlin – Web, App, Stories & Social Media.",
+        left:`Nur noch <b>${left}</b> von ${total} Plätzen frei`, after:"Danach monatlich kündbar:", s:"Kiez Basic", m:"Kiez Plus", l:"Premium", mo:"€/Monat",
+        cta:"Jetzt Platz sichern", fine:"Keine Zahlung jetzt · keine Mindestlaufzeit", stripe:"BLACK FRIDAY ★ 3 MONATE GRATIS ★ " },
+  tr: { tag:"Sadece 30.11.2026'ya kadar", brand:"İşletmen mahallede – tüm Berlin'de görünür", h2:"3 AY", free:"ÜCRETSİZ",
+        sub:"İlk 100 işletmeye: My Kiez Berlin sponsoru ol – web, uygulama, hikâyeler ve sosyal medya.",
+        left:`${total} yerden sadece <b>${left}</b> yer kaldı`, after:"Sonrası her ay iptal edilebilir:", s:"Kiez Basic", m:"Kiez Plus", l:"Premium", mo:"€/ay",
+        cta:"Yerini şimdi ayırt", fine:"Şimdi ödeme yok · asgari süre yok", stripe:"BLACK FRIDAY ★ 3 AY ÜCRETSİZ ★ " },
+}[lang];
+const big = H > W * 1.4, wide = W > H * 1.4;
+const s = (n) => Math.round(n * (wide ? H / 630 : W / 1080));
+document.getElementById("root").innerHTML = `
+<div class="card" style="width:${W}px;height:${H}px;padding:${s(wide ? 34 : big ? 70 : 54)}px">
+  <div class="grain"></div>
+  ${big ? `<div class="stripe" style="top:${s(1410)}px">${T.stripe.repeat(6)}</div>` : ""}
+  <div style="position:relative;display:flex;flex-direction:column;height:100%;gap:${s(big ? 46 : wide ? 10 : 18)}px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:20px">
+      <div class="logo" style="transform:scale(${wide ? .62 : big ? 1 : .8});transform-origin:left center;margin:${wide ? s(-20) : big ? 0 : s(-12)}px 0"><img src="${q.logo}"><span>${T.brand}</span></div>
+      <div class="small" style="font-size:${s(26)}px;color:var(--gold);text-align:right;max-width:${s(330)}px">⏳ ${T.tag}</div>
+    </div>
+    <h1 style="font-size:${s(big ? 168 : wide ? 62 : 104)}px"><span class="b">BLACK</span><br><span class="f">FRIDAY</span></h1>
+    <div style="font:900 ${s(big ? 92 : wide ? 40 : 60)}px/1 'Archivo Black'">${T.h2} <span class="free">${T.free}</span></div>
+    <p class="sub" style="font-size:${s(big ? 40 : wide ? 20 : 27)}px;line-height:1.3;max-width:${wide ? s(700) : 99999}px">${T.sub}</p>
+    <div>
+      <div class="bar" style="height:${s(big ? 22 : 16)}px"><i style="width:${taken}%"></i></div>
+      <p class="left" style="margin-top:${s(10)}px;font-size:${s(big ? 40 : wide ? 22 : 30)}px">🔥 ${T.left}</p>
+    </div>
+    ${wide ? "" : `<div><p class="small" style="font-size:${s(big ? 26 : 22)}px;margin-bottom:${s(8)}px">${T.after}</p>
+      <div class="prices"><div class="p"><small>${T.s}</small><b>29</b> ${T.mo}</div><div class="p hl"><small>${T.m}</small><b>49</b> ${T.mo}</div><div class="p"><small>${T.l}</small><b>89</b> ${T.mo}</div></div></div>`}
+    <div class="cta" style="margin-top:auto">
+      <div class="qr" id="qr"></div>
+      <div><p style="font:800 ${s(big ? 44 : wide ? 22 : 30)}px Inter">${T.cta} →</p><p class="url" style="font-size:${s(big ? 40 : wide ? 22 : 30)}px">mykiezberlin.com/werben</p>
+        <p class="small" style="font-size:${s(wide ? 16 : 20)}px;margin-top:4px">${T.fine}</p></div>
+    </div>
+  </div>
+</div>`;
+new QRCode(document.getElementById("qr"), { text: "https://mykiezberlin.com/werben?bf=1#f", width: s(big ? 210 : wide ? 92 : 128), height: s(big ? 210 : wide ? 92 : 128), colorDark: "#0A0A0D", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
+</script>
+</body></html>
