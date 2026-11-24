@@ -39,6 +39,14 @@ textarea{min-height:140px;resize:vertical}
 .map iframe{width:100%;height:220px;border:0;border-radius:12px;margin-top:10px;background:#e5e3df}
 .hidden{display:none!important}
 progress{width:100%;margin-top:8px}
+/* 2026-11-24 (owner): big blue "choose pictures/videos" button (the small grey file box was not seen), several files at once */
+.mpick-in{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+label.mpick{display:flex;width:100%;margin:8px 0 4px;padding:16px 18px;font-size:17px;background:var(--blue);color:#fff;border-radius:14px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(26,115,232,.35);text-align:center}
+label.mpick:hover{filter:brightness(1.08)}.mpick-in:focus-visible+label.mpick{outline:3px solid #93C5FD;outline-offset:2px}
+.mpick-list{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.mpick-list div{position:relative;width:64px;height:64px;border-radius:10px;overflow:hidden;background:#000}
+.mpick-list img,.mpick-list video{width:100%;height:100%;object-fit:cover;display:block}.mpick-list span{position:absolute;left:3px;bottom:3px;background:rgba(0,0,0,.65);color:#fff;font-size:10px;border-radius:5px;padding:0 4px}
+.mpick-list div.done{outline:3px solid #15803D}.mpick-list div.fail{outline:3px solid #B91C1C}
+#mpick-n{font-weight:800;margin-top:6px}
 </style>
 </head>
 <body>
@@ -75,7 +83,9 @@ progress{width:100%;margin-top:8px}
         <label><input type="radio" name="period" value="week"><span data-i="weekly"></span></label>
       </div>
       <p class="muted" id="quota"></p>
-      <label for="mfile" data-i="file"></label><input id="mfile" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm">
+      <label for="mfile" data-i="file"></label><input id="mfile" class="mpick-in" type="file" multiple accept="image/jpeg,image/png,image/webp,video/mp4,video/webm">
+      <label for="mfile" class="mpick" id="mpick">📁 Bilder / Videos auswählen · Resim / video seç</label>
+      <div id="mpick-n" class="muted"></div><div id="mpick-list" class="mpick-list"></div>
       <label for="mcap" data-i="caption"></label><input id="mcap" type="text" maxlength="300">
       <!-- 2026-11-23 (owner "UYGULA 11"): how long the upload stays in the sponsor story on the page -->
       <label for="mdays" id="mdays-l">Wie lange sichtbar? · Ne kadar görünsün?</label>
@@ -233,6 +243,64 @@ progress{width:100%;margin-top:8px}
       if (j.ok) { msg("smsg", t("saved"), true); state.ad = Object.assign(state.ad, fields); maps(state.ad); } else msg("smsg", errText(j), false);
     });
   };
+  // 2026-11-24 (owner): several pictures/videos at once – preview, then all are uploaded one after the other
+  var picked = [];
+  function pickInfo() {
+    var tr = lang === "tr", n = picked.length;
+    $("mpick").textContent = n ? (tr ? "📁 Değiştir / başka seç (" + n + " seçili)" : "📁 Ändern / andere wählen (" + n + " gewählt)") : "📁 Bilder / Videos auswählen · Resim / video seç";
+    $("mpick-n").textContent = n ? (tr ? n + " dosya seçildi – şimdi \"" + t("upload") + "\" düğmesine bas." : n + " Datei(en) gewählt – jetzt auf \"" + t("upload") + "\" tippen.") : "";
+    var box = $("mpick-list");
+    box.querySelectorAll("img,video").forEach(function (m) { if (m.src.indexOf("blob:") === 0) URL.revokeObjectURL(m.src); });
+    box.innerHTML = "";
+    picked.forEach(function (f, i) {
+      var d = document.createElement("div"); d.dataset.i = i;
+      var u = URL.createObjectURL(f);
+      d.innerHTML = (f.type.indexOf("video") === 0 ? '<video src="' + u + '#t=0.5" muted playsinline preload="metadata"></video><span>▶ ' : '<img src="' + u + '" alt=""><span>') + (f.size > 1048576 ? Math.round(f.size / 1048576) + " MB" : Math.max(1, Math.round(f.size / 1024)) + " KB") + "</span>";
+      box.appendChild(d);
+    });
+  }
+  $("mfile").addEventListener("change", function () { picked = Array.prototype.slice.call(this.files || []); pickInfo(); });
+  function sendOne(file) {
+    return new Promise(function (done) {
+      function post(ref) {
+        var fd = new FormData(); fd.append("file", ref || file); fd.append("caption", $("mcap").value); fd.append("days", $("mdays").value);
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/api/sponsor-media"); xhr.setRequestHeader("x-sponsor-token", token);
+        xhr.upload.onprogress = function (ev) { if (ev.lengthComputable) $("mprog").value = Math.round(ev.loaded / ev.total * 100); };
+        xhr.onloadend = function () { var j = {}; try { j = JSON.parse(xhr.responseText); } catch (e) {} j.status = xhr.status; done(xhr.status === 201 ? { ok: true } : { ok: false, j: xhr.status === 0 ? { error: "offline" } : j }); };
+        xhr.send(fd);
+      }
+      if (window.mkSponsorVip && window.mkBigUpload && file.size > 20 * 1024 * 1024) {
+        window.mkBigUpload(file, { "x-sponsor-token": token }, { target: "sponsor", onProgress: function (p) { $("mprog").value = Math.round(p * 100); } })
+          .then(function (r) { post(r || null); }).catch(function () { done({ ok: false, j: { error: "offline" } }); });
+      } else post(null);
+    });
+  }
+  $("mbtn").addEventListener("click", function (ev) {
+    if (!picked.length) return; // nothing chosen: the old way below shows "please choose a file"
+    ev.stopImmediatePropagation();
+    var tr = lang === "tr", list = picked.slice(), okN = 0, i = 0;
+    $("mbtn").disabled = true; $("mpick").style.pointerEvents = "none"; $("mprog").classList.remove("hidden");
+    (function next() {
+      if (i >= list.length) {
+        $("mprog").classList.add("hidden"); $("mbtn").disabled = false; $("mpick").style.pointerEvents = "";
+        if (okN === list.length) { msg("mmsg", okN === 1 ? t("uploaded") : (tr ? okN + " dosya yüklendi ✓ – şimdi yayında." : okN + " Dateien hochgeladen ✓ – jetzt online."), true); $("mfile").value = ""; $("mcap").value = ""; picked = []; pickInfo(); }
+        load();
+        return;
+      }
+      var cell = $("mpick-list").querySelector('[data-i="' + i + '"]');
+      msg("mmsg", (tr ? "⏳ " + (i + 1) + " / " + list.length + " yükleniyor…" : "⏳ " + (i + 1) + " / " + list.length + " wird hochgeladen …"), true);
+      $("mprog").value = 0;
+      (window.mkShrinkImage ? window.mkShrinkImage(list[i]) : Promise.resolve(list[i])).catch(function () { return list[i]; }).then(sendOne).then(function (r) {
+        if (cell) cell.className = r.ok ? "done" : "fail";
+        if (r.ok) { okN++; i++; next(); return; }
+        // stop at the first error (e.g. daily/weekly quota full) and say how many are online
+        $("mprog").classList.add("hidden"); $("mbtn").disabled = false; $("mpick").style.pointerEvents = "";
+        msg("mmsg", (tr ? okN + " / " + list.length + " yüklendi. Durdu: " : okN + " / " + list.length + " hochgeladen. Gestoppt: ") + errText(r.j), false);
+        picked = list.slice(i); pickInfo(); if (okN) load(); // the ones not online yet stay chosen
+      });
+    })();
+  }, true);
   $("mbtn").onclick = function () {
     var file = $("mfile").files[0];
     if (!file) { msg("mmsg", errText({ error: "missing_file" }), false); return; }
@@ -258,7 +326,7 @@ progress{width:100%;margin-top:8px}
     xhr.onloadend = function () {
       $("mprog").classList.add("hidden"); $("mbtn").disabled = false;
       var j = {}; try { j = JSON.parse(xhr.responseText); } catch (e) {} j.status = xhr.status;
-      if (xhr.status === 201) { msg("mmsg", t("uploaded"), true); $("mfile").value = ""; $("mcap").value = ""; load(); }
+      if (xhr.status === 201) { msg("mmsg", t("uploaded"), true); $("mfile").value = ""; $("mcap").value = ""; picked = []; pickInfo(); load(); }
       else msg("mmsg", errText(xhr.status === 0 ? { error: "offline" } : j), false);
     };
     xhr.send(fd);

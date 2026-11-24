@@ -85,6 +85,30 @@
     ".mk-sr-pop .mk-sr-x{position:absolute;top:8px;right:10px;border:0;background:none;font-size:22px;cursor:pointer;color:inherit}";
   document.head.appendChild(css2);
 
+  // ---- 2026-11-24 (owner): header + footer buttons look exactly the same, real brand colours + logos.
+  // kiez-search.js uses the class names .mk-sr / .mk-sr-b too (search results) and squeezed the round buttons
+  // (phone: 3 columns, pills) – everything below is bound to [data-mk-sr] so the search keeps its own look.
+  var css3 = document.createElement("style");
+  css3.textContent =
+    "[data-mk-sr].mk-sr{display:flex!important;flex-wrap:nowrap!important;align-items:center;gap:8px;overflow-x:auto;width:auto}" +
+    ".stories-header [data-mk-sr].mk-sr{flex:1;min-width:0}" +
+    "@media(max-width:700px){.stories-header [data-mk-sr].mk-sr{flex:1 0 100%;width:100%}}" +
+    "[data-mk-sr] .mk-sr-b{flex:none!important;width:36px!important;height:36px!important;padding:0!important;border-radius:50%!important;font-size:17px!important;line-height:1!important;" +
+    "display:inline-flex!important;align-items:center;justify-content:center;color:#fff!important;font-weight:400;white-space:normal}" +
+    ".top-bar-right [data-mk-sr] .mk-sr-b{width:34px!important;height:34px!important;font-size:16px!important}" +
+    "[data-mk-sr] .mk-sr-b.inf{font-weight:900!important}" +
+    // brand colours (same in the round row and in the box at the end of the page)
+    "[data-mk-sr] .mk-sr-b.wa,.mk-social .mk-s-wa{background:#25D366!important}" +
+    "[data-mk-sr] .mk-sr-b.ig,.mk-social .mk-s-ig{background:radial-gradient(circle at 30% 107%,#fdf497 0%,#fdf497 5%,#fd5949 45%,#d6249f 60%,#285AEB 90%)!important}" +
+    "[data-mk-sr] .mk-sr-b.fb,.mk-social .mk-s-fb{background:#0866FF!important}" +
+    "[data-mk-sr] .mk-sr-b.tt,.mk-social .mk-s-tt{background:#000!important;box-shadow:0 2px 6px rgba(0,0,0,.22)!important}" +
+    "[data-mk-sr] .mk-sr-b.tt i,.mk-social .mk-s-tt i{color:#fff;text-shadow:-1.5px -1.5px 0 #25F4EE,1.5px 1.5px 0 #FE2C55}" +
+    // YouTube: not open yet -> red like the real one, but no link (owner: "tıklanmasa da olur")
+    "[data-mk-sr] .mk-sr-b.yt,.mk-social .mk-s-yt,.mk-social .mk-s-yt.mk-s-soon{background:#FF0000!important;opacity:1!important}" +
+    "[data-mk-sr] .mk-sr-b.tg,.mk-social .mk-s-tg{background:#26A5E4!important}" +
+    "[data-mk-sr] .mk-sr-b.wac,.mk-social .mk-s-wac{background:#128C7E!important}";
+  document.head.appendChild(css3);
+
   function roundRow() {
     var tr = lang() === "tr";
     var b = function (cls, href, icon, label) {

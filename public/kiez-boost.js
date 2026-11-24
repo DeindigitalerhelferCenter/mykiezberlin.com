@@ -326,9 +326,38 @@
     armed = false;
     var n = (Number(lsGet(BOTTOM_STORE)) || 0) + 1;
     lsSet(BOTTOM_STORE, String(n));
-    if (n % 2 === 0 && Date.now() - lastPop > 60000 && !document.getElementById("mk-sps-viewer")) { lastPop = Date.now(); popup(); }
+    // 2026-11-24 (owner): was every 2nd time and could open over other windows -> only every 3rd time, at most once per
+    // visit, never while another window is open, and it closes by itself after 3 s.
+    if (n % 3 !== 0 || ssGet(POP_SEEN) || anyOpen()) return;
+    if (Date.now() - lastPop > 60000) { lastPop = Date.now(); ssSet(POP_SEEN, "1"); popup(true); }
   }, { passive: true });
-  function popup() {
+  var POP_SEEN = "mk_b2b_pop_seen";
+  function ssGet(k) { try { return sessionStorage.getItem(k) || ""; } catch (x) { return ""; } }
+  function ssSet(k, v) { try { sessionStorage.setItem(k, v); } catch (x) {} }
+  // any window / sheet already open? (help, Black Friday, story viewer, sponsor info …) -> do not open another one
+  function anyOpen() {
+    var list = document.querySelectorAll('[aria-modal="true"], #mk-help, #mk-reel-view, #mk-sps-viewer, .mk-sr-pop, #mk-si, #mk-stars, #mk-sup, #mk-chk, #mk-story-notice, #mk-b2b-pop, #mk-bf-pop');
+    for (var i = 0; i < list.length; i++) { var el = list[i]; if (el.getClientRects().length && getComputedStyle(el).visibility !== "hidden" && floating(el)) return true; }
+    return false;
+  }
+  // only real windows count (they sit in a fixed layer) – e.g. #mk-stars is a normal box on the page
+  function floating(el) { for (var n = el; n && n !== document.body; n = n.parentElement) if (getComputedStyle(n).position === "fixed") return true; return false; }
+  window.mkAnyWindowOpen = anyOpen;
+  // run fn as soon as no other window is open (checks every 2 s, gives up after 2 min)
+  function whenFree(fn) {
+    var t0 = Date.now();
+    (function look() { if (!anyOpen()) fn(); else if (Date.now() - t0 < 120000) setTimeout(look, 2000); })();
+  }
+  // 3 s, then the window closes itself (thin bar shows the time); a tap on the card keeps it open
+  function autoClose(box, close, card) {
+    var bar = document.createElement("div");
+    bar.className = "mk-pop-timer";
+    bar.innerHTML = "<i></i>";
+    card.appendChild(bar);
+    var t = setTimeout(close, 3000);
+    card.addEventListener("pointerdown", function () { clearTimeout(t); bar.remove(); }, { once: true });
+  }
+  function popup(auto) {
     if (document.getElementById("mk-b2b-pop")) return;
     var box = document.createElement("div");
     box.id = "mk-b2b-pop";
@@ -339,6 +368,7 @@
     var close = function () { box.remove(); };
     box.querySelector(".mk-b2b-pop-x").onclick = close;
     box.onclick = function (ev) { if (ev.target === box) close(); };
+    if (auto) autoClose(box, close, box.querySelector(".mk-b2b-pop-card"));
   }
 
   /* ---------------- 7. Black Friday (2026-11-22, owner): window once a day + black strip on the home page ---------------- */
@@ -359,7 +389,7 @@
     var x = bfText();
     return '<a class="mk-bf-strip" href="/werben?bf=1#f"><b>' + e(x.h) + "</b><span>" + e(L("Nur noch " + bf.left + " Plätze", "Sadece " + bf.left + " yer kaldı", "Only " + bf.left + " left")) + " →</span></a>";
   }
-  function bfPopup() {
+  function bfPopup(auto) {
     if (!bf || !bf.active || document.getElementById("mk-bf-pop") || document.getElementById("mk-sps-viewer")) return;
     var x = bfText();
     var box = document.createElement("div");
@@ -373,6 +403,7 @@
     var close = function () { box.remove(); };
     box.querySelector(".mk-b2b-pop-x").onclick = close;
     box.onclick = function (ev) { if (ev.target === box) close(); };
+    if (auto) autoClose(box, close, box.querySelector(".mk-bf-card")); // 2026-11-24 (owner): closes itself after 3 s too
   }
   function bfLoad() {
     baseFetch.call(window, "/api/blackfriday", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
@@ -381,7 +412,7 @@
       if (!bf || !bf.active) return;
       var day = new Date().toISOString().slice(0, 10);
       if (lsGet("mk_bf_pop_day") === day) return;
-      setTimeout(function () { lsSet("mk_bf_pop_day", day); bfPopup(); }, 15000);
+      setTimeout(function () { whenFree(function () { lsSet("mk_bf_pop_day", day); bfPopup(true); }); }, 15000); // 2026-11-24: only when no other window is open
     }).catch(function () {});
   }
   window.mkBlackFriday = function () { if (bf) bfPopup(); };
@@ -392,6 +423,7 @@
     try { ads = JSON.parse(localStorage.getItem("mykiez_my_classifieds_v1") || "[]"); } catch (x) { ads = []; }
     var old = ads.filter(function (a) { return Date.now() - a.created > 3 * 86400000; });
     if (!old.length || lsGet("mk_cl_hint_day") === new Date().toISOString().slice(0, 10)) return;
+    if (anyOpen()) { whenFree(myAdHint); return; } // 2026-11-24 (owner): never two windows at once
     lsSet("mk_cl_hint_day", new Date().toISOString().slice(0, 10));
     var box = document.createElement("div");
     box.id = "mk-b2b-pop";
@@ -457,7 +489,11 @@
     ".mk-bf-k{display:inline-block;margin:4px 0 12px;padding:5px 12px;border-radius:999px;background:#FFC107;color:#000;font-weight:900;font-size:13px}" +
     ".mk-bf-go{display:block;padding:12px;border-radius:999px;background:#FFC107;color:#000!important;font-weight:900;text-decoration:none}" +
     "@media (prefers-reduced-motion:reduce){.mk-bf-strip,.mk-bf-card{animation:none}}" +
-    "@media (prefers-reduced-motion:reduce){.mk-dual-btn,.mk-glow-btn,.mk-deal-chip,.mk-deal-banner,.mk-pill-glow,.mk-b2b-pop-card{animation:none}.mk-spin360{animation:none!important}}";
+    "@media (prefers-reduced-motion:reduce){.mk-dual-btn,.mk-glow-btn,.mk-deal-chip,.mk-deal-banner,.mk-pill-glow,.mk-b2b-pop-card{animation:none}.mk-spin360{animation:none!important}}" +
+    // 2026-11-24 (owner): thin bar at the bottom of a window that closes itself after 3 s
+    ".mk-pop-timer{position:absolute;left:14px;right:14px;bottom:8px;height:4px;border-radius:4px;background:rgba(127,127,127,.25);overflow:hidden}" +
+    ".mk-pop-timer i{display:block;height:100%;width:100%;background:#F5B800;transform-origin:left;animation:mkPopTimer 3s linear forwards}" +
+    "@keyframes mkPopTimer{from{transform:scaleX(1)}to{transform:scaleX(0)}}";
   document.head.appendChild(css);
 
   function start() {
