@@ -11,7 +11,7 @@
   function load(id) {
     if (cache[id]) return Promise.resolve(cache[id]);
     return fetch("/api/sponsor-media?ad=" + encodeURIComponent(id)).then(function (r) { return r.ok ? r.json() : { media: [] }; })
-      .then(function (d) { cache[id] = (d.media || []).slice(0, 12); return cache[id]; })
+      .then(function (d) { cache[id] = (d.media || []).slice(0, 100); return cache[id]; }) // 2026-11-24: was 12 (trusted sponsors have no limit)
       .catch(function () { return []; });
   }
   function fallback(id) {
@@ -21,25 +21,66 @@
       .map(function (u) { return { url: u, media_type: "image" }; });
   }
 
+  // 2026-11-24 (owner): the full-screen view runs by itself like a carousel on every device – pictures 4 s, videos to
+  // their end, Instagram posts 12 s. ⏸ stops it, ▶ starts it again; ‹ › / arrow keys / swipe go by hand (the timer
+  // starts new from there). Without a stop it keeps running.
+  var IMAGE_MS = 4000, IG_MS = 12000;
   function viewer(list, start) {
-    var i = start;
+    var i = start, paused = false, timer = null, t0 = 0, left = 0, raf = 0;
     var box = document.createElement("div");
     box.id = "mk-reel-view";
     box.setAttribute("role", "dialog");
+    function stopTimer() { if (timer) clearTimeout(timer); timer = null; cancelAnimationFrame(raf); }
+    function bar(p) { var b = box.querySelector(".mk-rv-bar i"); if (b) b.style.width = Math.max(0, Math.min(100, p * 100)) + "%"; }
+    function runTimer(ms) {
+      stopTimer();
+      if (paused || list.length < 2) return;
+      left = ms; t0 = Date.now();
+      var total = ms;
+      timer = setTimeout(function () { go(1, true); }, ms);
+      (function tick() { bar(1 - (left - (Date.now() - t0)) / total); raf = requestAnimationFrame(tick); })();
+    }
+    function startItem() {
+      var m = list[i], v = box.querySelector("video");
+      if (v) {
+        v.onended = function () { if (!paused && list.length > 1) go(1, true); else { v.currentTime = 0; } };
+        v.ontimeupdate = function () { if (v.duration) bar(v.currentTime / v.duration); };
+        if (paused) v.pause(); else { var p = v.play(); if (p && p.catch) p.catch(function () { v.muted = true; v.play().catch(function () {}); }); }
+        stopTimer();
+        return;
+      }
+      runTimer(m.media_type === "instagram" ? IG_MS : IMAGE_MS);
+    }
     function show() {
       var m = list[i];
       box.innerHTML = '<button type="button" class="mk-rv-x" aria-label="' + e(L("Schließen", "Kapat", "Close")) + '">✕</button>' +
+        (list.length > 1 ? '<div class="mk-rv-bar"><i></i></div>' : "") +
         (m.media_type === "instagram" ? '<iframe class="mk-rv-ig" src="' + e(String(m.url).replace(/\/?$/, "/") + "embed") + '" title="Instagram" allowfullscreen></iframe>'
           : m.media_type === "video" ? '<video src="' + e(m.url) + '" controls autoplay playsinline></video>' : '<img src="' + e(m.url) + '" alt="' + e(m.caption || "") + '">') +
         (m.caption ? '<div class="mk-rv-cap">' + e(m.caption) + "</div>" : "") +
-        (list.length > 1 ? '<button type="button" class="mk-rv-prev" aria-label="←">‹</button><button type="button" class="mk-rv-next" aria-label="→">›</button><div class="mk-rv-n">' + (i + 1) + " / " + list.length + "</div>" : "");
+        (list.length > 1 ? '<button type="button" class="mk-rv-prev" aria-label="←">‹</button><button type="button" class="mk-rv-next" aria-label="→">›</button>' +
+          '<button type="button" class="mk-rv-pause" aria-label="' + e(paused ? L("Abspielen", "Oynat", "Play") : L("Anhalten", "Durdur", "Pause")) + '">' + (paused ? "▶" : "⏸") + "</button>" +
+          '<div class="mk-rv-n">' + (i + 1) + " / " + list.length + "</div>" : "");
+      startItem();
     }
-    function close() { box.remove(); document.removeEventListener("keydown", key); }
+    function close() { stopTimer(); box.remove(); document.removeEventListener("keydown", key); document.removeEventListener("visibilitychange", vis); }
     function go(d) { i = (i + d + list.length) % list.length; show(); }
-    function key(ev) { if (ev.key === "Escape") close(); else if (ev.key === "ArrowRight") go(1); else if (ev.key === "ArrowLeft") go(-1); }
+    function toggle() {
+      paused = !paused;
+      var btn = box.querySelector(".mk-rv-pause");
+      if (btn) { btn.textContent = paused ? "▶" : "⏸"; btn.setAttribute("aria-label", paused ? L("Abspielen", "Oynat", "Play") : L("Anhalten", "Durdur", "Pause")); }
+      var v = box.querySelector("video");
+      if (v) { if (paused) v.pause(); else v.play().catch(function () {}); return; }
+      if (paused) { left = left - (Date.now() - t0); stopTimer(); }
+      else runTimer(Math.max(800, left || IMAGE_MS));
+    }
+    function vis() { if (document.hidden) { if (!paused) { left = left - (Date.now() - t0); stopTimer(); } } else if (!paused && !box.querySelector("video")) runTimer(Math.max(800, left || IMAGE_MS)); }
+    function key(ev) { if (ev.key === "Escape") close(); else if (ev.key === "ArrowRight") go(1); else if (ev.key === "ArrowLeft") go(-1); else if (ev.key === " ") { ev.preventDefault(); toggle(); } }
+    document.addEventListener("visibilitychange", vis);
     box.addEventListener("click", function (ev) {
       var t = ev.target;
       if (t.closest(".mk-rv-x") || t === box) close();
+      else if (t.closest(".mk-rv-pause")) toggle();
       else if (t.closest(".mk-rv-prev")) go(-1);
       else if (t.closest(".mk-rv-next")) go(1);
     });
@@ -98,6 +139,8 @@
     "#mk-reel-view img,#mk-reel-view video{max-width:100%;max-height:86vh;object-fit:contain}" +
     "#mk-reel-view button{position:absolute;border:0;background:rgba(255,255,255,.15);color:#fff;border-radius:50%;width:44px;height:44px;font-size:22px;cursor:pointer}" +
     ".mk-rv-x{top:14px;right:14px}.mk-rv-prev{left:10px;top:50%}.mk-rv-next{right:10px;top:50%}" +
+    "#mk-reel-view .mk-rv-pause{top:14px;left:14px;font-size:18px}" +
+    ".mk-rv-bar{position:absolute;top:6px;left:70px;right:70px;height:3px;border-radius:3px;background:rgba(255,255,255,.25);overflow:hidden}.mk-rv-bar i{display:block;height:100%;width:0;background:#fff}" +
     ".mk-rv-cap{position:absolute;bottom:42px;left:16px;right:16px;color:#fff;text-align:center;font-size:14px}.mk-rv-n{position:absolute;bottom:14px;color:#fff;font-size:12px;opacity:.8}";
   document.head.appendChild(css);
 
