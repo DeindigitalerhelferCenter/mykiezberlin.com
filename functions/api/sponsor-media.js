@@ -7,6 +7,7 @@ import { cleanText, db, isAdmin, json, noDb } from "../_lib/util.js";
 import { mediaQuota, parseExtra } from "../_lib/plans.js";
 import { ensureSponsorTables, MEDIA_ORDER, sponsorFromToken } from "../_lib/sponsor-panel.js";
 import { isVipAd } from "../_lib/story-vip.js";
+import { BIG_TYPES, bigRef } from "../_lib/big-upload.js";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
@@ -40,16 +41,22 @@ export async function onRequestPost({ request, env }) {
   }
   if (!ad) return json({ error: "unauthorized" }, 401);
 
-  const file = form.get("file");
-  if (!file || typeof file === "string" || !file.size) return json({ error: "missing_file" }, 400);
-  const ext = TYPES[file.type];
+  // 2026-11-24 (owner): admin + trusted sponsors (TEK, The Visit, Berlin Handel …) – no size limit; big files come in
+  // parts through /api/big-upload and arrive here as "r2big:<key>|<type>|<size>"
+  const vipAd = !byAdmin && (await isVipAd(database, ad.id).catch(() => false));
+  const free = !!byAdmin || vipAd;
+  const raw = form.get("file");
+  const ref = free && typeof raw === "string" ? await bigRef(env, raw, `ads/media/${ad.id}/big-`) : null;
+  const file = ref || raw;
+  if (!file || (!ref && (typeof file === "string" || !file.size))) return json({ error: "missing_file" }, 400);
+  const ext = TYPES[file.type] || (ref ? BIG_TYPES[file.type] : "");
   if (!ext) return json({ error: "unsupported_file" }, 415);
   const isVideo = file.type.startsWith("video/");
-  if (file.size > (isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES)) return json({ error: "file_too_large" }, 413);
+  if (!free && file.size > (isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES)) return json({ error: "file_too_large" }, 413);
 
   // Package limit for the chosen period (admin uploads do not count)
   // 2026-11-21 (owner): trusted sponsors (admin list "Güvenilir hesaplar") have no package limit
-  if (!byAdmin && !(await isVipAd(database, ad.id).catch(() => false))) {
+  if (!free) {
     const q = mediaQuota(ad.plan, parseExtra(ad.extra).media_period);
     const used = await database
       .prepare(`SELECT COUNT(*) AS n FROM sponsor_media WHERE ad_id = ? AND media_type = ? AND created_at > ? AND by_admin = 0`)
@@ -60,8 +67,8 @@ export async function onRequestPost({ request, env }) {
   }
 
   const id = crypto.randomUUID();
-  const key = `ads/media/${ad.id}/${id}.${ext}`;
-  await env.BUCKET.put(key, file.stream(), { httpMetadata: { contentType: file.type } });
+  const key = ref ? ref.key : `ads/media/${ad.id}/${id}.${ext}`;
+  if (!ref) await env.BUCKET.put(key, file.stream(), { httpMetadata: { contentType: file.type } });
   await database
     .prepare(`INSERT INTO sponsor_media (id, ad_id, media_key, media_type, caption, status, bytes, created_at, by_admin) VALUES (?, ?, ?, ?, ?, 'live', ?, ?, ?)`)
     .bind(id, ad.id, key, isVideo ? "video" : "image", cleanText(form.get("caption"), 300), file.size, Date.now(), byAdmin)

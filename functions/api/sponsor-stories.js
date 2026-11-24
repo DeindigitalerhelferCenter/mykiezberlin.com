@@ -10,6 +10,7 @@ import { db, json, noDb } from "../_lib/util.js";
 import { ensureSponsorTables } from "../_lib/sponsor-panel.js";
 import { dealFromText } from "../_lib/story-cats.js";
 import { parseExtra } from "../_lib/plans.js";
+import { ensureVip } from "../_lib/story-vip.js";
 
 const WINDOW_MS = 24 * 3600000;
 const MAX_PER_SPONSOR = 15;
@@ -31,11 +32,15 @@ export async function onRequestGet({ env }) {
        FROM sponsor_media m JOIN ads a ON a.id = m.ad_id
        WHERE m.status = 'live' AND m.created_at > ? AND m.created_at + COALESCE(m.days, 1) * 86400000 > ? AND m.media_type IN ('image', 'video')
          AND a.active = 1 AND (a.start_at = 0 OR a.start_at <= ?) AND (a.end_at = 0 OR a.end_at > ?)
-       ORDER BY m.created_at ASC LIMIT 400`
+       ORDER BY m.created_at ASC LIMIT 2000`
     )
     .bind(now - 7 * 86400000, now, now, now)
     .all();
 
+  // 2026-11-24 (owner): trusted sponsors (TEK, The Visit, Berlin Handel …) have no limit in their story folder
+  await ensureVip(database).catch(() => {});
+  const vipRows = await database.prepare(`SELECT ad_id FROM story_vip WHERE kind = 'ad'`).all().catch(() => ({ results: [] }));
+  const vipAds = new Set((vipRows.results || []).map((r) => r.ad_id));
   const map = new Map();
   const deals = [];
   for (const r of results) {
@@ -48,7 +53,7 @@ export async function onRequestGet({ env }) {
     const url = mediaUrl(r.media_key);
     // 2026-11-23: with 2–7 days more uploads are live -> the NEWEST 15 stay (was: the first 15)
     s.media.push({ url, type: r.media_type, caption: r.caption || "", created_at: r.created_at });
-    if (s.media.length > MAX_PER_SPONSOR) s.media.shift();
+    if (s.media.length > MAX_PER_SPONSOR && !vipAds.has(r.ad_id)) s.media.shift();
     s.latest = Math.max(s.latest, r.created_at);
     const d = r.caption ? dealFromText(r.caption, "") : "";
     if (d) {

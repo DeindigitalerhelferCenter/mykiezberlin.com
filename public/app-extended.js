@@ -247,7 +247,7 @@ async function submitUserStory() {
   }
 
   // 2026-11-14 (owner): warn before the server would refuse – the text stays in the form
-  if (file && file.size > (file.type.startsWith("video/") ? 50 : 5) * 1024 * 1024) {
+  if (file && !(window.mkIsBigUser && window.mkIsBigUser()) && file.size > (file.type.startsWith("video/") ? 50 : 5) * 1024 * 1024) {
     mkStoryNotice(tr("Datei zu groß", "Dosya çok büyük"), tr("Bitte ein Bild bis 5 MB oder ein Video bis 50 MB wählen. Dein Text bleibt erhalten.", "Lütfen 5 MB'a kadar resim veya 50 MB'a kadar video seç. Yazdıkların duruyor."));
     return;
   }

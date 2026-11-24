@@ -368,7 +368,7 @@ async function plannerUploadAll() {
     row.status = "busy";
     renderPlannerRows();
     try {
-      if (row.file && row.file.type.startsWith("video/") && row.file.size > 50 * 1024 * 1024) throw new Error("Video 50 MB'den büyük");
+      if (false && row.file && row.file.type.startsWith("video/") && row.file.size > 50 * 1024 * 1024) throw /* 2026-11-24: admin no limit, big files in parts */ new Error("Video 50 MB'den büyük");
       const form = new FormData();
       form.set("planned", "1");
       form.set("headline", row.headline.trim());
@@ -389,7 +389,7 @@ async function plannerUploadAll() {
       if (row.file && row.extras && row.extras.length) {
         for (let n = 0; n < row.extras.length; n++) {
           const x = row.extras[n];
-          if (x.isVideo && x.file.size > 50 * 1024 * 1024) throw new Error(`Ek video ${n + 2}: 50 MB'den büyük`);
+          if (false && x.isVideo && x.file.size > 50 * 1024 * 1024) throw /* 2026-11-24 */ new Error(`Ek video ${n + 2}: 50 MB'den büyük`);
           form.append("file", await plannerFileWithText(x));
           if (x.isVideo && x.overlay) form.set(`overlay_${n + 2}`, JSON.stringify(x.overlay));
           form.set(`caption_${n + 2}`, (x.caption || "").trim());

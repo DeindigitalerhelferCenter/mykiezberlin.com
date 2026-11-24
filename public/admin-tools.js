@@ -37,7 +37,7 @@
     if (!b) return;
     fetch("/api/blackfriday", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (s) {
       b.innerHTML = '<b style="font-size:15px;color:#FFC107">🖤 Black Friday</b> ' + (s.active ? "aktif" : "bitti") +
-        ' · <b>' + s.taken + "/" + s.total + "</b> dolu (20 Gründungspartner dahil), <b>" + s.left + "</b> boş · bitiş " + new Date(s.end).toLocaleString("de-DE") +
+        ' · <b>' + s.taken + "/" + s.total + "</b> dolu (sitedeki tüm aktif sponsorlar + açık BF başvuruları), <b>" + s.left + "</b> boş · bitiş " + new Date(s.end).toLocaleString("de-DE") +
         '<div style="color:#8b949e;margin-top:4px">Başvurular "Werbeanfragen" listesinde [BLACK FRIDAY] ile başlar.</div>';
     });
   }

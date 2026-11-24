@@ -34,7 +34,7 @@
     lsSet(KEY_STORE, newKey);
     params.delete("storykey");
     try { history.replaceState(null, "", location.pathname + (params.toString() ? "?" + params : "") + location.hash); } catch (x) {}
-    setTimeout(function () { toast(L("🔑 Vertrauens-Konto aktiv: Stories ohne Limit, bis 10 Bilder/Videos.", "🔑 Güvenilir hesap aktif: sınırsız hikâye, 10 resim/videoya kadar.")); }, 1500);
+    setTimeout(function () { toast(L("🔑 Vertrauens-Konto aktiv: Stories, Bilder und Videos ohne Limit.", "🔑 Güvenilir hesap aktif: hikâye, resim ve video sınırsız.")); }, 1500);
   }
   function storyKey() { var k = lsGet(KEY_STORE); return /^[a-f0-9]{32,64}$/.test(k) ? k : ""; }
   window.mkStoryKey = storyKey;
@@ -51,7 +51,7 @@
         init.headers = h;
         if (String(init.method || "").toUpperCase() === "POST" && init.body instanceof FormData && init.body.get("file")) {
           var inp = document.getElementById("new-story-file");
-          var files = inp && inp.files ? Array.prototype.slice.call(inp.files, 1, 10) : [];
+          var files = inp && inp.files ? Array.prototype.slice.call(inp.files, 1) /* 2026-11-24: no file limit */ : [];
           files.forEach(function (f) { init.body.append("file", f); });
         }
       }

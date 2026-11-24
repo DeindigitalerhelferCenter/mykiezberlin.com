@@ -112,8 +112,9 @@ progress{width:100%;margin-top:8px}
     <p class="muted" data-i="rules"></p>
   </section>
 </main>
+<script src="big-upload.js?v=1"></script>
 <script src="image-shrink.js?v=2"></script>
-<script src="video-check.js?v=1"></script>
+<script src="video-check.js?v=2"></script>
 <script src="sponsor-share-media.js?v=1"></script>
 <script>
 (function () {
@@ -214,6 +215,7 @@ progress{width:100%;margin-top:8px}
     return api("me").then(function (j) {
       if (j.status === 401 || !j.ad) { showLogin(); if (token) msg("lmsg", errText({ error: "unauthorized" }), false); return; }
       var first = !state; state = j;
+      window.mkSponsorVip = !!(j.quota && j.quota.unlimited); // 2026-11-24: trusted sponsor -> big files in parts
       $("login").classList.add("hidden"); $("panel").classList.remove("hidden"); $("logout").classList.remove("hidden");
       if (first) fill();
       render();
@@ -238,8 +240,16 @@ progress{width:100%;margin-top:8px}
     $("mbtn").disabled = true;
     (window.mkShrinkImage ? window.mkShrinkImage(file) : Promise.resolve(file)).then(function (small) { send(small); });
   };
-  function send(file) {
-    var fd = new FormData(); fd.append("file", file); fd.append("caption", $("mcap").value);
+  function send(file, ref) {
+    // 2026-11-24 (owner): trusted sponsor – a file over 20 MB goes in parts first (no size limit)
+    if (!ref && window.mkSponsorVip && window.mkBigUpload && file.size > 20 * 1024 * 1024) {
+      $("mbtn").disabled = true; $("mprog").classList.remove("hidden");
+      window.mkBigUpload(file, { "x-sponsor-token": token }, { target: "sponsor", onProgress: function (p) { $("mprog").value = Math.round(p * 100); } })
+        .then(function (r) { send(file, r || "none"); })
+        .catch(function () { $("mprog").classList.add("hidden"); $("mbtn").disabled = false; msg("mmsg", errText({ error: "offline" }), false); });
+      return;
+    }
+    var fd = new FormData(); fd.append("file", ref && ref !== "none" ? ref : file); fd.append("caption", $("mcap").value);
     fd.append("days", $("mdays").value); // 2026-11-23 (owner "UYGULA 11")
     var xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/sponsor-media"); xhr.setRequestHeader("x-sponsor-token", token);

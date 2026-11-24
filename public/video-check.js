@@ -36,8 +36,11 @@
   }
 
   /** Promise<"" | "long" | "big"> */
+  // 2026-11-24 (owner): admin / story key / trusted sponsor – no size and no length limit (big files go in parts)
+  function bigUser() { try { return !!(window.mkIsBigUser && window.mkIsBigUser()); } catch (e) { return false; } }
   window.mkCheckVideo = function (file) {
     if (!file || String(file.type).indexOf("video/") !== 0) return Promise.resolve("");
+    if (bigUser()) return Promise.resolve("");
     if (file.size > MAX_BYTES) return Promise.resolve("big");
     return duration(file).then(function (s) { return s > MAX_SECONDS + 0.5 ? "long" : ""; });
   };
@@ -48,7 +51,7 @@
     if (!input || input.tagName !== "INPUT" || input.type !== "file" || !input.files || !input.files.length) return;
     var files = Array.prototype.slice.call(input.files);
     var videos = files.filter(function (f) { return String(f.type).indexOf("video/") === 0; });
-    if (!videos.length) return;
+    if (!videos.length || bigUser()) return;
     // big files can be refused at once (no waiting)
     var big = videos.some(function (f) { return f.size > MAX_BYTES; });
     if (big) {

@@ -13,6 +13,23 @@ export async function onRequestGet({ request, params, env, waitUntil }) {
     const hit = await edge.match(request).catch(() => null);
     if (hit) return hit;
   }
+  // 2026-11-24: big videos (no size limit for trusted accounts) – answer "Range" requests with 206, so players can jump
+  const range = request.headers.get("range");
+  if (range && /^bytes=\d*-\d*$/.test(range)) {
+    const part = await env.BUCKET.get(key, { range: request.headers }).catch(() => null);
+    if (part && part.range) {
+      const h = new Headers();
+      part.writeHttpMetadata(h);
+      const off = part.range.offset || 0;
+      const len = part.range.length != null ? part.range.length : part.size - off;
+      h.set("content-range", `bytes ${off}-${off + len - 1}/${part.size}`);
+      h.set("content-length", String(len));
+      h.set("accept-ranges", "bytes");
+      h.set("cache-control", unique || UNIQUE.test(key) ? "public, max-age=2592000, immutable" : "public, max-age=3600");
+      h.set("x-content-type-options", "nosniff");
+      return new Response(part.body, { status: 206, headers: h });
+    }
+  }
   const object = await env.BUCKET.get(key);
   if (!object) return new Response("Not found", { status: 404 });
   const headers = new Headers();

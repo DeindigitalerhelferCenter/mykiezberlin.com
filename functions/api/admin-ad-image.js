@@ -2,7 +2,7 @@
 import { isAdmin, json } from "../_lib/util.js";
 
 const TYPES = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
-const MAX_BYTES = 3 * 1024 * 1024;
+const MAX_BYTES = 95 * 1024 * 1024; // 2026-11-24 (owner): admin has no small limit any more (was 3 MB); Cloudflare takes ~100 MB per request
 
 export async function onRequestPost({ request, env }) {
   if (!(await isAdmin(request, env))) return json({ error: "unauthorized" }, 401);

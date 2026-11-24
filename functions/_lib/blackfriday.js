@@ -15,8 +15,13 @@ export async function ensureBf(database) {
 
 export async function bfStatus(database) {
   await ensureBf(database);
-  const row = await database.prepare(`SELECT COUNT(*) AS n FROM ad_requests WHERE campaign = 'bf' AND status != 'canceled'`).first().catch(() => ({ n: 0 }));
-  const taken = Math.min(BF_TOTAL, BF_BASE_TAKEN + (row?.n || 0));
+  // 2026-11-24 (owner): every sponsor on the site counts (today 32, also own firms + Türkiye sponsors); each new
+  // sponsor is taken from the 100 automatically. Open Black Friday requests (not yet a sponsor) count too; a request
+  // marked "done" is already a sponsor (counted in ads), so it is not counted twice.
+  const ads = await database.prepare(`SELECT COUNT(*) AS n FROM ads WHERE active = 1 AND (end_at = 0 OR end_at > ?)`).bind(Date.now()).first().catch(() => null);
+  const open = await database.prepare(`SELECT COUNT(*) AS n FROM ad_requests WHERE campaign = 'bf' AND status IN ('new', 'contacted', 'paid')`).first().catch(() => ({ n: 0 }));
+  const base = ads && ads.n ? ads.n : BF_BASE_TAKEN;
+  const taken = Math.min(BF_TOTAL, base + (open?.n || 0));
   const left = BF_TOTAL - taken;
   return { active: Date.now() <= BF_END && left > 0, end: BF_END, total: BF_TOTAL, taken, left, freeMonths: BF_FREE_MONTHS, prices: { s: 29, m: 49, l: 89 } };
 }

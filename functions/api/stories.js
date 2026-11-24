@@ -4,7 +4,8 @@ import { telegramSweep } from "../_lib/telegram.js";
 import { metaSweep } from "../_lib/meta-social.js";
 import { aiReview, reviewVerdict, swearHit, swearReview, cleanDevice, cleanupStoryMedia, dailyLimited, dailyUsed, isTrusted, USER_DAILY_LIMIT } from "../_lib/story-guard.js";
 import { STORY_CATS, aiStoryCats, catsOf, dealFromText, storyCats } from "../_lib/story-cats.js";
-import { VIP_MAX_FILES, vipFromRequest } from "../_lib/story-vip.js";
+import { vipFromRequest } from "../_lib/story-vip.js";
+import { bigRef, formFiles } from "../_lib/big-upload.js";
 import { newsSweep } from "../_lib/news-auto.js";
 import { socialPlanerSweep } from "../_lib/social-planer.js";
 import { cleanLongText, cleanOverlay, cleanText, cleanupExpiredStories, db, ipHash, isAdmin, json, noDb, rateLimited, sha256Hex, parseDeal, storyDeal, storyMediaList, storyTextKey, validAuthor } from "../_lib/util.js";
@@ -36,7 +37,12 @@ const MEDIA_TYPES = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "we
 const KINDS = ["news", "traffic", "event", "warn", "info", "politics"];
 // 2026-11-13 (owner): the admin may add as many pictures/videos to one story as needed (e.g. a sponsor ad
 // with 4 pictures + 2 videos). Users still send one file. Hard cap only against mistakes.
-const ADMIN_MAX_FILES = 30;
+const ADMIN_MAX_FILES = 30; // (2026-11-24: not used any more – admin + trusted accounts have no file limit)
+// 2026-11-24 (owner): admin + trusted accounts (story key) – no limit for files, file size or text. Big files come in
+// parts through /api/big-upload (form field "r2big:<key>|<type>|<size>"); only a safety cap against broken forms.
+const BIG_MAX_FILES = 500;
+const BIG_HEADLINE = 1000;
+const BIG_TEXT = 100000;
 const USER_DURATIONS = [24, 48];
 // Duplicates are checked against stories of the last 30 days that were not rejected.
 const DUPLICATE_WINDOW_MS = 30 * 24 * HOUR_MS;
@@ -81,9 +87,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
   // 2026-11-21 (owner): trusted person ("Kiez26" …) – like the admin: no limits, several files, long text, online at once
   const vip = admin ? null : await vipFromRequest(database, request, form).catch(() => null);
   const big = admin || !!vip;
-  const headline = cleanText(form.get("headline"), big ? 300 : 120);
+  const headline = cleanText(form.get("headline"), big ? BIG_HEADLINE : 120);
   // 2026-11-20 (owner): users may write 3x more (1500 instead of 500) and everybody reads the full text.
-  const subtext = cleanLongText(form.get("subtext"), big ? 10000 : 1500);
+  const subtext = cleanLongText(form.get("subtext"), big ? BIG_TEXT : 1500);
   const kiez = cleanText(form.get("kiez"), 60);
   const kind = KINDS.includes(form.get("kind")) ? form.get("kind") : "news";
   // Name of the person who shares (needed for the weekly Kiez-Stars)
@@ -122,11 +128,16 @@ export async function onRequestPost({ request, env, waitUntil }) {
   let mediaBytes = null;
   let mediaHash = "";
   const file = form.get("file");
-  if (file && typeof file !== "string" && file.size > 0) {
+  // 2026-11-24: big file already in R2 (admin / trusted account, sent in parts) – taken as it is, no size limit
+  const bigFirst = big && typeof file === "string" ? await bigRef(env, file, "stories/big/") : null;
+  if (bigFirst) {
+    mediaType = bigFirst.type.startsWith("video/") ? "video" : "image";
+    mediaKey = bigFirst.key;
+  } else if (file && typeof file !== "string" && file.size > 0) {
     const ext = MEDIA_TYPES[file.type];
     if (!ext) return json({ error: "unsupported_file" }, 415);
     const isVideo = file.type.startsWith("video/");
-    if (file.size > (isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES)) return json({ error: "file_too_large" }, 413);
+    if (!big && file.size > (isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES)) return json({ error: "file_too_large" }, 413);
     mediaType = isVideo ? "video" : "image";
     if (!env.BUCKET) return json({ error: "r2_unbound" }, 503);
     mediaKey = `stories/${id}.${ext}`;
@@ -153,15 +164,17 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const adminKind = cleanText(form.get("kind"), 30) || "news";
     // further pictures/videos (admin only): every file after the first one, with an optional text per file
     const extra = [];
-    const files = form.getAll("file").filter((x) => x && typeof x !== "string" && x.size > 0).slice(1, ADMIN_MAX_FILES);
+    const files = (await formFiles(env, form, "file", "stories/big/")).slice(1, BIG_MAX_FILES);
     for (let i = 0; i < files.length; i++) {
       const x = files[i];
-      const ext = MEDIA_TYPES[x.type];
-      if (!ext) continue; // unknown type: skipped, the story is still saved
       const video = x.type.startsWith("video/");
-      if (x.size > (video ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES)) continue;
-      const key = `stories/${id}-${i + 2}.${ext}`;
-      await env.BUCKET.put(key, await x.arrayBuffer(), { httpMetadata: { contentType: x.type } });
+      let key = x.key || "";
+      if (!key) {
+        const ext = MEDIA_TYPES[x.type];
+        if (!ext) continue; // unknown type: skipped, the story is still saved
+        key = `stories/${id}-${i + 2}.${ext}`;
+        await env.BUCKET.put(key, x.stream(), { httpMetadata: { contentType: x.type } });
+      }
       const ov = video ? cleanOverlay(form.get(`overlay_${i + 2}`)) : null; // 2026-11-17: text on top of a video
       extra.push({ key, type: video ? "video" : "image", caption: cleanText(form.get(`caption_${i + 2}`), 300), ...(ov ? { overlay: ov } : {}) });
     }
@@ -218,15 +231,19 @@ export async function onRequestPost({ request, env, waitUntil }) {
   // 2026-11-21: trusted person – further pictures/videos (like the admin, max VIP_MAX_FILES per story)
   if (vip) {
     const extra = [];
-    const more = form.getAll("file").filter((x) => x && typeof x !== "string" && x.size > 0).slice(1, VIP_MAX_FILES);
+    // 2026-11-24 (owner): no file limit any more (was 10), big files from /api/big-upload
+    const more = (await formFiles(env, form, "file", "stories/big/")).slice(1, BIG_MAX_FILES);
     for (let i = 0; i < more.length; i++) {
       const x = more[i];
-      const ext = MEDIA_TYPES[x.type];
-      if (!ext || !env.BUCKET) continue;
+      if (!env.BUCKET) continue;
       const video = x.type.startsWith("video/");
-      if (x.size > (video ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES)) continue;
-      const key = `stories/${id}-${i + 2}.${ext}`;
-      await env.BUCKET.put(key, await x.arrayBuffer(), { httpMetadata: { contentType: x.type } });
+      let key = x.key || "";
+      if (!key) {
+        const ext = MEDIA_TYPES[x.type];
+        if (!ext) continue;
+        key = `stories/${id}-${i + 2}.${ext}`;
+        await env.BUCKET.put(key, x.stream(), { httpMetadata: { contentType: x.type } });
+      }
       extra.push({ key, type: video ? "video" : "image", caption: cleanText(form.get(`caption_${i + 2}`), 300) });
     }
     if (extra.length) await database.prepare(`UPDATE stories SET media_extra = ? WHERE id = ?`).bind(JSON.stringify(extra), id).run();
