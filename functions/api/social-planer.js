@@ -66,7 +66,7 @@ export async function onRequestPost({ request, env }) {
   }
   // 2026-11-23 (owner "UYGULA 7"): the admin shared a story by hand (story viewer) -> this channel never offers it again
   if (body.action === "manualShared") {
-    const map = { whatsapp: "whatsapp", tiktok: "tiktok", instagram: "meta", facebook: "meta" };
+    const map = { whatsapp: "whatsapp", tiktok: "tiktok", instagram: "meta", facebook: "meta", status: "wastatus", wastatus: "wastatus" }; // 2026-11-25: + WhatsApp Status
     const channel = map[body.target];
     if (!channel || !body.id) return json({ error: "bad_request" }, 400);
     return json({ ok: true, channel, marked: await markDone(database, channel, [String(body.id).slice(0, 80)], "manual-share") }, 200, NO_STORE);

@@ -18,7 +18,7 @@ const SITE = "https://mykiezberlin.com";
 const GRAPH = "https://graph.facebook.com/v21.0";
 const LATE_MS = 3 * 3600 * 1000;
 const DEFAULTS = { times: ["08:00", "12:00", "18:00", "22:00"], telegram: true, meta: true, pack: true }; // 2026-11-23 (owner): 8/12/18/22 (was 8/16/23)
-export const PACK_CHANNELS = ["tiktok", "whatsapp"];
+export const PACK_CHANNELS = ["tiktok", "whatsapp", "wastatus"]; // 2026-11-25 (owner): + WhatsApp Status (no API – shared by hand / by Claude in Chrome)
 let lastCheck = 0;
 
 async function ensureTables(database) {

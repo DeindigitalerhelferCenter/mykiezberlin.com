@@ -6,7 +6,7 @@
   var CARD = "background:#161b22;border:1px solid #30363d;border-radius:12px;padding:14px;margin-bottom:16px;color:#c9d1d9;font-size:13px";
   var BTN = "background:#238636;border:0;color:#fff;border-radius:8px;padding:8px 12px;cursor:pointer;font:inherit;font-size:13px;font-weight:700;margin:4px 4px 0 0";
   var BTN2 = "background:#21262d;border:1px solid #30363d;color:#c9d1d9;border-radius:8px;padding:7px 11px;cursor:pointer;font:inherit;font-size:13px;margin:4px 4px 0 0";
-  var NAMES = { tiktok: "🎵 TikTok", whatsapp: "🟢 WhatsApp-Kanal" };
+  var NAMES = { tiktok: "🎵 TikTok", whatsapp: "🟢 WhatsApp-Kanal", wastatus: "📱 WhatsApp-Status" }; // 2026-11-25 (owner): + Status
   function token() { try { return sessionStorage.getItem("mykiez_admin_token_v1") || localStorage.getItem("mykiez_admin_session_v1") || ""; } catch (e) { return ""; } }
   function e(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function api(body) {
@@ -38,14 +38,15 @@
         h.push('<details style="margin-top:6px"><summary>Letzte Läufe / Son çalışmalar (' + j.runs.length + ")</summary><small>");
         j.runs.forEach(function (r) {
           var p = r.result.pack || {};
-          h.push("• " + e(r.slot) + " – Telegram: " + state(r.result.telegram) + " · FB/IG: " + state(r.result.meta) + (p.tiktok != null ? " · Paket TikTok " + p.tiktok + " / WhatsApp " + p.whatsapp : "") + "<br>");
+          h.push("• " + e(r.slot) + " – Telegram: " + state(r.result.telegram) + " · FB/IG: " + state(r.result.meta) + (p.tiktok != null ? " · Paket TikTok " + p.tiktok + " / WhatsApp " + p.whatsapp + (p.wastatus != null ? " / Status " + p.wastatus : "") : "") + "<br>");
         });
         h.push("</small></details>");
       }
       // 2026-11-23 (owner "UYGULA 3"): report – every live story and where it went
       h.push('<details id="sp-report" style="margin-top:6px"><summary style="cursor:pointer;font-weight:700">📊 Paylaşım raporu · Wo wurde was geteilt? (canlı story\'ler)</summary><div id="sp-report-body" style="margin-top:6px">…</div></details>');
-      ["tiktok", "whatsapp"].forEach(function (c) {
+      ["tiktok", "whatsapp", "wastatus"].forEach(function (c) {
         var p = j.pack[c];
+        if (!p) return; // 2026-11-25: older server without Status
         h.push('<div style="border-top:1px solid #30363d;margin-top:10px;padding-top:8px"><b>' + NAMES[c] + "</b> – " + (p.stories.length ? p.stories.length + " neue Story(s) zum Teilen · paylaşılacak" : "nichts neu · yeni yok ✓"));
         if (p.stories.length) {
           h.push('<div style="display:flex;gap:6px;overflow-x:auto;margin:6px 0">' + p.stories.map(function (x) {
@@ -102,10 +103,10 @@
           return '<tr style="border-top:1px solid #30363d"><td style="padding:3px 4px;color:#8b949e;white-space:nowrap">' + t + '</td><td style="padding:3px 4px">' + (s.video ? "🎬 " : "") + (s.news ? "📰 " : "") + e(s.headline) + '<br><small style="color:#8b949e">' + e(s.author) + "</small> " + sel + "</td>" +
             '<td style="padding:3px 4px;text-align:center">✓</td><td style="padding:3px 4px;text-align:center">' + e(s.telegram) + '</td><td style="padding:3px 4px;color:' + col + '">' + e(s.meta) +
             (/kural/.test(s.meta) ? "" : ' <button type="button" data-rq="' + e(s.id) + '" title="Facebook/Instagram\'a tekrar sıraya al (kopya olabilir)" style="background:#21262d;border:1px solid #30363d;color:#c9d1d9;border-radius:6px;font-size:11px;cursor:pointer">↻</button>') + "</td>" +
-            '<td style="padding:3px 4px;text-align:center">' + s.tiktok + '</td><td style="padding:3px 4px;text-align:center">' + s.whatsapp + (s.waKiez.length ? '<br><small style="color:#8b949e">' + e(s.waKiez.join(", ")) + "</small>" : "") + "</td></tr>";
+            '<td style="padding:3px 4px;text-align:center">' + s.tiktok + '</td><td style="padding:3px 4px;text-align:center">' + (s.wastatus || "-") + '</td><td style="padding:3px 4px;text-align:center">' + s.whatsapp + (s.waKiez.length ? '<br><small style="color:#8b949e">' + e(s.waKiez.join(", ")) + "</small>" : "") + "</td></tr>";
         }).join("");
         box.innerHTML = '<div style="margin-bottom:6px">Canlı: <b>' + cnt.all + "</b> · FB/IG ✓ <b>" + cnt.meta + "</b> · bekliyor/eksik <b>" + cnt.wait + "</b> · kural gereği paylaşılmaz <b>" + cnt.rule + '</b> <button type="button" id="sp-report-reload" style="' + BTN2 + '">↻ Yenile</button></div>' +
-          '<div style="overflow-x:auto"><table style="border-collapse:collapse;font-size:12px;width:100%"><tr style="color:#8b949e;text-align:left"><th>Zaman</th><th>Story · yazar</th><th>Site</th><th>Telegram</th><th>Facebook/Instagram</th><th>TikTok</th><th>WhatsApp</th></tr>' + rows + "</table></div>" +
+          '<div style="overflow-x:auto"><table style="border-collapse:collapse;font-size:12px;width:100%"><tr style="color:#8b949e;text-align:left"><th>Zaman</th><th>Story · yazar</th><th>Site</th><th>Telegram</th><th>Facebook/Instagram</th><th>TikTok</th><th>Status</th><th>WhatsApp</th></tr>' + rows + "</table></div>" +
           '<small style="color:#8b949e">"kural: paylaşılmaz" = normal kullanıcı (sadece güvenilirler gider). Yazarın yanındaki seçimle "bu yazar = sponsor / güvenilir / paylaşma" diyebilirsin. ↻ = tekrar sıraya al (zaten paylaşıldıysa kopya olur). TikTok/WhatsApp elle paylaşılır (paket + "paylaştım").</small>';
         box.querySelector("#sp-report-reload").onclick = loadReport;
         box.querySelectorAll("[data-rq]").forEach(function (btn) {

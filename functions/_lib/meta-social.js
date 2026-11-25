@@ -382,7 +382,7 @@ export async function shareReport(database) {
         id: s.id, headline: String(s.headline || "").slice(0, 90), author: s.author, who: who ? who.kind + (who.guess ? "?" : "") + (who.name && who.kind === "sponsor" ? ` (${who.name})` : "") : "",
         news, video: s.media_type === "video", approved_at: s.approved_at,
         telegram: tg.has(s.id) ? (tg.get(s.id) === 1 ? "✓" : tg.get(s.id) === 2 ? "silindi" : "✕") : "-",
-        meta, tiktok: its.some((x) => x.c === "tiktok") ? "✓" : "-", whatsapp: its.some((x) => x.c === "whatsapp") ? "✓" : "-",
+        meta, tiktok: its.some((x) => x.c === "tiktok") ? "✓" : "-", whatsapp: its.some((x) => x.c === "whatsapp") ? "✓" : "-", wastatus: its.some((x) => x.c === "wastatus") ? "✓" : "-", // 2026-11-25
         waKiez: its.filter((x) => /^wa-/.test(x.c)).map((x) => x.c.slice(3)),
       };
     }),
