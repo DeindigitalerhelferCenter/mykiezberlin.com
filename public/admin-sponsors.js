@@ -97,6 +97,8 @@
             '<select data-plan style="' + BTN + '">' + ["s", "m", "l"].map(function (p) { return '<option value="' + p + '"' + (a.plan === p ? " selected" : "") + ">" + { s: "🔵 Basic", m: "🟢 Plus", l: "🔴 Premium" }[p] + "</option>"; }).join("") +
             (["s", "m", "l"].indexOf(a.plan) < 0 ? '<option value="" selected>' + e(PLAN[a.plan] || a.plan || "–") + "</option>" : "") + "</select>" +
             '<button type="button" data-act="link" style="' + BTN + '">🔗 Panel-Link</button>' +
+            // 2026-11-25 (owner): welcome in 2 messages – green while not sent yet
+            '<button type="button" data-act="welcome" style="' + BTN + (a.welcome_log && a.welcome_log.length ? "" : ";background:#238636;border-color:#238636;color:#fff") + '">👋 ' + (a.welcome_log && a.welcome_log.length ? "✓ Willkommen · Hoş geldin" : "Willkommen senden · Hoş geldin gönder") + "</button>" +
             '<button type="button" data-act="edit" style="' + BTN + '">✏️ Bearbeiten · Düzenle</button>' +
             '<div class="out" style="flex-basis:100%"></div></div>';
         }).join("");
@@ -113,6 +115,7 @@
         var row = b.closest("[data-id]"), id = row.getAttribute("data-id"), out = row.querySelector(".out");
         var ad = ads.find(function (x) { return x.id === id; });
         b.onclick = function () {
+          if (b.dataset.act === "welcome") { welcomeBox(ad, out); return; }
           if (b.dataset.act === "link") {
             out.innerHTML = '<input type="email" placeholder="E-Mail (optional – dann wird der Link gemailt · e-posta yazılırsa link gönderilir)" style="' + INPUT + '" value="' + e(ad.email || "") + '"><button type="button" style="' + BTN + '">Erstellen · Oluştur</button>';
             out.querySelector("button").onclick = function () {
@@ -140,6 +143,52 @@
         };
       });
     });
+  }
+
+  // 2026-11-25 (owner): welcome box – message 1 (welcome) + message 2 (guide with a new panel link).
+  // E-mail: both are sent by the server. WhatsApp: opens ready-written, owner presses send, then "✓ gesendet".
+  function welcomeBox(ad, out) {
+    var when = (ad.welcome_log || []).map(function (l) { return new Date(l.at).toLocaleDateString("de-DE") + " " + (l.via === "wa" ? "WhatsApp" : "E-Mail"); }).join(", ");
+    out.innerHTML = (when ? '<p style="color:#3fb950;margin:4px 0">✓ Schon gesendet · Gönderildi: ' + e(when) + "</p>" : "") +
+      '<input data-w="email" type="email" placeholder="E-Mail" style="' + INPUT + '" value="' + e(ad.panel_email || ad.email || "") + '">' +
+      '<input data-w="contact" placeholder="Ansprechpartner (optional) · Yetkili adı (isteğe bağlı)" style="' + INPUT + '">' +
+      '<button type="button" data-w="make" style="' + BTN + '">📝 Texte erstellen · Metinleri oluştur</button> <span data-w="r"></span><div data-w="box"></div>';
+    var r = out.querySelector('[data-w="r"]'), box = out.querySelector('[data-w="box"]');
+    function val(k) { return out.querySelector('[data-w="' + k + '"]').value; }
+    function call(send) {
+      r.textContent = "⏳";
+      return panel("adminWelcome", { adId: ad.id, email: val("email"), contact: val("contact"), send: !!send }).then(function (j) {
+        if (!j.ok) { r.textContent = "Fehler · Hata: " + (j.error || "?"); return j; }
+        ad.welcome_log = j.welcome_log || ad.welcome_log; ad.panel_email = j.email || ad.panel_email;
+        r.innerHTML = send ? (j.mailed ? '<span style="color:#3fb950">✓ 2 E-Mails gesendet · 2 e-posta gönderildi</span>' : '<span style="color:#f85149">E-Mail nicht gesendet · gönderilemedi</span>') : "";
+        return j;
+      });
+    }
+    out.querySelector('[data-w="make"]').onclick = function () {
+      call(false).then(function (j) {
+        if (!j.ok) return;
+        var num = String(ad.link_wa || "").replace(/[^\d]/g, "");
+        function wa(t) { return "https://wa.me/" + num + "?text=" + encodeURIComponent(t); }
+        box.innerHTML = [["1 · Willkommen · Hoş geldin", j.text1], ["2 · Anleitung + Panel · Kılavuz + panel", j.text2]].map(function (m, i) {
+          return '<p style="margin:10px 0 4px;color:#8b949e">Nachricht · Mesaj ' + e(m[0]) + '</p><textarea readonly rows="8" style="' + INPUT + ';font-size:12px">' + e(m[1]) + "</textarea>" +
+            '<button type="button" data-copy="' + i + '" style="' + BTN + '">📋 Kopieren</button> ' +
+            (num ? '<a href="' + e(wa(m[1])) + '" target="_blank" rel="noopener" style="' + BTN + ';text-decoration:none;display:inline-block;background:#25D366;border-color:#25D366;color:#000">💬 WhatsApp ' + (i + 1) + "</a>" : '<small style="color:#8b949e">kein WhatsApp eingetragen · WhatsApp numarası yok</small>');
+        }).join("") +
+          '<div style="margin-top:10px">' + (num ? '<button type="button" data-w="wadone" style="' + BTN + '">✓ Per WhatsApp gesendet · WhatsApp ile gönderildi</button> ' : "") +
+          '<button type="button" data-w="mail" style="' + BTN + ';background:#E30613;border-color:#E30613;color:#fff">📧 Beide per E-Mail senden · İkisini e-postayla gönder</button></div>';
+        box.querySelectorAll("[data-copy]").forEach(function (c) {
+          c.onclick = function () { var t = box.querySelectorAll("textarea")[Number(c.dataset.copy)]; t.select(); try { navigator.clipboard.writeText(t.value); } catch (x) { document.execCommand("copy"); } c.textContent = "✓ kopiert"; };
+        });
+        var md = box.querySelector('[data-w="mail"]');
+        md.onclick = function () {
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val("email"))) { r.textContent = "E-Mail fehlt · e-posta eksik"; return; }
+          if (!confirm("2 E-Mails an " + val("email") + " senden? · 2 e-posta gönderilsin mi?")) return;
+          md.disabled = true; call(true).then(function () { md.disabled = false; });
+        };
+        var wd = box.querySelector('[data-w="wadone"]');
+        if (wd) wd.onclick = function () { panel("adminWelcome", { adId: ad.id, mark: "wa" }).then(function (k) { if (k.ok) { ad.welcome_log = k.welcome_log; wd.textContent = "✓ notiert · kaydedildi"; } }); };
+      });
+    };
   }
 
   // ---------- 3. sponsor media ----------

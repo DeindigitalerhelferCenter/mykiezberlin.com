@@ -14,6 +14,7 @@ import { isBlockedUrl } from "../_lib/blocklist.js";
 import { cleanStoryDays, mediaQuota, parseExtra, planRule, storyDaysMax } from "../_lib/plans.js";
 import { isVipAd } from "../_lib/story-vip.js";
 import { sendMail } from "../_lib/mail.js";
+import { welcomeTexts } from "../_lib/sponsor-welcome.js";
 import { adsForEmail, createSponsorToken, ensureSponsorTables, MEDIA_ORDER, moveSponsorMedia, panelUrl, sponsorFromToken, TOKEN_DAYS } from "../_lib/sponsor-panel.js";
 
 const MAX_DESCRIPTION = 5000; // "text without limit" for people – a hard cap only against abuse
@@ -151,6 +152,36 @@ export async function onRequestPost({ request, env }) {
       }
       return json({ ok: true, link, mailed, days: TOKEN_DAYS });
     }
+    // 2026-11-25 (owner): welcome in 2 messages (see _lib/sponsor-welcome.js).
+    // {adId, email?, contact?, send?} -> new panel link + both texts; send=true mails both (msg 2 ~1 s later);
+    // {adId, mark:"wa"} only notes "sent by WhatsApp" (owner pressed send in WhatsApp).
+    if (action === "adminWelcome") {
+      const ad = await database.prepare(`SELECT * FROM ads WHERE id = ?`).bind(cleanText(body.adId, 40)).first();
+      if (!ad) return json({ error: "not_found" }, 404);
+      const extra = parseExtra(ad.extra);
+      const log = Array.isArray(extra.welcome_log) ? extra.welcome_log : [];
+      if (body.mark === "wa") {
+        log.push({ at: Date.now(), via: "wa" });
+        extra.welcome_log = log.slice(-10);
+        await database.prepare(`UPDATE ads SET extra = ? WHERE id = ?`).bind(JSON.stringify(extra), ad.id).run();
+        return json({ ok: true, welcome_log: extra.welcome_log });
+      }
+      const email = cleanText(body.email || extra.panel_email || extra.email || "", 120);
+      const token = await createSponsorToken(database, ad.id, email);
+      const link = panelUrl(token);
+      const t = welcomeTexts(ad, link, cleanText(body.contact || "", 60));
+      let mailed = false;
+      if (body.send && email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        const a = await sendMail(env, { to: email, subject: t.subject1, text: t.text1 });
+        await new Promise((r) => setTimeout(r, 1200));
+        const b = await sendMail(env, { to: email, subject: t.subject2, text: t.text2 });
+        mailed = a && b;
+        if (a || b) { log.push({ at: Date.now(), via: "mail", ok: mailed }); extra.panel_email = email; }
+        extra.welcome_log = log.slice(-10);
+        await database.prepare(`UPDATE ads SET extra = ? WHERE id = ?`).bind(JSON.stringify(extra), ad.id).run();
+      }
+      return json({ ok: true, link, email, mailed, ...t, welcome_log: extra.welcome_log || log });
+    }
     if (action === "adminList") {
       const { results } = await database
         .prepare(`SELECT m.id, m.ad_id, m.media_key, m.media_type, m.caption, m.status, m.created_at, m.by_admin, a.name FROM sponsor_media m LEFT JOIN ads a ON a.id = m.ad_id ORDER BY m.created_at DESC LIMIT 100`)
@@ -168,7 +199,7 @@ export async function onRequestPost({ request, env }) {
     if (action === "adminAds") {
       const { results } = await database.prepare(`SELECT * FROM ads ORDER BY active DESC, name`).all();
       // 2026-11-17: offer state for ended / paused sponsors (reminder + renewal offer)
-      return json({ ads: results.map((a) => { const x = parseExtra(a.extra); return { ...shape(a), link_wa: a.link_wa, active: a.active ? 1 : 0, start_at: a.start_at || 0, updated_at: a.updated_at || 0, own: !!x.own, offer_log: Array.isArray(x.offer_log) ? x.offer_log : [], offer_next: x.offer_next || 0, offer_stop: !!x.offer_stop }; }), now: Date.now() });
+      return json({ ads: results.map((a) => { const x = parseExtra(a.extra); return { ...shape(a), link_wa: a.link_wa, active: a.active ? 1 : 0, start_at: a.start_at || 0, updated_at: a.updated_at || 0, own: !!x.own, offer_log: Array.isArray(x.offer_log) ? x.offer_log : [], offer_next: x.offer_next || 0, offer_stop: !!x.offer_stop, welcome_log: Array.isArray(x.welcome_log) ? x.welcome_log : [], panel_email: x.panel_email || "" }; }), now: Date.now() });
     }
     if (action === "adminPlan") {
       const plan = ["s", "m", "l"].includes(body.plan) ? body.plan : "";
