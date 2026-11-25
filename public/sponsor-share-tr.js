@@ -82,7 +82,7 @@
   function openFromUrl() {
     var id = "";
     try { id = new URLSearchParams(location.search).get("sponsor") || ""; } catch (x) { id = ""; }
-    id = id.toLowerCase().replace(/[^a-z0-9-]/g, "");
+    id = id.toLowerCase().replace(/[^a-z0-9_-]/g, ""); // 2026-11-25: keep _ (ids like ad_87dc917f)
     // ?tab=tuerkei opens the page "Türkiye Sponsorları" directly (link for sharing)
     var tab = "";
     try { tab = new URLSearchParams(location.search).get("tab") || ""; } catch (x) { tab = ""; }

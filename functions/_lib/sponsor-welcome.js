@@ -3,6 +3,25 @@
 // E-mail is sent by the server; WhatsApp is opened ready-written in the admin (owner presses "send" himself –
 // fully automatic WhatsApp would need the paid WhatsApp Business API).
 import { PACKAGE_NAMES } from "./mail-templates.js";
+import { BF_END, BF_FREE_MONTHS } from "./blackfriday.js";
+
+// 2026-11-25 (owner): the package line must also say the campaign – 3 months free, then the normal monthly price
+const PRICE = { s: 29, m: 49, l: 89 };
+function offerLines(ad) {
+  const p = PRICE[ad.plan];
+  if (!p) return { de: "", tr: "" };
+  if (Date.now() <= BF_END || ad.plan_offer === "bf") return {
+    de: `
+🎁 Black-Friday-Aktion: Die ersten ${BF_FREE_MONTHS} Monate sind für Sie KOSTENLOS.
+Danach ${p} € pro Monat – jederzeit monatlich kündbar.`,
+    tr: `
+🎁 Black Friday kampanyası: İlk ${BF_FREE_MONTHS} ay sizin için ÜCRETSİZ.
+Sonrasında aylık ${p} € – her ay iptal edilebilir.`,
+  };
+  return { de: `
+Preis: ${p} € pro Monat – monatlich kündbar.`, tr: `
+Fiyat: aylık ${p} € – her ay iptal edilebilir.` };
+}
 
 export const SUPPORT_MAIL = "support@mykiezberlin.com";
 export const SUPPORT_WA = "+49 176 40556109";
@@ -21,6 +40,7 @@ export function welcomeTexts(ad, link, contactName = "") {
   const hiDe = contactName ? `Liebe/r ${contactName},` : "Liebes Team von " + firm + ",";
   const hiTr = contactName ? `Sayın ${contactName},` : "Değerli " + firm + " ekibi,";
   const page = `${SITE}/s/${encodeURIComponent(ad.id)}`;
+  const offer = offerLines(ad);
 
   const text1 =
 `🇩🇪 Willkommen in der My Kiez Berlin Familie, ${firm}!
@@ -29,7 +49,7 @@ ${hiDe}
 
 wir freuen uns sehr, Sie als Partner von My Kiez Berlin zu begrüßen. Ab sofort ist ${firm} für tausende Menschen in Berlin sichtbar – in unserer App, auf mykiezberlin.com und in unseren Kiez-Kanälen.
 
-Ihr Paket: ${pack}${untilDe ? " · aktiv bis " + untilDe : ""}
+Ihr Paket: ${pack.replace(/ \(\d+ €\)/, "")}${untilDe ? " · aktiv bis " + untilDe : ""}${offer.de}
 Ihre Seite: ${page}
 
 Unser Ziel ist einfach: Gemeinsam wachsen. Je mehr Ihr Kiez Sie kennt, desto stärker wird unsere Gemeinschaft – und umgekehrt.
@@ -47,7 +67,7 @@ ${hiTr}
 
 sizi My Kiez Berlin'in iş ortağı olarak aramızda görmekten büyük mutluluk duyuyoruz. ${firm} bugünden itibaren uygulamamızda, mykiezberlin.com'da ve Kiez kanallarımızda Berlin'deki binlerce kişiye görünür durumda.
 
-Paketiniz: ${pack}${untilTr ? " · " + untilTr + " tarihine kadar aktif" : ""}
+Paketiniz: ${pack.replace(/ \(\d+ €\)/, "")}${untilTr ? " · " + untilTr + " tarihine kadar aktif" : ""}${offer.tr}
 Sayfanız: ${page}
 
 Hedefimiz basit: Birlikte büyümek. Mahalleniz sizi ne kadar tanırsa topluluğumuz da o kadar güçlenir.

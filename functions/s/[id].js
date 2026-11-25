@@ -9,7 +9,7 @@ const SITE = "https://mykiezberlin.com";
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 export async function onRequestGet({ params, env }) {
-  const id = String(params.id || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 60);
+  const id = String(params.id || "").toLowerCase().replace(/[^a-z0-9_-]/g, "") /* 2026-11-25: ids like ad_87dc917f keep the _ */.slice(0, 60);
   const target = id ? `/?sponsor=${encodeURIComponent(id)}` : "/";
   let ad = null;
   try {
