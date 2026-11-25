@@ -77,10 +77,7 @@ fun SponsorTierCard(ad: ServerAd, language: AppLanguage, size: String = ad.size,
     val lk = if (compact) "s" else tier.key
     // 2026-11-13 (owner: honest numbers): counted when the card is shown for 1 second (cards far below the screen are
     // not composed by the list yet); the admin phone does not count
-    LaunchedEffect(ad.id) {
-        kotlinx.coroutines.delay(1000)
-        if (!com.example.data.repository.KiezStorageManager.isAdminAuthenticated(context)) AdsRepository.trackImpressions(listOf(ad.id))
-    }
+    // 2026-11-25: now only when half of the card is really on the screen for 1 second (Modifier.sponsorSeen, same as the web)
     fun open(link: String) {
         AdsRepository.trackClick(ad.id)
         try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } catch (_: Exception) {}
@@ -105,6 +102,7 @@ fun SponsorTierCard(ad: ServerAd, language: AppLanguage, size: String = ad.size,
 
     Box(
         Modifier.fillMaxWidth()
+            .sponsorSeen(ad.id)
             .padding(vertical = 3.dp)
             .shadow((2 + 10 * glow).dp, shape, ambientColor = tier.color, spotColor = tier.color)
             .clip(shape)

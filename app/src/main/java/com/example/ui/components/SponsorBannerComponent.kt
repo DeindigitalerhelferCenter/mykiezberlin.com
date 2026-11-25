@@ -58,7 +58,7 @@ fun SponsorBannerComponent(
             )
         } + SampleData.activeSponsors
     }
-    LaunchedEffect(serverAds) { com.example.data.repository.AdsRepository.trackImpressions(serverAds.map { it.id }) }
+    // 2026-11-25: no longer all at once – only the sponsor really on the screen for 1 second counts (sponsorSeen on the card)
     if (sponsors.isEmpty()) return
 
     // 1. GÖREV: 5 Saniyede bir akıcı değişim (Auto carousel every 5 seconds)
@@ -156,6 +156,7 @@ fun SponsorBannerComponent(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .sponsorSeen(sponsor.serverAdId)
                         .clickable {
                             // Server sponsors open the contact sheet (it counts the click itself)
                             if (sponsor.serverAdId.isNotBlank() && SponsorInfoState.showById(sponsor.serverAdId)) return@clickable

@@ -2,13 +2,16 @@
 // GET  /api/ads?place=home|slider  -> active ads for that place
 // POST /api/ads {kind: "imp"|"click", ids: [...]} -> anonymous daily counters (no cookies)
 // GET  /api/ads?place=page -> every sponsor for the page-change rotation, with plan size and weight
-import { cleanText, db, json, noDb } from "../_lib/util.js";
+import { cleanText, db, json, noDb, sha256Hex } from "../_lib/util.js";
 import { effectivePlaces, parseExtra, planRule , monthlyGoal } from "../_lib/plans.js";
 import { seedSponsors } from "../_lib/sponsor-seed.js";
 import { safeLink } from "../_lib/blocklist.js";
 
 const MAX_ADS = 12;
 const MAX_PAGE_ADS = 40;
+// 2026-11-25 (owner: honest numbers, no manipulation): one device counts at most VIEW_CAP views per sponsor and day.
+// Device = hash of day + IP + browser (as in /api/visit, no cookies); the hashes are kept 2 days only.
+const VIEW_CAP = 3;
 const BOT_UA = /bot|crawl|spider|slurp|headless|lighthouse|playwright|puppeteer|phantom|curl|wget|python-requests/i;
 let seeded = false;
 
@@ -16,7 +19,9 @@ let seeded = false;
 async function thisMonthViews(database) {
   const map = new Map();
   try {
-    const monthStart = new Date().toISOString().slice(0, 8) + "01";
+    let monthStart = new Date().toISOString().slice(0, 8) + "01";
+    // 2026-11-25: November 2026 counts from 13.11. only (before that every loaded card counted – too high)
+    if (monthStart < "2026-11-13") monthStart = "2026-11-13";
     const { results } = await database.prepare(`SELECT ad_id, SUM(imp) AS views FROM ad_stats WHERE day >= ? GROUP BY ad_id`).bind(monthStart).all();
     results.forEach((r) => map.set(r.ad_id, Number(r.views) || 0));
   } catch (e) {
@@ -83,7 +88,7 @@ export async function onRequestGet({ request, env }) {
   return json({ ads }, 200, { "cache-control": "no-store" });
 }
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, waitUntil }) {
   const database = await db(env);
   if (!database) return noDb();
   // 2026-11-13: automated browsers and crawlers are not counted (honest sponsor numbers)
@@ -94,7 +99,25 @@ export async function onRequestPost({ request, env }) {
   const click = body.kind === "click";
   const day = new Date().toISOString().slice(0, 10);
   const column = click ? "clk" : "imp";
-  await database.batch(ids.map((id) => database
+  let counted = ids;
+  try {
+    await database.prepare(`CREATE TABLE IF NOT EXISTS ad_seen (day TEXT NOT NULL, hash TEXT NOT NULL, n INTEGER DEFAULT 0, PRIMARY KEY (day, hash))`).run();
+    const ip = request.headers.get("cf-connecting-ip") || "";
+    const ua = cleanText(request.headers.get("user-agent"), 300);
+    const hashes = await Promise.all(ids.map(async (id) => (await sha256Hex(`${day}|${column}|${id}|${ip}|${ua}|${env.ADMIN_TOKEN || "mykiez"}`)).slice(0, 32)));
+    const res = await database.batch(hashes.map((h) => database
+      .prepare(`INSERT INTO ad_seen (day, hash, n) VALUES (?, ?, 1) ON CONFLICT(day, hash) DO UPDATE SET n = n + 1 WHERE n < ? RETURNING n`)
+      .bind(day, h, click ? VIEW_CAP * 2 : VIEW_CAP)));
+    counted = ids.filter((id, i) => res[i] && res[i].results && res[i].results.length > 0);
+    if (Math.random() < 0.02) {
+      const old = new Date(Date.now() - 2 * 86400000).toISOString().slice(0, 10);
+      waitUntil(database.prepare(`DELETE FROM ad_seen WHERE day < ?`).bind(old).run().catch(() => {}));
+    }
+  } catch (e) {
+    counted = ids; // cap table not available: count as before
+  }
+  if (!counted.length) return json({ ok: true, counted: false });
+  await database.batch(counted.map((id) => database
     .prepare(`INSERT INTO ad_stats (ad_id, day, imp, clk) VALUES (?, ?, ?, ?) ON CONFLICT(ad_id, day) DO UPDATE SET ${column} = ${column} + 1`)
     .bind(id, day, click ? 0 : 1, click ? 1 : 0)));
   return json({ ok: true });

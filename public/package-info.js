@@ -44,7 +44,9 @@
     return '<div class="mkpi-sheet" role="dialog" aria-modal="true" aria-label="' + e(NAMES[size]) + '">' +
       '<button type="button" class="mkpi-x" aria-label="' + e(L("Schließen", "Kapat", "Close")) + '">✕</button>' +
       "<h3>" + e(NAMES[size]) + ' <span class="mkpi-price">' + PRICE[size] + " €" + e(L("/Monat", "/ay", "/month")) + "</span></h3>" +
-      '<p class="mkpi-start">🎉 ' + e(L("Start: 3 Monate ab 19 €/Monat · monatlich kündbar", "Başlangıç: ilk 3 ay aylık 19 €'dan · her ay iptal edilebilir", "Launch: first 3 months from €19/month · cancel monthly")) + "</p>" +
+      '<p class="mkpi-start">🎉 ' + e(Date.now() <= Date.UTC(2026, 10, 30, 22, 59, 59) /* 2026-11-25: Black Friday until 30.11. */
+        ? L("Black Friday: 3 Monate gratis, dann 3 Monate " + (size === "l" ? 49 : 19) + " €/Monat, dann " + PRICE[size] + " € · monatlich kündbar", "Black Friday: 3 ay ücretsiz, sonra 3 ay aylık " + (size === "l" ? 49 : 19) + " €, ardından " + PRICE[size] + " € · her ay iptal edilebilir", "Black Friday: 3 months free, then 3 months €" + (size === "l" ? 49 : 19) + "/month, then €" + PRICE[size] + " · cancel monthly")
+        : L("Start: 3 Monate " + (size === "l" ? 49 : 19) + " €/Monat · monatlich kündbar", "Başlangıç: ilk 3 ay aylık " + (size === "l" ? 49 : 19) + " € · her ay iptal edilebilir", "Launch: first 3 months €" + (size === "l" ? 49 : 19) + "/month · cancel monthly")) + "</p>" +
       window.mkPackagePreview(size, true) +
       '<p class="mkpi-cap">' + e(L("So groß erscheint deine Karte (farbig markiert)", "Kartın bu büyüklükte görünür (renkli olan)", "This is how big your card appears (coloured)")) + "</p>" +
       "<h4>📍 " + e(L("Größe & Platz", "Boyut & yer", "Size & place")) + "</h4><ul>" + where.map(function (w) { return "<li>" + e(w) + "</li>"; }).join("") + "</ul>" +

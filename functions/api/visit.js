@@ -53,7 +53,9 @@ export async function onRequestGet({ request, env }) {
     .bind(fromUtc)
     .all();
   // 2026-11-13: this calendar month (for the fixed monthly goals per package)
-  const monthStart = new Date().toISOString().slice(0, 8) + "01";
+  let monthStart = new Date().toISOString().slice(0, 8) + "01";
+  // 2026-11-25: November 2026 counts from 13.11. only (before that every loaded card counted – too high)
+  if (monthStart < "2026-11-13") monthStart = "2026-11-13";
   const { results: month } = await database
     .prepare(`SELECT a.id AS ad_id, a.name, a.plan, a.active, COALESCE(SUM(s.imp), 0) AS views, COALESCE(SUM(s.clk), 0) AS clicks FROM ads a LEFT JOIN ad_stats s ON s.ad_id = a.id AND s.day >= ? GROUP BY a.id ORDER BY views DESC LIMIT 200`)
     .bind(monthStart)

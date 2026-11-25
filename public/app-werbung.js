@@ -121,7 +121,7 @@ function packagesHtml() {
           <b>${esc(t(p.name))}</b>
           <small>${esc(t(p.tag))}</small>
           <span class="mkb-price">${p.price} €<small>${esc(tr("/Monat", "/ay"))}</small></span>
-          <span class="mkb-start"><i class="bi bi-stars" aria-hidden="true"></i> ${esc(tr("Start: 3 Monate ab 19 €/Monat", "Başlangıç: ilk 3 ay aylık 19 €'dan"))}</span>
+          <span class="mkb-start"><i class="bi bi-stars" aria-hidden="true"></i> ${esc(Date.now() <= Date.UTC(2026, 10, 30, 22, 59, 59) /* 2026-11-25: Black Friday until 30.11. */ ? tr("Black Friday: 3 Monate gratis, dann 3 Monate ab 19 €/Monat", "Black Friday: 3 ay ücretsiz, sonra 3 ay aylık 19 €'dan") : tr("Start: 3 Monate ab 19 €/Monat", "Başlangıç: ilk 3 ay aylık 19 €'dan"))}</span>
           <ul>${p.points.map((x) => `<li>${esc(t(x))}</li>`).join("")}</ul>
           <span class="chip-btn active">${esc(tr("Paket wählen", "Paketi seç"))} →</span>
         </a>`).join("")}

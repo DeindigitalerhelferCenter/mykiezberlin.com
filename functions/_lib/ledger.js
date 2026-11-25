@@ -73,20 +73,29 @@ function ymdBerlin(ts) {
 }
 
 /** The 6 campaign periods of one sponsor from its start (not before 20.11.2026). */
-export function campaignPeriods(startTs, plan) {
+// 2026-11-25 (owner, option a): bonus = extra free months as compensation when the monthly view goal was not
+// reached (admin "🎁 +1 Monat gratis" in the sponsor reports). They come right after the 3 free months;
+// the 3 months with the intro price move back by the same number of months. Ids: camp-<ad>-1..3, camp-<ad>-b1.., camp-<ad>-4..6
+export function campaignPeriods(startTs, plan, bonus = 0) {
   const list = LIST_PRICE[plan] || LIST_PRICE.m;
   const [y, m, d] = ymdBerlin(Math.max(startTs || 0, CAMPAIGN_START));
+  const extra = Math.max(0, Math.min(24, Math.floor(Number(bonus) || 0)));
   const out = [];
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 6 + extra; i++) {
     const a = addMonths(y, m, d, i);
     const b = addMonths(y, m, d, i + 1);
     const from = berlinDay(...a);
     const to = berlinDay(...b) - 1000; // until 23:59:59 the day before
-    const free = i < 3;
+    const isBonus = i >= 3 && i < 3 + extra;
+    const free = i < 3 || isBonus;
+    const paidNr = i - extra; // 3, 4, 5 -> months 4–6
     const due = free ? 0 : (plan === "l" ? 4900 : 1900); // owner 2026-11-25 (B): Premium 49 € in months 4–6
     out.push({
-      nr: i + 1, from, to, list_cents: list, due_cents: due, discount_cents: list - due,
-      campaign: free ? `Black-Friday-Angebot: 3 Monate gratis (Monat ${i + 1}/3)` : `Aktionspreis ${due / 100} €/Monat (Monat ${i - 2}/3)`,
+      nr: isBonus ? i + 1 : (i < 3 ? i + 1 : paidNr + 1), key: isBonus ? `b${i - 2}` : String(i < 3 ? i + 1 : paidNr + 1),
+      from, to, list_cents: list, due_cents: due, discount_cents: list - due,
+      campaign: i < 3 ? `Black-Friday-Angebot: 3 Monate gratis (Monat ${i + 1}/3)`
+        : isBonus ? `Ausgleich Reichweite: Gratis-Monat ${i - 2}/${extra} (Monatsziel nicht erreicht)`
+        : `Aktionspreis ${due / 100} €/Monat (Monat ${paidNr - 2}/3)`,
     });
   }
   return out;
@@ -107,9 +116,11 @@ export async function syncLedger(database, now = Date.now()) {
     try { address = (JSON.parse(ad.extra || "{}") || {}).address || ""; } catch (e) { address = ""; }
     const plan = String(ad.plan || "m").toLowerCase();
     const start = Math.max(ad.start_at || 0, CAMPAIGN_START);
-    for (const p of campaignPeriods(start, plan)) {
+    let bonus = 0;
+    try { bonus = Number((JSON.parse(ad.extra || "{}") || {}).bonus_free) || 0; } catch (e) { bonus = 0; }
+    for (const p of campaignPeriods(start, plan, bonus)) {
       if (p.from > now) break;
-      const id = `camp-${ad.id}-${p.nr}`;
+      const id = `camp-${ad.id}-${p.key || p.nr}`;
       ops.push(database.prepare(`INSERT OR IGNORE INTO ledger (id, ts, ad_id, sponsor, address, plan, period_from, period_to, list_cents, discount_cents, due_cents, paid_cents, paid_at, method, campaign, note, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
         .bind(id, p.from, ad.id, ad.name || ad.id, address, plan, p.from, p.to, p.list_cents, p.discount_cents, p.due_cents, 0, p.due_cents === 0 ? p.from : 0, p.due_cents === 0 ? "keine Zahlung (Aktion)" : "offen", p.campaign, "", now, now));
     }

@@ -241,7 +241,8 @@ object AdsRepository {
             try {
                 val body = JSONObject().put("kind", kind).put("ids", JSONArray(ids)).toString()
                     .toRequestBody("application/json; charset=utf-8".toMediaType())
-                client.newCall(Request.Builder().url(ADS_URL).post(body).build()).execute().close()
+                // 2026-11-25: model + Android version help the server tell devices apart (daily cap per device, no personal data)
+                client.newCall(Request.Builder().url(ADS_URL).header("User-Agent", "MyKiezBerlin-Android/2.0 (${android.os.Build.MODEL}; Android ${android.os.Build.VERSION.RELEASE})").post(body).build()).execute().close()
             } catch (_: Exception) {
             }
         }
