@@ -12,6 +12,8 @@ export const PACKAGES = {
   l: { amount: 8900, label: "My Kiez Berlin Kiez Premium" },
 };
 export const INTRO = { amount: 1900, months: 3 };
+// 2026-11-25 (owner B): start price per package – Basic/Plus 19 €, Premium 49 € for 3 months
+export const INTRO_BY = { s: 1900, m: 1900, l: 4900 };
 export const REQUEST_SIZES = ["s", "m", "l", "banner", "gp"];
 const DAY_MS = 86400000;
 
@@ -26,14 +28,15 @@ async function stripe(env, path, params) {
 
 // One reusable coupon per package that brings the first 3 months down to 19 €.
 async function introCoupon(env, size) {
-  const id = `mkb_intro_${size}`;
+  const introAmount = INTRO_BY[size] || INTRO.amount;
+  const id = introAmount === INTRO.amount ? `mkb_intro_${size}` : `mkb_intro${introAmount / 100}_${size}`; // new id: an existing Stripe coupon cannot be changed
   const coupon = await stripe(env, "coupons", {
     id,
-    amount_off: String(PACKAGES[size].amount - INTRO.amount),
+    amount_off: String(PACKAGES[size].amount - introAmount),
     currency: "eur",
     duration: "repeating",
     duration_in_months: String(INTRO.months),
-    name: `Startangebot ${INTRO.months} Monate 19 €`,
+    name: `Startangebot ${INTRO.months} Monate ${introAmount / 100} €`,
   });
   return coupon.id || (coupon.error?.code === "resource_already_exists" ? id : null);
 }

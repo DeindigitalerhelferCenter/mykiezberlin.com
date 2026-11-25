@@ -1,5 +1,6 @@
-// 2026-11-22 (owner): Black Friday campaign – the first 100 sponsors get 3 months free, then the normal package
-// price (Kiez Basic 29 / Plus 49 / Premium 89 € per month), cancel every month. Runs from now until 30.11.2026.
+// 2026-11-22 (owner): Black Friday campaign – the first 100 sponsors get 3 months free, then (owner 2026-11-25, B)
+// 3 months start price (Basic/Plus 19 €, Premium 49 €), then the normal package price (Kiez Basic 29 / Plus 49 /
+// Premium 89 € per month), cancel every month. Runs from now until 30.11.2026.
 // The 20 "Gründungspartner" places count as taken (owner: "20 doldu, kalan 80").
 export const BF_TOTAL = 100;
 export const BF_BASE_TAKEN = 20;

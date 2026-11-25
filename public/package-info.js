@@ -44,7 +44,7 @@
     return '<div class="mkpi-sheet" role="dialog" aria-modal="true" aria-label="' + e(NAMES[size]) + '">' +
       '<button type="button" class="mkpi-x" aria-label="' + e(L("Schließen", "Kapat", "Close")) + '">✕</button>' +
       "<h3>" + e(NAMES[size]) + ' <span class="mkpi-price">' + PRICE[size] + " €" + e(L("/Monat", "/ay", "/month")) + "</span></h3>" +
-      '<p class="mkpi-start">🎉 ' + e(L("Start: 3 Monate nur 19 €/Monat · monatlich kündbar", "Başlangıç: ilk 3 ay sadece 19 €/ay · her ay iptal edilebilir", "Launch: first 3 months only €19/month · cancel monthly")) + "</p>" +
+      '<p class="mkpi-start">🎉 ' + e(L("Start: 3 Monate ab 19 €/Monat · monatlich kündbar", "Başlangıç: ilk 3 ay aylık 19 €'dan · her ay iptal edilebilir", "Launch: first 3 months from €19/month · cancel monthly")) + "</p>" +
       window.mkPackagePreview(size, true) +
       '<p class="mkpi-cap">' + e(L("So groß erscheint deine Karte (farbig markiert)", "Kartın bu büyüklükte görünür (renkli olan)", "This is how big your card appears (coloured)")) + "</p>" +
       "<h4>📍 " + e(L("Größe & Platz", "Boyut & yer", "Size & place")) + "</h4><ul>" + where.map(function (w) { return "<li>" + e(w) + "</li>"; }).join("") + "</ul>" +

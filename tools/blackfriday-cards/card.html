@@ -39,11 +39,11 @@ const W = +q.w, H = +q.h, lang = q.lang || "de", left = +q.left || 68, total = 1
 const T = {
   de: { tag:"Nur bis 30.11.2026", brand:"Dein Betrieb im Kiez – sichtbar für ganz Berlin", h2:"3 MONATE", free:"GRATIS",
         sub:"Für die ersten 100 Betriebe: Sponsor bei My Kiez Berlin – Web, App, Stories & Social Media.",
-        left:`Nur noch <b>${left}</b> von ${total} Plätzen frei`, after:"Danach monatlich kündbar:", s:"Kiez Basic", m:"Kiez Plus", l:"Premium", mo:"€/Monat",
+        left:`Nur noch <b>${left}</b> von ${total} Plätzen frei`, after:"Danach 3 Monate 19 € (Premium 49 €), dann monatlich kündbar:", s:"Kiez Basic", m:"Kiez Plus", l:"Premium", mo:"€/Monat",
         cta:"Jetzt Platz sichern", fine:"Keine Zahlung jetzt · keine Mindestlaufzeit", stripe:"BLACK FRIDAY ★ 3 MONATE GRATIS ★ " },
   tr: { tag:"Sadece 30.11.2026'ya kadar", brand:"İşletmen mahallede – tüm Berlin'de görünür", h2:"3 AY", free:"ÜCRETSİZ",
         sub:"İlk 100 işletmeye: My Kiez Berlin sponsoru ol – web, uygulama, hikâyeler ve sosyal medya.",
-        left:`${total} yerden sadece <b>${left}</b> yer kaldı`, after:"Sonrası her ay iptal edilebilir:", s:"Kiez Basic", m:"Kiez Plus", l:"Premium", mo:"€/ay",
+        left:`${total} yerden sadece <b>${left}</b> yer kaldı`, after:"Sonra 3 ay 19 € (Premium 49 €), ardından her ay iptal edilebilir:", s:"Kiez Basic", m:"Kiez Plus", l:"Premium", mo:"€/ay",
         cta:"Yerini şimdi ayırt", fine:"Şimdi ödeme yok · asgari süre yok", stripe:"BLACK FRIDAY ★ 3 AY ÜCRETSİZ ★ " },
 }[lang];
 const big = H > W * 1.4, wide = W > H * 1.4;

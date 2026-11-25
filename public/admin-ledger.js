@@ -151,7 +151,7 @@
       '</tbody><tfoot><tr><td colspan="5">Summe (' + r.lines.length + ' Einträge)</td><td class="n">' + eur(t.list) + '</td><td class="n">' + eur(t.discount) + '</td><td class="n">' + eur(t.due) + '</td><td class="n">' + eur(t.paid) + '</td><td colspan="2">Offen: ' + eur(t.open) + "</td></tr></tfoot></table>" +
       '<div class="box"><b>Hinweise zur Aktion</b><br>' +
       "Black-Friday-Angebot für alle aktiven Werbepartner: 20.11.2026 – 19.02.2027 drei Monate kostenlos (0 €). " +
-      "Danach 20.02.2027 – 19.05.2027 Aktionspreis 19 €/Monat (drei Monate). Danach regulärer Preis: Kiez Basic 29 €, Kiez Plus 49 €, Kiez Premium 89 € pro Monat. " +
+      "Danach 20.02.2027 – 19.05.2027 Aktionspreis 19 €/Monat, Kiez Premium 49 €/Monat (drei Monate). Danach regulärer Preis: Kiez Basic 29 €, Kiez Plus 49 €, Kiez Premium 89 € pro Monat. " +
       "Bei späterem Beginn gelten die Zeiträume ab dem eigenen Startdatum. Die Leistung (Werbeplatz) wurde erbracht; der Rabatt ist als Aktionsrabatt ausgewiesen.<br>" +
       e(B.tax) + "</div>" +
       '<div class="sign"><div>Ort, Datum</div><div>Unterschrift ' + e(B.owner) + "</div></div>" +

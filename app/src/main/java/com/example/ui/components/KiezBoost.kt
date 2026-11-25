@@ -684,9 +684,9 @@ object BlackFridayRepo {
 
 private fun bfTexts(language: AppLanguage, s: BlackFridayState) = Triple(
     pk(language, "🖤 BLACK FRIDAY: 3 Monate GRATIS werben", "🖤 BLACK FRIDAY: 3 ay ÜCRETSİZ reklam", "🖤 BLACK FRIDAY: 3 months FREE advertising"),
-    pk(language, "${s.taken} von ${s.total} Plätzen sind schon weg – nur noch ${s.left} frei! Sichere dir jetzt deinen Platz: 3 Monate gratis, danach ab 29 €/Monat.",
-        "${s.total} yerden ${s.taken} tanesi doldu – sadece ${s.left} yer kaldı! Acele et, yerini şimdi ayırt: 3 ay ücretsiz, sonra aylık 29 €'dan başlayan fiyatlar.",
-        "${s.taken} of ${s.total} places are gone – only ${s.left} left! Claim yours now: 3 months free, then from 29 €/month."),
+    pk(language, "${s.taken} von ${s.total} Plätzen sind schon weg – nur noch ${s.left} frei! Sichere dir jetzt deinen Platz: 3 Monate gratis, danach 3 Monate ab 19 €/Monat, dann ab 29 €/Monat.",
+        "${s.total} yerden ${s.taken} tanesi doldu – sadece ${s.left} yer kaldı! Acele et, yerini şimdi ayırt: 3 ay ücretsiz, sonra 3 ay aylık 19 €'dan, ardından aylık 29 €'dan başlayan fiyatlar.",
+        "${s.taken} of ${s.total} places are gone – only ${s.left} left! Claim yours now: 3 months free, then 3 months from 19 €/month, then from 29 €/month."),
     pk(language, "MONATLICH KÜNDBAR · bis 30.11.", "HER AY İPTAL EDİLEBİLİR · 30.11.'e kadar", "CANCEL MONTHLY · until 30 Nov")
 )
 

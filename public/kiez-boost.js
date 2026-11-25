@@ -381,9 +381,9 @@
     var taken = bf.taken, left = bf.left, total = bf.total;
     return {
       h: L("🖤 BLACK FRIDAY: 3 Monate GRATIS werben", "🖤 BLACK FRIDAY: 3 ay ÜCRETSİZ reklam", "🖤 BLACK FRIDAY: 3 months FREE advertising"),
-      t: L(taken + " von " + total + " Plätzen sind schon weg – nur noch " + left + " frei! Sichere dir jetzt deinen Platz: 3 Monate gratis, danach ab 29 €/Monat.",
-        total + " yerden " + taken + " tanesi doldu – sadece " + left + " yer kaldı! Acele et, yerini şimdi ayırt: 3 ay ücretsiz, sonra aylık 29 €'dan başlayan fiyatlar.",
-        taken + " of " + total + " places are gone – only " + left + " left! Claim yours now: 3 months free, then from 29 €/month."),
+      t: L(taken + " von " + total + " Plätzen sind schon weg – nur noch " + left + " frei! Sichere dir jetzt deinen Platz: 3 Monate gratis, danach 3 Monate ab 19 €/Monat, dann ab 29 €/Monat.",
+        total + " yerden " + taken + " tanesi doldu – sadece " + left + " yer kaldı! Acele et, yerini şimdi ayırt: 3 ay ücretsiz, sonra 3 ay aylık 19 €'dan, ardından aylık 29 €'dan başlayan fiyatlar.",
+        taken + " of " + total + " places are gone – only " + left + " left! Claim yours now: 3 months free, then 3 months from 19 €/month, then from 29 €/month."),
       k: L("MONATLICH KÜNDBAR · bis 30.11.", "HER AY İPTAL EDİLEBİLİR · 30.11.'e kadar", "CANCEL MONTHLY · until 30 Nov"),
       b: L("Jetzt Gratis-Platz sichern", "Ücretsiz yerini hemen ayırt", "Claim your free place"),
     };

@@ -5,7 +5,7 @@
 //
 // Owner's campaign for all sponsors that are active on 20.11.2026 (not the owner's own pages):
 //   20.11.2026 – 19.02.2027  Black-Friday-Angebot: 3 Monate gratis (0 €)
-//   20.02.2027 – 19.05.2027  Aktionspreis 19 €/Monat (3 Monate)
+//   20.02.2027 – 19.05.2027  Aktionspreis 19 €/Monat (3 Monate) – Kiez Premium 49 €/Monat (owner 2026-11-25, B)
 //   from 20.05.2027          regular price (29 / 49 / 89 €) – lines are made only when the owner decides
 // A sponsor that starts later gets the same 6 months from its own start date.
 // Monthly report = all lines whose date is inside the calendar month (1st – last day, Berlin time).
@@ -83,10 +83,10 @@ export function campaignPeriods(startTs, plan) {
     const from = berlinDay(...a);
     const to = berlinDay(...b) - 1000; // until 23:59:59 the day before
     const free = i < 3;
-    const due = free ? 0 : 1900;
+    const due = free ? 0 : (plan === "l" ? 4900 : 1900); // owner 2026-11-25 (B): Premium 49 € in months 4–6
     out.push({
       nr: i + 1, from, to, list_cents: list, due_cents: due, discount_cents: list - due,
-      campaign: free ? `Black-Friday-Angebot: 3 Monate gratis (Monat ${i + 1}/3)` : `Aktionspreis 19 €/Monat (Monat ${i - 2}/3)`,
+      campaign: free ? `Black-Friday-Angebot: 3 Monate gratis (Monat ${i + 1}/3)` : `Aktionspreis ${due / 100} €/Monat (Monat ${i - 2}/3)`,
     });
   }
   return out;

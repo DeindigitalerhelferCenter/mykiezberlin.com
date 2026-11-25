@@ -574,7 +574,7 @@ Surface(
                                             "Diese AGB gelten für alle Leistungen der Plattform My Kiez Berlin (mykiezberlin.com). Anbieter ist Deindigitalerhelfer.Center, Ersen Bakıcı, Behaimstraße 3, 10585 Berlin.\n\n" +
                                             "§ 2 Leistungen & Pakete:\n" +
                                             "• Grundeintrag: Kostenlos für Betriebe in Berlin.\n" +
-                                            "• Startangebot: Alle B2B-Pakete die ersten 3 Monate für nur 19 €/Monat, danach 29 €, 49 € oder 89 €/Monat – monatlich kündbar.\n" +
+                                            "• Startangebot: Alle B2B-Pakete die ersten 3 Monate für 19 €/Monat (Kiez Premium 49 €/Monat), danach 29 €, 49 € oder 89 €/Monat – monatlich kündbar.\n" +
                                             "• Kiez-Stories: 24 Std. & 48 Std. kostenlos. 7 Tage für 5 €, 30 Tage für 9,90 €.\n" +
                                             "• Gründungspartner: Die ersten Betriebe testen 3 Monate kostenlos.\n\n" +
                                             "§ 3 Inhalte der Betriebe & Story-Regeln:\n" +

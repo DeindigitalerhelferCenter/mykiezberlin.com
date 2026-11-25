@@ -169,7 +169,7 @@ fun BusinessPortalScreen(
                 colors = CardDefaults.cardColors(containerColor = BerlinYellow.copy(alpha = 0.18f))
             ) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("✨ " + t("Startangebot: die ersten 3 Monate nur 19 €/Monat", "Başlangıç teklifi: ilk 3 ay sadece 19 €/ay", "Starter offer: first 3 months only €19/month"), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("✨ " + t("Startangebot: die ersten 3 Monate ab 19 €/Monat", "Başlangıç teklifi: ilk 3 ay aylık 19 €'dan", "Starter offer: first 3 months from €19/month"), fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     Text(
                         t("Gründungspartner: Die ersten 20 Betriebe testen 3 Monate kostenlos. Danach monatlich kündbar.",
                           "Kurucu ortaklar: İlk 20 işletme 3 ay ücretsiz dener. Sonra aylık iptal edilebilir.",
@@ -216,7 +216,7 @@ fun BusinessPortalScreen(
                         Text("${plan.price} €", fontWeight = FontWeight.Black, fontSize = 28.sp, color = accent)
                         Text(t(" / Monat", " / ay", " / month"), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 5.dp, start = 4.dp))
                     }
-                    Text(t("Start: 3 Monate je 19 €", "Başlangıç: 3 ay 19 €", "Start: 3 months at €19"), fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(t("Start: 3 Monate ab 19 €", "Başlangıç: 3 ay 19 €'dan", "Start: 3 months from €19"), fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.height(12.dp))
                     HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                     Spacer(Modifier.height(12.dp))

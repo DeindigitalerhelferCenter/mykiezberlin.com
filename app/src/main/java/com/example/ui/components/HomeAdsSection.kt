@@ -199,7 +199,7 @@ private fun PackageCard(pk: AdPackage, tr: Boolean, onClick: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurface)
                 Spacer(Modifier.width(6.dp))
-                Text(if (tr) "Başlangıç: ilk 3 ay sadece 19 €/ay" else "Start: 3 Monate nur 19 €/Monat", fontSize = 13.5.sp, fontWeight = FontWeight.Bold)
+                Text(if (tr) "Başlangıç: ilk 3 ay aylık 19 €'dan" else "Start: 3 Monate ab 19 €/Monat", fontSize = 13.5.sp, fontWeight = FontWeight.Bold)
             }
             pk.points.forEach { (de, t) ->
                 Row(verticalAlignment = Alignment.Top) {

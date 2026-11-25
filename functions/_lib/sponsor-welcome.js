@@ -7,20 +7,22 @@ import { BF_END, BF_FREE_MONTHS } from "./blackfriday.js";
 
 // 2026-11-25 (owner): the package line must also say the campaign – 3 months free, then the normal monthly price
 const PRICE = { s: 29, m: 49, l: 89 };
+// owner 2026-11-25 (B): 3 months intro price after the free months – Basic/Plus 19 €, Premium 49 €
+const INTRO = { s: 19, m: 19, l: 49 };
 function offerLines(ad) {
   const p = PRICE[ad.plan];
   if (!p) return { de: "", tr: "" };
   if (Date.now() <= BF_END || ad.plan_offer === "bf") return {
     de: `
 🎁 Black-Friday-Aktion: Die ersten ${BF_FREE_MONTHS} Monate sind für Sie KOSTENLOS.
-Danach ${p} € pro Monat – jederzeit monatlich kündbar.`,
+Danach 3 Monate Aktionspreis ${INTRO[ad.plan]} € pro Monat, dann ${p} € pro Monat – jederzeit monatlich kündbar.`,
     tr: `
 🎁 Black Friday kampanyası: İlk ${BF_FREE_MONTHS} ay sizin için ÜCRETSİZ.
-Sonrasında aylık ${p} € – her ay iptal edilebilir.`,
+Sonraki 3 ay kampanya fiyatı aylık ${INTRO[ad.plan]} €, ardından aylık ${p} € – her ay iptal edilebilir.`,
   };
   return { de: `
-Preis: ${p} € pro Monat – monatlich kündbar.`, tr: `
-Fiyat: aylık ${p} € – her ay iptal edilebilir.` };
+Startpreis: 3 Monate ${INTRO[ad.plan]} € pro Monat, danach ${p} € pro Monat – monatlich kündbar.`, tr: `
+Başlangıç fiyatı: 3 ay aylık ${INTRO[ad.plan]} €, sonra aylık ${p} € – her ay iptal edilebilir.` };
 }
 
 export const SUPPORT_MAIL = "support@mykiezberlin.com";

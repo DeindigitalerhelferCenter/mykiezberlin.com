@@ -72,7 +72,7 @@ private fun cards(l: AppLanguage): List<UpdCard> {
     if (bf != null && bf.active) list.add(UpdCard("🖤", t(l, "BLACK FRIDAY: 3 Monate gratis werben", "BLACK FRIDAY: 3 ay ücretsiz reklam", "BLACK FRIDAY: 3 months free ads"),
         t(l, "Nur noch ${bf.left} von ${bf.total} Plätzen frei – für dein Geschäft auf mykiezberlin.com.", "${bf.total} yerden sadece ${bf.left} yer kaldı – işletmen için mykiezberlin.com'da.", "Only ${bf.left} of ${bf.total} places left – for your business on mykiezberlin.com."), Color.Black, Color(0xFF2B2100)))
     else list.add(UpdCard("📣", t(l, "Dein Geschäft in ganz Berlin", "İşletmen tüm Berlin'de", "Your business all over Berlin"),
-        t(l, "Werbung in App & Webseite ab 29 € im Monat – mykiezberlin.com/werben", "Uygulama ve sitede reklam aylık 29 €'dan – mykiezberlin.com/werben", "Ads in app & website from 29 €/month – mykiezberlin.com/werben"), red, Color(0xFF7F1D1D)))
+        t(l, "Start: 3 Monate ab 19 €/Monat in App & Webseite – mykiezberlin.com/werben", "Başlangıç: 3 ay aylık 19 €'dan, uygulama ve sitede – mykiezberlin.com/werben", "Start: 3 months from 19 €/month in app & website – mykiezberlin.com/werben"), red, Color(0xFF7F1D1D)))
     return list
 }
 
