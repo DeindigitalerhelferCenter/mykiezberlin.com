@@ -71,6 +71,8 @@ In 3 Schritten:
 🖼️ Titelbild & Logo: im Panel unter "Hauptbilder" – "🔄 Ändern". Die Änderung ist sofort online.
 ✏️ Texte, Adresse, Öffnungszeiten, Telefon & Links ändern Sie ebenfalls im Panel.
 
+🎬 Kurze Video-Anleitung (45 Sek.): ${SITE}/anleitung/?lang=de
+
 💡 Unser Tipp: Teilen Sie Ihre My Kiez Seite mit Ihren Kunden und hängen Sie unser QR-Plakat in Ihrem Geschäft auf – so wachsen wir gemeinsam, und Sie erscheinen öfter vorne auf der Startseite.
 
 🆘 Hilfe: ${SUPPORT_MAIL} · WhatsApp ${SUPPORT_WA}
@@ -89,6 +91,8 @@ ${link}
 
 🖼️ Kapak resmi ve logo: panelde "Ana tanıtım resimleri" – "🔄 Değiştir". Değişiklik hemen sitede görünür.
 ✏️ Metinleri, adresi, çalışma saatlerini, telefonu ve linkleri de panelden değiştirebilirsiniz.
+
+🎬 Kısa video kılavuz (45 sn.): ${SITE}/anleitung/?lang=tr
 
 💡 Önerimiz: My Kiez sayfanızı müşterilerinizle paylaşın ve QR afişimizi dükkânınıza asın – böylece birlikte büyürüz ve ana sayfada daha sık öne çıkarsınız.
 

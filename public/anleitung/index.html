@@ -1,0 +1,69 @@
+<!doctype html>
+<!-- 2026-11-25 (owner "videolarda önce 1, UYGULA"): short guide videos for sponsors (DE + TR), linked in welcome message 2 -->
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sponsor-Anleitung · Sponsor kılavuzu – My Kiez Berlin</title>
+<meta name="description" content="Kurze Videos: Bilder hochladen, Titelbild & Logo ändern, mit Kunden teilen. · Kısa videolar: resim yükle, kapak ve logo değiştir, müşterilerinle paylaş.">
+<meta property="og:title" content="My Kiez Berlin – Sponsor-Anleitung · Sponsor kılavuzu">
+<meta property="og:image" content="https://mykiezberlin.com/anleitung/de-poster.jpg">
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#111827;--muted:#6b7280;--red:#E30613;--line:#e5e7eb}
+@media (prefers-color-scheme:dark){:root{--bg:#0d1117;--card:#161b22;--ink:#e6edf3;--muted:#8b949e;--line:#30363d}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.5}
+header{background:var(--red);color:#fff;padding:18px 16px;text-align:center}header a{color:#fff;text-decoration:none;font-weight:800;font-size:20px}
+main{max-width:980px;margin:0 auto;padding:16px}
+.tabs{display:flex;gap:8px;justify-content:center;margin:6px 0 16px}.tabs button{border:2px solid var(--red);background:transparent;color:var(--ink);border-radius:999px;padding:8px 18px;font-weight:800;cursor:pointer;font-size:15px}
+.tabs button.on{background:var(--red);color:#fff}
+h1{font-size:22px;margin:4px 0 4px;text-align:center}p.lead{color:var(--muted);text-align:center;margin:0 0 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.v{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px}.v b{display:block;margin:2px 4px 8px}
+video{width:100%;border-radius:12px;background:#000;aspect-ratio:9/16;display:block}
+.full{max-width:360px;margin:0 auto 20px}
+.help{margin:22px auto 8px;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;max-width:520px}
+.help a{color:var(--red);font-weight:800}
+[data-l]{display:none}body.de [data-l=de],body.tr [data-l=tr]{display:block}
+</style>
+</head>
+<body class="de">
+<header><a href="/">My Kiez Berlin</a></header>
+<main>
+  <div class="tabs"><button type="button" data-set="de" class="on">Deutsch</button><button type="button" data-set="tr">Türkçe</button></div>
+  <section data-l="de">
+    <h1>Sponsor-Panel – Anleitung</h1>
+    <p class="lead">So einfach geht's: hochladen, ändern, teilen.</p>
+    <div class="v full"><b>▶ Komplette Anleitung (45 Sek.)</b><video controls preload="none" playsinline poster="de-poster.jpg" src="de-komplett.mp4"></video></div>
+    <div class="grid">
+      <div class="v"><b>1 · Bilder & Videos hochladen</b><video controls preload="none" playsinline poster="de-poster.jpg" src="de-1-upload.mp4"></video></div>
+      <div class="v"><b>2 · Titelbild & Logo ändern</b><video controls preload="none" playsinline poster="de-poster.jpg" src="de-2-cover-logo.mp4"></video></div>
+      <div class="v"><b>3 · Mit Kunden teilen</b><video controls preload="none" playsinline poster="de-poster.jpg" src="de-3-share.mp4"></video></div>
+    </div>
+    <div class="help">Fragen? <a href="mailto:support@mykiezberlin.com">support@mykiezberlin.com</a> · <a href="https://wa.me/4917640556109">WhatsApp +49 176 40556109</a></div>
+  </section>
+  <section data-l="tr">
+    <h1>Sponsor Paneli – Kılavuz</h1>
+    <p class="lead">Bu kadar kolay: yükle, değiştir, paylaş.</p>
+    <div class="v full"><b>▶ Tam kılavuz (45 sn.)</b><video controls preload="none" playsinline poster="tr-poster.jpg" src="tr-komplett.mp4"></video></div>
+    <div class="grid">
+      <div class="v"><b>1 · Resim ve video yükle</b><video controls preload="none" playsinline poster="tr-poster.jpg" src="tr-1-upload.mp4"></video></div>
+      <div class="v"><b>2 · Kapak resmi ve logoyu değiştir</b><video controls preload="none" playsinline poster="tr-poster.jpg" src="tr-2-cover-logo.mp4"></video></div>
+      <div class="v"><b>3 · Müşterilerinle paylaş</b><video controls preload="none" playsinline poster="tr-poster.jpg" src="tr-3-share.mp4"></video></div>
+    </div>
+    <div class="help">Sorun mu var? <a href="mailto:support@mykiezberlin.com">support@mykiezberlin.com</a> · <a href="https://wa.me/4917640556109">WhatsApp +49 176 40556109</a></div>
+  </section>
+</main>
+<script>
+(function () {
+  function set(l) {
+    document.body.className = l; document.documentElement.lang = l;
+    document.querySelectorAll("[data-set]").forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-set") === l); });
+    document.querySelectorAll("video").forEach(function (v) { try { v.pause(); } catch (e) {} });
+  }
+  var q = (location.search.match(/lang=(tr|de)/) || [])[1] || ((navigator.language || "").toLowerCase().indexOf("tr") === 0 ? "tr" : "de");
+  set(q);
+  document.querySelectorAll("[data-set]").forEach(function (b) { b.onclick = function () { set(b.getAttribute("data-set")); }; });
+})();
+</script>
+</body>
+</html>
