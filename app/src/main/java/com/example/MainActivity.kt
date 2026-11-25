@@ -827,8 +827,14 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
         )
     }
 
+    // 2026-11-25 (owner): in-app download window (see ui/components/InAppUpdate.kt)
+    var updDownloadUrl by remember { mutableStateOf<String?>(null) }
+    updDownloadUrl?.let { url ->
+        com.example.ui.components.InAppUpdateDialog(url, uiState.language) { updDownloadUrl = null }
+    }
+
     // In-App Version Update Dialog (https://mykiezberlin.com/version.json)
-    uiState.appUpdateInfo?.let { updateInfo ->
+    uiState.appUpdateInfo?.takeIf { updDownloadUrl == null }?.let { updateInfo ->
         val context = LocalContext.current
         AlertDialog(
             onDismissRequest = {
@@ -877,11 +883,8 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
             confirmButton = {
                 Button(
                     onClick = {
-                        val browserIntent = android.content.Intent(
-                            android.content.Intent.ACTION_VIEW,
-                            android.net.Uri.parse(updateInfo.apkUrl)
-                        )
-                        context.startActivity(browserIntent)
+                        // 2026-11-25 (owner): download inside the app with our cards (no downloader/ad apps any more)
+                        updDownloadUrl = updateInfo.apkUrl
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = BerlinBlue)
                 ) {
