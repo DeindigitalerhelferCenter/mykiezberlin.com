@@ -21,7 +21,7 @@ h2{font-size:17px;margin:26px 0 10px}
 .c b{font-size:15.5px}.c .tr{color:#ffd166;font-weight:700;font-size:13.5px;margin-top:-6px}
 .row{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}
 .btn{flex:1;min-width:110px;border:0;border-radius:11px;padding:10px 8px;font-weight:800;font-size:13.5px;cursor:pointer;color:#fff;background:#21262d;text-decoration:none;text-align:center;border:1px solid var(--line)}
-.btn.wa{background:var(--wa);border-color:var(--wa);color:#05290f}.btn.go{background:#1f6feb;border-color:#1f6feb}
+.btn.wa{background:var(--wa);border-color:var(--wa);color:#05290f}.btn.st{background:#ffd166;border-color:#ffd166;color:#1f2328}.btn.go{background:#1f6feb;border-color:#1f6feb}
 .ok{color:#3fb950;font-size:12.5px;min-height:1em}
 #lb{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;z-index:9;padding:16px}
 #lb img{max-width:100%;max-height:100%;border-radius:12px}
@@ -31,6 +31,7 @@ a.back{color:var(--mute);font-size:13.5px}
 <header><img src="/assets/images/mykiez_logo.png" alt=""><h1>Einladen & Teilen · Davet et ve paylaş<small>Schick die Karten an Freunde – mit Bild, Text und Link · Kartları arkadaşlarına gönder</small></h1></header>
 <p class="hint">🇩🇪 „WhatsApp“ öffnet deine Chats mit fertigem Text – das Bild erscheint automatisch in der Vorschau. „Mit Bild teilen“ schickt das Bild selbst (am Handy).<br>
 🇹🇷 „WhatsApp“ sohbetlerini hazır metinle açar – resim önizlemede kendiliğinden görünür. „Resimle paylaş“ resmin kendisini gönderir (telefonda).<br>
+⭐ <b>WhatsApp-Status:</b> „Status-Link“ nehmen – dann ist das Bild in der Vorschau anklickbar (Links unter einem Foto sind im Status nicht klickbar) · <b>WhatsApp Durum:</b> „Statü için link“i kullan – önizlemedeki resme dokunulabilir (fotoğrafın altındaki linkler durumda tıklanmaz).<br>
 ℹ️ WhatsApp-Gruppen: ein Tipp auf „Beitreten“ genügt · WhatsApp grupları: „Katıl“a bir kez dokunmak yeter.</p>
 <div id="list"><p class="hint">…</p></div>
 </main>
@@ -67,6 +68,7 @@ a.back{color:var(--mute);font-size:13.5px}
           '<div class="b"><b>' + esc(c.title_de) + '</b><span class="tr">' + esc(c.title_tr) + "</span>" +
           '<div class="row"><a class="btn wa" target="_blank" rel="noopener" href="https://wa.me/?text=' + encodeURIComponent(c.text) + '">📲 WhatsApp</a>' +
           '<button class="btn" data-share>🖼️ Mit Bild · Resimle</button></div>' +
+          '<div class="row"><button class="btn st" data-status>⭐ Status-Link · Statü için link</button></div>' +
           '<div class="row"><a class="btn" href="' + esc(c.story) + '" download="mykiez-' + esc(c.key) + '-story.jpg">⬇️ Story</a>' +
           '<a class="btn" href="' + esc(c.post) + '" download="mykiez-' + esc(c.key) + '-post.jpg">⬇️ Post</a>' +
           '<button class="btn" data-copy>📋 Text</button></div>' +
@@ -80,6 +82,13 @@ a.back{color:var(--mute);font-size:13.5px}
       var out = el.querySelector(".ok");
       el.querySelector("img").onclick = function () { var lb = document.getElementById("lb"); lb.querySelector("img").src = this.getAttribute("data-big"); lb.style.display = "flex"; };
       el.querySelector("[data-share]").onclick = function () { shareImage(c, out); };
+      // 2026-11-26 (owner "UYGULA 1"): link only – WhatsApp shows the card picture as a big, CLICKABLE preview in the Status
+      el.querySelector("[data-status]").onclick = function () {
+        var t = c.status || c.link;
+        if (navigator.share) { navigator.share({ text: t }).then(function () { out.textContent = "✓"; }, function () {}); return; }
+        var done = function () { out.textContent = "✓ Link kopiert – in WhatsApp „Status“ einfügen · Link kopyalandı – WhatsApp „Durum“a yapıştır"; };
+        if (navigator.clipboard) navigator.clipboard.writeText(t).then(done, function () { window.prompt("Link:", t); }); else window.prompt("Link:", t);
+      };
       el.querySelector("[data-copy]").onclick = function () {
         var done = function () { out.textContent = "✓ Text + Link kopiert · kopyalandı"; };
         if (navigator.clipboard) navigator.clipboard.writeText(c.text).then(done, function () { window.prompt("Text:", c.text); });

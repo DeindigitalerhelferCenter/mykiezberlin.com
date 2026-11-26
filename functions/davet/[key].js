@@ -3,7 +3,7 @@
 // A person who taps it goes straight to the WhatsApp group / channel, the app download (Android) or /werben.
 // Clicks are counted per day (table invite_clicks) – no cookies, nothing personal.
 import { db } from "../_lib/util.js";
-import { inviteCard, SITE } from "../_lib/invite-cards.js";
+import { inviteCard, SITE, welcomeOf } from "../_lib/invite-cards.js";
 
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const BOT = /bot|crawl|spider|facebookexternalhit|whatsapp|telegram|preview|slack|discord|twitter/i;
@@ -42,11 +42,31 @@ export async function onRequestGet({ params, request, env, waitUntil }) {
 <meta property="og:url" content="${esc(url)}">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="canonical" href="${esc(url)}">
-<meta http-equiv="refresh" content="0;url=${esc(target)}">
-</head><body style="font-family:system-ui,sans-serif;text-align:center;padding:40px 16px;background:#0d1117;color:#fff">
-<p style="font-size:18px;font-weight:700">${esc(c.title_de)}<br>${esc(c.title_tr)}</p>
-<p><a style="color:#25D366;font-weight:800;font-size:18px" href="${esc(target)}">${esc(c.cta_de)} · ${esc(c.cta_tr)} →</a></p>
-<script>location.replace(${JSON.stringify(target)});</script>
+<meta http-equiv="refresh" content="8;url=${esc(target)}">
+<style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:system-ui,-apple-system,sans-serif;background:radial-gradient(800px 600px at 50% 0%,#1b2b22,#0d1117);color:#fff;padding:24px 18px;text-align:center}
+.w{max-width:460px;width:100%}.w img.logo{width:84px;height:84px;border-radius:20px;background:#fff;padding:6px}
+h1{font-size:24px;margin:14px 0 4px}h2{font-size:19px;margin:0 0 14px;color:#ffd166}
+p{margin:8px 0;line-height:1.45;font-size:15.5px;color:#e6edf3}.hint{font-weight:800;color:#fff;background:#21262d;border-radius:14px;padding:12px;margin:14px 0}
+a.go{display:block;margin-top:16px;padding:16px;border-radius:16px;background:${c.kind === "app" ? "#1f6feb" : c.kind === "business" ? "#d62828" : "#25D366"};color:${c.kind === "app" || c.kind === "business" ? "#fff" : "#05290f"};font-weight:900;font-size:19px;text-decoration:none}
+.bar{height:6px;border-radius:6px;background:#30363d;overflow:hidden;margin-top:16px}.bar i{display:block;height:6px;width:0;background:#25D366;animation:f 3s linear forwards}@keyframes f{to{width:100%}}</style>
+</head><body>
+<div class="w" id="w">
+<img class="logo" src="/assets/images/mykiez_logo.png" alt="My Kiez Berlin">
+<h1>${esc(welcomeOf(c).title_tr)}</h1><h2>${esc(welcomeOf(c).title_de)}</h2>
+<p>🇹🇷 ${esc(welcomeOf(c).line_tr)}</p><p>🇩🇪 ${esc(welcomeOf(c).line_de)}</p>
+<p class="hint">👉 ${esc(welcomeOf(c).hint_tr)}<br>👉 ${esc(welcomeOf(c).hint_de)}</p>
+<a class="go" href="${esc(target)}">${esc(c.cta_tr)} · ${esc(c.cta_de)} →</a>
+<div class="bar"><i></i></div>
+</div>
+<script>
+// 2026-11-26 (owner "UYGULA 4"): the welcome is shown ONCE per card on this phone, then the link goes straight on
+(function () {
+  var T = ${JSON.stringify(target)}, K = "mk_welcome_" + ${JSON.stringify(c.key)}, seen = false;
+  try { seen = localStorage.getItem(K) === "1"; localStorage.setItem(K, "1"); } catch (e) {}
+  if (seen) { document.getElementById("w").style.visibility = "hidden"; location.replace(T); return; }
+  setTimeout(function () { location.href = T; }, 3200);
+})();
+</script>
 </body></html>`;
   return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
 }

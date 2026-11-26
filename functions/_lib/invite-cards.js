@@ -60,16 +60,40 @@ export function inviteCard(key) {
   return INVITE_CARDS.find((c) => c.key === key) || null;
 }
 
-/** Ready text (DE + TR) to send with the picture. */
+/** Ready text (DE + TR) to send with the picture.
+ *  2026-11-26 (owner "UYGULA 1-5"): the link comes FIRST – WhatsApp Status / Instagram hide the rest behind "mehr".
+ *  Instagram + TikTok never make links in a caption clickable -> the "Link in Bio" line. */
 export function inviteText(c) {
   const link = `${SITE}/davet/${c.key}`;
-  return `🇩🇪 ${c.title_de}: ${c.sub_de}.\n👉 ${c.cta_de}: ${link}\n\n🇹🇷 ${c.title_tr}: ${c.sub_tr}.\n👉 ${c.cta_tr}: ${link}\n\n📍 My Kiez Berlin · mykiezberlin.com`;
+  return `👉 ${link}\n${c.title_de} · ${c.title_tr}\n\n🇩🇪 ${c.sub_de}. ${c.cta_de}: ${link}\n🇹🇷 ${c.sub_tr}. ${c.cta_tr}: ${link}\n\n🔗 Link in Bio · Link profilde: mykiezberlin.com/davet\n📍 My Kiez Berlin`;
+}
+
+/** 2026-11-26 (owner "UYGULA 1"): text for a WhatsApp Status with the LINK ONLY – WhatsApp shows the card picture as
+ *  a big preview and that preview is clickable (a link inside a picture caption is not). */
+export function statusText(c) {
+  return `👉 ${SITE}/davet/${c.key}\n${c.title_tr} · ${c.title_de}`;
+}
+
+/** 2026-11-26 (owner "UYGULA 4"): one-time welcome before the group / channel / app opens. */
+export function welcomeOf(c) {
+  const hint = {
+    group: ["Gleich öffnet sich WhatsApp – tippe einmal auf „Gruppe beitreten“.", "Birazdan WhatsApp açılıyor – bir kez „Gruba katıl“a dokun."],
+    channel: ["Gleich öffnet sich der Kanal – tippe auf „Folgen“.", "Birazdan kanal açılıyor – „Takip et“e dokun."],
+    app: ["Der Download startet gleich (Android). Danach die Datei öffnen und installieren.", "İndirme birazdan başlıyor (Android). Sonra dosyayı açıp yükle."],
+    business: ["Gleich siehst du unsere Pakete für Betriebe.", "Birazdan işletmeler için paketlerimizi göreceksin."],
+    reporter: ["Gleich öffnet sich der Reporter-Bereich – schreib los!", "Birazdan muhabir bölümü açılıyor – yazmaya başla!"],
+    volunteer: ["Gleich öffnet sich WhatsApp mit einer fertigen Nachricht an uns – einfach senden.", "Birazdan WhatsApp bize hazır bir mesajla açılıyor – sadece gönder."],
+  }[c.kind] || ["", ""];
+  return {
+    title_de: "Willkommen bei My Kiez Berlin!", title_tr: "My Kiez Berlin'e hoş geldin!",
+    line_de: `${c.title_de} – ${c.sub_de}.`, line_tr: `${c.title_tr} – ${c.sub_tr}.`, hint_de: hint[0], hint_tr: hint[1],
+  };
 }
 
 export function publicCard(c) {
   return {
     key: c.key, kind: c.kind, title_de: c.title_de, title_tr: c.title_tr, sub_de: c.sub_de, sub_tr: c.sub_tr,
-    cta_de: c.cta_de, cta_tr: c.cta_tr, link: `${SITE}/davet/${c.key}`, text: inviteText(c),
+    cta_de: c.cta_de, cta_tr: c.cta_tr, link: `${SITE}/davet/${c.key}`, text: inviteText(c), status: statusText(c),
     story: `/assets/davet/${c.key}-story.jpg`, post: `/assets/davet/${c.key}-post.jpg`, wide: `/assets/davet/${c.key}-wide.jpg`,
   };
 }

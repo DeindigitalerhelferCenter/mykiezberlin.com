@@ -80,6 +80,16 @@ private fun shareWhatsApp(context: Context) {
     }
 }
 
+/** 2026-11-26 (owner "UYGULA 1"): link only for the WhatsApp Status – WhatsApp shows the card picture as a big,
+ *  clickable preview (a link under a photo is not clickable in a Status). */
+private fun shareStatusLink(context: Context) {
+    val text = "👉 ${DAVET}berlin\nGanz Berlin WhatsApp grubu · WhatsApp-Gruppe Ganz Berlin"
+    try {
+        val any = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text)
+        context.startActivity(Intent.createChooser(any, "Status · Durum").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    } catch (_: Exception) { }
+}
+
 @Composable
 fun InviteBox(modifier: Modifier = Modifier) {
     val context = LocalContext.current
@@ -115,6 +125,12 @@ fun InviteBox(modifier: Modifier = Modifier) {
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF25D366), contentColor = Color(0xFF05290F))
         ) { Text("👥 Per WhatsApp einladen · WhatsApp'ta davet et", fontWeight = FontWeight.Black, fontSize = 13.5.sp, textAlign = TextAlign.Center) }
+        Button(
+            onClick = { shareStatusLink(context) },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD166), contentColor = Color(0xFF1F2328))
+        ) { Text("⭐ Status-Link (anklickbar) · Statü için link (tıklanır)", fontWeight = FontWeight.Black, fontSize = 13.sp, textAlign = TextAlign.Center) }
         OutlinedButton(
             onClick = { openUrl(context, DAVET) },
             modifier = Modifier.fillMaxWidth(),

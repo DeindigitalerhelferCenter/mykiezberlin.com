@@ -5,7 +5,7 @@
 // from 10:00 Berlin time, at most once a day (table invite_daily). Never throws.
 import { INVITE_CARDS, inviteText, SITE } from "./invite-cards.js";
 
-const CARD_VER = "1"; // raise when the card pictures are drawn again (new R2 copy)
+const CARD_VER = "2"; // 2: big button in the middle (26.11.2026) // raise when the card pictures are drawn again (new R2 copy)
 const FROM_HOUR = 10;
 const TO_HOUR = 21;
 let lastCheck = 0;

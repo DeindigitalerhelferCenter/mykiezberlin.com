@@ -36,9 +36,14 @@ c.innerHTML = `
     <p class="tr" style="font-size:${f(52)}px">${q.t_tr}</p>
     <p class="sub" style="font-size:${f(34)}px">${q.s_de}<br><span style="color:#c9d1d9">${q.s_tr}</span></p>
     <div class="cta" style="background:${color};padding:${f(26)}px ${f(32)}px;font-size:${f(42)}px">
-      <div>${q.c_de} · ${q.c_tr}<small style="font-size:${f(28)}px">mykiezberlin.com/davet/${q.key}</small></div>
+      <div>${q.c_de} · ${q.c_tr}<small style="font-size:${f(34)}px">mykiezberlin.com/davet/${q.key}</small></div>
       ${wide ? "<div>→</div>" : `<div class="qr" id="qr"></div>`}
     </div>
-  </div>`;
+  </div>
+  ${wide ? "" : /* 2026-11-26 (owner "UYGULA 2"): big "button" + short address in the middle – easy to read in a WhatsApp Status */ `
+  <div style="position:absolute;${story ? "left:0;right:0;top:600px;align-items:center" : "right:44px;top:56px;align-items:flex-end"};display:flex;flex-direction:column;gap:${story ? 18 : 10}px">
+    <div style="background:${color};color:${q.kind === "app" || q.kind === "business" || q.kind === "volunteer" || q.kind === "reporter" ? "#fff" : "#05290f"};font:900 ${story ? 62 : 40}px/1.1 Inter;text-align:center;padding:${story ? "22px 56px" : "12px 36px"};border-radius:${story ? 48 : 32}px;box-shadow:0 0 0 ${story ? 10 : 7}px rgba(255,255,255,.22),0 12px 40px rgba(0,0,0,.55)">▶ ${q.c_tr}<span style="display:block;font-size:.6em;font-weight:800;opacity:.9;margin-top:4px">${q.c_de}</span></div>
+    ${story ? `<div style="background:rgba(13,17,23,.88);color:#fff;font:800 44px Inter;padding:12px 26px;border-radius:16px">mykiezberlin.com/davet/${q.key}</div>` : ""}
+  </div>`}`;
 if (!wide) new QRCode(document.getElementById("qr"), { text: "https://mykiezberlin.com/davet/" + q.key, width: f(story ? 170 : 150), height: f(story ? 170 : 150), colorDark: "#0A0A0D", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
 </script></body></html>
