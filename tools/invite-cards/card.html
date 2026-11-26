@@ -1,0 +1,44 @@
+<!doctype html>
+<!-- 2026-11-26 (owner "UYGULA"): permanent invite card (story 1080x1920, post 1080x1080, wide 1200x630). render.cjs -->
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@500;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#0d1117;color:#fff;font-family:Inter,system-ui,sans-serif;overflow:hidden}
+  .card{position:relative;overflow:hidden}
+  .bg{position:absolute;inset:0;background-size:cover;background-position:center top}
+  .shade{position:absolute;inset:0}
+  .txt{position:absolute;display:flex;flex-direction:column}
+  .badge{display:inline-flex;align-items:center;gap:.4em;font-weight:900;border-radius:999px;padding:.35em .9em;align-self:flex-start}
+  h1{font-family:'Archivo Black';line-height:1.02;letter-spacing:-.5px}
+  .tr{color:#ffd166;font-weight:800;line-height:1.15}
+  .sub{color:#e6edf3;font-weight:700;line-height:1.35}
+  .cta{display:flex;align-items:center;justify-content:space-between;gap:.6em;border-radius:.6em;font-weight:900}
+  .cta small{display:block;font-weight:700;opacity:.92}
+  .qr{background:#fff;border-radius:.35em;padding:.25em;flex:none}
+  .qr img,.qr canvas{display:block}
+</style></head><body>
+<div class="card" id="c"></div>
+<script>
+const q = Object.fromEntries(new URLSearchParams(location.hash.slice(1)));
+const W = +q.w, H = +q.h, wide = W > H, story = H > W * 1.5;
+const color = { group: "#25D366", channel: "#25D366", app: "#1f6feb", business: "#d62828" }[q.kind] || "#25D366";
+const icon = { group: "👥 WhatsApp", channel: "📢 WhatsApp", app: "📲 App", business: "🤝 Partner" }[q.kind] || "";
+const c = document.getElementById("c"); c.style.width = W + "px"; c.style.height = H + "px";
+const f = (x) => Math.round(x * (wide ? 0.62 : story ? 1 : 0.82)); // font scale
+c.innerHTML = `
+  <div class="bg" style="background-image:url('${q.pic}');${wide ? "background-position:center 0%" : ""}"></div>
+  <div class="shade" style="background:${wide ? "linear-gradient(90deg,rgba(13,17,23,.15) 0%,rgba(13,17,23,.75) 42%,rgba(13,17,23,.96) 60%)" : "linear-gradient(180deg,rgba(13,17,23,0) 22%,rgba(13,17,23,.78) 46%,rgba(13,17,23,.97) 62%)"}"></div>
+  <div class="txt" style="${wide ? "left:46%;right:40px;top:40px;bottom:40px;gap:14px;justify-content:center" : story ? "left:64px;right:64px;bottom:90px;gap:30px" : "left:48px;right:48px;bottom:46px;gap:18px"}">
+    <span class="badge" style="background:${color};font-size:${f(34)}px">${icon}</span>
+    <h1 style="font-size:${f(wide ? 78 : 96)}px">${q.t_de}</h1>
+    <p class="tr" style="font-size:${f(52)}px">${q.t_tr}</p>
+    <p class="sub" style="font-size:${f(34)}px">${q.s_de}<br><span style="color:#c9d1d9">${q.s_tr}</span></p>
+    <div class="cta" style="background:${color};padding:${f(26)}px ${f(32)}px;font-size:${f(42)}px">
+      <div>${q.c_de} · ${q.c_tr}<small style="font-size:${f(28)}px">mykiezberlin.com/davet/${q.key}</small></div>
+      ${wide ? "<div>→</div>" : `<div class="qr" id="qr"></div>`}
+    </div>
+  </div>`;
+if (!wide) new QRCode(document.getElementById("qr"), { text: "https://mykiezberlin.com/davet/" + q.key, width: f(story ? 170 : 150), height: f(story ? 170 : 150), colorDark: "#0A0A0D", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
+</script></body></html>

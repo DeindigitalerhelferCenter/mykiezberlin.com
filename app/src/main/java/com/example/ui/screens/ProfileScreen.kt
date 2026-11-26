@@ -392,6 +392,7 @@ Surface(
         }
 
         // 2026-11-17 (owner): own social media + "Mitmachen · Paylaş"
+        item { com.example.ui.components.InviteBox(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) } // 2026-11-26 (owner)
         item { com.example.ui.components.SocialBox(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) }
         // Settings Menu Items: Favorites, B2B, Admin, Impressum, Datenschutz, AGB
         item {

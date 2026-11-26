@@ -157,6 +157,7 @@ fun HomeDeckSection(language: AppLanguage, onNavigateToScreen: (AppScreen) -> Un
     Column(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         if (boostOn) DealsBanner(language, storyDeals) // (the werben box is on top of every page, MainActivity)
         BlackFridayStrip(language) // 2026-11-22 (owner)
+        InviteBox(Modifier.padding(horizontal = 16.dp)) // 2026-11-26 (owner): permanent invite cards
         boxes.forEachIndexed { i, box ->
             Box(Modifier.padding(horizontal = 16.dp)) { DeckBoxCard(box, language, onNavigateToScreen) }
             if (i % 2 == 0) HomeSponsorPlace(sponsors.getOrNull(i / 2), language) // after box 1, 3, 5

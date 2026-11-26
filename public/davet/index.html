@@ -1,0 +1,95 @@
+<!doctype html>
+<!-- 2026-11-26 (owner "UYGULA"): permanent share page – invite cards with picture, text and link (web + app) -->
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Einladen & Teilen · Davet et – My Kiez Berlin</title>
+<meta name="description" content="WhatsApp-Gruppen, Kanal, App und Partner – Karten zum Teilen · Paylaşmak için kartlar">
+<meta property="og:title" content="My Kiez Berlin – Einladen & Teilen · Davet et">
+<meta property="og:image" content="https://mykiezberlin.com/assets/davet/berlin-wide.jpg">
+<link rel="icon" href="/assets/images/mykiez_logo.png">
+<style>
+:root{--bg:#0d1117;--card:#161b22;--line:#30363d;--ink:#e6edf3;--mute:#8b949e;--wa:#25D366}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:18px 16px 60px}
+header{display:flex;align-items:center;gap:12px;margin-bottom:6px}header img{width:52px;height:52px;border-radius:12px;background:#fff}
+h1{font-size:22px;margin:0;line-height:1.2}h1 small{display:block;font-size:14px;color:var(--mute);font-weight:600}
+h2{font-size:17px;margin:26px 0 10px}
+.hint{color:var(--mute);font-size:13.5px;margin:6px 0 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.c{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+.c img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;cursor:zoom-in;background:#000}
+.c .b{padding:12px;display:flex;flex-direction:column;gap:8px;flex:1}
+.c b{font-size:15.5px}.c .tr{color:#ffd166;font-weight:700;font-size:13.5px;margin-top:-6px}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}
+.btn{flex:1;min-width:110px;border:0;border-radius:11px;padding:10px 8px;font-weight:800;font-size:13.5px;cursor:pointer;color:#fff;background:#21262d;text-decoration:none;text-align:center;border:1px solid var(--line)}
+.btn.wa{background:var(--wa);border-color:var(--wa);color:#05290f}.btn.go{background:#1f6feb;border-color:#1f6feb}
+.ok{color:#3fb950;font-size:12.5px;min-height:1em}
+#lb{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;z-index:9;padding:16px}
+#lb img{max-width:100%;max-height:100%;border-radius:12px}
+a.back{color:var(--mute);font-size:13.5px}
+</style></head><body><main>
+<p><a class="back" href="/">← mykiezberlin.com</a></p>
+<header><img src="/assets/images/mykiez_logo.png" alt=""><h1>Einladen & Teilen · Davet et ve paylaş<small>Schick die Karten an Freunde – mit Bild, Text und Link · Kartları arkadaşlarına gönder</small></h1></header>
+<p class="hint">🇩🇪 „WhatsApp“ öffnet deine Chats mit fertigem Text – das Bild erscheint automatisch in der Vorschau. „Mit Bild teilen“ schickt das Bild selbst (am Handy).<br>
+🇹🇷 „WhatsApp“ sohbetlerini hazır metinle açar – resim önizlemede kendiliğinden görünür. „Resimle paylaş“ resmin kendisini gönderir (telefonda).<br>
+ℹ️ WhatsApp-Gruppen: ein Tipp auf „Beitreten“ genügt · WhatsApp grupları: „Katıl“a bir kez dokunmak yeter.</p>
+<div id="list"><p class="hint">…</p></div>
+</main>
+<div id="lb" onclick="this.style.display='none'"><img alt=""></div>
+<script>
+(function () {
+  "use strict";
+  var GROUPS = [
+    ["group", "👥 WhatsApp-Gruppen · WhatsApp grupları"],
+    ["channel", "📢 WhatsApp-Kanal · WhatsApp kanalı"],
+    ["app", "📲 App · Uygulama"],
+    ["business", "🤝 Für Betriebe · İşletmeler için"]
+  ];
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function inApp() { return /MyKiezBerlin-Android|; wv\)/.test(navigator.userAgent); }
+  async function shareImage(c, out) {
+    try {
+      var blob = await (await fetch(c.story)).blob();
+      var file = new File([blob], "mykiez-" + c.key + ".jpg", { type: "image/jpeg" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text: c.text }); out.textContent = "✓"; return; }
+    } catch (e) { if (e && e.name === "AbortError") return; }
+    // no picture sharing here (computer / app): WhatsApp with text, the picture comes as preview
+    location.href = "https://wa.me/?text=" + encodeURIComponent(c.text);
+  }
+  function render(cards) {
+    var html = "";
+    GROUPS.forEach(function (g) {
+      var list = cards.filter(function (c) { return c.kind === g[0]; });
+      if (!list.length) return;
+      html += "<h2>" + g[1] + '</h2><div class="grid">' + list.map(function (c) {
+        return '<div class="c" data-key="' + esc(c.key) + '"><img src="' + esc(c.post) + '" data-big="' + esc(c.story) + '" alt="' + esc(c.title_de) + '" loading="lazy">' +
+          '<div class="b"><b>' + esc(c.title_de) + '</b><span class="tr">' + esc(c.title_tr) + "</span>" +
+          '<div class="row"><a class="btn wa" target="_blank" rel="noopener" href="https://wa.me/?text=' + encodeURIComponent(c.text) + '">📲 WhatsApp</a>' +
+          '<button class="btn" data-share>🖼️ Mit Bild · Resimle</button></div>' +
+          '<div class="row"><a class="btn" href="' + esc(c.story) + '" download="mykiez-' + esc(c.key) + '-story.jpg">⬇️ Story</a>' +
+          '<a class="btn" href="' + esc(c.post) + '" download="mykiez-' + esc(c.key) + '-post.jpg">⬇️ Post</a>' +
+          '<button class="btn" data-copy>📋 Text</button></div>' +
+          '<div class="row"><a class="btn go" href="' + esc(c.link) + '">' + esc(c.cta_de) + " · " + esc(c.cta_tr) + ' →</a></div><span class="ok"></span></div></div>';
+      }).join("") + "</div>";
+    });
+    var box = document.getElementById("list");
+    box.innerHTML = html;
+    box.querySelectorAll(".c").forEach(function (el) {
+      var c = cards.filter(function (x) { return x.key === el.getAttribute("data-key"); })[0];
+      var out = el.querySelector(".ok");
+      el.querySelector("img").onclick = function () { var lb = document.getElementById("lb"); lb.querySelector("img").src = this.getAttribute("data-big"); lb.style.display = "flex"; };
+      el.querySelector("[data-share]").onclick = function () { shareImage(c, out); };
+      el.querySelector("[data-copy]").onclick = function () {
+        var done = function () { out.textContent = "✓ Text + Link kopiert · kopyalandı"; };
+        if (navigator.clipboard) navigator.clipboard.writeText(c.text).then(done, function () { window.prompt("Text:", c.text); });
+        else window.prompt("Text:", c.text);
+      };
+    });
+    var want = location.hash.slice(1), el = want && box.querySelector('[data-key="' + want.replace(/[^a-z0-9-]/g, "") + '"]');
+    if (el) { el.style.outline = "3px solid #25D366"; el.scrollIntoView({ block: "center" }); }
+    if (inApp()) document.querySelectorAll("[data-share]").forEach(function (b) { b.textContent = "🖼️ Bild-Vorschau · Önizlemeli"; });
+  }
+  fetch("/api/davet").then(function (r) { return r.json(); }).then(function (d) { render(d.cards || []); })
+    .catch(function () { document.getElementById("list").innerHTML = '<p class="hint">Bitte später nochmal · Lütfen sonra tekrar dene</p>'; });
+})();
+</script>
+</body></html>
