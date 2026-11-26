@@ -60,10 +60,10 @@ document.getElementById("root").innerHTML = `
     <h1 style="font-size:${s(big ? 168 : wide ? 62 : 104)}px"><span class="b">BLACK</span><br><span class="f">FRIDAY</span></h1>
     <div style="font:900 ${s(big ? 92 : wide ? 40 : 60)}px/1 'Archivo Black'">${T.h2} <span class="free">${T.free}</span></div>
     <p class="sub" style="font-size:${s(big ? 40 : wide ? 20 : 27)}px;line-height:1.3;max-width:${wide ? s(700) : 99999}px">${T.sub}</p>
-    <div>
+    ${q.noleft ? `<p class="left" style="font-size:${s(big ? 40 : wide ? 22 : 30)}px">🔥 ${lang === "tr" ? "Sadece 30.11.2026'ya kadar · yerler sınırlı" : "Nur bis 30.11.2026 · Plätze begrenzt"}</p>` /* 2026-11-26: daily stories without a number (it changes every day) */ : `<div>
       <div class="bar" style="height:${s(big ? 22 : 16)}px"><i style="width:${taken}%"></i></div>
       <p class="left" style="margin-top:${s(10)}px;font-size:${s(big ? 40 : wide ? 22 : 30)}px">🔥 ${T.left}</p>
-    </div>
+    </div>`}
     ${wide ? "" : `<div><p class="small" style="font-size:${s(big ? 26 : 22)}px;margin-bottom:${s(8)}px">${T.after}</p>
       <div class="prices"><div class="p"><small>${T.s}</small><b>29</b> ${T.mo}</div><div class="p hl"><small>${T.m}</small><b>49</b> ${T.mo}</div><div class="p"><small>${T.l}</small><b>89</b> ${T.mo}</div></div></div>`}
     <div class="cta" style="margin-top:auto">
