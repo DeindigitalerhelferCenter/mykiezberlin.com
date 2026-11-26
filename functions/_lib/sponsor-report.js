@@ -15,8 +15,12 @@ export async function ensureSponsorReports(database) {
   await database.prepare(`CREATE TABLE IF NOT EXISTS sponsor_reports (token TEXT PRIMARY KEY, ad_id TEXT NOT NULL, month TEXT NOT NULL, created_at INTEGER, data TEXT, sent_wa INTEGER DEFAULT 0, sent_mail INTEGER DEFAULT 0, comp INTEGER DEFAULT 0, UNIQUE (ad_id, month))`).run();
 }
 
+// 2026-11-26: live gave "Worker exceeded resource limits" (503) – a new Intl formatter per call is slow on the
+// CPU; now one formatter for all calls + the visitor sums are read once per period (siteCache).
+let BERLIN_FMT = null;
 function berlinYmd(ts) {
-  return new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Berlin" }).format(new Date(ts)); // YYYY-MM-DD
+  if (!BERLIN_FMT) BERLIN_FMT = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Berlin" });
+  return BERLIN_FMT.format(new Date(ts)); // YYYY-MM-DD
 }
 function lastDayOf(key) {
   const [y, m] = key.split("-").map(Number);
@@ -35,7 +39,7 @@ export function nextMonth(key) {
 }
 
 /** Report data of one sponsor for one calendar month (live numbers). Returns null when the sponsor was not with us. */
-export async function buildSponsorReport(database, ad, key, now = Date.now()) {
+export async function buildSponsorReport(database, ad, key, now = Date.now(), siteCache = null) {
   const monthFirst = `${key}-01`;
   const monthLast = lastDayOf(key);
   const today = berlinYmd(now);
@@ -46,7 +50,21 @@ export async function buildSponsorReport(database, ad, key, now = Date.now()) {
   let to = monthLast < today ? monthLast : today;
   if (ad.end_at && berlinYmd(ad.end_at) < to) to = berlinYmd(ad.end_at);
   if (from > to) return null;
-  const { results } = await database.prepare(`SELECT day, imp, clk FROM ad_stats WHERE ad_id = ? AND day >= ? AND day <= ? ORDER BY day`).bind(ad.id, from, to).all();
+  let results;
+  if (siteCache) {
+    // 2026-11-26: one query for all sponsors of the month (was one query per sponsor -> slow, 503 on live)
+    const sk = `stats|${key}`;
+    if (!siteCache.has(sk)) {
+      const lo = monthFirst < HONEST_SINCE ? HONEST_SINCE : monthFirst;
+      const all = (await database.prepare(`SELECT ad_id, day, imp, clk FROM ad_stats WHERE day >= ? AND day <= ? ORDER BY day`).bind(lo, monthLast).all()).results || [];
+      const byAd = new Map();
+      for (const r of all) { if (!byAd.has(r.ad_id)) byAd.set(r.ad_id, []); byAd.get(r.ad_id).push(r); }
+      siteCache.set(sk, byAd);
+    }
+    results = (siteCache.get(sk).get(ad.id) || []).filter((r) => r.day >= from && r.day <= to);
+  } else {
+    results = (await database.prepare(`SELECT day, imp, clk FROM ad_stats WHERE ad_id = ? AND day >= ? AND day <= ? ORDER BY day`).bind(ad.id, from, to).all()).results;
+  }
   const days = (results || []).map((r) => ({ day: r.day, imp: Number(r.imp) || 0, clk: Number(r.clk) || 0 }));
   const views = days.reduce((a, d) => a + d.imp, 0);
   const clicks = days.reduce((a, d) => a + d.clk, 0);
@@ -57,10 +75,15 @@ export async function buildSponsorReport(database, ad, key, now = Date.now()) {
   const activeDays = daysBetween(from, endLimit);
   const goal = Math.max(1, Math.round((goalFull * Math.min(activeDays, monthDays)) / monthDays));
   let site = { visitors: 0, views: 0 };
-  try {
-    const v = await database.prepare(`SELECT COALESCE(SUM(visitors), 0) AS visitors, COALESCE(SUM(views), 0) AS views FROM visit_days WHERE day >= ? AND day <= ?`).bind(from, to).first();
-    site = { visitors: Number(v.visitors) || 0, views: Number(v.views) || 0 };
-  } catch (e) { /* no visitor table yet */ }
+  const siteKey = `${from}|${to}`;
+  if (siteCache && siteCache.has(siteKey)) site = siteCache.get(siteKey);
+  else {
+    try {
+      const v = await database.prepare(`SELECT COALESCE(SUM(visitors), 0) AS visitors, COALESCE(SUM(views), 0) AS views FROM visit_days WHERE day >= ? AND day <= ?`).bind(from, to).first();
+      site = { visitors: Number(v.visitors) || 0, views: Number(v.views) || 0 };
+    } catch (e) { /* no visitor table yet */ }
+    if (siteCache) siteCache.set(siteKey, site);
+  }
   return {
     ad_id: ad.id, name: ad.name || ad.id, plan: ad.plan || "", plan_name: PLAN_NAME[ad.plan] || ad.plan || "",
     month: key, from, to, final: monthLast < today, days, views, clicks,
@@ -94,8 +117,9 @@ export async function closeSponsorMonths(database, now = Date.now()) {
   for (let key = FIRST_MONTH; key < cur; key = nextMonth(key)) {
     const done = await database.prepare(`SELECT COUNT(*) AS n FROM sponsor_reports WHERE month = ?`).bind(key).first();
     if (done && done.n > 0) continue;
+    const siteCache = new Map();
     for (const ad of await sponsorsOfMonth(database, key)) {
-      const data = await buildSponsorReport(database, ad, key, now);
+      const data = await buildSponsorReport(database, ad, key, now, siteCache);
       if (!data) continue;
       await database.prepare(`INSERT OR IGNORE INTO sponsor_reports (token, ad_id, month, created_at, data) VALUES (?, ?, ?, ?, ?)`)
         .bind(newToken(), ad.id, key, now, JSON.stringify(data)).run();
@@ -122,15 +146,16 @@ export async function listSponsorReports(database, key, now = Date.now()) {
     });
   }
   const out = [];
+  const siteCache = new Map();
   for (const ad of await sponsorsOfMonth(database, key)) {
-    const data = await buildSponsorReport(database, ad, key, now);
+    const data = await buildSponsorReport(database, ad, key, now, siteCache);
     if (data) out.push({ ...data, token: "", saved: false, ...contact(ad) });
   }
   return out;
 }
 
 const fmtDay = (ymd) => ymd.split("-").reverse().join(".");
-const nf = (n) => Number(n || 0).toLocaleString("de-DE");
+const nf = (n) => String(Math.round(Number(n) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, "."); // 2026-11-26: no Intl (CPU)
 export const MONTH_DE = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
 export const MONTH_TR = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
 export function monthName(key, lang) {
