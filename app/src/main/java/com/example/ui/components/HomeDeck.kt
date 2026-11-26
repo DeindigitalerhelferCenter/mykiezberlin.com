@@ -45,7 +45,7 @@ private val DECK = listOf(
     DeckBox("notruf", "📞", Color(0xFFE30613), "Notruf & wichtige Nummern", "Acil ve önemli numaralar", "110 Polizei · 112 Feuerwehr · 116 117 Arzt", "110 Polis · 112 İtfaiye · 116 117 Doktor", "Alle Nummern", "Tüm numaralar", AppScreen.NOTRUF),
     DeckBox("reporter", "📣", Color(0xFFF2B705), "Werde Kiez-Reporter", "Mahalle muhabiri ol", "Was passiert in deinem Kiez? Schreib es – die Nachbarn lesen mit.", "Mahallende ne oluyor? Yaz – komşuların okusun.", "Zum Kiez-Reporter", "Muhabir bölümüne", AppScreen.REPORTER),
     DeckBox("quiz", "🎯", Color(0xFF7B61FF), "Welcher Kiez passt zu dir?", "Sana hangi mahalle uyuyor?", "Kurze Fragen – dein Berliner Lieblingskiez.", "Kısa sorular – Berlin'deki favori mahallen.", "Quiz starten", "Teste başla", AppScreen.KIEZ_MATCH),
-    DeckBox("community", "🆓", Color(0xFF0EA5E9), "Kostenlose Kleinanzeigen", "Ücretsiz ilanlar", "3 Tage gratis inserieren – verkaufen, verschenken, finden.", "3 gün ücretsiz ilan ver – sat, hediye et, bul.", "Zur Community", "Topluluğa git", AppScreen.COMMUNITY),
+    DeckBox("community", "🆓", Color(0xFF0EA5E9), "Kostenlose Kleinanzeigen", "Ücretsiz ilanlar", "7 Tage gratis inserieren – verkaufen, verschenken, finden.", "7 gün ücretsiz ilan ver – sat, hediye et, bul.", "Zur Community", "Topluluğa git", AppScreen.COMMUNITY),
     DeckBox("telefonbuch", "📒", Color(0xFF0F766E), "Berliner Telefonbuch & Branchen", "Berlin telefon & iş rehberi", "Nummern von Firmen, Ärzten, Handwerkern – in Das Örtliche, Gelbe Seiten, 11880 suchen.", "Firma, doktor, usta numaraları – Das Örtliche, Gelbe Seiten, 11880'de ara.", "Nummer suchen", "Numara ara", AppScreen.TELEFONBUCH),
     DeckBox("tips", "🧭", Color(0xFF0F766E), "Kiez-Guide & Berlin-Tipps", "Mahalle rehberi & Berlin önerileri", "Ausflüge, Orte und Tipps für jeden Kiez.", "Her mahalle için gezi, yer ve öneriler.", "Tipps ansehen", "Önerilere bak", AppScreen.BERLIN_TIPS),
     DeckBox("events", "📅", Color(0xFFC026D3), "Events in Berlin", "Berlin'de etkinlikler", "Was ist los diese Woche?", "Bu hafta neler var?", "Zu den Events", "Etkinliklere git", AppScreen.EVENTS),
@@ -158,6 +158,7 @@ fun HomeDeckSection(language: AppLanguage, onNavigateToScreen: (AppScreen) -> Un
         if (boostOn) DealsBanner(language, storyDeals) // (the werben box is on top of every page, MainActivity)
         BlackFridayStrip(language) // 2026-11-22 (owner)
         InviteBox(Modifier.padding(horizontal = 16.dp)) // 2026-11-26 (owner): permanent invite cards
+        ClassifiedsBox(language, onOpen = { onNavigateToScreen(AppScreen.COMMUNITY) }, modifier = Modifier.padding(horizontal = 16.dp)) // 2026-11-27 (owner "UYGULA ilan 3")
         boxes.forEachIndexed { i, box ->
             Box(Modifier.padding(horizontal = 16.dp)) { DeckBoxCard(box, language, onNavigateToScreen) }
             if (i % 2 == 0) HomeSponsorPlace(sponsors.getOrNull(i / 2), language) // after box 1, 3, 5

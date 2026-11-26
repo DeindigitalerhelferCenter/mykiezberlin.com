@@ -39,10 +39,12 @@ fun KiezWebScreen(url: String, onBack: () -> Unit, adminToken: String = "") {
         if (view != null && view.canGoBack()) view.goBack() else onBack()
     }
 
+    // 2026-11-27 (owner "UYGULA yenileme 2"): pull down = reload the page (without closing the app)
+    val swipeRef = remember { arrayOfNulls<androidx.swiperefreshlayout.widget.SwipeRefreshLayout>(1) }
     AndroidView(
         modifier = Modifier.fillMaxSize(),
         factory = { context ->
-            WebView(context).apply {
+            val wv = WebView(context).apply {
                 // Without a fixed size the page sees no viewport height and its dialogs collapse.
                 layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
                 settings.javaScriptEnabled = true
@@ -52,6 +54,7 @@ fun KiezWebScreen(url: String, onBack: () -> Unit, adminToken: String = "") {
                     // (same keys as admin-auth-ui.js) and the page loads once more, so no second login is needed.
                     override fun onPageFinished(view: WebView, pageUrl: String?) {
                         super.onPageFinished(view, pageUrl)
+                        swipeRef[0]?.isRefreshing = false // 2026-11-27: end of "pull to refresh"
                         if (adminToken.isBlank() || pageUrl?.contains("mykiezberlin.com/admin") != true) return
                         val t = org.json.JSONObject.quote(adminToken)
                         view.evaluateJavascript(
@@ -99,6 +102,15 @@ fun KiezWebScreen(url: String, onBack: () -> Unit, adminToken: String = "") {
                 }
                 loadUrl(url)
                 webView = this
+            }
+            androidx.swiperefreshlayout.widget.SwipeRefreshLayout(context).apply {
+                layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                setColorSchemeColors(0xFFD62828.toInt())
+                addView(wv)
+                // only when the page itself is scrolled to the top (dialogs / inner lists keep working)
+                setOnChildScrollUpCallback { _, _ -> wv.scrollY > 0 }
+                setOnRefreshListener { wv.reload() }
+                swipeRef[0] = this
             }
         }
     )

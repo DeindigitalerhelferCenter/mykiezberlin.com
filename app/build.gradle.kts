@@ -16,8 +16,8 @@ android {
     applicationId = "com.aistudio.mykiezberlin.bkrztx"
     minSdk = 24
     targetSdk = 36
-    versionCode = 63
-    versionName = "1.62"
+    versionCode = 64
+    versionName = "1.63"
         // Only for one-off test builds: gradle assembleRelease -PgoalDemo
         buildConfigField("boolean", "GOAL_DEMO", project.hasProperty("goalDemo").toString())
 
@@ -107,6 +107,7 @@ dependencies {
   implementation("androidx.media3:media3-transformer:1.5.0")
   implementation("androidx.media3:media3-effect:1.5.0")
   implementation("androidx.media3:media3-common:1.5.0")
+  implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0") // 2026-11-27 (owner): pull to refresh in web pages
   implementation(libs.converter.moshi)
   implementation(libs.firebase.ai)
   // Uncomment to use Firestore:

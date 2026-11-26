@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -37,7 +38,9 @@ fun MyKiezTopBar(
     onSearchChange: (String) -> Unit = {},
     isNotificationsEnabled: Boolean = true,
     onToggleNotifications: (Boolean) -> Unit = {},
-    onTriggerTestNotification: () -> Unit = {}
+    onTriggerTestNotification: () -> Unit = {},
+    onRefresh: (() -> Unit)? = null, // 2026-11-27 (owner "UYGULA yenileme 3"): 🔄 for people who do not know pull-to-refresh
+    isRefreshing: Boolean = false
 ) {
     var showLangMenu by remember { mutableStateOf(false) }
 
@@ -144,6 +147,22 @@ fun MyKiezTopBar(
                                     showLangMenu = false
                                 }
                             )
+                        }
+                    }
+                }
+
+                // 2026-11-27 (owner "UYGULA yenileme 3"): 🔄 load everything again
+                if (onRefresh != null) {
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clickable(enabled = !isRefreshing) { onRefresh() }
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            if (isRefreshing) CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(18.dp))
+                            else Icon(imageVector = Icons.Default.Refresh, contentDescription = "Aktualisieren · Yenile", tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp))
                         }
                     }
                 }

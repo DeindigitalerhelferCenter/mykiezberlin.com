@@ -132,8 +132,16 @@ class MainActivity : ComponentActivity() {
     // Coming back to the app refreshes weather, quotes and sport right away instead of
     // waiting for the next 60 s / 15 min cycle (Android pauses network while in background).
     // 2026-11-25 (owner): D1 read limit – the 60 s refresh loops pause while the app is not on the screen
-    override fun onStart() { super.onStart(); com.example.util.AppVisible.on = true }
-    override fun onStop() { super.onStop(); com.example.util.AppVisible.on = false }
+    override fun onStart() {
+        super.onStart(); com.example.util.AppVisible.on = true
+        // 2026-11-27 (owner "UYGULA yenileme 4"): back after more than 5 minutes in the background -> load everything again
+        if (stoppedAt > 0 && System.currentTimeMillis() - stoppedAt > 5 * 60_000L) {
+            try { androidx.lifecycle.ViewModelProvider(this)[MyKiezViewModel::class.java].refreshAll() } catch (_: Exception) {}
+        }
+        stoppedAt = 0L
+    }
+    override fun onStop() { super.onStop(); com.example.util.AppVisible.on = false; stoppedAt = System.currentTimeMillis() }
+    private var stoppedAt = 0L
 
     override fun onResume() {
         super.onResume()
@@ -302,7 +310,9 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                     onSearchChange = { viewModel.setSearchQuery(it) },
                     isNotificationsEnabled = uiState.isNotificationsEnabled,
                     onToggleNotifications = { viewModel.toggleNotifications(it) },
-                    onTriggerTestNotification = { viewModel.triggerTestNotification() }
+                    onTriggerTestNotification = { viewModel.triggerTestNotification() },
+                    onRefresh = { viewModel.refreshAll(showToast = true) }, // 2026-11-27 (owner "UYGULA yenileme 3")
+                    isRefreshing = viewModel.isRefreshing.collectAsStateWithLifecycle().value
                 )
             }
         },
@@ -354,7 +364,11 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
             }
             } } // end of the part that hides while scrolling
 
-            Box(
+            // 2026-11-27 (owner "UYGULA yenileme 1"): pull down on any list = load everything again (app stays open)
+            val pullRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+            androidx.compose.material3.pulltorefresh.PullToRefreshBox(
+                isRefreshing = pullRefreshing,
+                onRefresh = { viewModel.refreshAll(showToast = true) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
@@ -494,7 +508,8 @@ fun MyKiezMainApp(viewModel: MyKiezViewModel) {
                 AppScreen.COMMUNITY -> com.example.ui.screens.KiezWebScreen(
                     // 2026-11-19: theme=light|dark – the page follows the app's day/night switch, not the phone's system theme
                     url = "https://mykiezberlin.com/community/?lang=" + (if (uiState.language == AppLanguage.TURKISH) "tr" else "de") +
-                        "&theme=" + (if (uiState.isDarkMode) "dark" else "light"),
+                        "&theme=" + (if (uiState.isDarkMode) "dark" else "light") +
+                        remember { com.example.ui.components.CommunityAnchor.value.also { com.example.ui.components.CommunityAnchor.value = "" } }, // 2026-11-27: "#ilan" from the classifieds box
                     onBack = { viewModel.navigateTo(AppScreen.HOME) }
                 )
 

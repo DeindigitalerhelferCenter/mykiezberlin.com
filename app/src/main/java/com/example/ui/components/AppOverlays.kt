@@ -176,7 +176,7 @@ fun ClassifiedPromoDialog(language: AppLanguage, onOpen: () -> Unit) {
     val turkish = language == AppLanguage.TURKISH
     AlertDialog(
         onDismissRequest = { visible = false },
-        title = { Text(if (turkish) "Şu an 3 günlük bedava ilan vermek ister misiniz?" else "Möchten Sie jetzt 3 Tage kostenlos inserieren?") },
+        title = { Text(if (turkish) "Şu an 7 günlük bedava ilan vermek ister misiniz?" else "Möchten Sie jetzt 7 Tage kostenlos inserieren?") },
         confirmButton = {
             TextButton(onClick = {
                 visible = false

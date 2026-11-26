@@ -546,6 +546,40 @@ class MyKiezViewModel(application: Application) : AndroidViewModel(application) 
 
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
+    // 2026-11-27 (owner "UYGULA yenileme 1-4"): pull to refresh / 🔄 button / back after 5 min in the background –
+    // loads everything again without closing the app (same steps as the 2-min loop). refreshTick tells boxes that
+    // load by themselves (e.g. ClassifiedsBox) to load again.
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+    private val _refreshTick = MutableStateFlow(0)
+    val refreshTick: StateFlow<Int> = _refreshTick.asStateFlow()
+    fun refreshAll(showToast: Boolean = false) {
+        if (_isRefreshing.value) return
+        _isRefreshing.value = true
+        viewModelScope.launch {
+            try {
+                LiveAlertsRepository.fetchLiveAlerts()
+                LiveBerlinFeedRepository.fetchLiveApi()
+                val remoteStories = LiveAlertsRepository.fetchRemoteStories()
+                if (remoteStories.isNotEmpty()) applyRemoteStories(remoteStories)
+                refreshAdminStories()
+                val remoteReports = LiveAlertsRepository.fetchRemoteReporterPosts()
+                if (remoteReports.isNotEmpty()) {
+                    val currentRep = _uiState.value.customReports
+                    _uiState.update { it.copy(customReports = (remoteReports + currentRep).distinctBy { r -> r.id }) }
+                }
+                com.example.data.repository.AdsRepository.refresh()
+                com.example.data.repository.AdsRepository.refreshPageAds()
+            } catch (_: Exception) {
+            } finally {
+                _refreshTick.value = _refreshTick.value + 1
+                com.example.ui.components.RefreshBus.tick.value = com.example.ui.components.RefreshBus.tick.value + 1
+                _isRefreshing.value = false
+                if (showToast) android.widget.Toast.makeText(getApplication(), if (_uiState.value.language == AppLanguage.TURKISH) "✓ Güncellendi" else "✓ Aktualisiert", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     fun refreshLiveBulletins() {
         viewModelScope.launch {
             LiveAlertsRepository.fetchLiveAlerts()
