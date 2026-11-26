@@ -2,6 +2,7 @@
 import { currentUser } from "../_lib/auth.js";
 import { cleanText, db, ipHash, json, noDb, rateLimited } from "../_lib/util.js";
 import { classifiedVisibleSql, ensureClassifieds, newOwnerKey, saveClassifiedMedia } from "../_lib/classifieds.js";
+import { classifiedAiVerdict, classifiedReminderSweep, mailClassifiedOwner } from "../_lib/classified-flow.js"; // 2026-11-27 (owner "UYGULA ilan 1-4")
 
 const FIELDS = {
   business: { name: 120, category: 80, kiezName: 60, address: 160, phone: 40, whatsapp: 40, website: 200, openingHours: 100, description: 600 },
@@ -12,11 +13,12 @@ const FIELDS = {
 };
 const PUBLIC_TYPES = ["business", "event", "job", "classified"];
 const REQUIRED = { business: "name", event: "title", job: "title", booking: "email", classified: "title" };
-const CLASSIFIED_DAYS = 3;
+const CLASSIFIED_DAYS = 7; // 2026-11-27 (owner): 7 days free (was 3)
 
-export async function onRequestGet({ env }) {
+export async function onRequestGet({ env, waitUntil }) {
   const database = await db(env);
   if (!database) return noDb();
+  if (waitUntil) waitUntil(classifiedReminderSweep(env, database)); // 2026-11-27: "extend tomorrow" mails (once an hour)
   await ensureClassifieds(database);
   const marks = PUBLIC_TYPES.map(() => "?").join(",");
   // 2026-11-22 (owner): a classified runs 3 days, longer when extended (5 €/week, 10 €/month -> paid_until)
@@ -28,7 +30,7 @@ export async function onRequestGet({ env }) {
   return json({ items: results.map((r) => ({ ...JSON.parse(r.payload), id: r.id, type: r.type, createdAt: r.created_at, ...(r.type === "classified" ? { expiresAt: Math.max(r.created_at + CLASSIFIED_DAYS * 86400000, r.paid_until || 0) } : {}) })) });
 }
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, waitUntil }) {
   const database = await db(env);
   if (!database) return noDb();
 
@@ -52,7 +54,14 @@ export async function onRequestPost({ request, env }) {
   if (await rateLimited(database, "submissions", ip)) return json({ error: "rate_limited" }, 429);
 
   const user = body.type === "classified" ? await currentUser(request, database) : null;
-  const status = user?.trusted ? "approved" : "pending";
+  let status = user?.trusted ? "approved" : "pending";
+  // 2026-11-27 (owner "UYGULA ilan 2"): AI pre-check like stories – a clean classified goes online at once,
+  // a doubtful one (or no AI answer) waits for the admin (who gets a phone notice, see admin-pending)
+  if (body.type === "classified" && status === "pending") {
+    const verdict = await classifiedAiVerdict(env, payload, form ? form.getAll("file")[0] : null);
+    payload.ai = verdict || "none";
+    if (verdict === "ok") status = "approved";
+  }
   const id = crypto.randomUUID();
   if (body.type === "classified" && form) {
     await ensureClassifieds(database);
@@ -69,6 +78,7 @@ export async function onRequestPost({ request, env }) {
     await ensureClassifieds(database);
     const k = await newOwnerKey();
     await database.prepare(`UPDATE submissions SET owner_hash = ? WHERE id = ?`).bind(k.hash, id).run();
+    if (status === "approved" && waitUntil) waitUntil(mailClassifiedOwner(env, database, id, payload, "online")); // 2026-11-27
     return json({ id, status, ownerKey: k.key, days: CLASSIFIED_DAYS }, 201);
   }
   return json({ id, status }, 201);

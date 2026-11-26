@@ -9,6 +9,7 @@ import { countTrust } from "../_lib/story-guard.js";
 import { telegramDeleteStory } from "../_lib/telegram.js";
 import { metaDeleteStory } from "../_lib/meta-social.js";
 import { redrawEditedStory } from "../_lib/news-auto.js"; // 2026-11-23
+import { mailClassifiedOwner } from "../_lib/classified-flow.js"; // 2026-11-27 (owner "UYGULA ilan 4")
 
 const TABLES = { story: "stories", post: "reporter_posts", comment: "reporter_comments", submission: "submissions" };
 
@@ -182,6 +183,11 @@ export async function onRequestPost({ request, env }) {
       : `UPDATE ${table} SET status = 'approved', created_at = ? WHERE id = ?`;
     await database.prepare(sql).bind(Date.now(), id).run();
     if (type === "story") await countTrust(database, id, "approved").catch(() => {}); // 2026-11-14: trusted devices
+    if (type === "submission") {
+      // 2026-11-27: approved classified -> owner gets "your ad is online" (when the contact is an e-mail)
+      const sub = await database.prepare(`SELECT type, payload FROM submissions WHERE id = ?`).bind(id).first().catch(() => null);
+      if (sub && sub.type === "classified") { let p = {}; try { p = JSON.parse(sub.payload); } catch (e) { p = {}; } await mailClassifiedOwner(env, database, id, p, "online").catch(() => {}); }
+    }
   } else if (action === "reject") {
     await database.prepare(`UPDATE ${table} SET status = 'rejected' WHERE id = ?`).bind(id).run();
     if (type === "story") await countTrust(database, id, "rejected").catch(() => {});

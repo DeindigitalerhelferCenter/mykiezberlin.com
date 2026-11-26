@@ -15,8 +15,8 @@
     localStorage.setItem(STORAGE_KEY, String(Date.now()));
     const turkish = typeof currentLanguage !== "undefined" && currentLanguage === "tr";
     const text = turkish
-      ? { title: "Şu an 3 günlük bedava ilan vermek ister misiniz?", yes: "Ücretsiz ilan ver", no: "Şimdi değil", lang: "tr" }
-      : { title: "Möchten Sie jetzt 3 Tage kostenlos inserieren?", yes: "Gratis inserieren", no: "Nicht jetzt", lang: "de" };
+      ? { title: "Şu an 7 günlük bedava ilan vermek ister misiniz?", yes: "Ücretsiz ilan ver", no: "Şimdi değil", lang: "tr" }
+      : { title: "Möchten Sie jetzt 7 Tage kostenlos inserieren?", yes: "Gratis inserieren", no: "Nicht jetzt", lang: "de" };
     const box = document.createElement("div");
     box.style.cssText = "position:fixed;left:12px;right:12px;bottom:90px;z-index:1500;max-width:420px;margin:0 auto;padding:16px;border-radius:16px;background:#fff;color:#111;box-shadow:0 10px 30px rgba(0,0,0,.3);font-family:inherit";
     const title = document.createElement("div");

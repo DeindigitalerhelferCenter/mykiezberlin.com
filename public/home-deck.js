@@ -57,7 +57,7 @@
         L("Quiz starten", "Teste başla"), "location.href='/quiz/'");
     },
     community: function () {
-      return teaser("🆓", "#0EA5E9", L("Kostenlose Kleinanzeigen", "Ücretsiz ilanlar"), L("3 Tage gratis inserieren – Nachbarn finden, verkaufen, verschenken.", "3 gün ücretsiz ilan ver – komşu bul, sat, hediye et."),
+      return teaser("🆓", "#0EA5E9", L("Kostenlose Kleinanzeigen", "Ücretsiz ilanlar"), L("7 Tage gratis inserieren – Nachbarn finden, verkaufen, verschenken.", "7 gün ücretsiz ilan ver – komşu bul, sat, hediye et."),
         L("Zur Community", "Topluluğa git"), "location.href='/community/'");
     },
     // 2026-11-14: Berlin phone book (own tab "telefonbuch" from kiez-plus.js)

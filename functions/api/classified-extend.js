@@ -7,7 +7,7 @@ import { cleanText, db, isAdmin, json, noDb } from "../_lib/util.js";
 import { CLASSIFIED_PLANS, classifiedCheckout, extendClassified, ownerRow } from "../_lib/classifieds.js";
 import { INFO, sendMail } from "../_lib/mail.js";
 
-const FREE_MS = 3 * 86400000;
+const FREE_MS = 7 * 86400000; // 2026-11-27 (owner): 7 days free (was 3)
 
 async function ensureRequests(database) {
   await database.prepare(`CREATE TABLE IF NOT EXISTS classified_requests (id TEXT PRIMARY KEY, classified_id TEXT, title TEXT, plan TEXT, created_at INTEGER, done INTEGER DEFAULT 0)`).run();

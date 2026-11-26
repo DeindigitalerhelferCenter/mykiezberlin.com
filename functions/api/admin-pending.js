@@ -2,6 +2,7 @@
 import { db, isAdmin, json, noDb } from "../_lib/util.js";
 import { reminderNotices } from "../_lib/reminders.js";
 import { reportNotices } from "../_lib/ledger.js";
+import { pendingClassifiedNotices } from "../_lib/classified-flow.js"; // 2026-11-27 (owner "UYGULA ilan 1")
 
 export async function onRequestGet({ request, env }) {
   if (!(await isAdmin(request, env))) return json({ error: "unauthorized" }, 401);
@@ -28,6 +29,6 @@ export async function onRequestGet({ request, env }) {
   }
   // 2026-11-22 (owner): reminders (WhatsApp Info …) and finished monthly reports – shown by the phone like support
   // notices (one per day / per report), so no new app version is needed
-  const extra = [...(await reminderNotices(env, database)), ...(await reportNotices(database))];
+  const extra = [...(await reminderNotices(env, database)), ...(await reportNotices(database)), ...(await pendingClassifiedNotices(database))];
   return json({ stories: results, support: [...extra, ...(support || [])], sponsorMedia, reminders: extra });
 }

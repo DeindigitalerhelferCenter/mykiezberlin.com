@@ -10,7 +10,7 @@ export const MAX_VIDEOS = 1;
 const TYPES = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "video/mp4": "mp4", "video/webm": "webm" };
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
-const FREE_MS = 3 * 86400000;
+const FREE_MS = 7 * 86400000; // 2026-11-27 (owner): 7 days free (was 3)
 
 // visible: created in the last 3 days OR paid until later than now (2 bind values: since, now)
 export const classifiedVisibleSql = "(created_at > ? OR paid_until > ?)";

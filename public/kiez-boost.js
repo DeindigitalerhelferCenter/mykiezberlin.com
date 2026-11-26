@@ -425,7 +425,7 @@
   function myAdHint() {
     var ads = [];
     try { ads = JSON.parse(localStorage.getItem("mykiez_my_classifieds_v1") || "[]"); } catch (x) { ads = []; }
-    var old = ads.filter(function (a) { return Date.now() - a.created > 3 * 86400000; });
+    var old = ads.filter(function (a) { return Date.now() - a.created > 7 * 86400000 /* 2026-11-27: 7 days free */; });
     if (!old.length || lsGet("mk_cl_hint_day") === new Date().toISOString().slice(0, 10)) return;
     if (anyOpen()) { whenFree(myAdHint); return; } // 2026-11-24 (owner): never two windows at once
     lsSet("mk_cl_hint_day", new Date().toISOString().slice(0, 10));

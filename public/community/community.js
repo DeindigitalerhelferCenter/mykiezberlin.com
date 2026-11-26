@@ -225,8 +225,8 @@ function classifiedForm() {
     }
   });
   return el("section", { class: "card promo" },
-    el("h3", {}, t("3 Tage kostenlos inserieren", "3 gün ücretsiz ilan ver")),
-    el("p", { class: "note" }, t("Mit Bildern oder Video. Die Anzeige erscheint nach der Prüfung und läuft 3 Tage kostenlos – danach verlängern: 1 Woche 5 €, 1 Monat 10 €.", "Resim veya videoyla. İlan kontrolden sonra yayınlanır ve 3 gün ücretsiz kalır – sonra uzat: 1 hafta 5 €, 1 ay 10 €.")),
+    el("h3", {}, t("7 Tage kostenlos inserieren", "7 gün ücretsiz ilan ver")),
+    el("p", { class: "note" }, t("Mit Bildern oder Video. Die Anzeige erscheint nach der Prüfung und läuft 7 Tage kostenlos – danach verlängern: 1 Woche 5 €, 1 Monat 10 €.", "Resim veya videoyla. İlan kontrolden sonra yayınlanır ve 7 gün ücretsiz kalır – sonra uzat: 1 hafta 5 €, 1 ay 10 €.")),
     el("label", {}, t("Titel", "Başlık")), title,
     el("label", {}, t("Kategorie", "Kategori")), category,
     el("label", {}, "Kiez"), kiez,
