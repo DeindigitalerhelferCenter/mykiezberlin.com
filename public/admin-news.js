@@ -113,6 +113,13 @@
     return out + " ";
   }
   var BG_TAG_NAMES = { genel: "Genel", spor: "⚽ Spor", kultur: "🎭 Kültür", acil: "🚨 Polis-Acil" };
+  // 2026-11-26 (owner "UYGULA arka plan önerisi 1-4"): more topics; yazili/reklam/duz are never used automatically
+  var BG_TAG_LIST = ["genel", "berlin", "acil", "ariza", "ariza-ulasim", "ariza-enerji", "ariza-dijital", "trafik", "hava", "politika", "adalet", "spor", "kultur", "ekonomi", "insaat", "egitim", "saglik", "cevre", "sosyal", "teknik", "turkiye", "yazili", "reklam", "duz"];
+  BG_TAG_NAMES.berlin = "🏙️ Berlin"; BG_TAG_NAMES.ariza = "⚠️ Arıza"; BG_TAG_NAMES["ariza-ulasim"] = "🚦 Arıza ulaşım"; BG_TAG_NAMES["ariza-enerji"] = "⚡ Arıza enerji/su";
+  BG_TAG_NAMES["ariza-dijital"] = "🌐 Arıza internet/IT"; BG_TAG_NAMES.trafik = "🚗 Trafik"; BG_TAG_NAMES.hava = "🌦️ Hava"; BG_TAG_NAMES.politika = "🏛️ Politika";
+  BG_TAG_NAMES.adalet = "⚖️ Adalet"; BG_TAG_NAMES.ekonomi = "💶 Ekonomi"; BG_TAG_NAMES.insaat = "🏗️ İnşaat"; BG_TAG_NAMES.egitim = "🎓 Eğitim"; BG_TAG_NAMES.saglik = "🏥 Sağlık";
+  BG_TAG_NAMES.cevre = "🌳 Çevre"; BG_TAG_NAMES.sosyal = "🤝 Sosyal"; BG_TAG_NAMES.teknik = "💻 Teknik"; BG_TAG_NAMES.turkiye = "🇹🇷 Türkiye";
+  BG_TAG_NAMES.yazili = "🔤 Yazılı (otomatik değil)"; BG_TAG_NAMES.reklam = "🏷️ Reklam (otomatik değil)"; BG_TAG_NAMES.duz = "⬛ Düz renk (otomatik değil)";
 
   // 2026-11-22 (owner: "otomatik haber paylaşmıyor"): clear status – is the auto mode really ON on the server, what happened last
   function hm(t) { if (!t) return "–"; try { return new Date(t).toLocaleString("de-DE", { timeZone: "Europe/Berlin", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }); } catch (x) { return "–"; } }
@@ -144,7 +151,7 @@
       var picked = function (k) { return ST.bgMode === "pick" && ST.bgPicks.indexOf(k) >= 0; };
       var thumb = function (k, small) {
         var tg = ""; BGS.forEach(function (b) { if ("b:" + b.key === k) tg = b.tag || ""; }); // 2026-11-23: topic tag
-        var tagCol = { spor: "#3fb950", kultur: "#a371f7", acil: "#f85149" }[tg];
+        var tagCol = { spor: "#3fb950", kultur: "#a371f7", acil: "#f85149", yazili: "#6e7681", reklam: "#6e7681", duz: "#6e7681" }[tg] || (tg && tg !== "genel" ? "#58a6ff" : "");
         return '<img data-bg="' + e(k) + '" src="' + e(small) + '" alt="" title="' + e(BG_TAG_NAMES[tg] || "Genel") + '" loading="lazy" style="width:34px;height:60px;border-radius:6px;cursor:pointer;object-fit:cover;border:3px solid ' + (picked(k) ? "#2ea043" : "transparent") + (tagCol ? ";outline:2px dashed " + tagCol : "") + '">';
       };
       var tplHtml = '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0">Arka plan: ' +
@@ -229,7 +236,7 @@
           var lb = document.getElementById("admin-news-lb");
           var row = document.createElement("div");
           row.style.cssText = "display:flex;gap:6px;flex-wrap:wrap;justify-content:center;color:#fff;font-size:13px;align-items:center";
-          row.innerHTML = "Konu · Thema: " + ["genel", "spor", "kultur", "acil"].map(function (t) {
+          row.innerHTML = "Konu · Thema: " + BG_TAG_LIST.map(function (t) {
             return '<button type="button" data-tag="' + t + '" style="' + BTN + (cur === t ? ";background:#238636;border-color:#2ea043" : "") + '">' + BG_TAG_NAMES[t] + "</button>";
           }).join("");
           if (lb) lb.appendChild(row);

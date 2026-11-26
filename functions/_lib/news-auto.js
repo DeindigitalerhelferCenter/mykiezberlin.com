@@ -948,34 +948,72 @@ async function publishPickedElsewhere(env, database, origin, current) {
 // Tags of own backgrounds: "genel" (or none) = all topics, "spor", "kultur", "acil" (police / fire / accident / warning).
 // Urgent news without an "acil" background get the own red EIL design (no photo). Sport/culture/acil backgrounds are
 // not used for other topics. Returns null when nothing special applies (then the old rotation decides).
-export const BG_TAGS = ["genel", "spor", "kultur", "acil"];
+export const BG_TAGS_OLD = ["genel", "spor", "kultur", "acil"];
+// 2026-11-26 (owner "UYGULA arka plan önerisi 1-4"): many topics, each topic has its own pictures and its own
+// rotation counter (news_state 'bgturn:<tag>') -> a picture comes again only after all pictures of that topic were used.
+// "yazili" (big text in the middle: EILMELDUNG / INFO / ANGEBOT), "reklam" and "duz" (plain colour) are never used
+// automatically for news (the admin can still pick them by hand).
+export const BG_TAGS = ["genel", "berlin", "acil", "ariza", "ariza-ulasim", "ariza-enerji", "ariza-dijital", "trafik", "hava",
+  "politika", "adalet", "spor", "kultur", "ekonomi", "insaat", "egitim", "saglik", "cevre", "sosyal", "teknik", "turkiye",
+  "yazili", "reklam", "duz"];
+export const BG_NO_AUTO = ["yazili", "reklam", "duz"];
+// a topic without own pictures uses these topics next, then "genel" + "berlin"
+const BG_FALLBACK = {
+  "ariza-ulasim": ["ariza", "trafik"], "ariza-enerji": ["ariza"], "ariza-dijital": ["ariza", "teknik"],
+  ariza: ["ariza-ulasim", "ariza-enerji", "ariza-dijital"], trafik: ["ariza-ulasim"], insaat: ["ekonomi"],
+  adalet: ["politika"], sosyal: ["politika"], cevre: ["hava"], teknik: ["ariza-dijital"], acil: [],
+};
 export function newsTopic(it) {
-  const t = `${it.url || ""} ${it.source || ""} ${it.orig || ""} ${it.title_de || ""}`.toLowerCase();
+  const t = `${it.url || ""} ${it.source || ""} ${it.orig || ""} ${it.title_de || ""} ${it.text_de || ""}`.toLowerCase();
+  const has = (re) => re.test(t);
   if (it.urgent) return "acil";
-  if (/\/sport|sport\b|fußball|fussball|hertha|union berlin|alba|eisbären|bundesliga|olymp/.test(t)) return "spor";
-  if (/kultur|theater|museum|konzert|festival|ausstellung|kino|oper\b/.test(t)) return "kultur";
-  if (/polizei|feuerwehr|brand|feuer|unfall|messer|schüsse|festnahme|razzia|bombe|evakuier|verletzt|tot\b|getötet/.test(t)) return "acil";
+  if (has(/polizei|feuerwehr|brand\b|brände|feuer\b|unfall|messer|schüsse|schuss\b|festnahme|razzia|bombe|evakuier|verletzt|tot\b|getötet|leiche|überfall|explosion/)) return "acil";
+  if (has(/\.com\.tr|türkei|türkiye|turkiye|istanbul|ankara|izmir|antalya|erdoğan|erdogan|deprem/)) return "turkiye";
+  if (has(/unwetter|wetter|sturm|orkan|glätte|glatteis|schnee|gewitter|hitze|frost|regen\b|dwd|hochwasser/)) return "hava";
+  if (has(/cyber|hacker|datenleck|it-störung|it-ausfall/)) return "ariza-dijital";
+  if (has(/störung|ausfall|ausgefallen|defekt|kaputt|unterbrochen|lahmgelegt/)) {
+    if (has(/strom|gas\b|gasleitung|wasser|heizung|fernwärme|blackout|netz\b/)) return "ariza-enerji";
+    if (has(/internet|mobilfunk|telefon|wlan|online|app\b|bank|zahlung|karte|server|website|bürgeramt digital/)) return "ariza-dijital";
+    if (has(/s-bahn|u-bahn|bahn|bvg|tram|bus\b|aufzug|rolltreppe|ampel|signal|weiche|bahnübergang|zug/)) return "ariza-ulasim";
+    return "ariza";
+  }
+  if (has(/\/sport|sport\b|fußball|fussball|hertha|union berlin|alba\b|eisbären|füchse|bundesliga|olymp|marathon|spiel\b|trainer/)) return "spor";
+  if (has(/verkehr|stau\b|baustelle|sperrung|gesperrt|bvg|s-bahn|u-bahn|tram\b|autobahn|a100|radweg|mobilität|parkplatz|schlagloch|straßenbahn|bus-linie|buslinie|linie [msu]?\d/)) return "trafik";
+  if (has(/gericht|urteil|prozess|anklage|staatsanwalt|justiz|haftstrafe|verurteilt|richter/)) return "adalet";
+  if (has(/schule|kita|lehrer|schüler|universität|hochschule|bildung|abitur|studier/)) return "egitim";
+  if (has(/krankenhaus|klinik|arzt|ärzt|gesundheit|charité|pflege|virus|grippe|impf|apotheke/)) return "saglik";
+  if (has(/kultur|theater|museum|konzert|festival|ausstellung|kino|oper\b|weihnachtsmarkt|lesung|musik/)) return "kultur";
+  if (has(/neubau|bauprojekt|richtfest|bauarbeiten|abriss|hochhaus/)) return "insaat";
+  if (has(/klima|umwelt|energie|windkraft|solar|co2|natur|bäume|tierschutz|müll|recycling/)) return "cevre";
+  if (has(/bürgergeld|obdachlos|armut|tafel|flüchtling|geflüchtete|integration|sozial|rente\b/)) return "sosyal";
+  if (has(/miete|mieten|wohnung|immobil|wirtschaft|preise|inflation|unternehmen|firma|insolvenz|arbeitsmarkt|steuer|haushalt|euro\b|kosten/)) return "ekonomi";
+  if (has(/senat|abgeordnetenhaus|bundestag|regierung|wahl\b|wahlen|partei|cdu|spd|grüne|afd|linke|bsw|fdp|minister|bürgermeister|wegner|merz|politik|koalition/)) return "politika";
+  if (has(/künstliche intelligenz|\bki\b|digital|software|smartphone|technik|technologie/)) return "teknik";
+  if (has(/bezirk|kiez|neukölln|kreuzberg|wedding|moabit|spandau|pankow|charlottenburg|schöneberg|friedrichshain|mitte\b|marzahn|lichtenberg|tempelhof|steglitz|reinickendorf|treptow|köpenick/)) return "berlin";
   return "genel";
 }
+async function turnTag(database, tag, list) {
+  const id = `bgturn:${tag}`;
+  const row = await database.prepare(`SELECT value FROM news_state WHERE id = ?`).bind(id).first().catch(() => null);
+  const n = ((row ? Number(row.value) : -1) + 1) % list.length;
+  await database.prepare(`INSERT INTO news_state (id, value) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value`).bind(id, n).run();
+  return { theme: await nextTheme(database), backgroundKey: list[n].key };
+}
+function bgTagOf(b) { return BG_TAGS.includes(b.tag) ? b.tag : "genel"; }
 async function topicBackground(database, settings, it) {
   const topic = newsTopic(it);
-  const all = await listBackgrounds(database);
-  const tagOf = (b) => (BG_TAGS.includes(b.tag) ? b.tag : "genel");
-  const turn = async (list) => {
-    const row = await database.prepare(`SELECT value FROM news_state WHERE id = 'bgturn'`).first().catch(() => null);
-    const n = ((row ? Number(row.value) : -1) + 1) % list.length;
-    await database.prepare(`INSERT INTO news_state (id, value) VALUES ('bgturn', ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value`).bind(n).run();
-    return { theme: await nextTheme(database), backgroundKey: list[n].key };
-  };
-  const same = all.filter((b) => tagOf(b) === topic);
-  if (topic !== "genel" && same.length) return turn(same);
-  // 2026-11-23 evening (owner "UYGULA 1"): no template for urgent news any more – an own background + the red ACİL badge
-  if (it.urgent) { const gen = all.filter((b) => tagOf(b) === "genel"); return all.length ? turn(gen.length ? gen : all) : null; }
-  // no own background for this topic: only "genel" ones (picked ones first, if the admin picked some)
-  const general = all.filter((b) => tagOf(b) === "genel");
-  if (!general.length || general.length === all.length) return null; // nothing tagged -> old way
+  const usable = (await listBackgrounds(database)).filter((b) => !BG_NO_AUTO.includes(bgTagOf(b)));
+  if (!usable.length) return null;
+  for (const t of [topic, ...(BG_FALLBACK[topic] || [])]) {
+    if (t === "genel") break;
+    const same = usable.filter((b) => bgTagOf(b) === t);
+    if (same.length) return turnTag(database, t, same);
+  }
+  // nothing for this topic: the general pictures (picked ones first, if the admin picked some)
+  const general = usable.filter((b) => bgTagOf(b) === "genel" || bgTagOf(b) === "berlin");
   const picks = settings && settings.bgMode === "pick" ? general.filter((b) => settings.bgPicks.includes(`b:${b.key}`)) : [];
-  return turn(picks.length ? picks : general);
+  if (picks.length) return turnTag(database, "pick", picks);
+  return turnTag(database, "genel", general.length ? general : usable);
 }
 export async function setBackgroundTag(database, key, tag) {
   await ensureNews(database);
@@ -1067,7 +1105,9 @@ export async function anyOwnBackground(env, database, it) {
   if (t && t.backgroundKey) keys.push(t.backgroundKey);
   const row = await database.prepare(`SELECT value FROM news_state WHERE id = 'bgturn'`).first().catch(() => null);
   const start = ((row ? Number(row.value) : 0) + 1) % all.length;
-  for (let i = 0; i < all.length; i++) keys.push(all[(start + i) % all.length].key);
+  // 2026-11-26: "yazili/reklam/duz" pictures only as the very last choice
+  const order = [...all.filter((b) => !BG_NO_AUTO.includes(bgTagOf(b))), ...all.filter((b) => BG_NO_AUTO.includes(bgTagOf(b)))];
+  for (let i = 0; i < order.length; i++) keys.push(order[(start + i) % order.length].key);
   for (const key of keys) {
     const obj = await env.BUCKET.get(key).catch(() => null);
     if (obj) return { key, bg: { bytes: new Uint8Array(await obj.arrayBuffer()), mime: (obj.httpMetadata && obj.httpMetadata.contentType) || "image/jpeg" } };
@@ -1080,8 +1120,9 @@ export async function previewBackground(env, database, it) {
   const all = await listBackgrounds(database);
   if (!all.length) return null;
   const topic = newsTopic(it || {});
-  const tagOf = (b) => (BG_TAGS.includes(b.tag) ? b.tag : "genel");
-  const pick = all.find((b) => tagOf(b) === topic) || all.find((b) => tagOf(b) === "genel") || all[0];
+  const tagOf = bgTagOf;
+  const ok = all.filter((b) => !BG_NO_AUTO.includes(tagOf(b))); // 2026-11-26: no "yazili/reklam/duz" pictures
+  const pick = ok.find((b) => tagOf(b) === topic) || ok.find((b) => (BG_FALLBACK[topic] || []).includes(tagOf(b))) || ok.find((b) => tagOf(b) === "genel") || ok[0] || all[0];
   const obj = await env.BUCKET.get(pick.key).catch(() => null);
   return obj ? { bytes: new Uint8Array(await obj.arrayBuffer()), mime: (obj.httpMetadata && obj.httpMetadata.contentType) || "image/jpeg" } : null;
 }
