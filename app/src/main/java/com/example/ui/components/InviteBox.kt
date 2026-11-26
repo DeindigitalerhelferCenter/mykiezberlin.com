@@ -49,6 +49,8 @@ private val INVITE_KEYS = listOf(
     "kanal" to "WhatsApp-Kanal",
     "app" to "App My Kiez Berlin",
     "werben" to "Für Betriebe · İşletmeler",
+    "muhabir" to "Kiez-Reporter · Muhabir", // 2026-11-26 (owner)
+    "gonullu" to "Ehrenamt · Gönüllü",
 )
 
 private fun openUrl(context: Context, url: String) {

@@ -40,6 +40,20 @@ export const INVITE_CARDS = [
     sub_de: "Sichtbar im Kiez: Web, App, Stories & Social Media", sub_tr: "Mahallede görünür olun: web, uygulama, hikâyeler ve sosyal medya",
     cta_de: "Partner werden", cta_tr: "Ortağımız olun",
   },
+  // 2026-11-26 (owner: "ayrı ayrı – muhabir veya gönüllü arayan bir kart da olsun")
+  {
+    key: "muhabir", kind: "reporter", target: SITE + "/?tab=reporter", pic: "file_1795567115125.png",
+    title_de: "Werde Kiez-Reporter", title_tr: "Mahalle muhabiri ol",
+    sub_de: "Was passiert in deinem Kiez? Schreib es – ganz Berlin liest mit", sub_tr: "Mahallende ne oluyor? Yaz – tüm Berlin okusun",
+    cta_de: "Jetzt schreiben", cta_tr: "Hemen yaz",
+  },
+  {
+    key: "gonullu", kind: "volunteer", pic: "file_1795564834618.png",
+    target: "https://wa.me/4917640556109?text=" + encodeURIComponent("Hallo My Kiez Berlin, ich möchte ehrenamtlich mitmachen. · Merhaba My Kiez Berlin, gönüllü olarak katılmak istiyorum."),
+    title_de: "Mach mit – ehrenamtlich", title_tr: "Gönüllü ol – bize katıl",
+    sub_de: "Fotos, Texte, Übersetzen, Verteilen – jede Hilfe zählt", sub_tr: "Fotoğraf, yazı, çeviri, dağıtım – her yardım değerli",
+    cta_de: "Melde dich", cta_tr: "Bize yaz",
+  },
 ];
 
 export function inviteCard(key) {

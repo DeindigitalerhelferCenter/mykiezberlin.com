@@ -34,6 +34,13 @@
   function refill() {
     document.querySelectorAll("[data-mk-inv]").forEach(function (el) { el.outerHTML = box(); });
   }
+  // 2026-11-26: card "Kiez-Reporter" links to /?tab=reporter -> open the reporter tab
+  try {
+    if (new URLSearchParams(location.search).get("tab") === "reporter") {
+      var tries = 0;
+      (function go() { if (typeof switchTab === "function") { switchTab("reporter"); return; } if (++tries < 40) setTimeout(go, 250); })();
+    }
+  } catch (x) {}
   fetch("/api/davet").then(function (r) { return r.json(); }).then(function (d) { cards = d.cards || []; refill(); }).catch(function () {});
 
   if (typeof renderHomeTab === "function") {

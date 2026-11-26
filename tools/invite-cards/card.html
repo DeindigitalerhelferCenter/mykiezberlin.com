@@ -23,8 +23,8 @@
 <script>
 const q = Object.fromEntries(new URLSearchParams(location.hash.slice(1)));
 const W = +q.w, H = +q.h, wide = W > H, story = H > W * 1.5;
-const color = { group: "#25D366", channel: "#25D366", app: "#1f6feb", business: "#d62828" }[q.kind] || "#25D366";
-const icon = { group: "👥 WhatsApp", channel: "📢 WhatsApp", app: "📲 App", business: "🤝 Partner" }[q.kind] || "";
+const color = { group: "#25D366", channel: "#25D366", app: "#1f6feb", business: "#d62828", reporter: "#e8590c", volunteer: "#8957e5" }[q.kind] || "#25D366";
+const icon = { group: "👥 WhatsApp", channel: "📢 WhatsApp", app: "📲 App", business: "🤝 Partner", reporter: "📣 Reporter · Muhabir", volunteer: "🙋 Ehrenamt · Gönüllü" }[q.kind] || "";
 const c = document.getElementById("c"); c.style.width = W + "px"; c.style.height = H + "px";
 const f = (x) => Math.round(x * (wide ? 0.62 : story ? 1 : 0.82)); // font scale
 c.innerHTML = `
