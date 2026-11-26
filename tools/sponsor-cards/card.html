@@ -1,0 +1,36 @@
+<!doctype html>
+<!-- 2026-11-26 (owner item 6 D): "Kiez-Tipp" story card for one sponsor, 1080x1920. Rendered by render.cjs. -->
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1080px;height:1920px;background:#0d1117;color:#fff;font-family:Inter,system-ui,sans-serif;overflow:hidden}
+  .wrap{position:absolute;inset:0;padding:70px 64px;display:flex;flex-direction:column;gap:34px;
+    background:radial-gradient(900px 700px at 80% 0%,rgba(214,40,40,.35),transparent 60%),radial-gradient(800px 700px at 0% 100%,rgba(46,160,67,.22),transparent 60%),#0d1117}
+  .top{display:flex;align-items:center;justify-content:space-between}
+  .logo{display:flex;align-items:center;gap:16px;background:#fff;border-radius:26px;padding:12px 22px;color:#111}
+  .logo img{height:92px}.logo b{font-size:24px;line-height:1.2;max-width:300px}
+  .tag{font:800 30px Inter;color:#ffd166;text-align:right;line-height:1.25}
+  h1{font:400 92px/1 'Archivo Black';letter-spacing:-1px}
+  h1 span{color:#ffd166}
+  .sub{font-size:34px;color:#c9d1d9;font-weight:700;margin-top:-14px}
+  .pic{flex:1;min-height:0;border-radius:36px;overflow:hidden;background:#161b22;border:4px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center}
+  .pic img{width:100%;height:100%;object-fit:contain}
+  .name{font:800 60px/1.1 Inter}
+  .line{font-size:32px;color:#c9d1d9;font-weight:700;line-height:1.35}
+  .cta{display:flex;align-items:center;justify-content:space-between;background:#d62828;border-radius:28px;padding:28px 34px;font:800 38px Inter}
+  .cta small{display:block;font:600 26px Inter;opacity:.9;margin-top:6px}
+</style></head><body>
+<div class="wrap" id="w"></div>
+<script>
+const q = Object.fromEntries(new URLSearchParams(location.hash.slice(1)));
+const tr = q.lang === "tr";
+const season = q.season || "";
+document.getElementById("w").innerHTML = `
+  <div class="top"><div class="logo"><img src="${q.logo}"><b>Betriebe aus deinem Kiez<br>Mahallendeki işletmeler</b></div>
+    <div class="tag">${season}</div></div>
+  <div><h1>KIEZ-<span>TIPP</span></h1><p class="sub" style="margin-top:14px">Partner von My Kiez Berlin<br>My Kiez Berlin mahalle ortağı</p></div>
+  <div class="pic"><img src="${q.img}"></div>
+  <div><p class="name">${q.name.replace(/[<>]/g, "")}</p>${q.kiez ? `<p class="line">📍 ${q.kiez}</p>` : ""}</div>
+  <div class="cta"><div>Alle Infos & Kontakt · Tüm bilgiler<small>mykiezberlin.com</small></div><div>→</div></div>`;
+</script></body></html>
