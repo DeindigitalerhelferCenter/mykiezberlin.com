@@ -114,12 +114,15 @@
   }
   var BG_TAG_NAMES = { genel: "Genel", spor: "⚽ Spor", kultur: "🎭 Kültür", acil: "🚨 Polis-Acil" };
   // 2026-11-26 (owner "UYGULA arka plan önerisi 1-4"): more topics; yazili/reklam/duz are never used automatically
-  var BG_TAG_LIST = ["genel", "berlin", "acil", "ariza", "ariza-ulasim", "ariza-enerji", "ariza-dijital", "trafik", "hava", "politika", "adalet", "spor", "kultur", "ekonomi", "insaat", "egitim", "saglik", "cevre", "sosyal", "teknik", "turkiye", "yazili", "reklam", "duz"];
+  var BG_TAG_LIST = ["genel", "berlin", "acil", "ariza", "ariza-ulasim", "ariza-enerji", "ariza-dijital", "trafik", "hava", "politika", "adalet", "spor", "kultur", "ekonomi", "insaat", "egitim", "saglik", "cevre", "sosyal", "teknik", "turkiye", "yazili", "reklam", "duz", "acil-polis", "acil-itfaiye", "acil-ambulans", "duz-yesil"];
+  // 2026-11-26 (owner "UYGULA acil öneri 1-4"): urgent pictures by kind; plain pictures = choice when the topic is not clear
+  BG_TAG_NAMES["acil-polis"] = "🚓 Acil polis"; BG_TAG_NAMES["acil-itfaiye"] = "🚒 Acil itfaiye"; BG_TAG_NAMES["acil-ambulans"] = "🚑 Acil ambulans";
+  BG_TAG_NAMES["duz-yesil"] = "🟩 Düz yeşil (kararsız haber)";
   BG_TAG_NAMES.berlin = "🏙️ Berlin"; BG_TAG_NAMES.ariza = "⚠️ Arıza"; BG_TAG_NAMES["ariza-ulasim"] = "🚦 Arıza ulaşım"; BG_TAG_NAMES["ariza-enerji"] = "⚡ Arıza enerji/su";
   BG_TAG_NAMES["ariza-dijital"] = "🌐 Arıza internet/IT"; BG_TAG_NAMES.trafik = "🚗 Trafik"; BG_TAG_NAMES.hava = "🌦️ Hava"; BG_TAG_NAMES.politika = "🏛️ Politika";
   BG_TAG_NAMES.adalet = "⚖️ Adalet"; BG_TAG_NAMES.ekonomi = "💶 Ekonomi"; BG_TAG_NAMES.insaat = "🏗️ İnşaat"; BG_TAG_NAMES.egitim = "🎓 Eğitim"; BG_TAG_NAMES.saglik = "🏥 Sağlık";
   BG_TAG_NAMES.cevre = "🌳 Çevre"; BG_TAG_NAMES.sosyal = "🤝 Sosyal"; BG_TAG_NAMES.teknik = "💻 Teknik"; BG_TAG_NAMES.turkiye = "🇹🇷 Türkiye";
-  BG_TAG_NAMES.yazili = "🔤 Yazılı (otomatik değil)"; BG_TAG_NAMES.reklam = "🏷️ Reklam (otomatik değil)"; BG_TAG_NAMES.duz = "⬛ Düz renk (otomatik değil)";
+  BG_TAG_NAMES.yazili = "🔤 Yazılı (otomatik değil)"; BG_TAG_NAMES.reklam = "🏷️ Reklam (otomatik değil)"; BG_TAG_NAMES.duz = "⬛ Düz renk (otomatik değil)"; BG_TAG_NAMES.duz = "⬛ Düz renk (kararsız haber)"; BG_TAG_NAMES.acil = "🚨 Acil uyarı";
 
   // 2026-11-22 (owner: "otomatik haber paylaşmıyor"): clear status – is the auto mode really ON on the server, what happened last
   function hm(t) { if (!t) return "–"; try { return new Date(t).toLocaleString("de-DE", { timeZone: "Europe/Berlin", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }); } catch (x) { return "–"; } }

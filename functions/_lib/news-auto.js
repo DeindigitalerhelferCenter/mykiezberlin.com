@@ -955,19 +955,37 @@ export const BG_TAGS_OLD = ["genel", "spor", "kultur", "acil"];
 // automatically for news (the admin can still pick them by hand).
 export const BG_TAGS = ["genel", "berlin", "acil", "ariza", "ariza-ulasim", "ariza-enerji", "ariza-dijital", "trafik", "hava",
   "politika", "adalet", "spor", "kultur", "ekonomi", "insaat", "egitim", "saglik", "cevre", "sosyal", "teknik", "turkiye",
-  "yazili", "reklam", "duz"];
-export const BG_NO_AUTO = ["yazili", "reklam", "duz"];
-// a topic without own pictures uses these topics next, then "genel" + "berlin"
+  "yazili", "reklam", "duz",
+  // 2026-11-26 (owner "UYGULA acil öneri 1-4"): urgent pictures by kind + green plain pictures (not for urgent news)
+  "acil-polis", "acil-itfaiye", "acil-ambulans", "duz-yesil"];
+// 2026-11-26 (owner "UYGULA acil öneri 1-4"): "duz" / "duz-yesil" are no longer only for the admin – they are the
+// choice when the topic is not clear (see topicBackground), but never matched as a topic themselves.
+export const BG_NO_AUTO = ["yazili", "reklam"];
+const BG_PLAIN = ["duz", "duz-yesil"];
+// a topic without own pictures uses these topics next, then the plain + general pictures
+// ("acil-belirsiz" = urgent, but police / fire / ambulance not clear -> plain pictures without green)
 const BG_FALLBACK = {
   "ariza-ulasim": ["ariza", "trafik"], "ariza-enerji": ["ariza"], "ariza-dijital": ["ariza", "teknik"],
   ariza: ["ariza-ulasim", "ariza-enerji", "ariza-dijital"], trafik: ["ariza-ulasim"], insaat: ["ekonomi"],
-  adalet: ["politika"], sosyal: ["politika"], cevre: ["hava"], teknik: ["ariza-dijital"], acil: [],
+  adalet: ["politika"], sosyal: ["politika"], cevre: ["hava"], teknik: ["ariza-dijital"],
+  "acil-polis": ["acil-belirsiz", "acil"], "acil-itfaiye": ["acil-belirsiz", "acil"], "acil-ambulans": ["acil-belirsiz", "acil"],
+  acil: ["acil-belirsiz"], "acil-belirsiz": ["acil"],
 };
+/** Kind of an urgent news: police, fire brigade, ambulance, general warning – or not clear (2026-11-26). */
+export function acilKind(t) {
+  const kinds = [];
+  if (/polizei|festnahme|festgenommen|messer|schüsse|schuss\b|razzia|überfall|täter|tatverdächtig|einbruch|raub\b|angriff|attackiert|ermittl/.test(t)) kinds.push("acil-polis");
+  if (/feuerwehr|brand\b|brände|brannte|feuer\b|explosion|rauch|lösch|flammen/.test(t)) kinds.push("acil-itfaiye");
+  if (/rettungswagen|notarzt|rettungsdienst|ins krankenhaus|reanim|rettungshubschrauber/.test(t)) kinds.push("acil-ambulans");
+  if (kinds.length === 1) return kinds[0];
+  if (!kinds.length && /warnung|warnt\b|alarm|evakuier|bombe|entschärf|sirene/.test(t)) return "acil";
+  return "acil-belirsiz"; // none or more than one kind -> plain picture (owner: "karar veremiyorsa düz resim")
+}
 export function newsTopic(it) {
   const t = `${it.url || ""} ${it.source || ""} ${it.orig || ""} ${it.title_de || ""} ${it.text_de || ""}`.toLowerCase();
   const has = (re) => re.test(t);
-  if (it.urgent) return "acil";
-  if (has(/polizei|feuerwehr|brand\b|brände|feuer\b|unfall|messer|schüsse|schuss\b|festnahme|razzia|bombe|evakuier|verletzt|tot\b|getötet|leiche|überfall|explosion/)) return "acil";
+  if (it.urgent) return acilKind(t);
+  if (has(/polizei|feuerwehr|brand\b|brände|feuer\b|unfall|messer|schüsse|schuss\b|festnahme|razzia|bombe|evakuier|verletzt|tot\b|getötet|leiche|überfall|explosion|attackiert|angriff|angegriffen|notarzt|reanim|rettungswagen|tatverdächtig/)) return acilKind(t);
   if (has(/\.com\.tr|türkei|türkiye|turkiye|istanbul|ankara|izmir|antalya|erdoğan|erdogan|deprem/)) return "turkiye";
   if (has(/unwetter|wetter|sturm|orkan|glätte|glatteis|schnee|gewitter|hitze|frost|regen\b|dwd|hochwasser/)) return "hava";
   if (has(/cyber|hacker|datenleck|it-störung|it-ausfall/)) return "ariza-dijital";
@@ -1006,14 +1024,17 @@ async function topicBackground(database, settings, it) {
   if (!usable.length) return null;
   for (const t of [topic, ...(BG_FALLBACK[topic] || [])]) {
     if (t === "genel") break;
-    const same = usable.filter((b) => bgTagOf(b) === t);
+    // 2026-11-26: urgent but not clear -> plain pictures, no green ones (green = "all clear")
+    const same = t === "acil-belirsiz" ? usable.filter((b) => bgTagOf(b) === "duz") : usable.filter((b) => bgTagOf(b) === t);
     if (same.length) return turnTag(database, t, same);
   }
-  // nothing for this topic: the general pictures (picked ones first, if the admin picked some)
-  const general = usable.filter((b) => bgTagOf(b) === "genel" || bgTagOf(b) === "berlin");
+  // 2026-11-26 (owner "UYGULA acil öneri 3"): no clear topic -> plain pictures + the general news pictures;
+  // the Berlin photos only for Berlin / Kiez news (picked ones first, if the admin picked some)
+  const general = usable.filter((b) => bgTagOf(b) === "genel" || BG_PLAIN.includes(bgTagOf(b)));
   const picks = settings && settings.bgMode === "pick" ? general.filter((b) => settings.bgPicks.includes(`b:${b.key}`)) : [];
   if (picks.length) return turnTag(database, "pick", picks);
-  return turnTag(database, "genel", general.length ? general : usable);
+  const noPlain = usable.filter((b) => !BG_PLAIN.includes(bgTagOf(b)));
+  return turnTag(database, "genel", general.length ? general : noPlain.length ? noPlain : usable);
 }
 export async function setBackgroundTag(database, key, tag) {
   await ensureNews(database);
@@ -1122,7 +1143,7 @@ export async function previewBackground(env, database, it) {
   const topic = newsTopic(it || {});
   const tagOf = bgTagOf;
   const ok = all.filter((b) => !BG_NO_AUTO.includes(tagOf(b))); // 2026-11-26: no "yazili/reklam/duz" pictures
-  const pick = ok.find((b) => tagOf(b) === topic) || ok.find((b) => (BG_FALLBACK[topic] || []).includes(tagOf(b))) || ok.find((b) => tagOf(b) === "genel") || ok[0] || all[0];
+  const pick = ok.find((b) => tagOf(b) === topic) || (topic === "acil-belirsiz" && ok.find((b) => tagOf(b) === "duz")) || ok.find((b) => (BG_FALLBACK[topic] || []).includes(tagOf(b))) || ok.find((b) => tagOf(b) === "genel") || ok[0] || all[0];
   const obj = await env.BUCKET.get(pick.key).catch(() => null);
   return obj ? { bytes: new Uint8Array(await obj.arrayBuffer()), mime: (obj.httpMetadata && obj.httpMetadata.contentType) || "image/jpeg" } : null;
 }
