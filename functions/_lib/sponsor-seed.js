@@ -335,6 +335,19 @@ export const SPONSOR_SEED = [
     extra: { category: { de: "Verpackungsdruck · B2B", tr: "Ambalaj baskı · B2B", en: "Packaging print · B2B" }, address: "", hours: "Mo–Fr 08:00–18:00", email: "info@packpress.de", region: "tr",
       description: "PackPress B2B Packaging Solutions: individuell bedruckte Verpackungen für Gastronomie und Handel. Kostenloser Design-Service, DAP-Lieferung (frei Haus) in die EU und die Schweiz." },
   },
+  // ---- 2026-11-27 evening (owner: archive group "My MyKiezBerlin - Archiv", "sana bırakıyorum"): Irmak Gutachten,
+  // data + pictures from irmak-gutachten.de (TÜV-Rheinland certificate, 5,0★ / 72 Google reviews). Plus like the
+  // other new sponsors of today; nothing is sent to him automatically.
+  {
+    id: "irmak-gutachten", plan: "m", name: "Irmak Gutachten · Kfz-Gutachter", kieze: "Reinickendorf",
+    headline_de: "TÜV-zertifizierter Kfz-Gutachter in Berlin: Unfallgutachten – Kosten trägt meist die gegnerische Versicherung",
+    headline_tr: "Berlin'de TÜV sertifikalı oto eksperi: kaza raporu – masrafı genelde karşı tarafın sigortası öder",
+    headline_en: "TÜV-certified car damage expert in Berlin: accident reports – usually paid by the other party's insurance",
+    cta_de: "WhatsApp schreiben", cta_tr: "WhatsApp yaz", cta_en: "Message on WhatsApp",
+    link_web: "https://irmak-gutachten.de", link_wa: "+4917670630770", link_tel: "+49 176 70630770", link_ig: IG("@kfz_sachverstaendiger_irmak"),
+    extra: { category: { de: "Kfz-Gutachter", tr: "Oto eksper", en: "Car damage expert" }, address: "Lieberoser Str. 25, 13439 Berlin", hours: "Termin nach Vereinbarung – wir kommen zu Ihnen", email: "info@irmak-gutachten.de", contact: "Mehmet Irmak", primary: "wa",
+      description: "🇩🇪 Sie hatten einen Unfall und sind nicht schuld? Mehmet Irmak – Ingenieur (B.Eng. Elektrotechnik) und TÜV-Rheinland-zertifizierter Kfz-Sachverständiger, über 700 Gutachten, 5,0 ★ bei 72 Google-Bewertungen. Unabhängig und schnell; die Kosten trägt in der Regel die Versicherung des Unfallgegners, abgerechnet wird direkt mit ihr. Wir kommen zu Ihnen – in ganz Berlin und im Umland.\nLeistungen: Unfallgutachten, Kaskogutachten (Hagel, Sturm, Wild, Vandalismus), Kurzgutachten / Kostenvoranschlag, Beweissicherung & Gutachtenprüfung, E-Auto & Hybrid, Wertgutachten, Oldtimergutachten, Motorrad, Transporter & Nutzfahrzeuge. Antwort innerhalb von 24 Stunden.\n☎️ 0176 70630770 · WhatsApp: Fotos vom Schaden senden · info@irmak-gutachten.de · Instagram @kfz_sachverstaendiger_irmak\n\n🇹🇷 Kazada kusurunuz yok mu? Mehmet Irmak – mühendis ve TÜV Rheinland sertifikalı oto eksperi, 700'den fazla rapor, Google'da 5,0 ★ (72 değerlendirme). Bağımsız ve hızlı; masrafı genelde karşı tarafın sigortası öder, hesap doğrudan sigortayla yapılır. Size geliyoruz – tüm Berlin'de ve çevresinde.\nHizmetler: kaza raporu, kasko raporu (dolu, fırtına, hayvan, vandalizm), kısa rapor / masraf tahmini, delil tespiti ve rapor kontrolü, elektrikli ve hibrit araçlar, değer tespiti, klasik araç raporu, motosiklet, kamyonet ve ticari araçlar. 24 saat içinde dönüş.\n☎️ 0176 70630770 · WhatsApp'tan hasar fotoğraflarını gönderin" },
+  },
   // ---- 2026-11-27 (owner "UYGULA 2-4"): 3 new Plus sponsors (Black Friday offer), data from the owner's story pictures
   // (Downloads "cigköfte BERLIN - NAUE.zip"), their websites and directories. No message is sent to them automatically.
   // Berlin Çiğköfte: story pictures + berlincigkoftespandau.de (Impressum: Moritzstraße 12, info@…); WhatsApp from the flyer.
@@ -441,6 +454,38 @@ export async function seedSponsors(database) {
   await applyBurnoutBismarckFix(database); // 2026-11-27
   await applyBurnoutMoreFix(database); // 2026-11-27 later
   await applyBurnoutLogoBackFix(database); // 2026-11-27 owner
+  await applyArchivTamEtIrmakFix(database); // 2026-11-27 evening
+}
+
+// 2026-11-27 evening (owner: links in the WhatsApp group "My MyKiezBerlin - Archiv"): Tam Et – round logo cut from the
+// Google Maps photo of the shop sign, the photo in the gallery, WhatsApp button (0176 = mobile), Google Maps link;
+// Irmak Gutachten – 4 pictures of irmak-gutachten.de in the gallery. Pictures stay (days 36500). Runs once.
+const ARCHIV_MEDIA = [
+  ["g-tamet-3", "tam-et", "/assets/sponsors/gallery/tam-et-3.webp", "Tam Et – Premium Quality Meat Cuts · Residenzstraße 128"],
+  ["g-irmak-1", "irmak-gutachten", "/assets/sponsors/gallery/irmak-gutachten-1.webp", "Unfallgutachten – wir kommen zu Ihnen · Size geliyoruz"],
+  ["g-irmak-2", "irmak-gutachten", "/assets/sponsors/gallery/irmak-gutachten-2.webp", "Mehmet Irmak – Kfz-Sachverständiger"],
+  ["g-irmak-3", "irmak-gutachten", "/assets/sponsors/gallery/irmak-gutachten-3.webp", "Oldtimergutachten · Klasik araç raporu"],
+  ["g-irmak-4", "irmak-gutachten", "/assets/sponsors/gallery/irmak-gutachten-4.webp", "TÜV Rheinland zertifiziert"],
+];
+async function applyArchivTamEtIrmakFix(database) {
+  const id = "fix:2026-11-27-archiv-tamet-irmak";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  await ensureSponsorTables(database);
+  const now = Date.now();
+  const ops = ARCHIV_MEDIA.map(([mid, adId, key, caption], i) =>
+    database.prepare(`INSERT OR IGNORE INTO sponsor_media (id, ad_id, media_key, media_type, caption, status, bytes, created_at, by_admin, days) VALUES (?, ?, ?, 'image', ?, 'live', 0, ?, 1, 36500)`)
+      .bind(mid, adId, key, caption, now - i));
+  const row = await database.prepare(`SELECT extra, link_wa, link_web FROM ads WHERE id = 'tam-et'`).first();
+  if (row) {
+    let extra = {};
+    try { extra = JSON.parse(row.extra || "{}") || {}; } catch (e) { extra = {}; }
+    extra.logo = "/assets/sponsors/tam-et-logo-2.webp";
+    extra.maps = "https://maps.app.goo.gl/iVKXGJBtwnAmr2wn7";
+    ops.push(database.prepare(`UPDATE ads SET extra = ?, link_wa = ?, link_web = ?, updated_at = ? WHERE id = 'tam-et'`)
+      .bind(JSON.stringify(extra), row.link_wa || "+4917671099594", row.link_web || "https://maps.app.goo.gl/iVKXGJBtwnAmr2wn7", now));
+  }
+  ops.push(database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now));
+  await database.batch(ops);
 }
 
 // 2026-11-27 (owner): the first Burnout logo (white, the round badge fills the round logo window) looks much better than
