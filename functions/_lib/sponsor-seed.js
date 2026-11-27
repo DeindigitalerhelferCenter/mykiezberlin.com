@@ -335,6 +335,44 @@ export const SPONSOR_SEED = [
     extra: { category: { de: "Verpackungsdruck · B2B", tr: "Ambalaj baskı · B2B", en: "Packaging print · B2B" }, address: "", hours: "Mo–Fr 08:00–18:00", email: "info@packpress.de", region: "tr",
       description: "PackPress B2B Packaging Solutions: individuell bedruckte Verpackungen für Gastronomie und Handel. Kostenloser Design-Service, DAP-Lieferung (frei Haus) in die EU und die Schweiz." },
   },
+  // ---- 2026-11-27 (owner "UYGULA 2-4"): 3 new Plus sponsors (Black Friday offer), data from the owner's story pictures
+  // (Downloads "cigköfte BERLIN - NAUE.zip"), their websites and directories. No message is sent to them automatically.
+  // Berlin Çiğköfte: story pictures + berlincigkoftespandau.de (Impressum: Moritzstraße 12, info@…); WhatsApp from the flyer.
+  {
+    id: "berlin-cigkoefte", plan: "m", name: "Berlin Çiğköfte Spandau", kieze: "Spandau",
+    headline_de: "Frische, 100 % vegane Çiğköfte – von Hand geformt: Wrap ab 6 €, Teller & Menüs ab 9 €, Turkish Sushi",
+    headline_tr: "Taze, %100 vegan çiğköfte – elde yoğrulmuş: dürüm 6 €'dan, tabak ve menüler 9 €'dan, Turkish Sushi",
+    headline_en: "Fresh, 100% vegan çiğköfte – hand-made: wrap from €6, plates & menus from €9, Turkish sushi",
+    cta_de: "Per WhatsApp bestellen", cta_tr: "WhatsApp'tan sipariş ver", cta_en: "Order on WhatsApp",
+    link_web: "https://berlincigkoftespandau.de/", link_wa: "+4915906730016", link_tel: "+49 159 06730016", link_ig: "",
+    extra: { category: { de: "Çiğköfte · vegan", tr: "Çiğköfte · vegan", en: "Çiğköfte · vegan" }, address: "Moritzstraße 12, 13597 Berlin", hours: "Täglich ab 10:30 Uhr", email: "info@berlincigkoftespandau.de", primary: "wa",
+      description: "🇩🇪 Dein Çiğköfte-Spot in Spandau (Adıyaman Çiğköfte · Orhan Usta): traditionelle, 100 % vegane Çiğköfte – von Hand geformt, mit Liebe gemacht. Çiğköfte-Wrap ab 6,00 €, vegane Teller & Menüs ab 9,00 € (Familien-Menüs für bis zu 6 Personen), Turkish Sushi 10 Stück 9,00 €. 4,8 ★ bei 199 Google-Bewertungen.\nBestellen per WhatsApp 0159 / 06 73 00 16 – abholen, liefern lassen (Lieferando, Uber Eats, Wolt) oder vor Ort genießen. Online-Shop mit Versand in ganz Deutschland: Çiğköfte, Soßen, Olivenöl, Pasten, Süßes – ab 50 € versandkostenfrei (Code HALLO).\n\n🇹🇷 Spandau'daki çiğköfte noktan (Adıyaman Çiğköfte · Orhan Usta): geleneksel, %100 vegan çiğköfte – elde yoğrulmuş, sevgiyle hazırlanmış. Çiğköfte dürüm 6,00 €'dan, vegan tabak ve menüler 9,00 €'dan (6 kişiye kadar aile menüleri), Turkish Sushi 10 adet 9,00 €. Google'da 4,8 ★ (199 değerlendirme).\nWhatsApp ile sipariş: 0159 / 06 73 00 16 – gel al, eve sipariş (Lieferando, Uber Eats, Wolt) veya yerinde ye. Online mağaza tüm Almanya'ya gönderir: çiğköfte, soslar, zeytinyağı, salçalar, tatlılar – 50 € üzeri kargo ücretsiz (kod HALLO)." },
+  },
+  // Kfz-Werkstatt Nauen: only the owner's flyers (no name, website or e-mail found online, 0177 3467556 not listed anywhere).
+  {
+    id: "kfz-werkstatt-nauen", plan: "m", name: "KFZ-Werkstatt Nauen · Typenoffen", kieze: "Spandau",
+    headline_de: "Typenoffene Kfz-Werkstatt in Nauen, spezialisiert auf VW, Audi, Škoda & Seat – mit Abhol- und Bringservice im Raum Spandau",
+    headline_tr: "Nauen'de tüm markalara açık oto tamirhanesi, VW, Audi, Škoda ve Seat uzmanı – Spandau bölgesinde aracı alıp getirme servisi",
+    headline_en: "Independent car workshop in Nauen, specialised in VW, Audi, Škoda & Seat – pick-up and delivery around Spandau",
+    cta_de: "Termin per WhatsApp", cta_tr: "WhatsApp'tan randevu", cta_en: "Book on WhatsApp",
+    link_web: "", link_wa: "+491773467556", link_tel: "+49 177 3467556", link_ig: "",
+    extra: { category: { de: "Kfz-Werkstatt", tr: "Oto tamirhanesi", en: "Car workshop" }, address: "Nauen – ca. 25 Min. von Spandau, wenige Gehminuten zum Bahnhof Nauen", hours: "Termin nach Vereinbarung", primary: "wa",
+      description: "🇩🇪 Performance. Präzision. Vertrauen. Dein Auto in besten Händen – typenoffene Kfz-Werkstatt in Nauen, spezialisiert auf VW, Audi, Škoda und Seat (Reparaturen aller Fahrzeugmarken möglich). Unsere Leistungen: Inspektion & Wartung, Bremsen & Bremsanlagen, Motor & Getriebe, Fahrzeugdiagnose & Elektrik, Fahrwerk & Lenkung, Batterie & Lichtmaschine, Auspuff & Abgasanlage, Zahnriemen & Steuerkette, Reparaturen & Instandsetzungen, Fehlersuche & Diagnose, TÜV-/AU-Vorbereitung. Fachkompetent, zuverlässig, faire Preise. Abhol- und Bringservice im Raum Spandau. Von Spandau ca. 25 Minuten Fahrzeit, wenige Gehminuten zum Bahnhof Nauen. Jetzt Termin sichern: 0177 3467556.\n\n🇹🇷 Performans. Hassasiyet. Güven. Aracın en iyi ellerde – Nauen'de tüm markalara açık oto tamirhanesi, VW, Audi, Škoda ve Seat uzmanı (tüm markaların tamiri mümkün). Hizmetlerimiz: muayene ve bakım, frenler, motor ve şanzıman, araç arıza tespiti ve elektrik, yürüyen aksam ve direksiyon, akü ve alternatör, egzoz sistemi, triger kayışı ve zincir, tamir ve onarım, hata arama ve teşhis, TÜV/AU hazırlığı. Uzman, güvenilir, uygun fiyat. Spandau bölgesinde aracı alıp getirme servisi. Spandau'dan yaklaşık 25 dakika, Nauen garına birkaç dakika yürüme mesafesinde. Hemen randevu al: 0177 3467556." },
+  },
+  // Burnout Motors: burnout-trade.de (title "Burnout Motors", footer: Hennigsdorf head office + Berlin-Tempelhof branch,
+  // kontakt@burnout-motors.de, +49 30 2096738-70, Instagram/Facebook/TikTok/YouTube links), logo from the site.
+  // Owner: Kiez Wilmersdorf first (the story video shows the shop at U Deutsche Oper), then Tempelhof.
+  // Landline only -> no WhatsApp button (owner: WhatsApp only where there is a number for it).
+  {
+    id: "burnout-motors", plan: "m", name: "Burnout Motors", kieze: "Wilmersdorf,Tempelhof",
+    headline_de: "Motorroller, Elektroroller & 125er Motorräder – seit 2005, Probefahrt, eigene Werkstatt, 0 % Finanzierung",
+    headline_tr: "Motorlu scooter, elektrikli scooter ve 125'lik motosikletler – 2005'ten beri, test sürüşü, kendi servisi, %0 finansman",
+    headline_en: "Scooters, e-scooters & 125cc motorcycles – since 2005, test rides, own workshop, 0% financing",
+    cta_de: "Zum Shop", cta_tr: "Mağazaya git", cta_en: "Visit shop",
+    link_web: "https://www.burnout-trade.de/", link_wa: "", link_tel: "+49 30 2096738-70", link_ig: IG("@burnout_motors"),
+    extra: { category: { de: "Motorroller & Motorräder", tr: "Scooter ve motosiklet", en: "Scooters & motorcycles" }, address: "Berlin-Wilmersdorf (bei U Deutsche Oper) · Colditzstraße 27/29, 12099 Berlin-Tempelhof · Veltener Str. 13, 16761 Hennigsdorf", hours: "Mo–Fr 10–18 Uhr, Sa 10–16 Uhr (Tempelhof Showroom Mo–Fr ab 12 Uhr)", email: "kontakt@burnout-motors.de",
+      description: "🇩🇪 Burnout Motors – Zweiradspezialist seit über 20 Jahren (seit 2005): Retro-Roller, Motorroller (50, 125, 300 ccm), Elektroroller und 125er Motorräder (fahrbar mit A1 oder B196), Helme & Zubehör. Probefahrt im Showroom, hauseigene Werkstatt für Inspektion, Service und Reparatur, 0 % Finanzierung bis 12 Monate. 🔥 Black Week: 300 € Rabatt auf Roller.\nShowrooms: Berlin-Wilmersdorf (bei U Deutsche Oper), Berlin-Tempelhof (Colditzstraße 27/29) und Hennigsdorf (Veltener Str. 13). Telefon +49 30 2096738-70 · kontakt@burnout-motors.de\nInstagram @burnout_motors · Facebook facebook.com/burnouttrade · TikTok @burnouttradede · YouTube @burnoutmotors\n\n🇹🇷 Burnout Motors – 20 yılı aşkın (2005'ten beri) iki tekerlek uzmanı: retro scooter, motorlu scooter (50, 125, 300 cc), elektrikli scooter ve 125'lik motosikletler (A1 veya B196 ile), kask ve aksesuar. Showroom'da test sürüşü, kendi servisinde bakım ve tamir, 12 aya kadar %0 finansman. 🔥 Black Week: scooter'larda 300 € indirim.\nShowroom'lar: Berlin-Wilmersdorf (U Deutsche Oper yanı), Berlin-Tempelhof (Colditzstraße 27/29) ve Hennigsdorf (Veltener Str. 13). Telefon +49 30 2096738-70 · kontakt@burnout-motors.de" },
+  },
 ];
 
 // One-time corrections for sponsors that are already in the live database (seeds are only inserted once).
@@ -399,6 +437,54 @@ export async function seedSponsors(database) {
   await applyEmPerformanceMediaFix(database);
   await applyAktivLyasMediaFix(database);
   await applyAktivLyasMoreFix(database);
+  await applyCarouselNewPlusFix(database); // 2026-11-27
+}
+
+// 2026-11-27 (owner "UYGULA 2-5"): pictures of the 3 new Plus sponsors + Aesthetic Laser Lyas' Instagram carousel in the
+// order of the numbers top right (1/6 … 6/6). Owner: sponsor carousels stay in the stories until he deletes them
+// -> days = 36500 (no end). Order: first picture newest (MEDIA_ORDER = newest first). Runs once.
+const CAROUSEL_NEW_PLUS = [
+  ["laser-lyas", [
+    ["g-laser-lyas-c1", "laser-lyas-carousel-1", "Gestern rasiert. Heute Kaktus. – Frag mich nach Laser-Haarentfernung"],
+    ["g-laser-lyas-c2", "laser-lyas-carousel-2", "Der Rasierer macht Feierabend. Deine Haare nicht."],
+    ["g-laser-lyas-c3", "laser-lyas-carousel-3", "Rasierer: oben ab. Laser: tiefer dran."],
+    ["g-laser-lyas-c4", "laser-lyas-carousel-4", "Einmal lasern und tschüss? Haare wachsen in Phasen."],
+    ["g-laser-lyas-c5", "laser-lyas-carousel-5", "Weniger Stoppeln. Mehr Zeit für Kaffee."],
+    ["g-laser-lyas-c6", "laser-lyas-carousel-6", "Kostenlose Beratung per WhatsApp · Tempelhofer Weg 91"],
+  ]],
+  ["berlin-cigkoefte", [
+    ["g-cigkoefte-1", "berlin-cigkoefte-1", "Frische Çiğköfte – von Hand geformt · Taze çiğköfte"],
+    ["g-cigkoefte-2", "berlin-cigkoefte-2", "Black Friday 27.–29.11.: 2 Menüs + 250 g gratis · Vegane Platte 15 €"],
+    ["g-cigkoefte-3", "berlin-cigkoefte-3", "Große vegane Auswahl · Büyük vegan seçenek"],
+    ["g-cigkoefte-4", "berlin-cigkoefte-4", "Teller & Menüs für bis zu 6 Personen"],
+    ["g-cigkoefte-5", "berlin-cigkoefte-5", "Jetzt bestellen: WhatsApp 0159 / 06 73 00 16"],
+    ["g-cigkoefte-6", "berlin-cigkoefte-6", "Moritzstraße 12 – komm vorbei!"],
+  ]],
+  ["kfz-werkstatt-nauen", [
+    ["g-kfznauen-1", "kfz-werkstatt-nauen-1", "Dein Auto in besten Händen – VW, Audi, Škoda, Seat"],
+    ["g-kfznauen-2", "kfz-werkstatt-nauen-2", "Unsere Leistungen · Hizmetlerimiz"],
+  ]],
+  ["burnout-motors", [
+    ["g-burnout-1", "burnout-motors-1", "Kommt nach Wilmersdorf! · U Deutsche Oper"],
+    ["g-burnout-2", "burnout-motors-2", "Black Week: 300 € Rabatt auf Roller"],
+  ]],
+];
+async function applyCarouselNewPlusFix(database) {
+  const id = "fix:2026-11-27-carousel-newplus";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  await ensureSponsorTables(database);
+  const now = Date.now();
+  const ops = [];
+  for (const [adId, list] of CAROUSEL_NEW_PLUS) {
+    list.forEach(([mid, file, caption], i) => ops.push(
+      database.prepare(`INSERT OR IGNORE INTO sponsor_media (id, ad_id, media_key, media_type, caption, status, bytes, created_at, by_admin, days) VALUES (?, ?, ?, 'image', ?, 'live', 0, ?, 1, 36500)`)
+        .bind(mid, adId, `/assets/sponsors/gallery/${file}.webp`, caption, now - i)));
+  }
+  // Burnout's own story video (owner's story 26.11) in its gallery as well
+  ops.push(database.prepare(`INSERT OR IGNORE INTO sponsor_media (id, ad_id, media_key, media_type, caption, status, bytes, created_at, by_admin, days) VALUES (?, ?, ?, 'video', ?, 'live', 0, ?, 1, 36500)`)
+    .bind("v-burnout-1", "burnout-motors", "stories/29e630e0-b35b-44ea-98ac-594bc1b3f512.mp4", "Black Week-Aktion · Burnout Motors", now + 1));
+  ops.push(database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now));
+  await database.batch(ops);
 }
 
 // 2026-11-24 later (owner): Aktiv – 3 pictures cut from the owner's Google Maps screenshot (side, office, sign) + Google
