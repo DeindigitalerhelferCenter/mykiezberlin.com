@@ -31,28 +31,72 @@ export async function welcomePackage(env, database, ad, { email = "", contact = 
   return { link, ...t, subject3: k.subject3, text3: k.text3, share: k.share };
 }
 
-/** Sends the 3 mails, writes extra.welcome_log. Returns { mailed, count, log, pkg }. */
-export async function sendWelcomePackage(env, database, ad, { email = "", contact = "" } = {}) {
+// ---- 2026-11-27 (owner "UYGULA c–f"): two e-mail addresses per sponsor (E-Mail 1 = email / panel_email, E-Mail 2 =
+// email2) and for every kind of message who gets it: "1", "2" or "both" (default both). welcome = message 1,
+// panel = message 2 (panel link + guide), share = message 3 (share kit), report = monthly report.
+export const MAIL_KINDS = ["welcome", "panel", "share", "report"];
+export function mailToOf(extra) {
+  const m = (extra && extra.mail_to && typeof extra.mail_to === "object") ? extra.mail_to : {};
+  const out = {};
+  for (const k of MAIL_KINDS) out[k] = ["1", "2", "both"].includes(m[k]) ? m[k] : "both";
+  return out;
+}
+/** Addresses for one kind of message (no doubles, only valid ones). */
+export function recipientsFor(extra, kind, email1 = "") {
+  const a = String(email1 || extra.panel_email || extra.email || "").trim().toLowerCase();
+  const b = String(extra.email2 || "").trim().toLowerCase();
+  const w = mailToOf(extra)[kind] || "both";
+  const list = w === "1" ? [a] : w === "2" ? [b || a] : [a, b];
+  return list.filter((x, i) => MAIL_RE.test(x) && list.indexOf(x) === i);
+}
+/** Saves E-Mail 1 / E-Mail 2 / who gets what. {email?, email2?, to?: {welcome, panel, share, report}} */
+export async function saveMailPrefs(database, adId, p = {}) {
+  const row = await database.prepare(`SELECT extra FROM ads WHERE id = ?`).bind(adId).first();
+  const x = parseExtra(row && row.extra);
+  const clean = (v) => String(v || "").trim().slice(0, 120);
+  if (p.email !== undefined && MAIL_RE.test(clean(p.email))) { x.email = clean(p.email); x.panel_email = clean(p.email); }
+  if (p.email2 !== undefined) x.email2 = MAIL_RE.test(clean(p.email2)) ? clean(p.email2) : "";
+  if (p.to && typeof p.to === "object") {
+    const cur = mailToOf(x);
+    for (const k of MAIL_KINDS) if (["1", "2", "both"].includes(p.to[k])) cur[k] = p.to[k];
+    x.mail_to = cur;
+  }
+  await database.prepare(`UPDATE ads SET extra = ? WHERE id = ?`).bind(JSON.stringify(x), adId).run();
+  return { email: x.email || "", email2: x.email2 || "", mail_to: mailToOf(x) };
+}
+
+/** Sends the 3 mails, writes extra.welcome_log (with the addresses). Returns { mailed, count, log, pkg }.
+ *  An address that already got the package is not mailed again unless force = true (error "already_sent"). */
+export async function sendWelcomePackage(env, database, ad, { email = "", contact = "", force = false } = {}) {
   const extra = parseExtra(ad.extra);
-  const to = String(email || extra.panel_email || extra.email || "").trim();
-  if (!MAIL_RE.test(to)) return { mailed: false, count: 0, error: "no_email", log: extra.welcome_log || [] };
-  const pkg = await welcomePackage(env, database, ad, { email: to, contact });
-  let count = 0;
-  for (const [s, t] of [[pkg.subject1, pkg.text1], [pkg.subject2, pkg.text2], [pkg.subject3, pkg.text3]]) {
-    if (count) await new Promise((r) => setTimeout(r, 1200)); // keeps the order in the inbox
-    if (await sendMail(env, { to, subject: s, text: t })) count++;
+  const plan = [["welcome", 1], ["panel", 2], ["share", 3]].map(([kind, n]) => ({ n, to: recipientsFor(extra, kind, email) }));
+  const all = [...new Set(plan.flatMap((p) => p.to))];
+  if (!all.length) return { mailed: false, count: 0, error: "no_email", log: extra.welcome_log || [] };
+  const before = (Array.isArray(extra.welcome_log) ? extra.welcome_log : []).filter((l) => l.via === "mail").flatMap((l) => Array.isArray(l.to) ? l.to : []);
+  const already = all.filter((a) => before.includes(a));
+  if (already.length && !force) return { mailed: false, count: 0, error: "already_sent", already, log: extra.welcome_log || [] };
+  const pkg = await welcomePackage(env, database, ad, { email: all[0], contact });
+  const msgs = { 1: [pkg.subject1, pkg.text1], 2: [pkg.subject2, pkg.text2], 3: [pkg.subject3, pkg.text3] };
+  let count = 0, tried = 0;
+  const got = [];
+  for (const p of plan) {
+    for (const to of p.to) {
+      if (tried) await new Promise((r) => setTimeout(r, 1200)); // keeps the order in the inbox
+      tried++;
+      if (await sendMail(env, { to, subject: msgs[p.n][0], text: msgs[p.n][1] })) { count++; if (!got.includes(to)) got.push(to); }
+    }
   }
   const log = Array.isArray(extra.welcome_log) ? extra.welcome_log : [];
   if (count) {
-    log.push({ at: Date.now(), via: "mail", ok: count === 3, n: count });
+    log.push({ at: Date.now(), via: "mail", ok: count === tried, n: count, to: got });
     // read extra again – the token step or the admin may have changed it meanwhile
     const fresh = await database.prepare(`SELECT extra FROM ads WHERE id = ?`).bind(ad.id).first();
     const x = parseExtra(fresh && fresh.extra);
     x.welcome_log = log.slice(-10);
-    x.panel_email = to;
+    if (!x.panel_email) x.panel_email = all[0];
     await database.prepare(`UPDATE ads SET extra = ? WHERE id = ?`).bind(JSON.stringify(x), ad.id).run();
   }
-  return { mailed: count === 3, count, email: to, log: log.slice(-10), pkg };
+  return { mailed: count > 0 && count === tried, count, email: got.join(", "), log: log.slice(-10), pkg };
 }
 
 // ---- admin switch: automatic welcome for NEW sponsors (default OFF – owner sends by hand for now) ----

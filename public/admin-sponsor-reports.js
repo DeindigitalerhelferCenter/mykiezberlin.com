@@ -75,10 +75,11 @@
       };
       var mail = row.querySelector("[data-mail]");
       if (mail) mail.onclick = function () {
-        var to = window.prompt("E-Mail an · E-posta:", r.email || "");
-        if (!to) return;
+        // 2026-11-27 (owner "UYGULA c–f"): empty = E-Mail 1 / E-Mail 2 / both as set at the sponsor (👋 box)
+        var to = window.prompt("E-Mail an · E-posta (leer = wie beim Sponsor eingestellt: E-Mail 1 / 2 / beide · boş = sponsorda seçilen):", "");
+        if (to === null) return;
         out.textContent = "…";
-        api("POST", { action: "mail", token: r.token, email: to }).then(function (j) {
+        api("POST", { action: "mail", token: r.token, email: to.trim() }).then(function (j) {
           out.innerHTML = j.ok ? '<span style="color:#3fb950">✓ gesendet · gönderildi</span>' : '<span style="color:#f85149">' + e(ERR[j.error] || j.error || "Fehler · hata") + "</span>";
           if (j.ok) { r.sent_mail = j.sent_mail; r.email = j.email; mail.textContent = "✉️ E-Mail ✓ " + when(j.sent_mail); mail.style.background = "#21262d"; }
         });

@@ -15,7 +15,7 @@ import { cleanStoryDays, mediaQuota, parseExtra, planRule, storyDaysMax } from "
 import { isVipAd } from "../_lib/story-vip.js";
 import { sendMail } from "../_lib/mail.js";
 import { welcomeTexts } from "../_lib/sponsor-welcome.js";
-import { sendWelcomePackage, setWelcomeAuto, welcomeAutoOn, welcomePackage } from "../_lib/sponsor-welcome-send.js"; // 2026-11-27
+import { mailToOf, saveMailPrefs, sendWelcomePackage, setWelcomeAuto, welcomeAutoOn, welcomePackage } from "../_lib/sponsor-welcome-send.js"; // 2026-11-27
 
 function pickTexts(p) {
   return { subject1: p.subject1, text1: p.text1, subject2: p.subject2, text2: p.text2, subject3: p.subject3, text3: p.text3, share: p.share };
@@ -195,13 +195,22 @@ export async function onRequestPost({ request, env }) {
       const extra = parseExtra(ad.extra);
       const email = cleanText(body.email || extra.panel_email || extra.email || "", 120);
       const contact = cleanText(body.contact || "", 60);
+      // 2026-11-27 (owner "UYGULA c–f"): 2nd e-mail + per message "1" / "2" / "both" (saved at the sponsor)
+      if (body.email2 !== undefined || body.to) await saveMailPrefs(database, ad.id, { email, email2: body.email2, to: body.to });
       if (body.send) {
-        const r = await sendWelcomePackage(env, database, ad, { email, contact });
-        if (r.error) return json({ ok: false, error: r.error });
+        const fresh = await database.prepare(`SELECT * FROM ads WHERE id = ?`).bind(ad.id).first();
+        const r = await sendWelcomePackage(env, database, fresh || ad, { email, contact, force: !!body.force });
+        if (r.error) return json({ ok: false, error: r.error, already: r.already || [] });
         return json({ ok: true, mailed: r.mailed, count: r.count, email: r.email, link: r.pkg.link, ...pickTexts(r.pkg), welcome_log: r.log });
       }
       const pkg = await welcomePackage(env, database, ad, { email, contact });
       return json({ ok: true, mailed: false, email, link: pkg.link, ...pickTexts(pkg), welcome_log: extra.welcome_log || [] });
+    }
+    // 2026-11-27: {adId, email?, email2?, to?} -> only save the e-mail addresses / who gets what
+    if (action === "adminMailPrefs") {
+      const ad = await database.prepare(`SELECT id FROM ads WHERE id = ?`).bind(cleanText(body.adId, 40)).first();
+      if (!ad) return json({ error: "not_found" }, 404);
+      return json({ ok: true, ...(await saveMailPrefs(database, ad.id, body)) });
     }
     // {on?} -> automatic package for NEW sponsors (default off)
     if (action === "adminWelcomeAuto") {
@@ -225,7 +234,7 @@ export async function onRequestPost({ request, env }) {
     if (action === "adminAds") {
       const { results } = await database.prepare(`SELECT * FROM ads ORDER BY active DESC, name`).all();
       // 2026-11-17: offer state for ended / paused sponsors (reminder + renewal offer)
-      return json({ ads: results.map((a) => { const x = parseExtra(a.extra); return { ...shape(a), link_wa: a.link_wa, active: a.active ? 1 : 0, start_at: a.start_at || 0, updated_at: a.updated_at || 0, own: !!x.own, offer_log: Array.isArray(x.offer_log) ? x.offer_log : [], offer_next: x.offer_next || 0, offer_stop: !!x.offer_stop, welcome_log: Array.isArray(x.welcome_log) ? x.welcome_log : [], panel_email: x.panel_email || "" }; }), now: Date.now() });
+      return json({ ads: results.map((a) => { const x = parseExtra(a.extra); return { ...shape(a), link_wa: a.link_wa, active: a.active ? 1 : 0, start_at: a.start_at || 0, updated_at: a.updated_at || 0, own: !!x.own, offer_log: Array.isArray(x.offer_log) ? x.offer_log : [], offer_next: x.offer_next || 0, offer_stop: !!x.offer_stop, welcome_log: Array.isArray(x.welcome_log) ? x.welcome_log : [], panel_email: x.panel_email || "", email2: x.email2 || "", mail_to: mailToOf(x) }; }), now: Date.now() }); // 2026-11-27: 2nd e-mail + who gets what
     }
     if (action === "adminPlan") {
       const plan = ["s", "m", "l"].includes(body.plan) ? body.plan : "";

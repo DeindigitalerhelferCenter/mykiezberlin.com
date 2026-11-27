@@ -7,6 +7,7 @@ import { cleanText, db, isAdmin, json, noDb } from "../_lib/util.js";
 import { campaignPeriods, CAMPAIGN_START, monthKey, syncLedger } from "../_lib/ledger.js";
 import { parseExtra } from "../_lib/plans.js";
 import { sendMail } from "../_lib/mail.js";
+import { recipientsFor } from "../_lib/sponsor-welcome-send.js"; // 2026-11-27
 import { ensureSponsorReports, FIRST_MONTH, listSponsorReports, nextMonth, reportMessage } from "../_lib/sponsor-report.js";
 
 const SITE = "https://mykiezberlin.com";
@@ -51,12 +52,17 @@ export async function onRequestPost({ request, env }) {
   if (body.action === "mail") {
     const ad = await database.prepare(`SELECT * FROM ads WHERE id = ?`).bind(row.ad_id).first();
     const x = parseExtra(ad && ad.extra);
-    const email = cleanText(body.email || x.panel_email || x.email || "", 120);
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: "email_invalid" }, 400);
+    // 2026-11-27 (owner "UYGULA c–f"): E-Mail 1 / E-Mail 2 / both, as chosen at the sponsor ("report");
+    // an address typed in the admin box is used alone (as before)
+    const typed = cleanText(body.email || "", 120);
+    const list = typed ? [typed] : recipientsFor(x, "report");
+    const valid = list.filter((a) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a));
+    if (!valid.length) return json({ error: "email_invalid" }, 400);
     const m = reportMessage({ ...data, comp: row.comp }, link(row.token));
-    const ok = await sendMail(env, { to: email, subject: m.subject, text: m.text });
+    let ok = false;
+    for (const to of valid) { if (await sendMail(env, { to, subject: m.subject, text: m.text })) ok = true; }
     if (ok) await database.prepare(`UPDATE sponsor_reports SET sent_mail = ? WHERE token = ?`).bind(now, row.token).run();
-    return json({ ok: !!ok, email, sent_mail: ok ? now : row.sent_mail });
+    return json({ ok: !!ok, email: valid.join(", "), sent_mail: ok ? now : row.sent_mail });
   }
 
   if (body.action === "comp") {

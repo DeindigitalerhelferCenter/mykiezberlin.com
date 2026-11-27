@@ -180,7 +180,8 @@ function adExtraFields(ad) {
   return `
       ${f("address", "Adresse (für Karte + Route, z. B. Musterstraße 1, 10115 Berlin)", x.address)}
       ${f("hours", "Öffnungszeiten", x.hours)}
-      ${f("email", "E-Mail des Sponsors (für Sponsor-Panel)", x.email)}
+      ${f("email", "E-Mail des Sponsors (für Sponsor-Panel) · E-Mail 1", x.email)}
+      ${f("email2", "E-Mail 2 (optional – wer was bekommt: im 👋-Fenster wählen) · 2. e-posta", x.email2)}
       ${f("logo", "Logo-URL (leer = Bild)", x.logo)}
       ${f("category", "Kategorie (z. B. Bäckerei)", x.category ? x.category.de : "")}
       <label style="display: grid; gap: 3px; font-size: 12px;">Beschreibung (lang, für das Kontakt-Fenster)<textarea id="ad-x-description" class="form-control" rows="4">${adminEsc(x.description || "")}</textarea></label>
@@ -189,7 +190,7 @@ function adExtraFields(ad) {
 function adExtraValues(old) {
   const x = adExtraOf(old);
   const v = (key) => document.getElementById(`ad-x-${key}`)?.value.trim() || "";
-  const out = { address: v("address"), hours: v("hours"), email: v("email"), logo: v("logo"), description: document.getElementById("ad-x-description")?.value || "" };
+  const out = { address: v("address"), hours: v("hours"), email: v("email"), email2: v("email2"), logo: v("logo"), description: document.getElementById("ad-x-description")?.value || "" };
   if (x.coupon) out.coupon = x.coupon;   // keep the coupon (the form has no coupon fields)
   const c = v("category");
   if (c) out.category = x.category && x.category.de === c ? x.category : { de: c, tr: c, en: c };

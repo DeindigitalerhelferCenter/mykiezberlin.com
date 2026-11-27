@@ -196,10 +196,20 @@
   // 3 messages: 1 welcome, 2 panel link + guide + video, 3 share kit (WhatsApp & social media).
   // E-mail: "📧 Alle 3 senden" (server). WhatsApp: 3 ready buttons, owner presses send in WhatsApp, then "✓ gesendet".
   function welcomeBox3(ad, out) {
-    var when = (ad.welcome_log || []).map(function (l) { return new Date(l.at).toLocaleDateString("de-DE") + " " + (l.via === "wa" ? "WhatsApp" : "E-Mail"); }).join(", ");
+    // 2026-11-27 (owner "UYGULA c–f"): the log shows to which address it went
+    var when = (ad.welcome_log || []).map(function (l) { return new Date(l.at).toLocaleDateString("de-DE") + " " + (l.via === "wa" ? "WhatsApp" : "E-Mail" + (l.to && l.to.length ? " → " + l.to.join(", ") : "")); }).join(" · ");
     var num = String(ad.link_wa || "").replace(/[^\d]/g, "");
+    var mt = ad.mail_to || {};
+    function sel(kind, label) {
+      var v = mt[kind] || "both";
+      return '<label style="display:inline-flex;gap:4px;align-items:center;font-size:12px;margin:2px 8px 2px 0">' + label + ' <select data-to="' + kind + '" style="' + BTN + ';padding:4px 6px">' +
+        [["1", "E-Mail 1"], ["2", "E-Mail 2"], ["both", "beide · ikisi"]].map(function (o) { return '<option value="' + o[0] + '"' + (v === o[0] ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") + "</select></label>";
+    }
     out.innerHTML = (when ? '<p style="color:#3fb950;margin:4px 0">✓ Schon gesendet · Gönderildi: ' + e(when) + "</p>" : "") +
-      '<input data-w="email" type="email" placeholder="E-Mail" style="' + INPUT + '" value="' + e(ad.panel_email || ad.email || "") + '">' +
+      '<input data-w="email" type="email" placeholder="E-Mail 1" style="' + INPUT + '" value="' + e(ad.panel_email || ad.email || "") + '">' +
+      '<input data-w="email2" type="email" placeholder="E-Mail 2 (optional · isteğe bağlı)" style="' + INPUT + '" value="' + e(ad.email2 || "") + '">' +
+      '<div style="margin:2px 0 6px">' + sel("welcome", "1 Willkommen") + sel("panel", "2 Panel") + sel("share", "3 Teilen") + sel("report", "📊 Bericht") +
+      '<button type="button" data-w="savepref" style="' + BTN + '">💾 E-Mails speichern · kaydet</button> <span data-w="pr"></span></div>' +
       '<input data-w="contact" placeholder="Ansprechpartner (optional) · Yetkili adı (isteğe bağlı)" style="' + INPUT + '">' +
       '<button type="button" data-w="mail" style="' + BTN + ';background:#E30613;border-color:#E30613;color:#fff">📧 Alle 3 per E-Mail senden · 3 mesajı e-postayla gönder</button> ' +
       '<button type="button" data-w="again" style="' + BTN + '">🔄 Texte neu · Metinleri yenile</button> <span data-w="r"></span>' +
@@ -207,9 +217,20 @@
       '<div data-w="box"><p style="color:#8b949e">⏳ Texte werden erstellt · metinler hazırlanıyor …</p></div>';
     var r = out.querySelector('[data-w="r"]'), box = out.querySelector('[data-w="box"]');
     function val(k) { return out.querySelector('[data-w="' + k + '"]').value; }
-    function call(send) {
-      return panel("adminWelcome3", { adId: ad.id, email: val("email"), contact: val("contact"), send: !!send });
+    function prefs() {
+      var to = {};
+      out.querySelectorAll("[data-to]").forEach(function (s) { to[s.getAttribute("data-to")] = s.value; });
+      return to;
     }
+    function call(send, force) {
+      return panel("adminWelcome3", { adId: ad.id, email: val("email"), email2: val("email2"), to: prefs(), contact: val("contact"), send: !!send, force: !!force });
+    }
+    out.querySelector('[data-w="savepref"]').onclick = function () {
+      var pr = out.querySelector('[data-w="pr"]');
+      panel("adminMailPrefs", { adId: ad.id, email: val("email"), email2: val("email2"), to: prefs() }).then(function (j) {
+        if (j.ok) { ad.email2 = j.email2; ad.mail_to = j.mail_to; if (j.email) ad.panel_email = j.email; pr.innerHTML = '<span style="color:#3fb950">✓</span>'; } else pr.textContent = "Fehler · Hata: " + (j.error || "?");
+      });
+    };
     function wa(t) { return "https://wa.me/" + num + "?text=" + encodeURIComponent(t); }
     function show(j) {
       if (!j.ok) { box.innerHTML = '<p style="color:#f85149">Fehler · Hata: ' + e(j.error || "?") + "</p>"; return; }
@@ -230,15 +251,25 @@
     var md = out.querySelector('[data-w="mail"]');
     md.onclick = function () {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val("email"))) { r.textContent = "E-Mail fehlt · e-posta eksik"; return; }
-      if (!confirm("3 E-Mails an " + val("email") + " senden? · 3 e-posta gönderilsin mi?")) return;
+      var targets = [val("email"), val("email2")].filter(function (x) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x); }).join(" + ");
+      if (!confirm("Willkommenspaket senden an · gönderilecek: " + targets + " (wie oben gewählt · yukarıdaki seçime göre)?")) return;
       md.disabled = true; r.textContent = "⏳";
-      call(true).then(function (j) {
-        md.disabled = false;
-        if (!j.ok) { r.textContent = "Fehler · Hata: " + (j.error || "?"); return; }
-        ad.welcome_log = j.welcome_log || ad.welcome_log; ad.panel_email = j.email || ad.panel_email;
-        r.innerHTML = j.mailed ? '<span style="color:#3fb950">✓ 3 E-Mails gesendet · 3 e-posta gönderildi</span>' : '<span style="color:#f85149">' + (j.count || 0) + "/3 gesendet · gönderildi</span>";
-        show(j);
-      });
+      function send(force) {
+        call(true, force).then(function (j) {
+          md.disabled = false;
+          // 2026-11-27 (owner "UYGULA c–f"): same address already got it -> ask first
+          if (!j.ok && j.error === "already_sent") {
+            if (confirm("Schon gesendet an · zaten gönderildi: " + (j.already || []).join(", ") + "\nTrotzdem noch einmal senden? · Yine de gönderilsin mi?")) { md.disabled = true; r.textContent = "⏳"; send(true); }
+            else r.textContent = "Nicht gesendet · gönderilmedi";
+            return;
+          }
+          if (!j.ok) { r.textContent = "Fehler · Hata: " + (j.error || "?"); return; }
+          ad.welcome_log = j.welcome_log || ad.welcome_log;
+          r.innerHTML = j.mailed ? '<span style="color:#3fb950">✓ ' + j.count + " E-Mails gesendet · e-posta gönderildi → " + e(j.email) + "</span>" : '<span style="color:#f85149">' + (j.count || 0) + " gesendet · gönderildi</span>";
+          show(j);
+        });
+      }
+      send(false);
     };
   }
 
@@ -248,7 +279,7 @@
     box.style.cssText = "background:#0d1117;border:1px solid #30363d;border-radius:12px;padding:12px;margin:0 0 12px";
     body.insertBefore(box, body.firstChild);
     function has(a) { return a.welcome_log && a.welcome_log.length; }
-    function mail(a) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a.panel_email || a.email || ""); }
+    function mail(a) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a.panel_email || a.email || "") || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a.email2 || ""); }
     function draw() {
       var list = ads.filter(function (a) { return a.active !== 0 && !a.own; });
       var done = list.filter(has), open = list.filter(function (a) { return !has(a); });

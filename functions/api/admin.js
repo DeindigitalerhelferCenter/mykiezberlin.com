@@ -120,6 +120,8 @@ async function saveAd(database, ad) {
     };
     // 2026-11-13: e-mail (sponsor panel) and long description from the admin form
     if (e.email !== undefined) { const m = cleanText(e.email, 120); extra.email = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m) ? m : ""; }
+    // 2026-11-27 (owner "UYGULA c–f"): second e-mail address of the sponsor
+    if (e.email2 !== undefined) { const m2 = cleanText(e.email2, 120); extra.email2 = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m2) ? m2 : ""; }
     if (e.description !== undefined) extra.description = String(e.description ?? "").replace(/[<>]/g, "").replace(/\r/g, "").slice(0, 5000).trim();
     // 2026-11-13: keep fields the admin form does not send (contact data, sponsor-panel text, media period)
     const old = await database.prepare(`SELECT extra FROM ads WHERE id = ?`).bind(id).first();
