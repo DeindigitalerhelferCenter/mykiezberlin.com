@@ -45,7 +45,7 @@ export function polishText(t) {
   }
 }
 
-export const OFFER_WORDS = /(angebot|sonderangebot|aktion|rabatt|gutschein|kampanya|indirim|i̇ndirim|fırsat|black\s*(friday|week)|cyber\s*monday|\d+\s*%\s*(rabatt|off|indirim)|%\s*\d+\s*indirim|gratis|kostenlos dazu|ücretsiz hediye|€\s*statt\s*\d|\d\s*€\s*yerine|statt\s*\d+[.,]?\d*\s*€)/iu;
+export const OFFER_WORDS = /(angebot|sonderangebot|aktion|rabatt|gutschein|kampanya|indirim|i̇ndirim|fırsat|teklif|black\s*(friday|week)|cyber\s*monday|\d+\s*%\s*(rabatt|off|indirim)|%\s*\d+\s*indirim|gratis|kostenlos dazu|ücretsiz hediye|€\s*statt\s*\d|\d\s*€\s*yerine|statt\s*\d+[.,]?\d*\s*€)/iu;
 
 /**
  * Offer of a story row for the lists. deal column: JSON {what, price, old} (given or found), "none" = the admin took
@@ -59,9 +59,15 @@ export function offerOf(row, cats) {
   if (/^news-/.test(String(row.id || ""))) return null; // automatic news are no offers
   const c = Array.isArray(cats) ? cats : String(cats || "").split(",");
   if (c.includes("jobs") || c.includes("wohnen")) return null;
-  const text = `${row.headline || ""} ${row.subtext || ""}`;
-  if (!c.includes("angebote") && !OFFER_WORDS.test(text)) return null;
+  const head = String(row.headline || "");
+  // own app / invite promotion is no offer of a business
+  if (/^invite-/.test(String(row.id || "")) || /my\s*kiez\s*berlin/i.test(head)) return null;
+  // urgent / world news ("Polizeiaktion" …) only when the headline itself says offer
+  if ((c.includes("eil") || c.includes("welt")) && !OFFER_WORDS.test(head)) return null;
   const found = parseDeal(dealFromText(row.headline, row.subtext));
+  // offer folder chosen, offer word in the headline, or offer word + price in the text
+  const ok = c.includes("angebote") || OFFER_WORDS.test(head) || (found && OFFER_WORDS.test(String(row.subtext || "")));
+  if (!ok) return null;
   if (found) return found;
   const what = String(row.headline || "").replace(/\s+/g, " ").trim().slice(0, 80);
   return what ? { what, price: "Angebot · Kampanya", old: "" } : null;
