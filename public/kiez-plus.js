@@ -224,7 +224,8 @@
       var s = x.s, img = s.image && s.image.indexOf("hero_berlin") < 0 ? s.image : "";
       var ends = s.approvedAt && s.durationHours ? new Date(s.approvedAt + s.durationHours * 3600000) : null;
       return '<button type="button" class="card-item mk-plus-deal" onclick="openStoryViewer(' + x.i + ')">' +
-        (img ? '<img src="' + img + '" alt="" loading="lazy">' : '<div class="mk-plus-deal-noimg">🏷️</div>') +
+        // 2026-11-27 (owner): video offers show the first picture of the video (not the Kiez photo)
+        (s.isVideo && s.videoUri ? '<video src="' + s.videoUri + '#t=0.5" muted playsinline preload="metadata" style="width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:12px;background:#000;pointer-events:none"></video>' : img ? '<img src="' + img + '" alt="" loading="lazy">' : '<div class="mk-plus-deal-noimg">🏷️</div>') +
         '<div class="mk-plus-deal-body"><b>' + E(s.deal.what) + '</b><div class="mk-plus-price"><span>' + E(s.deal.price) + "</span>" + (s.deal.old ? "<s>" + E(s.deal.old) + "</s>" : "") + "</div>" +
         "<small>" + s.author + " · " + s.kiez + (ends ? " · " + E(T("bis", "bitiş")) + " " + ends.toLocaleString(undefined, { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "") + "</small></div></button>";
     }).join("") + "</div>";
