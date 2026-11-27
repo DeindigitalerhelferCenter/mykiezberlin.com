@@ -6,7 +6,8 @@ const UNIQUE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
 export async function onRequestGet({ request, params, env, waitUntil }) {
   if (!env.BUCKET) return new Response("Not found", { status: 404 });
   const key = (params.path || []).join("/");
-  if (!key.startsWith("stories/") && !key.startsWith("posts/") && !key.startsWith("ads/")) return new Response("Not found", { status: 404 });
+  // 2026-11-27: classified pictures (R2 classifieds/<id>-<n>.<ext>) were not served (404) – allowed now
+  if (!key.startsWith("stories/") && !key.startsWith("posts/") && !key.startsWith("ads/") && !key.startsWith("classifieds/")) return new Response("Not found", { status: 404 });
   const unique = UNIQUE.test(key) && !request.headers.get("range");
   const edge = unique && typeof caches !== "undefined" ? caches.default : null;
   if (edge) {
