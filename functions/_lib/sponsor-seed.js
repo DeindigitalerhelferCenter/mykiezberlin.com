@@ -439,6 +439,47 @@ export async function seedSponsors(database) {
   await applyAktivLyasMoreFix(database);
   await applyCarouselNewPlusFix(database); // 2026-11-27
   await applyBurnoutBismarckFix(database); // 2026-11-27
+  await applyBurnoutMoreFix(database); // 2026-11-27 later
+}
+
+// 2026-11-27 later (owner): Burnout – his logo + 4 pictures from burnout-trade.de ("BORNOUT BILDER.zip"), new cover,
+// 4 Instagram reels in the gallery; Black Weeks offer from the site: "1 ccm = 1 €" (100 € on 50er … 400 € on 400er,
+// free storage until 01.03.2027). Pictures and reels stay until the owner deletes them (days 36500). Runs once.
+const BURNOUT_MORE = [
+  ["g-burnout-3", "/assets/sponsors/gallery/burnout-motors-3.webp", "image", "Neu: GT-S 400 – 400 ccm, 39,4 PS, Führerschein A2"],
+  ["g-burnout-4", "/assets/sponsors/gallery/burnout-motors-4.webp", "image", "Black Weeks: 1 ccm = 1 € Rabatt · bis 400 €"],
+  ["g-burnout-5", "/assets/sponsors/gallery/burnout-motors-5.webp", "image", "Vom 50er bis zum 300er – Motorroller, E-Roller, 125er Motorräder"],
+  ["g-burnout-6", "/assets/sponsors/gallery/burnout-motors-6.webp", "image", "Lieferung bis vor die Haustür"],
+  ["ig-burnout-1", "https://www.instagram.com/reel/DbvR302ICyY/", "instagram", "Instagram Reel"],
+  ["ig-burnout-2", "https://www.instagram.com/reel/DdgHjJ3uoIe/", "instagram", "Instagram Reel"],
+  ["ig-burnout-3", "https://www.instagram.com/reel/Df-GYU0us_u/", "instagram", "Instagram Reel"],
+  ["ig-burnout-4", "https://www.instagram.com/reel/DNEBNljIsqb/", "instagram", "Instagram Reel"],
+];
+async function applyBurnoutMoreFix(database) {
+  const id = "fix:2026-11-27-burnout-more";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  const row = await database.prepare(`SELECT extra FROM ads WHERE id = 'burnout-motors'`).first();
+  if (!row) return;
+  await ensureSponsorTables(database);
+  let extra = {};
+  try { extra = JSON.parse(row.extra || "{}") || {}; } catch (e) { extra = {}; }
+  extra.logo = "/assets/sponsors/burnout-motors-logo-2.webp";
+  extra.coupon = { code: "BLACK WEEKS", until: Date.parse("2026-11-30T23:59:59+01:00"),
+    de: "1 ccm = 1 € Rabatt: 100 € auf 50er · 125 € auf 125er · 300 € auf 300er · 400 € auf 400er – jetzt kaufen, kostenlos einlagern bis 01.03.2027",
+    tr: "1 cc = 1 € indirim: 50'likte 100 € · 125'likte 125 € · 300'lükte 300 € · 400'lükte 400 € – şimdi al, 01.03.2027'ye kadar ücretsiz depola",
+    en: "1 ccm = €1 off: €100 on 50cc · €125 on 125cc · €300 on 300cc · €400 on 400cc – buy now, free storage until 01.03.2027" };
+  if (typeof extra.description === "string" && !/1 ccm = 1 €/.test(extra.description)) {
+    extra.description = extra.description
+      .replace("🔥 Black Week: 300 € Rabatt auf Roller.", "🔥 Black Weeks – jeder Kubik zählt: 1 ccm = 1 € Rabatt (100 € auf 50er, 125 € auf 125er, 300 € auf 300er, 400 € auf 400er), jetzt kaufen und kostenlos einlagern bis 01.03.2027. Neu: GT-S 400 Maxi-Scooter – 400 ccm, 39,4 PS, Camouflage-Look, Führerschein A2.")
+      .replace("🔥 Black Week: scooter'larda 300 € indirim.", "🔥 Black Weeks – her cc değerli: 1 cc = 1 € indirim (50'likte 100 €, 125'likte 125 €, 300'lükte 300 €, 400'lükte 400 €), şimdi al, 01.03.2027'ye kadar ücretsiz depola. Yeni: GT-S 400 maxi scooter – 400 cc, 39,4 PS, A2 ehliyet.");
+  }
+  const now = Date.now();
+  const ops = BURNOUT_MORE.map(([mid, key, type, caption], i) =>
+    database.prepare(`INSERT OR IGNORE INTO sponsor_media (id, ad_id, media_key, media_type, caption, status, bytes, created_at, by_admin, days) VALUES (?, 'burnout-motors', ?, ?, ?, 'live', 0, ?, 1, 36500)`)
+      .bind(mid, key, type, caption, now + 10 - i));
+  ops.push(database.prepare(`UPDATE ads SET image = ?, extra = ?, updated_at = ? WHERE id = 'burnout-motors'`).bind("/assets/sponsors/burnout-motors-2.webp", JSON.stringify(extra), now));
+  ops.push(database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now));
+  await database.batch(ops);
 }
 
 // 2026-11-27 (owner): Burnout Wilmersdorf shop = Bismarckstraße 24 (at U Deutsche Oper) first; more from burnout-trade.de
