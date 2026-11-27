@@ -783,7 +783,7 @@ async function translateDeTr(env, text) {
     try {
       const out = await withTimeout(env.AI.run(model, { messages: [{ role: "user", content: `Übersetze ins Türkische. Antworte NUR mit der Übersetzung, ohne Erklärung:\n\n${src}` }], max_tokens: 400, temperature: 0.1 }), 8000, null);
       const t = String((out && (out.response || out)) || "").trim().replace(/^["„]|["“]$/g, "");
-      if (t && t !== src && typeof t === "string") return t;
+      if (t && t !== src && typeof t === "string" && !badTr(t, src)) return t; // 2026-11-27: checked too (was the only unchecked way)
     } catch (e) { /* next */ }
   }
   return "";
@@ -866,6 +866,9 @@ async function applyAdminChoices(database, items) {
 export function badTr(t, src) {
   const s = String(t || "").trim();
   if (!s) return true;
+  // 2026-11-27 (owner): an AI answer in another script (Chinese, Japanese, Korean, Arabic, Cyrillic, Greek, Hebrew,
+  // Thai, Devanagari …) is never Turkish -> rejected, the news stays German (BVG headline came out in Chinese)
+  if (/[Ͱ-ϿЀ-ӿ֐-׿؀-ۿऀ-ॿ฀-๿぀-ヿ㐀-䶿一-鿿가-힯＀-￯]/.test(s)) return true;
   if (/[>»|]/.test(s) && !/[>»|]/.test(String(src || ""))) return true;
   if (s.length < 120 /* titles only */ && /\b([a-zçğıöşü]{4,})\b[^.!?]{0,40}\b\1\b/i.test(s) && !/\b([a-zäöüß]{4,})\b[^.!?]{0,40}\b\1\b/i.test(String(src || ""))) return true;
   if (/[äÄß]/.test(s)) return true;
