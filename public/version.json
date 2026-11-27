@@ -9,8 +9,8 @@
     "en": "New: our WhatsApp channel with Berlin news and WhatsApp groups for your Kiez (Neukölln, Kreuzberg, Wedding, Moabit, Spandau, all Berlin). Share stories with the WhatsApp channel link."
   },
   "beta": {
-    "versionCode": 64,
-    "versionName": "1.63",
+    "versionCode": 65,
+    "versionName": "1.64",
     "apkUrl": "https://pub-2416186352064f76ad404097041588ba.r2.dev/MyKiezBerlin-test.apk",
     "notes": {
       "de": "Testversion – nur für das Admin-Handy.",
