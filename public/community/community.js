@@ -30,7 +30,7 @@ const ERRORS = {
 };
 
 let user = null;
-let activeTab = location.hash === "#ilan" ? "classifieds" : "feed";
+let activeTab = /^#ilan/.test(location.hash) ? "classifieds" : "feed"; // 2026-11-27: also #ilan-<id>
 const view = document.getElementById("view");
 const liked = new Set(JSON.parse(localStorage.getItem(LIKED_KEY) || "[]"));
 
@@ -241,7 +241,7 @@ async function renderClassifieds() {
   let cards = [];
   try {
     const { items } = await api("/api/submissions");
-    cards = items.filter((i) => i.type === "classified").map((i) => el("article", { class: "card" },
+    cards = items.filter((i) => i.type === "classified").map((i) => el("article", { class: "card", id: "ilan-" + i.id }, // 2026-11-27: link #ilan-<id>
       el("h3", {}, i.title),
       el("div", { class: "meta" }, [i.category, i.kiezName, i.price, when(i.createdAt)].filter(Boolean).join(" · ")),
       mkClassifiedMedia(i.media),
@@ -251,6 +251,10 @@ async function renderClassifieds() {
     toast(t("Anzeigen sind gerade nicht erreichbar.", "İlanlara şu an ulaşılamıyor."));
   }
   view.replaceChildren(classifiedForm(), ...cards);
+  // 2026-11-27 (owner): #ilan-<id> (from the home strip) scrolls to that ad and marks it
+  const hit = /^#ilan-(.+)$/.exec(location.hash);
+  const card = hit && document.getElementById("ilan-" + decodeURIComponent(hit[1]));
+  if (card) { card.style.outline = "3px solid #25D366"; card.scrollIntoView({ behavior: "smooth", block: "start" }); }
 }
 
 function renderAccount() {
@@ -322,7 +326,7 @@ function render() {
 }
 
 window.addEventListener("hashchange", () => {
-  if (location.hash === "#ilan") {
+  if (/^#ilan/.test(location.hash)) { // 2026-11-27: also #ilan-<id>
     activeTab = "classifieds";
     render();
   }
