@@ -370,7 +370,7 @@ export const SPONSOR_SEED = [
     headline_en: "Scooters, e-scooters & 125cc motorcycles – since 2005, test rides, own workshop, 0% financing",
     cta_de: "Zum Shop", cta_tr: "Mağazaya git", cta_en: "Visit shop",
     link_web: "https://www.burnout-trade.de/", link_wa: "", link_tel: "+49 30 2096738-70", link_ig: IG("@burnout_motors"),
-    extra: { category: { de: "Motorroller & Motorräder", tr: "Scooter ve motosiklet", en: "Scooters & motorcycles" }, address: "Berlin-Wilmersdorf (bei U Deutsche Oper) · Colditzstraße 27/29, 12099 Berlin-Tempelhof · Veltener Str. 13, 16761 Hennigsdorf", hours: "Mo–Fr 10–18 Uhr, Sa 10–16 Uhr (Tempelhof Showroom Mo–Fr ab 12 Uhr)", email: "kontakt@burnout-motors.de",
+    extra: { category: { de: "Motorroller & Motorräder", tr: "Scooter ve motosiklet", en: "Scooters & motorcycles" }, address: "Bismarckstraße 24, 10625 Berlin (U Deutsche Oper) · Colditzstraße 27/29, 12099 Berlin-Tempelhof · Veltener Str. 13, 16761 Hennigsdorf", hours: "Mo–Fr 10–18 Uhr, Sa 10–16 Uhr (Tempelhof Showroom Mo–Fr ab 12 Uhr)", email: "kontakt@burnout-motors.de",
       description: "🇩🇪 Burnout Motors – Zweiradspezialist seit über 20 Jahren (seit 2005): Retro-Roller, Motorroller (50, 125, 300 ccm), Elektroroller und 125er Motorräder (fahrbar mit A1 oder B196), Helme & Zubehör. Probefahrt im Showroom, hauseigene Werkstatt für Inspektion, Service und Reparatur, 0 % Finanzierung bis 12 Monate. 🔥 Black Week: 300 € Rabatt auf Roller.\nShowrooms: Berlin-Wilmersdorf (bei U Deutsche Oper), Berlin-Tempelhof (Colditzstraße 27/29) und Hennigsdorf (Veltener Str. 13). Telefon +49 30 2096738-70 · kontakt@burnout-motors.de\nInstagram @burnout_motors · Facebook facebook.com/burnouttrade · TikTok @burnouttradede · YouTube @burnoutmotors\n\n🇹🇷 Burnout Motors – 20 yılı aşkın (2005'ten beri) iki tekerlek uzmanı: retro scooter, motorlu scooter (50, 125, 300 cc), elektrikli scooter ve 125'lik motosikletler (A1 veya B196 ile), kask ve aksesuar. Showroom'da test sürüşü, kendi servisinde bakım ve tamir, 12 aya kadar %0 finansman. 🔥 Black Week: scooter'larda 300 € indirim.\nShowroom'lar: Berlin-Wilmersdorf (U Deutsche Oper yanı), Berlin-Tempelhof (Colditzstraße 27/29) ve Hennigsdorf (Veltener Str. 13). Telefon +49 30 2096738-70 · kontakt@burnout-motors.de" },
   },
 ];
@@ -438,6 +438,45 @@ export async function seedSponsors(database) {
   await applyAktivLyasMediaFix(database);
   await applyAktivLyasMoreFix(database);
   await applyCarouselNewPlusFix(database); // 2026-11-27
+  await applyBurnoutBismarckFix(database); // 2026-11-27
+}
+
+// 2026-11-27 (owner): Burnout Wilmersdorf shop = Bismarckstraße 24 (at U Deutsche Oper) first; more from burnout-trade.de
+// (models + prices, e-scooters, helmets, licence classes, workshop, 0 % financing, delivery) + Black Week coupon. Runs once.
+const BURNOUT_DESC = "🇩🇪 Burnout Motors – Zweiradspezialist seit über 20 Jahren (seit 2005). 🔥 Black Week: 300 € Rabatt auf Roller.\n" +
+  "📍 Neu in Wilmersdorf: Bismarckstraße 24, 10625 Berlin (U Deutsche Oper) · Showroom Berlin-Tempelhof: Colditzstraße 27/29, 12099 Berlin · Hauptsitz Hennigsdorf: Veltener Str. 13, 16761 Hennigsdorf\n" +
+  "🛵 Motorroller 50 ccm (Führerschein AM, in Klasse B enthalten, 45 km/h): MiniMe 2.0 ab 1.699 €, Luna ab 1.799 €, EasyCruiser ab 1.999 €, BAD s ab 2.199 €, GS 50 ab 2.199 €\n" +
+  "🛵 Motorroller 125 ccm (A1 oder B196, bis 99 km/h): QS125 C ab 2.499 €, QS125 ADV ab 2.999 €, TENNIS ab 2.999 €, MOBSTER ab 3.499 €, CITY-X ab 3.799 €, GT-X ab 3.899 €\n" +
+  "🛵 ab 250 ccm (A2 oder A, bis 126 km/h): GT-R ab 4.999 €, GT-X 300 ab 5.499 €, GT-S ab 5.799 €\n" +
+  "🏍️ Neu: Motorräder 125 ccm (A1 oder B196): GP1 ab 3.899 €, GP2 ab 3.699 €, Scrambler ab 3.899 €\n" +
+  "⚡ Elektroroller: MiniMe 2.0 Elektro ab 2.299 €, EasyCruiser Elektro ab 2.499 € – leise durch die Stadt\n" +
+  "⛑️ Helme ab 59,90 € (Jet-, Klapp- und Integralhelme, XS–XXL) – vor Ort anprobieren · Zubehör & Ersatzteile\n" +
+  "✅ Probefahrt im Showroom · hauseigene Werkstatt (Inspektion, Service, Reparatur) · 0 % Finanzierung bis 12 Monate · Lieferung per Spedition\n" +
+  "☎️ +49 30 2096738-70 · ✉️ kontakt@burnout-motors.de · Mo–Fr 10–18 Uhr, Sa 10–16 Uhr\n" +
+  "Instagram @burnout_motors · Facebook facebook.com/burnouttrade · TikTok @burnouttradede · YouTube @burnoutmotors\n\n" +
+  "🇹🇷 Burnout Motors – 20 yılı aşkın (2005'ten beri) iki tekerlek uzmanı. 🔥 Black Week: scooter'larda 300 € indirim.\n" +
+  "📍 Wilmersdorf'ta yeni: Bismarckstraße 24, 10625 Berlin (U Deutsche Oper) · Tempelhof showroom: Colditzstraße 27/29 · Merkez Hennigsdorf: Veltener Str. 13\n" +
+  "🛵 50 cc scooter (AM ehliyeti, B sınıfında dahil, 45 km/s): 1.699 €'dan · 125 cc (A1 veya B196): 2.499 €'dan · 250 cc üstü: 4.999 €'dan\n" +
+  "🏍️ Yeni: 125 cc motosikletler (GP1, GP2, Scrambler) 3.699 €'dan · ⚡ Elektrikli scooter 2.299 €'dan · ⛑️ Kask 59,90 €'dan\n" +
+  "✅ Showroom'da test sürüşü · kendi servisi · 12 aya kadar %0 finansman · nakliye ile teslimat\n" +
+  "☎️ +49 30 2096738-70 · ✉️ kontakt@burnout-motors.de · Pzt–Cum 10–18, Cmt 10–16";
+async function applyBurnoutBismarckFix(database) {
+  const id = "fix:2026-11-27-burnout-bismarck";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  const row = await database.prepare(`SELECT extra FROM ads WHERE id = 'burnout-motors'`).first();
+  if (!row) return;
+  let extra = {};
+  try { extra = JSON.parse(row.extra || "{}") || {}; } catch (e) { extra = {}; }
+  extra.address = "Bismarckstraße 24, 10625 Berlin (U Deutsche Oper) · Colditzstraße 27/29, 12099 Berlin-Tempelhof · Veltener Str. 13, 16761 Hennigsdorf";
+  extra.hours = "Mo–Fr 10–18 Uhr, Sa 10–16 Uhr";
+  extra.description = BURNOUT_DESC;
+  extra.coupon = { code: "BLACK WEEK", until: Date.parse("2026-11-30T23:59:59+01:00"),
+    de: "Black Week: 300 € Rabatt auf Roller", tr: "Black Week: scooter'larda 300 € indirim", en: "Black Week: €300 off scooters" };
+  const now = Date.now();
+  await database.batch([
+    database.prepare(`UPDATE ads SET extra = ?, updated_at = ? WHERE id = 'burnout-motors'`).bind(JSON.stringify(extra), now),
+    database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now),
+  ]);
 }
 
 // 2026-11-27 (owner "UYGULA 2-5"): pictures of the 3 new Plus sponsors + Aesthetic Laser Lyas' Instagram carousel in the
