@@ -456,6 +456,27 @@ export async function seedSponsors(database) {
   await applyBurnoutLogoBackFix(database); // 2026-11-27 owner
   await applyArchivTamEtIrmakFix(database); // 2026-11-27 evening
   await applyIrmakMoreFix(database); // 2026-11-27 evening (owner: "sponsor olacak, resimleri ve videoları ekle")
+  await applyTamEtVideoFix(database); // 2026-11-27 night
+}
+
+// 2026-11-27 night (owner: "Tam Et video linklerini de gir sponsor penceresine"): the 3 Google Maps videos of the
+// archive group links (maps.app.goo.gl/PUBmgVT3…, HFCrNkpw…, DaopkD47…) – shop front, counter, dry aged meat –
+// made smaller (720p) and in the gallery. Stay until deleted (days 36500). Runs once.
+const TAMET_VIDEOS = [
+  ["v-tamet-1", "/assets/sponsors/gallery/tam-et-video-1.mp4", "Tam Et – Residenzstraße 128"],
+  ["v-tamet-2", "/assets/sponsors/gallery/tam-et-video-2.mp4", "Frisch mariniert · Taze marine"],
+  ["v-tamet-3", "/assets/sponsors/gallery/tam-et-video-3.mp4", "Dry Aged · Kuru dinlendirilmiş et"],
+];
+async function applyTamEtVideoFix(database) {
+  const id = "fix:2026-11-27-tamet-videos";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  await ensureSponsorTables(database);
+  const now = Date.now();
+  const ops = TAMET_VIDEOS.map(([mid, key, caption], i) =>
+    database.prepare(`INSERT OR IGNORE INTO sponsor_media (id, ad_id, media_key, media_type, caption, status, bytes, created_at, by_admin, days) VALUES (?, 'tam-et', ?, 'video', ?, 'live', 0, ?, 1, 36500)`)
+      .bind(mid, key, caption, now + 10 - i));
+  ops.push(database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now));
+  await database.batch(ops);
 }
 
 // 2026-11-27 evening (owner): Irmak is a sponsor – his 6 newest Instagram posts (@kfz_sachverstaendiger_irmak, all
