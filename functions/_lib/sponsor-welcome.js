@@ -129,3 +129,73 @@ My Kiez Berlin`;
     text2,
   };
 }
+
+// ---- 2026-11-27 (owner "UYGULA 1-7, b evet"): message 3 = share kit for WhatsApp & social media (every sponsor) ----
+// Sponsor page link first (WhatsApp shows the big preview picture), ready share text DE + TR, one-tap share links
+// (WhatsApp, Facebook, Telegram), Instagram/TikTok: save the picture + "link in bio", QR poster, monthly report.
+/** Ready text a sponsor sends to customers / posts in a WhatsApp Status, Instagram, Facebook … (link first). */
+export function shareTextOf(ad) {
+  const firm = ad.name || "";
+  const page = `${SITE}/s/${encodeURIComponent(ad.id)}`;
+  return `👉 ${page}\n${firm} – jetzt auf My Kiez Berlin · artık My Kiez Berlin'de!\n\n🇩🇪 Alle Infos, Angebote & Kontakt auf unserer Seite – kostenlos in der App My Kiez Berlin.\n🇹🇷 Tüm bilgiler, fırsatlar ve iletişim sayfamızda – My Kiez Berlin uygulamasında ücretsiz.\n\n📍 My Kiez Berlin · mykiezberlin.com`;
+}
+
+/** Message 3. pic = picture URL to share (Kiez-Tipp card) or "" (then the page link preview shows the picture). */
+export function shareKitText(ad, pic = "") {
+  const firm = ad.name || "";
+  const page = `${SITE}/s/${encodeURIComponent(ad.id)}`;
+  const share = shareTextOf(ad);
+  const wa = `https://wa.me/?text=${encodeURIComponent(share)}`;
+  const fb = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(page)}`;
+  const tg = `https://t.me/share/url?url=${encodeURIComponent(page)}&text=${encodeURIComponent(firm + " – My Kiez Berlin")}`;
+  const qr = `${SITE}/qr-plakat.html?s=${encodeURIComponent(ad.id)}`;
+  const text3 =
+`🇩🇪 Ihr Paket zum Teilen – WhatsApp & Social Media
+
+Je mehr Ihre Kunden Ihre My Kiez Seite sehen, desto mehr bringt Ihnen Ihr Paket. Alles ist fertig – nur noch teilen:
+
+📍 Ihre Seite: ${page}
+${pic ? `🖼️ Ihr Bild zum Teilen (speichern & posten): ${pic}\n` : ""}
+📤 Mit einem Tipp teilen:
+💬 WhatsApp (Chat, Gruppe oder Status): ${wa}
+📘 Facebook: ${fb}
+✈️ Telegram: ${tg}
+📸 Instagram & TikTok: Bild speichern, als Story/Beitrag posten und den Link ${page} in die Bio oder als Link-Sticker setzen.
+
+✍️ Fertiger Text zum Kopieren (Link steht vorne, dann ist er im WhatsApp-Status anklickbar):
+————
+${share}
+————
+
+🪧 QR-Plakat zum Ausdrucken (für Ihr Schaufenster / Ihre Kasse): ${qr}
+📊 Monatsbericht: Am Monatsende bekommen Sie von uns einen Bericht mit Ihren Aufrufen und Klicks.
+
+🆘 Hilfe: ${SUPPORT_MAIL} · WhatsApp ${SUPPORT_WA}
+
+————————————
+
+🇹🇷 Paylaşım paketiniz – WhatsApp ve sosyal medya
+
+Müşterileriniz My Kiez sayfanızı ne kadar çok görürse paketiniz size o kadar çok kazandırır. Her şey hazır – sadece paylaşın:
+
+📍 Sayfanız: ${page}
+${pic ? `🖼️ Paylaşım resminiz (kaydedip paylaşın): ${pic}\n` : ""}
+📤 Tek dokunuşla paylaşın:
+💬 WhatsApp (sohbet, grup veya durum): ${wa}
+📘 Facebook: ${fb}
+✈️ Telegram: ${tg}
+📸 Instagram ve TikTok: resmi kaydedin, hikâye/gönderi olarak paylaşın ve ${page} linkini biyografinize veya link çıkartmasına ekleyin.
+
+✍️ Kopyalamak için hazır metin (link başta – böylece WhatsApp durumunda tıklanabilir):
+————
+${share}
+————
+
+🪧 Yazdırmak için QR afişi (vitrininize / kasanıza): ${qr}
+📊 Aylık rapor: Her ay sonunda görüntülenme ve tıklamalarınızı gösteren bir rapor gönderiyoruz.
+
+🆘 Destek: ${SUPPORT_MAIL} · WhatsApp ${SUPPORT_WA}
+
+My Kiez Berlin`;
+  return { subject3: `Ihr Paket zum Teilen · Paylaşım paketiniz – ${firm}`, text3, share };
+}

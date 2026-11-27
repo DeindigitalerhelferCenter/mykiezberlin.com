@@ -15,6 +15,11 @@ import { cleanStoryDays, mediaQuota, parseExtra, planRule, storyDaysMax } from "
 import { isVipAd } from "../_lib/story-vip.js";
 import { sendMail } from "../_lib/mail.js";
 import { welcomeTexts } from "../_lib/sponsor-welcome.js";
+import { sendWelcomePackage, setWelcomeAuto, welcomeAutoOn, welcomePackage } from "../_lib/sponsor-welcome-send.js"; // 2026-11-27
+
+function pickTexts(p) {
+  return { subject1: p.subject1, text1: p.text1, subject2: p.subject2, text2: p.text2, subject3: p.subject3, text3: p.text3, share: p.share };
+}
 import { adsForEmail, createSponsorToken, ensureSponsorTables, MEDIA_ORDER, moveSponsorMedia, panelUrl, sponsorFromToken, TOKEN_DAYS } from "../_lib/sponsor-panel.js";
 
 const MAX_DESCRIPTION = 5000; // "text without limit" for people – a hard cap only against abuse
@@ -181,6 +186,27 @@ export async function onRequestPost({ request, env }) {
         await database.prepare(`UPDATE ads SET extra = ? WHERE id = ?`).bind(JSON.stringify(extra), ad.id).run();
       }
       return json({ ok: true, link, email, mailed, ...t, welcome_log: extra.welcome_log || log });
+    }
+    // 2026-11-27 (owner "UYGULA 1-7"): full package in 3 messages (welcome, panel + guide, share kit)
+    // {adId, email?, contact?, send?} -> texts 1-3 + panel link; send=true mails all 3 (needs an e-mail)
+    if (action === "adminWelcome3") {
+      const ad = await database.prepare(`SELECT * FROM ads WHERE id = ?`).bind(cleanText(body.adId, 40)).first();
+      if (!ad) return json({ error: "not_found" }, 404);
+      const extra = parseExtra(ad.extra);
+      const email = cleanText(body.email || extra.panel_email || extra.email || "", 120);
+      const contact = cleanText(body.contact || "", 60);
+      if (body.send) {
+        const r = await sendWelcomePackage(env, database, ad, { email, contact });
+        if (r.error) return json({ ok: false, error: r.error });
+        return json({ ok: true, mailed: r.mailed, count: r.count, email: r.email, link: r.pkg.link, ...pickTexts(r.pkg), welcome_log: r.log });
+      }
+      const pkg = await welcomePackage(env, database, ad, { email, contact });
+      return json({ ok: true, mailed: false, email, link: pkg.link, ...pickTexts(pkg), welcome_log: extra.welcome_log || [] });
+    }
+    // {on?} -> automatic package for NEW sponsors (default off)
+    if (action === "adminWelcomeAuto") {
+      if (body.on !== undefined) await setWelcomeAuto(database, !!body.on);
+      return json({ ok: true, on: await welcomeAutoOn(database) });
     }
     if (action === "adminList") {
       const { results } = await database

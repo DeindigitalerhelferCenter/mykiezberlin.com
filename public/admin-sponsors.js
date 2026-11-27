@@ -102,6 +102,7 @@
             '<button type="button" data-act="edit" style="' + BTN + '">✏️ Bearbeiten · Düzenle</button>' +
             '<div class="out" style="flex-basis:100%"></div></div>';
         }).join("");
+      welcomeOverview(ads, body); // 2026-11-27
       body.querySelectorAll("select[data-plan]").forEach(function (s) {
         s.onchange = function () {
           var row = s.closest("[data-id]");
@@ -115,7 +116,7 @@
         var row = b.closest("[data-id]"), id = row.getAttribute("data-id"), out = row.querySelector(".out");
         var ad = ads.find(function (x) { return x.id === id; });
         b.onclick = function () {
-          if (b.dataset.act === "welcome") { welcomeBox(ad, out); return; }
+          if (b.dataset.act === "welcome") { welcomeBox3(ad, out); return; } // 2026-11-27: 3 messages, texts at once (old: welcomeBox)
           if (b.dataset.act === "link") {
             out.innerHTML = '<input type="email" placeholder="E-Mail (optional – dann wird der Link gemailt · e-posta yazılırsa link gönderilir)" style="' + INPUT + '" value="' + e(ad.email || "") + '"><button type="button" style="' + BTN + '">Erstellen · Oluştur</button>';
             out.querySelector("button").onclick = function () {
@@ -189,6 +190,96 @@
         if (wd) wd.onclick = function () { panel("adminWelcome", { adId: ad.id, mark: "wa" }).then(function (k) { if (k.ok) { ad.welcome_log = k.welcome_log; wd.textContent = "✓ notiert · kaydedildi"; } }); };
       });
     };
+  }
+
+  // 2026-11-27 (owner "UYGULA 1-7"): the whole package at once – texts appear right away (no hidden "create" step),
+  // 3 messages: 1 welcome, 2 panel link + guide + video, 3 share kit (WhatsApp & social media).
+  // E-mail: "📧 Alle 3 senden" (server). WhatsApp: 3 ready buttons, owner presses send in WhatsApp, then "✓ gesendet".
+  function welcomeBox3(ad, out) {
+    var when = (ad.welcome_log || []).map(function (l) { return new Date(l.at).toLocaleDateString("de-DE") + " " + (l.via === "wa" ? "WhatsApp" : "E-Mail"); }).join(", ");
+    var num = String(ad.link_wa || "").replace(/[^\d]/g, "");
+    out.innerHTML = (when ? '<p style="color:#3fb950;margin:4px 0">✓ Schon gesendet · Gönderildi: ' + e(when) + "</p>" : "") +
+      '<input data-w="email" type="email" placeholder="E-Mail" style="' + INPUT + '" value="' + e(ad.panel_email || ad.email || "") + '">' +
+      '<input data-w="contact" placeholder="Ansprechpartner (optional) · Yetkili adı (isteğe bağlı)" style="' + INPUT + '">' +
+      '<button type="button" data-w="mail" style="' + BTN + ';background:#E30613;border-color:#E30613;color:#fff">📧 Alle 3 per E-Mail senden · 3 mesajı e-postayla gönder</button> ' +
+      '<button type="button" data-w="again" style="' + BTN + '">🔄 Texte neu · Metinleri yenile</button> <span data-w="r"></span>' +
+      (num ? "" : '<p style="color:#d29922;margin:6px 0">Kein WhatsApp eingetragen – nur E-Mail · WhatsApp numarası yok – sadece e-posta</p>') +
+      '<div data-w="box"><p style="color:#8b949e">⏳ Texte werden erstellt · metinler hazırlanıyor …</p></div>';
+    var r = out.querySelector('[data-w="r"]'), box = out.querySelector('[data-w="box"]');
+    function val(k) { return out.querySelector('[data-w="' + k + '"]').value; }
+    function call(send) {
+      return panel("adminWelcome3", { adId: ad.id, email: val("email"), contact: val("contact"), send: !!send });
+    }
+    function wa(t) { return "https://wa.me/" + num + "?text=" + encodeURIComponent(t); }
+    function show(j) {
+      if (!j.ok) { box.innerHTML = '<p style="color:#f85149">Fehler · Hata: ' + e(j.error || "?") + "</p>"; return; }
+      box.innerHTML = [["1 · Willkommen · Hoş geldin", j.text1], ["2 · Panel + Anleitung + Video · Panel + kılavuz + video", j.text2], ["3 · Teilen (WhatsApp & Social Media) · Paylaşım paketi", j.text3]].map(function (m, i) {
+        return '<p style="margin:10px 0 4px;color:#8b949e">Nachricht · Mesaj ' + e(m[0]) + '</p><textarea readonly rows="7" style="' + INPUT + ';font-size:12px">' + e(m[1]) + "</textarea>" +
+          '<button type="button" data-copy="' + i + '" style="' + BTN + '">📋 Kopieren</button> ' +
+          (num ? '<a href="' + e(wa(m[1])) + '" target="_blank" rel="noopener" style="' + BTN + ';text-decoration:none;display:inline-block;background:#25D366;border-color:#25D366;color:#000">💬 WhatsApp ' + (i + 1) + "</a>" : "");
+      }).join("") +
+        (num ? '<div style="margin-top:10px"><button type="button" data-w="wadone" style="' + BTN + '">✓ Per WhatsApp gesendet · WhatsApp ile gönderildi</button></div>' : "");
+      box.querySelectorAll("[data-copy]").forEach(function (c) {
+        c.onclick = function () { var t = box.querySelectorAll("textarea")[Number(c.dataset.copy)]; t.select(); try { navigator.clipboard.writeText(t.value); } catch (x) { document.execCommand("copy"); } c.textContent = "✓ kopiert"; };
+      });
+      var wd = box.querySelector('[data-w="wadone"]');
+      if (wd) wd.onclick = function () { panel("adminWelcome", { adId: ad.id, mark: "wa" }).then(function (k) { if (k.ok) { ad.welcome_log = k.welcome_log; wd.textContent = "✓ notiert · kaydedildi"; } }); };
+    }
+    call(false).then(show);
+    out.querySelector('[data-w="again"]').onclick = function () { box.innerHTML = "⏳"; call(false).then(show); };
+    var md = out.querySelector('[data-w="mail"]');
+    md.onclick = function () {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val("email"))) { r.textContent = "E-Mail fehlt · e-posta eksik"; return; }
+      if (!confirm("3 E-Mails an " + val("email") + " senden? · 3 e-posta gönderilsin mi?")) return;
+      md.disabled = true; r.textContent = "⏳";
+      call(true).then(function (j) {
+        md.disabled = false;
+        if (!j.ok) { r.textContent = "Fehler · Hata: " + (j.error || "?"); return; }
+        ad.welcome_log = j.welcome_log || ad.welcome_log; ad.panel_email = j.email || ad.panel_email;
+        r.innerHTML = j.mailed ? '<span style="color:#3fb950">✓ 3 E-Mails gesendet · 3 e-posta gönderildi</span>' : '<span style="color:#f85149">' + (j.count || 0) + "/3 gesendet · gönderildi</span>";
+        show(j);
+      });
+    };
+  }
+
+  // 2026-11-27 (owner "UYGULA 1-7, a"): status of all sponsors + "send to everyone who has not got it yet" + auto switch
+  function welcomeOverview(ads, body) {
+    var box = document.createElement("div");
+    box.style.cssText = "background:#0d1117;border:1px solid #30363d;border-radius:12px;padding:12px;margin:0 0 12px";
+    body.insertBefore(box, body.firstChild);
+    function has(a) { return a.welcome_log && a.welcome_log.length; }
+    function mail(a) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a.panel_email || a.email || ""); }
+    function draw() {
+      var list = ads.filter(function (a) { return a.active !== 0 && !a.own; });
+      var done = list.filter(has), open = list.filter(function (a) { return !has(a); });
+      var canMail = open.filter(mail), waOnly = open.filter(function (a) { return !mail(a) && a.link_wa; }), none = open.filter(function (a) { return !mail(a) && !a.link_wa; });
+      box.innerHTML = "<b>👋 Willkommenspaket · Hoş geldin paketi</b> – ✓ " + done.length + " gesendet · gönderildi, ⏳ " + open.length + " offen · bekliyor" +
+        '<div style="font-size:12.5px;color:#8b949e;margin:6px 0">' +
+        (canMail.length ? "📧 E-Mail möglich: " + e(canMail.map(function (a) { return a.name; }).join(", ")) + "<br>" : "") +
+        (waOnly.length ? "💬 Nur WhatsApp (per Hand, 👋 drücken): " + e(waOnly.map(function (a) { return a.name; }).join(", ")) + "<br>" : "") +
+        (none.length ? '<span style="color:#d29922">⚠️ Kein Kontakt · iletişim yok: ' + e(none.map(function (a) { return a.name; }).join(", ")) + "</span>" : "") + "</div>" +
+        (canMail.length ? '<button type="button" data-bulk style="' + BTN + ';background:#E30613;border-color:#E30613;color:#fff">📧 Allen ' + canMail.length + " offenen per E-Mail senden · " + canMail.length + " sponsora e-postayla gönder</button> " : "") +
+        '<label style="margin-left:6px;cursor:pointer"><input type="checkbox" data-auto> Neue Sponsoren automatisch · Yeni sponsorlara otomatik</label> <span data-r></span>';
+      var auto = box.querySelector("[data-auto]");
+      panel("adminWelcomeAuto", {}).then(function (j) { auto.checked = !!(j && j.on); });
+      auto.onchange = function () { panel("adminWelcomeAuto", { on: auto.checked }).then(function (j) { auto.checked = !!(j && j.on); }); };
+      var bulk = box.querySelector("[data-bulk]"), r = box.querySelector("[data-r]");
+      if (bulk) bulk.onclick = function () {
+        if (!confirm(canMail.length + " Sponsoren bekommen je 3 E-Mails. Senden? · " + canMail.length + " sponsora üçer e-posta gidecek. Gönderilsin mi?")) return;
+        bulk.disabled = true;
+        var i = 0, ok = 0, bad = [];
+        (function next() {
+          if (i >= canMail.length) { draw(); box.querySelector("[data-r]").innerHTML = '<span style="color:#3fb950">✓ ' + ok + " gesendet · gönderildi</span>" + (bad.length ? ' <span style="color:#f85149">Fehler · hata: ' + e(bad.join(", ")) + "</span>" : ""); return; }
+          var a = canMail[i++];
+          r.textContent = "⏳ " + i + "/" + canMail.length + " " + a.name;
+          panel("adminWelcome3", { adId: a.id, send: true }).then(function (j) {
+            if (j && j.ok && j.count) { ok++; a.welcome_log = j.welcome_log; } else bad.push(a.name);
+            next();
+          });
+        })();
+      };
+    }
+    draw();
   }
 
   // ---------- 3. sponsor media ----------

@@ -144,7 +144,7 @@ async function createEditorialComment(database, body) {
   return json({ ok: true }, 201);
 }
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, waitUntil }) {
   if (!(await isAdmin(request, env))) return json({ error: "unauthorized" }, 401);
   const database = await db(env);
   if (!database) return noDb();
@@ -153,7 +153,21 @@ export async function onRequestPost({ request, env }) {
   const { type, id, action } = body;
   if (action === "createStory") return createStory(database, body);
   if (action === "createInstagramStory") return createInstagramStory(database, body);
-  if (action === "adSave") return saveAd(database, body.ad || {});
+  // 2026-11-27 (owner "UYGULA 1-7, c"): a NEW sponsor gets the welcome package automatically – only when the admin
+  // switch "Willkommen automatisch" is on (off for now: the owner sends by hand)
+  if (action === "adSave") {
+    const adIn = body.ad || {};
+    const before = /^[\w-]{2,40}$/.test(adIn.id || "") ? await database.prepare(`SELECT id FROM ads WHERE id = ?`).bind(adIn.id).first() : null;
+    const res = await saveAd(database, adIn);
+    if (!before && res.status === 200) {
+      const saved = await res.clone().json().catch(() => null);
+      if (saved && saved.id) {
+        const job = import("../_lib/sponsor-welcome-send.js").then((m) => m.autoWelcomeNewAd(env, database, saved.id)).catch(() => null);
+        if (typeof waitUntil === "function") waitUntil(job); else await job;
+      }
+    }
+    return res;
+  }
   if (action === "adDelete") {
     await database.prepare(`DELETE FROM ads WHERE id = ?`).bind(cleanText(body.id, 40)).run();
     return json({ ok: true });
