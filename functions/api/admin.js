@@ -215,6 +215,29 @@ export async function onRequestPost({ request, env, waitUntil }) {
     // Facebook/Telegram get the corrected story again (Instagram: the admin deletes the old one in the app)
     const redraw = await redrawEditedStory(env, database, id, new URL(request.url).origin, "story").catch((e) => ({ error: String((e && e.message) || e).slice(0, 120) }));
     if (redraw && (redraw.redrawn || redraw.error)) return json({ ok: true, redraw });
+  } else if (action === "storyDeal" && type === "story") {
+    // 2026-11-27 (owner): admin changes the offer of a story ("Güncel indirimler") or takes it out (remove -> "none")
+    if (body.remove) {
+      const row = await database.prepare(`SELECT cats FROM stories WHERE id = ?`).bind(id).first();
+      const cats = String((row && row.cats) || "").split(",").filter((k) => k && k !== "angebote");
+      await database.prepare(`UPDATE stories SET deal = 'none', cats = ? WHERE id = ?`).bind(cats.join(",") || "berlin", id).run();
+    } else {
+      const what = cleanText(body.what, 120), price = cleanText(body.price, 40), old = cleanText(body.old, 40);
+      if (!what || !price) return json({ error: "missing_fields" }, 400);
+      await database.prepare(`UPDATE stories SET deal = ? WHERE id = ?`).bind(JSON.stringify({ what, price, old }), id).run();
+    }
+  } else if (action === "storyImage" && type === "story") {
+    // 2026-11-27 (owner): admin puts a new picture on a story (offer list) – always a new file name (/media is cached)
+    if (!env.BUCKET) return json({ error: "r2_unbound" }, 503);
+    const m = String(body.data || "").match(/^data:(image\/(?:webp|jpeg|png));base64,([A-Za-z0-9+/=]+)$/);
+    if (!m) return json({ error: "bad_request" }, 400);
+    const bin = Uint8Array.from(atob(m[2]), (c) => c.charCodeAt(0));
+    if (bin.length > 3 * 1024 * 1024) return json({ error: "file_too_large" }, 413);
+    const ext = m[1] === "image/webp" ? "webp" : m[1] === "image/png" ? "png" : "jpg";
+    const key = `stories/${id}-img-${Date.now().toString(36)}.${ext}`;
+    await env.BUCKET.put(key, bin, { httpMetadata: { contentType: m[1] } });
+    await database.prepare(`UPDATE stories SET media_key = ?, media_type = 'image' WHERE id = ?`).bind(key, id).run();
+    return json({ ok: true, key });
   } else if (action === "storyMeta" && type === "story") {
     const kind = cleanText(body.kind, 30);
     const kiez = cleanText(body.kiez, 60);

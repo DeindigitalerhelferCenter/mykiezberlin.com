@@ -4,6 +4,7 @@ import { telegramSweep } from "../_lib/telegram.js";
 import { metaSweep } from "../_lib/meta-social.js";
 import { aiReview, reviewVerdict, swearHit, swearReview, cleanDevice, cleanupStoryMedia, dailyLimited, dailyUsed, isTrusted, USER_DAILY_LIMIT } from "../_lib/story-guard.js";
 import { STORY_CATS, aiStoryCats, catsOf, dealFromText, storyCats } from "../_lib/story-cats.js";
+import { offerOf, polishHeadline, polishText } from "../_lib/story-offer.js"; // 2026-11-27 (owner)
 import { vipFromRequest } from "../_lib/story-vip.js";
 import { bigRef, formFiles } from "../_lib/big-upload.js";
 import { newsSweep } from "../_lib/news-auto.js";
@@ -81,7 +82,13 @@ export async function onRequestGet({ request, env, waitUntil }) {
     .bind(now, now)
     .all();
   // 2026-11-13: "media" = every picture/video of the story in order (old clients keep using media_key)
-  return json({ stories: results.map(({ media_extra, overlay, deal, cats, ...r }) => ({ ...r, link: safeLink(r.link), media: storyMediaList({ ...r, media_extra, overlay }), deal: parseDeal(deal), cats: catsOf({ ...r, cats, deal }) })) });
+  // 2026-11-27 (owner): every offer story (also without a price) is in "Güncel indirimler" with its picture;
+  // the admin can change or remove the offer (deal "none")
+  return json({ stories: results.map(({ media_extra, overlay, deal, cats, ...r }) => {
+    const list = catsOf({ ...r, cats, deal });
+    const offer = offerOf({ ...r, deal }, list);
+    return { ...r, link: safeLink(r.link), media: storyMediaList({ ...r, media_extra, overlay }), deal: offer, cats: offer && !list.includes("angebote") ? [...list, "angebote"].slice(0, 6) : list };
+  }) });
 }
 
 export async function onRequestPost({ request, env, waitUntil }) {
@@ -95,9 +102,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
   // 2026-11-21 (owner): trusted person ("Kiez26" …) – like the admin: no limits, several files, long text, online at once
   const vip = admin ? null : await vipFromRequest(database, request, form).catch(() => null);
   const big = admin || !!vip;
-  const headline = cleanText(form.get("headline"), big ? BIG_HEADLINE : 120);
+  // 2026-11-27 (owner): fixed writing rules for everybody (capital letters, spaces, commas, full stop) – no AI
+  const headline = polishHeadline(cleanText(form.get("headline"), big ? BIG_HEADLINE : 120));
   // 2026-11-20 (owner): users may write 3x more (1500 instead of 500) and everybody reads the full text.
-  const subtext = cleanLongText(form.get("subtext"), big ? BIG_TEXT : 1500);
+  const subtext = polishText(cleanLongText(form.get("subtext"), big ? BIG_TEXT : 1500));
   const kiez = cleanText(form.get("kiez"), 60);
   const kind = KINDS.includes(form.get("kind")) ? form.get("kind") : "news";
   // Name of the person who shares (needed for the weekly Kiez-Stars)
