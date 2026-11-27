@@ -56,6 +56,28 @@ export const INVITE_CARDS = [
   },
 ];
 
+// ---- 2026-11-27 (owner "UYGULA grup 1-5"): the 5 Kiez groups are not promoted until "Ganz Berlin" has members ----
+// The groups stay in WhatsApp (pinned welcome stays). Switch in the admin (📲 Davet kartları): news_state 'invite_kiez'.
+// Off: the Kiez cards are hidden everywhere (share page, home box, app, daily story) and their old links lead to Ganz Berlin.
+export const KIEZ_GROUP_KEYS = ["neukoelln", "kreuzberg", "wedding", "moabit", "spandau"];
+export async function kiezGroupsOn(database) {
+  try {
+    const row = await database.prepare(`SELECT value FROM news_state WHERE id = 'invite_kiez'`).first();
+    return !!row && String(row.value) === "1"; // value column is INTEGER
+  } catch (e) {
+    return false;
+  }
+}
+export async function setKiezGroups(database, on) {
+  await database.prepare(`CREATE TABLE IF NOT EXISTS news_state (id TEXT PRIMARY KEY, value INTEGER)`).run();
+  await database.prepare(`INSERT INTO news_state (id, value) VALUES ('invite_kiez', ?) ON CONFLICT(id) DO UPDATE SET value = excluded.value`).bind(on ? "1" : "0").run();
+}
+/** Cards that are promoted now. */
+export async function activeCards(database) {
+  const on = database ? await kiezGroupsOn(database) : false;
+  return on ? INVITE_CARDS : INVITE_CARDS.filter((c) => !KIEZ_GROUP_KEYS.includes(c.key));
+}
+
 export function inviteCard(key) {
   return INVITE_CARDS.find((c) => c.key === key) || null;
 }

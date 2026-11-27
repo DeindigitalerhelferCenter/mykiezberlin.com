@@ -3,7 +3,7 @@
 // volunteer). Because it is an own admin story, the existing sweeps send it on: Telegram, Facebook + Instagram
 // (metaSweep) and the TikTok / WhatsApp packages of the Social-Planer. Runs from GET /api/stories (no cron on Pages),
 // from 10:00 Berlin time, at most once a day (table invite_daily). Never throws.
-import { INVITE_CARDS, inviteText, SITE } from "./invite-cards.js";
+import { activeCards, inviteText, SITE } from "./invite-cards.js";
 
 const CARD_VER = "2"; // 2: big button in the middle (26.11.2026) // raise when the card pictures are drawn again (new R2 copy)
 const FROM_HOUR = 10;
@@ -28,8 +28,9 @@ export async function inviteDailySweep(env, database, { force = false } = {}) {
     await database.prepare(`CREATE TABLE IF NOT EXISTS invite_daily (day TEXT PRIMARY KEY, card TEXT, story_id TEXT, created_at INTEGER)`).run();
     if (await database.prepare(`SELECT day FROM invite_daily WHERE day = ?`).bind(day).first()) return { skipped: "done_today" };
     const last = await database.prepare(`SELECT card FROM invite_daily ORDER BY day DESC LIMIT 1`).first();
-    const i = last ? (INVITE_CARDS.findIndex((c) => c.key === last.card) + 1) % INVITE_CARDS.length : 0;
-    const c = INVITE_CARDS[i];
+    const CARDS = await activeCards(database); // 2026-11-27: Kiez groups only when switched on
+    const i = last ? (CARDS.findIndex((c) => c.key === last.card) + 1) % CARDS.length : 0;
+    const c = CARDS[i];
     const id = `invite-${day}`;
     // claim the day first – a second request at the same moment does nothing
     const claim = await database.prepare(`INSERT OR IGNORE INTO invite_daily (day, card, story_id, created_at) VALUES (?, ?, ?, ?)`).bind(day, c.key, id, now).run();

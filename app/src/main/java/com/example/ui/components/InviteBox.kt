@@ -25,6 +25,12 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -90,9 +96,26 @@ private fun shareStatusLink(context: Context) {
     } catch (_: Exception) { }
 }
 
+// 2026-11-27 (owner "UYGULA grup 1-5"): the 5 Kiez groups are hidden until the admin switches them on –
+// the list comes from /api/davet (same as the web), so no new app version is needed to show them again.
+private val KIEZ_GROUP_KEYS = setOf("neukoelln", "kreuzberg", "wedding", "moabit", "spandau")
+
+private suspend fun loadActiveKeys(): List<Pair<String, String>>? = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+    try {
+        val con = java.net.URL("https://mykiezberlin.com/api/davet").openConnection() as java.net.HttpURLConnection
+        con.connectTimeout = 8000; con.readTimeout = 8000
+        val txt = con.inputStream.bufferedReader().use { it.readText() }
+        val arr = org.json.JSONObject(txt).optJSONArray("cards") ?: return@withContext null
+        (0 until arr.length()).mapNotNull { i -> arr.optJSONObject(i)?.let { it.optString("key") to it.optString("title_de") } }.filter { it.first.isNotBlank() }
+    } catch (_: Exception) { null }
+}
+
 @Composable
 fun InviteBox(modifier: Modifier = Modifier) {
     val context = LocalContext.current
+    val tick by RefreshBus.tick.collectAsState()
+    var keys by remember { mutableStateOf(INVITE_KEYS.filter { it.first !in KIEZ_GROUP_KEYS }) }
+    LaunchedEffect(tick) { loadActiveKeys()?.let { if (it.isNotEmpty()) keys = it } }
     Column(
         modifier
             .fillMaxWidth()
@@ -107,7 +130,7 @@ fun InviteBox(modifier: Modifier = Modifier) {
             color = Color(0xFFC9D1D9), fontSize = 12.5.sp, lineHeight = 17.sp
         )
         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            INVITE_KEYS.forEach { (key, title) ->
+            keys.forEach { (key, title) ->
                 Column(Modifier.width(112.dp).clickable { openUrl(context, "$DAVET#$key") }) {
                     AsyncImage(
                         model = "https://mykiezberlin.com/assets/davet/$key-post.jpg",

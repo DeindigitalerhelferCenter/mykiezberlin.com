@@ -3,15 +3,20 @@
 // A person who taps it goes straight to the WhatsApp group / channel, the app download (Android) or /werben.
 // Clicks are counted per day (table invite_clicks) – no cookies, nothing personal.
 import { db } from "../_lib/util.js";
-import { inviteCard, SITE, welcomeOf } from "../_lib/invite-cards.js";
+import { inviteCard, KIEZ_GROUP_KEYS, kiezGroupsOn, SITE, welcomeOf } from "../_lib/invite-cards.js";
 
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const BOT = /bot|crawl|spider|facebookexternalhit|whatsapp|telegram|preview|slack|discord|twitter/i;
 
 export async function onRequestGet({ params, request, env, waitUntil }) {
   const key = String(params.key || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 30);
-  const c = inviteCard(key);
+  let c = inviteCard(key);
   if (!c) return Response.redirect(`${SITE}/davet/`, 302);
+  // 2026-11-27 (owner "UYGULA grup 3"): Kiez groups not promoted now -> old links lead to "Ganz Berlin"
+  if (KIEZ_GROUP_KEYS.includes(c.key)) {
+    const database = await db(env).catch(() => null);
+    if (!database || !(await kiezGroupsOn(database))) c = inviteCard("berlin");
+  }
   const ua = request.headers.get("user-agent") || "";
   // the app download only works on Android – iPhone / computer get the web page
   const target = c.kind === "app" && !/android/i.test(ua) ? c.targetOther : c.target;
