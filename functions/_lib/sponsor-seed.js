@@ -440,6 +440,24 @@ export async function seedSponsors(database) {
   await applyCarouselNewPlusFix(database); // 2026-11-27
   await applyBurnoutBismarckFix(database); // 2026-11-27
   await applyBurnoutMoreFix(database); // 2026-11-27 later
+  await applyBurnoutLogoBackFix(database); // 2026-11-27 owner
+}
+
+// 2026-11-27 (owner): the first Burnout logo (white, the round badge fills the round logo window) looks much better than
+// the picture with the black background – back to /assets/sponsors/burnout-motors-logo.webp. Runs once.
+async function applyBurnoutLogoBackFix(database) {
+  const id = "fix:2026-11-27-burnout-logo-back";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  const row = await database.prepare(`SELECT extra FROM ads WHERE id = 'burnout-motors'`).first();
+  if (!row) return;
+  let extra = {};
+  try { extra = JSON.parse(row.extra || "{}") || {}; } catch (e) { extra = {}; }
+  extra.logo = "/assets/sponsors/burnout-motors-logo.webp";
+  const now = Date.now();
+  await database.batch([
+    database.prepare(`UPDATE ads SET extra = ?, updated_at = ? WHERE id = 'burnout-motors'`).bind(JSON.stringify(extra), now),
+    database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now),
+  ]);
 }
 
 // 2026-11-27 later (owner): Burnout – his logo + 4 pictures from burnout-trade.de ("BORNOUT BILDER.zip"), new cover,

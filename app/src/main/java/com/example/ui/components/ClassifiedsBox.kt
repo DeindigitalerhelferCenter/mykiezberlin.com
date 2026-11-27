@@ -181,26 +181,27 @@ fun ClassifiedsStrip(language: AppLanguage, onOpen: () -> Unit, modifier: Modifi
             ) {
                 Spacer(Modifier.width(4.dp))
                 row.forEach { a ->
-                    Column(Modifier.width(92.dp).clickable { open = a }) {
+                    // 2026-11-27 (owner): twice as wide – rectangle instead of square
+                    Column(Modifier.width(176.dp).clickable { open = a }) {
                         if (a.pics.isNotEmpty()) {
                             AsyncImage(model = a.pics.first(), contentDescription = a.title, contentScale = ContentScale.Crop,
-                                modifier = Modifier.size(92.dp).clip(RoundedCornerShape(12.dp)).background(Color(0xFF0D1117)))
+                                modifier = Modifier.width(176.dp).height(104.dp).clip(RoundedCornerShape(12.dp)).background(Color(0xFF0D1117)))
                         } else {
-                            Column(
-                                Modifier.size(92.dp).clip(RoundedCornerShape(12.dp))
+                            Row(
+                                Modifier.width(176.dp).height(104.dp).clip(RoundedCornerShape(12.dp))
                                     .background(androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFF1B2B22), Color(0xFF0D1117))))
                                     .border(1.dp, Color(0x662EA043), RoundedCornerShape(12.dp)),
-                                horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center
+                                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center
                             ) {
                                 androidx.compose.foundation.Image(
                                     painter = androidx.compose.ui.res.painterResource(com.example.R.drawable.mykiez_logo), contentDescription = null,
-                                    modifier = Modifier.size(44.dp).clip(RoundedCornerShape(10.dp)).background(Color.White).padding(2.dp)
+                                    modifier = Modifier.size(56.dp).clip(RoundedCornerShape(12.dp)).background(Color.White).padding(3.dp)
                                 )
-                                Text("Kleinanzeigen", color = green, fontWeight = FontWeight.Black, fontSize = 9.5.sp, modifier = Modifier.padding(top = 3.dp))
+                                Text("Kleinanzeigen", color = green, fontWeight = FontWeight.Black, fontSize = 11.sp, modifier = Modifier.padding(start = 10.dp))
                             }
                         }
-                        Text(a.title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 11.5.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 4.dp))
-                        Text(listOf(a.price, a.kiez).filter { it.isNotBlank() }.joinToString(" · "), color = green, fontSize = 10.5.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(a.title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.5.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 5.dp))
+                        Text(listOf(a.price, a.kiez).filter { it.isNotBlank() }.joinToString(" · "), color = green, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
             }

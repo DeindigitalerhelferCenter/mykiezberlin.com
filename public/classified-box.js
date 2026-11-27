@@ -24,11 +24,12 @@
     ".mk-clf2 .tk{display:flex;gap:8px;width:max-content;animation:mkClfRun var(--dur,40s) linear infinite;padding:0 6px}" +
     ".mk-clf2 .vp:hover .tk,.mk-clf2 .vp:active .tk{animation-play-state:paused}" +
     "@keyframes mkClfRun{from{transform:translateX(0)}to{transform:translateX(-50%)}}" +
-    ".mk-clf2 .it{flex:0 0 auto;width:92px;cursor:pointer;color:#fff;font-size:11px;line-height:1.25;text-align:left;background:none;border:0;padding:0;font-family:inherit}" +
-    ".mk-clf2 .it .pc{width:92px;height:92px;border-radius:12px;object-fit:cover;display:block;background:#0d1117}" +
-    ".mk-clf2 .it .lg{width:92px;height:92px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:linear-gradient(160deg,#1b2b22,#0d1117);border:1px solid #2ea04366;box-sizing:border-box}" +
-    ".mk-clf2 .it .lg img{width:44px;height:44px;border-radius:10px;background:#fff;padding:2px;box-sizing:border-box}.mk-clf2 .it .lg span{font-size:9.5px;font-weight:900;color:#7ee2a8}" +
-    ".mk-clf2 .it b{display:block;margin-top:4px;font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mk-clf2 .it i{font-style:normal;color:#7ee2a8;font-weight:800}" +
+    /* 2026-11-27 (owner): tiles twice as wide – rectangle instead of square */
+    ".mk-clf2 .it{flex:0 0 auto;width:176px;cursor:pointer;color:#fff;font-size:11.5px;line-height:1.25;text-align:left;background:none;border:0;padding:0;font-family:inherit}" +
+    ".mk-clf2 .it .pc{width:176px;height:104px;border-radius:12px;object-fit:cover;display:block;background:#0d1117}" +
+    ".mk-clf2 .it .lg{width:176px;height:104px;border-radius:12px;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:10px;background:linear-gradient(160deg,#1b2b22,#0d1117);border:1px solid #2ea04366;box-sizing:border-box}" +
+    ".mk-clf2 .it .lg img{width:56px;height:56px;border-radius:12px;background:#fff;padding:3px;box-sizing:border-box}.mk-clf2 .it .lg span{font-size:11px;font-weight:900;color:#7ee2a8}" +
+    ".mk-clf2 .it b{display:block;margin-top:5px;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mk-clf2 .it i{font-style:normal;color:#7ee2a8;font-weight:800}" +
     ".mk-clf2 .em{padding:0 12px;font-size:12.5px;color:#c9d1d9}" +
     ".mk-clfm{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center}" +
     ".mk-clfm .bx{background:#0d1117;color:#e6edf3;width:100%;max-width:520px;max-height:88vh;overflow:auto;border-radius:18px 18px 0 0;padding:14px 16px 18px;box-sizing:border-box;border-top:3px solid #25D366}" +
@@ -81,7 +82,7 @@
     var row = [];
     for (var n = 0; row.length < Math.max(8, list.length); n++) row.push(n % list.length);
     var one = row.map(function (i) { return tile(list[i], i); }).join("");
-    var dur = Math.max(25, row.length * 5);
+    var dur = Math.max(40, row.length * 9); // 2026-11-27: wider tiles, same slow speed
     return '<div class="mk-clf2" data-mk-clf>' + head + '<div class="vp"><div class="tk" style="--dur:' + dur + 's">' + one + one + "</div></div></div>";
   }
   function detail(a) {
