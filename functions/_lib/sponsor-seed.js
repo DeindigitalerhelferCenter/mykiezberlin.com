@@ -455,6 +455,34 @@ export async function seedSponsors(database) {
   await applyBurnoutMoreFix(database); // 2026-11-27 later
   await applyBurnoutLogoBackFix(database); // 2026-11-27 owner
   await applyArchivTamEtIrmakFix(database); // 2026-11-27 evening
+  await applyIrmakMoreFix(database); // 2026-11-27 evening (owner: "sponsor olacak, resimleri ve videoları ekle")
+}
+
+// 2026-11-27 evening (owner): Irmak is a sponsor – his 6 newest Instagram posts (@kfz_sachverstaendiger_irmak, all
+// carousels; the account has no reels) in the gallery as embedded posts, + the new Sachverständigenzentrum
+// Alt-Reinickendorf 23–24 (from irmak-gutachten.de/sachverstaendigenzentrum-reinickendorf). Stay until deleted. Runs once.
+const IRMAK_IG = ["DgCbqX9iM-7", "Dfagmndjj9l", "DekaS45DrjO", "Dd4iSUCDjg_", "Ddj7E14Dk2G", "Dc8SZbkjuO_"];
+async function applyIrmakMoreFix(database) {
+  const id = "fix:2026-11-27-irmak-more";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  const row = await database.prepare(`SELECT extra FROM ads WHERE id = 'irmak-gutachten'`).first();
+  if (!row) return;
+  await ensureSponsorTables(database);
+  let extra = {};
+  try { extra = JSON.parse(row.extra || "{}") || {}; } catch (e) { extra = {}; }
+  extra.address = "Lieberoser Str. 25, 13439 Berlin · Sachverständigenzentrum: Alt-Reinickendorf 23–24, 13407 Berlin";
+  if (typeof extra.description === "string" && !/Alt-Reinickendorf/.test(extra.description)) {
+    extra.description = extra.description
+      .replace("Antwort innerhalb von 24 Stunden.", "Antwort innerhalb von 24 Stunden.\n🏢 Neu: Sachverständigenzentrum Alt-Reinickendorf 23–24 – 200 m² Halle, Begutachtung bei jedem Wetter, Achs- und Karosserievermessung; nach Absprache vorbeikommen oder wir kommen zu Ihnen.")
+      .replace("24 saat içinde dönüş.", "24 saat içinde dönüş.\n🏢 Yeni: Alt-Reinickendorf 23–24'te ekspertiz merkezi – 200 m² salon, her havada inceleme, aks ve kaporta ölçümü; randevuyla gelin ya da biz size gelelim.");
+  }
+  const now = Date.now();
+  const ops = IRMAK_IG.map((code, i) =>
+    database.prepare(`INSERT OR IGNORE INTO sponsor_media (id, ad_id, media_key, media_type, caption, status, bytes, created_at, by_admin, days) VALUES (?, 'irmak-gutachten', ?, 'instagram', 'Instagram', 'live', 0, ?, 1, 36500)`)
+      .bind(`ig-irmak-${i + 1}`, `https://www.instagram.com/p/${code}/`, now - 100 - i));
+  ops.push(database.prepare(`UPDATE ads SET extra = ?, updated_at = ? WHERE id = 'irmak-gutachten'`).bind(JSON.stringify(extra), now));
+  ops.push(database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now));
+  await database.batch(ops);
 }
 
 // 2026-11-27 evening (owner: links in the WhatsApp group "My MyKiezBerlin - Archiv"): Tam Et – round logo cut from the
