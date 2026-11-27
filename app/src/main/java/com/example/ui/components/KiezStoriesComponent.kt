@@ -335,15 +335,18 @@ fun StoryViewerDialog(
     var showFullTextDialog by remember { mutableStateOf(false) }
     var isImageZoomed by remember { mutableStateOf(false) }
 
+    // 2026-11-27 (owner): a video plays to its end (up to 3 minutes) – was always cut after 25 s
+    var videoMs by remember(story.mediaUri) { androidx.compose.runtime.mutableLongStateOf(0L) }
+
     // Auto advancement timer
     LaunchedEffect(currentIndex, mediaIndex, showFullTextDialog, isImageZoomed) {
         if (!showFullTextDialog && !isImageZoomed) {
-            val totalMs = if (story.isVideo) 25000L else 7500L
             val intervalMs = 50L
-            val step = intervalMs.toFloat() / totalMs.toFloat()
             while (progress < 1f && !showFullTextDialog && !isImageZoomed) {
                 kotlinx.coroutines.delay(intervalMs)
-                progress += step
+                // read every time: the video length is known only after the player is ready
+                val totalMs = if (story.isVideo) (if (videoMs > 0L) (videoMs + 300L).coerceIn(7000L, 180000L) else 25000L) else 7500L
+                progress += intervalMs.toFloat() / totalMs.toFloat()
             }
             if (!showFullTextDialog && !isImageZoomed && progress >= 1f) {
                 if (mediaIndex < mediaCount - 1) {
@@ -515,6 +518,7 @@ fun StoryViewerDialog(
                                     setVideoURI(Uri.parse(story.mediaUri))
                                     setOnPreparedListener { mp ->
                                         if (mp.videoHeight > 0) videoAspect = mp.videoWidth.toFloat() / mp.videoHeight
+                                        if (mp.duration > 0) videoMs = mp.duration.toLong() // 2026-11-27: real length for the timer
                                         mp.isLooping = true
                                         mp.start()
                                     }
@@ -1220,13 +1224,14 @@ fun StoryCreateDialog(
                 retriever.release()
             } catch (_: Exception) {}
 
-            if (durationSec > 90L) {
+            // 2026-11-27 (owner): videos up to 3 minutes (was 90 s) – same as VideoShrink.MAX_SECONDS
+            if (durationSec > 180L) {
                 videoDurationWarning = if (language == AppLanguage.TURKISH)
-                    "Video en fazla 90 saniye olabilir! (Seçilen video: ${durationSec} saniye)"
+                    "Video en fazla 3 dakika olabilir! (Seçilen video: ${durationSec} saniye)"
                 else if (language == AppLanguage.ENGLISH)
-                    "Video must be maximum 90 seconds! (Selected: ${durationSec}s)"
+                    "Video must be maximum 3 minutes! (Selected: ${durationSec}s)"
                 else
-                    "Video darf maximal 90 Sekunden lang sein! (Gewählt: ${durationSec}s)"
+                    "Video darf maximal 3 Minuten lang sein! (Gewählt: ${durationSec}s)"
                 selectedMediaUri = null
                 isVideoMedia = false
             } else {

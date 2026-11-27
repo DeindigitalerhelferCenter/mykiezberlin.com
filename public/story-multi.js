@@ -27,7 +27,17 @@
     var list = items(story);
     window.mkStoryDurationMs = 0;
     window.mkStoryMediaIndex = 0; // 2026-11-17: read by story-text-view.js (text on top of videos)
-    if (!list) return r;
+    if (!list) {
+      // 2026-11-27 (owner): a story with ONE video was cut after 7 s – it plays to its end now (up to 3 minutes)
+      var one = document.querySelector("#story-modal-overlay .story-content-view video");
+      if (one) {
+        var setLen = function () {
+          if (one.duration && isFinite(one.duration)) { window.mkStoryDurationMs = Math.min(180000, Math.max(7000, Math.ceil(one.duration * 1000) + 300)); startStoryTimer(); }
+        };
+        if (one.readyState >= 1) setLen(); else one.addEventListener("loadedmetadata", setLen);
+      }
+      return r;
+    }
     if (index >= list.length) index = list.length - 1;
     window.mkStoryMediaIndex = index;
     var m = list[index];
@@ -42,7 +52,7 @@
       if (video) {
         window.mkStoryDurationMs = 7000;
         video.addEventListener("loadedmetadata", function () {
-          if (video.duration && isFinite(video.duration)) { window.mkStoryDurationMs = Math.min(60000, Math.max(7000, Math.ceil(video.duration * 1000) + 300)); startStoryTimer(); }
+          if (video.duration && isFinite(video.duration)) { window.mkStoryDurationMs = Math.min(180000, Math.max(7000, Math.ceil(video.duration * 1000) + 300)); startStoryTimer(); } // 2026-11-27: up to 3 min (was 60 s)
         });
       }
     }
