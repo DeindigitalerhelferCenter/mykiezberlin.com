@@ -457,6 +457,28 @@ export async function seedSponsors(database) {
   await applyArchivTamEtIrmakFix(database); // 2026-11-27 evening
   await applyIrmakMoreFix(database); // 2026-11-27 evening (owner: "sponsor olacak, resimleri ve videoları ekle")
   await applyTamEtVideoFix(database); // 2026-11-27 night
+  await applyTekHandelsLogoFix(database); // 2026-11-28 owner
+}
+
+// 2026-11-28 (owner: "TEK - LOGO desktopda duruyor … bu logoyu oraya da ekle"): the admin-made ad
+// "Terra Verde TEK Handels Getränke" (ad_87dc917f) had no logo – the round red TEK logo from the owner's desktop.
+// Only set when the ad still has no logo (an admin logo is never overwritten). Runs once.
+async function applyTekHandelsLogoFix(database) {
+  const id = "fix:2026-11-28-tek-handels-logo";
+  if (await database.prepare(`SELECT id FROM seeds WHERE id = ?`).bind(id).first()) return;
+  const row = await database.prepare(`SELECT extra FROM ads WHERE id = 'ad_87dc917f'`).first();
+  const now = Date.now();
+  const ops = [];
+  if (row) {
+    let extra = {};
+    try { extra = JSON.parse(row.extra || "{}") || {}; } catch (e) { extra = {}; }
+    if (!extra.logo) {
+      extra.logo = "/assets/sponsors/terra-verde-tek-handels-logo.webp";
+      ops.push(database.prepare(`UPDATE ads SET extra = ?, updated_at = ? WHERE id = 'ad_87dc917f'`).bind(JSON.stringify(extra), now));
+    }
+  }
+  ops.push(database.prepare(`INSERT OR IGNORE INTO seeds (id, created_at) VALUES (?, ?)`).bind(id, now));
+  await database.batch(ops);
 }
 
 // 2026-11-27 night (owner: "Tam Et video linklerini de gir sponsor penceresine"): the 3 Google Maps videos of the
